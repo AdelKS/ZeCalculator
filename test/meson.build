@@ -1,4 +1,5 @@
 test_sources = files(
+    'parser_test.cpp',
 )
 
 cmake = import('cmake')
