@@ -30,9 +30,8 @@
 #include <sstream>
 #include <stack>
 
-
-namespace parsing
-{
+namespace zc {
+namespace parsing {
 
 std::pair<std::optional<double>, size_t> to_double(std::string_view view)
 {
@@ -291,4 +290,5 @@ std::pair<std::vector<Token>, std::optional<Error>> parse(std::string expression
   return result;
 }
 
+}
 }

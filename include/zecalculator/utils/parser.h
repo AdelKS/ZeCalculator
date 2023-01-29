@@ -42,6 +42,8 @@
 #include <optional>
 #include <string_view>
 
+namespace zc {
+
 /// @brief interprets "view" as a floating number
 /// @returns if successful, the interpreted double and the number of characters interpreted
 ///          if unsuccessful, an empty result and 0 as the number of characters interpreted
@@ -167,3 +169,5 @@ std::pair<std::vector<Token>, std::optional<Error>> parse(std::string expression
 std::pair<std::optional<double>, size_t> to_double(std::string_view view);
 
 };
+
+}

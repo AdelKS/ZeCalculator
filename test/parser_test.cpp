@@ -21,7 +21,8 @@
 #include <zecalculator/utils/parser.h>
 #include <boost/ut.hpp>
 
-using namespace parsing;
+using namespace zc;
+using namespace zc::parsing;
 
 int main()
 {
@@ -101,6 +102,20 @@ int main()
     auto [parsing, error] = parse("2+2)");
 
     expect(error and error.value().type == Error::Type::UNEXPECTED_CLOSING_PARENTHESIS);
+  };
+
+  "floating point operations"_test = []()
+  {
+    auto [parsing, error] = parse("223.231E+13+183.283E-132");
+
+    expect(not error) << error.value_or(Error{}).error_name();
+
+    auto expected_parsing =
+        std::vector<Token>({
+          {Token::Type::NUMBER, 223.231E+13},
+          {Token::Type::OPERATOR, '+'},
+          {Token::Type::NUMBER, 183.283E-132},
+        });
   };
 
   return 0;
