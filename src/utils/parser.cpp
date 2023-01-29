@@ -155,6 +155,11 @@ std::pair<std::vector<Token>, std::optional<Error>> parse(std::string expression
     return std::ranges::any_of(operators, [&ch](const char op){ return op == ch; });
   };
 
+  auto is_seperator = [](const char ch) {
+    static constexpr std::array separators = {'+', '-', '*', '/', '^', ' ', '(', ')'};
+    return std::ranges::any_of(separators, [&ch](const char op){ return op == ch; });
+  };
+
   auto is_digit = [](const char ch)
   {
     return std::isdigit(static_cast<unsigned char>(ch));
@@ -236,6 +241,9 @@ std::pair<std::vector<Token>, std::optional<Error>> parse(std::string expression
       }
       else return error_out(Error::UNEXPECTED_CLOSING_PARENTHESIS, std::string_view(it, it+1));
     }
+    else if (*it == ' ')
+      // spaces are skipped
+      it++;
     else
     {
       if (value)
@@ -246,9 +254,7 @@ std::pair<std::vector<Token>, std::optional<Error>> parse(std::string expression
 
         auto token_begin = it;
         while (it != expression.cend() and
-               not is_operator(*it) and
-               *it != '(' and
-               *it != ')') { it++; }
+               not is_seperator(*it)) { it++; }
 
         std::string_view token(token_begin, it);
 

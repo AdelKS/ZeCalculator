@@ -45,6 +45,24 @@ int main()
     expect(parsing == expected_parsing);
   };
 
+  "simple expression with spaces"_test = []()
+  {
+    auto [parsing, error] = parse("   2 +  2  *2");
+
+    expect(not error);
+
+    auto expected_parsing =
+        std::vector<Token>({
+          {Token::Type::NUMBER, 2.},
+          {Token::Type::OPERATOR, Token::Operator::PLUS},
+          {Token::Type::NUMBER, 2.},
+          {Token::Type::OPERATOR, Token::Operator::MULTIPLY},
+          {Token::Type::NUMBER, 2.},
+        });
+
+    expect(parsing == expected_parsing);
+  };
+
   "function expression"_test = []()
   {
     auto [parsing, error] = parse("(cos(sin(x)+1))+1");
