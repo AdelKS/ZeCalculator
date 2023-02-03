@@ -16,6 +16,7 @@ fs = import('fs')
 
 zecalculator_inc = include_directories('include')
 
+subdir('include/zecalculator')
 subdir('src')
 
 zecalculator_dep = declare_dependency(
