@@ -33,14 +33,14 @@
 namespace zc {
 namespace parsing {
 
-std::pair<std::optional<double>, size_t> to_double(std::string_view view)
+std::optional<std::pair<double, size_t>> to_double(std::string_view view)
 {
-  std::pair<std::optional<double>, size_t> result = {0, 0};
-  auto [ptr, ec] = std::from_chars(view.data(), view.data() + view.size(), result.first.value());
+  std::optional<std::pair<double, size_t>> result = std::make_pair(0.0, 0);
+  auto [ptr, ec] = std::from_chars(view.data(), view.data() + view.size(), result->first);
 
   if (ec == std::errc())
-    result.second = size_t(ptr - view.data());
-  else result.first.reset();
+    result->second = size_t(ptr - view.data());
+  else result.reset();
 
   return result;
 }
@@ -176,10 +176,11 @@ std::pair<std::vector<Token>, std::optional<Error>> parse(std::string expression
     std::optional<char> next_char = it+1 != expression.cend() ? *(it+1) : std::optional<char>();
     if (is_digit(*it) or (numberSign and *it == '-' and next_char and is_digit(next_char.value())))
     {
-      auto [double_opt_val, processed_char_num] = to_double(std::string_view(it, expression.cend()));
+      auto double_val = to_double(std::string_view(it, expression.cend()));
 
-      if (double_opt_val)
+      if (double_val)
       {
+        const auto& [double_opt_val, processed_char_num] = *double_val;
         // parsing successful
         parsing.emplace_back(Token::Type::NUMBER, double_opt_val);
         it += processed_char_num;
