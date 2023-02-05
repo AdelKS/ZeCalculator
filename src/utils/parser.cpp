@@ -132,21 +132,18 @@ std::ostream& operator << (std::stringstream& os, const Token& token)
   return os;
 }
 
-std::pair<std::vector<Token>, std::optional<Error>> parse(std::string expression)
+tl::expected<std::vector<Token>, Error> parse(std::string expression)
 {
-  std::pair<std::vector<Token>, std::optional<Error>> result;
-  auto& parsing = result.first;
+  tl::expected<std::vector<Token>, Error> parsing;
 
   auto error_out = [&](Error::Type error_type, std::string_view where)
   {
-    result.second.emplace(Error
-    {
-      .type = error_type,
-      .expression = std::move(expression),
-      .where = where
+    return tl::unexpected(
+      Error {
+        .type = error_type,
+        .expression = std::move(expression),
+        .where = where
     });
-
-    return result;
   };
 
   auto is_operator = [](const char ch) {
@@ -182,7 +179,7 @@ std::pair<std::vector<Token>, std::optional<Error>> parse(std::string expression
       {
         const auto& [double_opt_val, processed_char_num] = *double_val;
         // parsing successful
-        parsing.emplace_back(Token::Type::NUMBER, double_opt_val);
+        parsing->emplace_back(Token::Type::NUMBER, double_opt_val);
         it += processed_char_num;
 
         openingParenthesis = value = numberSign = false;
@@ -194,7 +191,7 @@ std::pair<std::vector<Token>, std::optional<Error>> parse(std::string expression
     {
       if (ope)
       {
-        parsing.emplace_back(Token::Type::OPERATOR, *it);
+        parsing->emplace_back(Token::Type::OPERATOR, *it);
 
         openingParenthesis = value = true;
         ope = numberSign = closingParenthesis = canEnd = false;
@@ -206,14 +203,14 @@ std::pair<std::vector<Token>, std::optional<Error>> parse(std::string expression
     {
       if (openingParenthesis)
       {
-        if (not parsing.empty() and parsing.back().type == Token::Type::FUNCTION)
+        if (not parsing->empty() and parsing->back().type == Token::Type::FUNCTION)
         {
-          parsing.emplace_back(Token::Type::FUNCTION_CALL_START);
+          parsing->emplace_back(Token::Type::FUNCTION_CALL_START);
           last_opened_pth.push(FUNCTION_CALL_PTH);
         }
         else
         {
-          parsing.emplace_back(Token::Type::OPENING_PARENTHESIS);
+          parsing->emplace_back(Token::Type::OPENING_PARENTHESIS);
           last_opened_pth.push(NORMAL_PTH);
         }
 
@@ -229,9 +226,9 @@ std::pair<std::vector<Token>, std::optional<Error>> parse(std::string expression
       {
         if (last_opened_pth.top() == FUNCTION_CALL_PTH)
         {
-          parsing.emplace_back(Token::Type::FUNCTION_CALL_END);
+          parsing->emplace_back(Token::Type::FUNCTION_CALL_END);
         }
-        else parsing.emplace_back(Token::Type::CLOSING_PARENTHESIS);
+        else parsing->emplace_back(Token::Type::CLOSING_PARENTHESIS);
 
         last_opened_pth.pop();
 
@@ -261,14 +258,14 @@ std::pair<std::vector<Token>, std::optional<Error>> parse(std::string expression
         if (it == expression.cend() or *it != '(')
         {
           // can only be a variable when we reach the end of the expression
-          parsing.emplace_back(Token::Type::VARIABLE, std::string(token));
+          parsing->emplace_back(Token::Type::VARIABLE, std::string(token));
 
           openingParenthesis = numberSign = value = false;
           canEnd = ope = closingParenthesis = true;
         }
         else
         {
-          parsing.emplace_back(Token::Type::FUNCTION, std::string(token));
+          parsing->emplace_back(Token::Type::FUNCTION, std::string(token));
 
           canEnd = closingParenthesis = ope = numberSign = value = false;
           openingParenthesis = true;
@@ -288,7 +285,7 @@ std::pair<std::vector<Token>, std::optional<Error>> parse(std::string expression
   if (not canEnd)
     return error_out(Error::UNEXPTECTED_END_OF_EXPRESSION, std::string_view(it-1, it));
 
-  return result;
+  return parsing;
 }
 
 }

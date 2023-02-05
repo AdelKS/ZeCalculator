@@ -30,9 +30,9 @@ int main()
 
   "simple expression"_test = []()
   {
-    auto [parsing, error] = parse("2+2*2");
+    auto parsing = parse("2+2*2");
 
-    expect(not error);
+    expect(bool(parsing)) << (parsing ? "" : parsing.error().error_name());
 
     auto expected_parsing =
         std::vector<Token>({
@@ -43,14 +43,14 @@ int main()
           {Token::Type::NUMBER, 2.},
         });
 
-    expect(parsing == expected_parsing);
+    expect(*parsing == expected_parsing);
   };
 
   "simple expression with spaces"_test = []()
   {
-    auto [parsing, error] = parse("   2 +  2  *2");
+    auto parsing = parse("   2 +  2  *2");
 
-    expect(not error);
+    expect(bool(parsing)) << (parsing ? "" : parsing.error().error_name());
 
     auto expected_parsing =
         std::vector<Token>({
@@ -61,14 +61,14 @@ int main()
           {Token::Type::NUMBER, 2.},
         });
 
-    expect(parsing == expected_parsing);
+    expect(*parsing == expected_parsing);
   };
 
   "function expression"_test = []()
   {
-    auto [parsing, error] = parse("(cos(sin(x)+1))+1");
+    auto parsing = parse("(cos(sin(x)+1))+1");
 
-    expect(not error) << error.value_or(Error{}).error_name();
+    expect(bool(parsing)) << (parsing ? "" : parsing.error().error_name());
 
     auto expected_parsing =
         std::vector<Token>({
@@ -87,28 +87,28 @@ int main()
           {Token::Type::NUMBER, 1.},
         });
 
-    expect(parsing == expected_parsing);
+    expect(*parsing == expected_parsing);
   };
 
   "two operators"_test = []()
   {
-    auto [parsing, error] = parse("2*-1");
+    auto parsing = parse("2*-1");
 
-    expect(error and error.value().type == Error::Type::UNEXPECTED_OPERATOR);
+    expect(not parsing and parsing.error().type == Error::Type::UNEXPECTED_OPERATOR);
   };
 
   "extra parenthesis"_test = []()
   {
-    auto [parsing, error] = parse("2+2)");
+    auto parsing = parse("2+2)");
 
-    expect(error and error.value().type == Error::Type::UNEXPECTED_CLOSING_PARENTHESIS);
+    expect(not parsing and parsing.error().type == Error::Type::UNEXPECTED_CLOSING_PARENTHESIS);
   };
 
   "floating point operations"_test = []()
   {
-    auto [parsing, error] = parse("223.231E+13+183.283E-132");
+    auto parsing = parse("223.231E+13+183.283E-132");
 
-    expect(not error) << error.value_or(Error{}).error_name();
+    expect(bool(parsing)) << (parsing ? "" : parsing.error().error_name());
 
     auto expected_parsing =
         std::vector<Token>({
@@ -116,6 +116,8 @@ int main()
           {Token::Type::OPERATOR, '+'},
           {Token::Type::NUMBER, 183.283E-132},
         });
+
+    expect(*parsing == expected_parsing);
   };
 
   return 0;

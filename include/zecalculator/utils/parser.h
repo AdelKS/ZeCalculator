@@ -24,7 +24,10 @@
 #include <optional>
 #include <variant>
 #include <cstdint>
+#include <optional>
+#include <string_view>
 
+#include <zecalculator/external/expected.h>
 #include <zecalculator/utils/error.h>
 
 /* TODO: update approach as the following:
@@ -35,9 +38,6 @@
     - Enable setting custom names for functions and variables
     - Performance improvement: flatten trees
 */
-
-#include <optional>
-#include <string_view>
 
 namespace zc {
 
@@ -115,7 +115,7 @@ struct Token
   std::optional<std::string> name = std::optional<std::string>();
 };
 
-std::pair<std::vector<Token>, std::optional<Error>> parse(std::string expression);
+tl::expected<std::vector<Token>, Error> parse(std::string expression);
 
 };
 
