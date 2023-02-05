@@ -20,15 +20,12 @@
 
 #pragma once
 
-#include <array>
-#include <cassert>
-#include <stdexcept>
-#include <string>
-#include <string_view>
 #include <vector>
 #include <optional>
 #include <variant>
 #include <cstdint>
+
+#include <zecalculator/utils/error.h>
 
 /* TODO: update approach as the following:
     - Parse: aka cut each atom in a formula
@@ -51,52 +48,6 @@ std::pair<std::optional<double>, size_t> to_double(std::string_view view);
 
 namespace parsing
 {
-
-struct Error
-{
-  // type of error
-  enum Type : uint8_t
-  {
-    UNDEFINED = 0,
-    WRONG_NUMBER_FORMAT,
-    UNEXPECTED_OPERATOR,
-    UNEXPECTED_OPENING_PARENTHESIS,
-    UNEXPECTED_CLOSING_PARENTHESIS,
-    UNEXPECTED_VARIABLE_OR_FUNCTION,
-    UNEXPTECTED_END_OF_EXPRESSION,
-    MISSING_CLOSING_PARENTHESES,
-    MISSING_CLOSING_FUNCTION_CALL,
-  };
-
-  static constexpr std::array error_to_str_map =
-  {
-    "UNDEFINED",
-    "WRONG_NUMBER_FORMAT",
-    "UNEXPECTED_OPERATOR",
-    "UNEXPECTED_OPENING_PARENTHESIS",
-    "UNEXPECTED_CLOSING_PARENTHESIS",
-    "UNEXPECTED_VARIABLE_OR_FUNCTION",
-    "UNEXPTECTED_END_OF_EXPRESSION",
-    "MISSING_CLOSING_PARENTHESES",
-    "MISSING_CLOSING_FUNCTION_CALL",
-  };
-
-  /// @brief returns he name of the type 'type'
-  std::string_view error_name() const
-  {
-    assert(type < error_to_str_map.size());
-    return error_to_str_map[type];
-  }
-
-  Type type = UNDEFINED;
-
-  // the expression
-  std::string expression;
-
-  // where in the expression above the error happenned
-  std::string_view where;
-};
-
 
 /// @brief represents a token in a parsed expression
 /// @example an operatr '+', a function name 'cos', a variable 'x', a number '-3.14E+2'

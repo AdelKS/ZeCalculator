@@ -1,4 +1,5 @@
 header_files = files(
+    'utils/error.h',
     'utils/parser.h',
 )
 
