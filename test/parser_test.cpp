@@ -36,11 +36,11 @@ int main()
 
     auto expected_parsing =
         std::vector<Token>({
-          {Token::Type::NUMBER, 2.},
-          {Token::Type::OPERATOR, Token::Operator::PLUS},
-          {Token::Type::NUMBER, 2.},
-          {Token::Type::OPERATOR, Token::Operator::MULTIPLY},
-          {Token::Type::NUMBER, 2.},
+          {Token::Type::NUMBER,   "2", 2.},
+          {Token::Type::OPERATOR, "+", Token::Operator::PLUS},
+          {Token::Type::NUMBER,   "2", 2.},
+          {Token::Type::OPERATOR, "*", Token::Operator::MULTIPLY},
+          {Token::Type::NUMBER,   "2", 2.},
         });
 
     expect(*parsing == expected_parsing);
@@ -54,11 +54,11 @@ int main()
 
     auto expected_parsing =
         std::vector<Token>({
-          {Token::Type::NUMBER, 2.},
-          {Token::Type::OPERATOR, Token::Operator::PLUS},
-          {Token::Type::NUMBER, 2.},
-          {Token::Type::OPERATOR, Token::Operator::MULTIPLY},
-          {Token::Type::NUMBER, 2.},
+          {Token::Type::NUMBER,   "2", 2.},
+          {Token::Type::OPERATOR, "+", Token::Operator::PLUS},
+          {Token::Type::NUMBER,   "2", 2.},
+          {Token::Type::OPERATOR, "*", Token::Operator::MULTIPLY},
+          {Token::Type::NUMBER,   "2", 2.},
         });
 
     expect(*parsing == expected_parsing);
@@ -72,19 +72,19 @@ int main()
 
     auto expected_parsing =
         std::vector<Token>({
-          {Token::Type::OPENING_PARENTHESIS},
+          {Token::Type::OPENING_PARENTHESIS, "("},
           {Token::Type::FUNCTION, "cos"},
-          {Token::Type::FUNCTION_CALL_START},
+          {Token::Type::FUNCTION_CALL_START, "("},
           {Token::Type::FUNCTION, "sin"},
-          {Token::Type::FUNCTION_CALL_START},
+          {Token::Type::FUNCTION_CALL_START, "("},
           {Token::Type::VARIABLE, "x"},
-          {Token::Type::FUNCTION_CALL_END},
-          {Token::Type::OPERATOR, '+'},
-          {Token::Type::NUMBER, 1.},
-          {Token::Type::FUNCTION_CALL_END},
-          {Token::Type::CLOSING_PARENTHESIS},
-          {Token::Type::OPERATOR, '+'},
-          {Token::Type::NUMBER, 1.},
+          {Token::Type::FUNCTION_CALL_END, ")"},
+          {Token::Type::OPERATOR, "+", '+'},
+          {Token::Type::NUMBER, "1", 1.},
+          {Token::Type::FUNCTION_CALL_END, ")"},
+          {Token::Type::CLOSING_PARENTHESIS, ")"},
+          {Token::Type::OPERATOR, "+", '+'},
+          {Token::Type::NUMBER, "1", 1.},
         });
 
     expect(*parsing == expected_parsing);
@@ -112,9 +112,9 @@ int main()
 
     auto expected_parsing =
         std::vector<Token>({
-          {Token::Type::NUMBER, 223.231E+13},
-          {Token::Type::OPERATOR, '+'},
-          {Token::Type::NUMBER, 183.283E-132},
+          {Token::Type::NUMBER, "223.231E+13", 223.231E+13},
+          {Token::Type::OPERATOR, "+", '+'},
+          {Token::Type::NUMBER, "183.283E-132", 183.283E-132},
         });
 
     expect(*parsing == expected_parsing);

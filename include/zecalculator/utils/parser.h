@@ -101,21 +101,26 @@ struct Token
     return type_to_str_map[type];
   }
 
-  Token(Type type, std::optional<std::variant<Operator, double, std::string>> type_value = {});
-
-
+  Token(Type type,
+        std::string_view str_v,
+        std::optional<std::variant<Operator, double>> type_value = {});
 
   bool operator == (const Token& other) const = default;
 
   friend std::ostream& operator << (std::stringstream& os, const Token& token);
 
   Type type;
+  std::string_view str_v; // string view on the token's text within the original expression
   std::optional<Operator> op = std::optional<Operator>();
   std::optional<double> value = std::optional<double>();
-  std::optional<std::string> name = std::optional<std::string>();
 };
 
-tl::expected<std::vector<Token>, Error> parse(std::string expression);
+
+/// @brief parses the expression into a list of tokens
+/// @note the string that is void must remain valid for for the returned instance
+///       to remain valid (for both a successful or unsuccessful  parsing)
+///       as they contain sub-string views of the input view
+tl::expected<std::vector<Token>, Error> parse(std::string_view expression);
 
 };
 

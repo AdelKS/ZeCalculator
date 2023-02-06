@@ -66,9 +66,6 @@ struct Error
 
   Type type = UNDEFINED;
 
-  // the expression
-  std::string expression;
-
   // where in the expression above the error happenned
   std::string_view where;
 };
