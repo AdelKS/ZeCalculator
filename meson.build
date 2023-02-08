@@ -24,4 +24,6 @@ zecalculator_dep = declare_dependency(
     link_with : zecalculator_lib
 )
 
-subdir('test')
+if get_option('test')
+    subdir('test')
+endif
