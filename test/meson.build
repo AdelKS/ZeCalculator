@@ -1,3 +1,5 @@
+subdir('src')
+
 test_sources = files(
     'parser_test.cpp',
 )
@@ -12,7 +14,7 @@ foreach test_src: test_sources
         fs.stem(test_src), # name executable after source file without .cpp extension
         test_src, # source file path
         include_directories: boost_ut_inc,
-        dependencies : zecalculator_dep # dependencies, here the vcl headers
+        dependencies : [zecalculator_dep, zecalculator_testing_dep] # dependencies, here the vcl headers
     )
 
     test(fs.stem(test_src), test_exe) # register as a test

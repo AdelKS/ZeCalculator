@@ -19,7 +19,10 @@
 ****************************************************************************/
 
 #include <zecalculator/utils/parser.h>
+
+// testing specific headers
 #include <boost/ut.hpp>
+#include <zecalculator/test-utils/print-utils.h>
 
 using namespace zc;
 

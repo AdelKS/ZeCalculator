@@ -91,8 +91,6 @@ struct Token
 
   bool operator == (const Token& other) const = default;
 
-  friend std::ostream& operator << (std::stringstream& os, const Token& token);
-
   Type type;
   std::string_view str_v; // string view on the token's text within the original expression
   std::optional<Operator> op = std::optional<Operator>();
