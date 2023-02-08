@@ -27,6 +27,8 @@
 #include <optional>
 #include <string_view>
 #include <cassert>
+#include <algorithm>
+#include <ranges>
 
 #include <zecalculator/external/expected.h>
 
@@ -36,21 +38,13 @@ namespace zc {
 /// @example an operatr '+', a function name 'cos', a variable 'x', a number '-3.14E+2'
 struct Token
 {
-  struct Operator
+  using Operator = char;
+
+  inline static bool is_operator(const char ch)
   {
-    enum Type {PLUS, MINUS, MULTIPLY, DIVIDE, POWER};
-    Type op;
-
-    bool operator == (const Operator &other) const = default;
-
-    Operator(Type op_type): op(op_type) {}
-
-    /// @brief builds from char, throws if it's not an operator
-    Operator(const char op_char);
-
-    /// @brief returns the char that corresponds to the operator
-    char name() const;
-  };
+    static constexpr std::array operators = {'+', '-', '*', '/', '^'};
+    return std::ranges::any_of(operators, [&ch](const char op){ return op == ch; });
+  }
 
   enum Type : uint8_t
   {

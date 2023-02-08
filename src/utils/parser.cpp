@@ -48,11 +48,6 @@ tl::expected<std::vector<Token>, Error> parse(std::string_view expression)
 {
   tl::expected<std::vector<Token>, Error> parsing;
 
-  auto is_operator = [](const char ch) {
-    static constexpr std::array operators = {'+', '-', '*', '/', '^'};
-    return std::ranges::any_of(operators, [&ch](const char op){ return op == ch; });
-  };
-
   auto is_seperator = [](const char ch) {
     static constexpr std::array separators = {'+', '-', '*', '/', '^', ' ', '(', ')'};
     return std::ranges::any_of(separators, [&ch](const char op){ return op == ch; });
@@ -91,7 +86,7 @@ tl::expected<std::vector<Token>, Error> parse(std::string_view expression)
       }
       else return tl::unexpected(Error::wrong_format(Token::NUMBER, std::string_view(it, 1)));
     }
-    else if (is_operator(*it))
+    else if (Token::is_operator(*it))
     {
       if (ope)
       {

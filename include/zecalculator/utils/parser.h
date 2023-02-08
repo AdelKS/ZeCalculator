@@ -38,11 +38,10 @@ namespace zc {
 /// @returns if successful, the interpreted double and the number of characters interpreted, otherwise empty
 std::optional<std::pair<double, size_t>> to_double(std::string_view view);
 
-
 /// @brief parses the expression into a list of tokens
 /// @note the string that is void must remain valid for for the returned instance
 ///       to remain valid (for both a successful or unsuccessful  parsing)
 ///       as they contain sub-string views of the input view
 tl::expected<std::vector<Token>, Error> parse(std::string_view expression);
 
-};
+}

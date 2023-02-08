@@ -39,9 +39,9 @@ int main()
     auto expected_parsing =
         std::vector<Token>({
           {Token::NUMBER,   "2", 2.},
-          {Token::OPERATOR, "+", Token::Operator::PLUS},
+          {Token::OPERATOR, "+", '+'},
           {Token::NUMBER,   "2", 2.},
-          {Token::OPERATOR, "*", Token::Operator::MULTIPLY},
+          {Token::OPERATOR, "*", '*'},
           {Token::NUMBER,   "2", 2.},
           {Token::END_OF_EXPRESSION},
         });
@@ -58,9 +58,9 @@ int main()
     auto expected_parsing =
         std::vector<Token>({
           {Token::NUMBER,   "2", 2.},
-          {Token::OPERATOR, "+", Token::Operator::PLUS},
+          {Token::OPERATOR, "+", '+'},
           {Token::NUMBER,   "2", 2.},
-          {Token::OPERATOR, "*", Token::Operator::MULTIPLY},
+          {Token::OPERATOR, "*", '*'},
           {Token::NUMBER,   "2", 2.},
           {Token::END_OF_EXPRESSION},
         });
