@@ -61,16 +61,11 @@ struct Token
     END_OF_EXPRESSION,
   };
 
-  Token(Type type,
-        std::string_view str_v = {},
-        std::optional<std::variant<Operator, double>> type_value = {});
-
   bool operator == (const Token& other) const = default;
 
-  Type type;
-  std::string_view str_v; // string view on the token's text within the original expression
-  std::optional<Operator> op = std::optional<Operator>();
-  std::optional<double> value = std::optional<double>();
+  Type type = UNKNOWN;
+  std::string_view str_v = {}; // string view on the token's text within the original expression
+  std::variant<std::monostate, Operator, double> type_value = {};
 };
 
 }
