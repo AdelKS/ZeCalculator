@@ -25,6 +25,8 @@
 #include <array>
 #include <cassert>
 
+#include <zecalculator/utils/token.h>
+
 namespace zc
 {
 
@@ -34,39 +36,36 @@ struct Error
   enum Type : uint8_t
   {
     UNDEFINED = 0,
-    WRONG_NUMBER_FORMAT,
-    UNEXPECTED_OPERATOR,
-    UNEXPECTED_OPENING_PARENTHESIS,
-    UNEXPECTED_CLOSING_PARENTHESIS,
-    UNEXPECTED_VARIABLE_OR_FUNCTION,
-    UNEXPTECTED_END_OF_EXPRESSION,
-    MISSING_CLOSING_PARENTHESES,
-    MISSING_CLOSING_FUNCTION_CALL,
+    WRONG_FORMAT,
+    UNEXPECTED,
+    MISSING,
   };
 
-  static constexpr std::array error_to_str_map =
+  /// @brief creates an "unexpected" typed error
+  static Error unexpected(Token::Type token_type, std::string_view where)
   {
-    "UNDEFINED",
-    "WRONG_NUMBER_FORMAT",
-    "UNEXPECTED_OPERATOR",
-    "UNEXPECTED_OPENING_PARENTHESIS",
-    "UNEXPECTED_CLOSING_PARENTHESIS",
-    "UNEXPECTED_VARIABLE_OR_FUNCTION",
-    "UNEXPTECTED_END_OF_EXPRESSION",
-    "MISSING_CLOSING_PARENTHESES",
-    "MISSING_CLOSING_FUNCTION_CALL",
-  };
-
-  /// @brief returns he name of the type 'type'
-  std::string_view error_name() const
-  {
-    assert(type < error_to_str_map.size());
-    return error_to_str_map[type];
+    return Error {.error_type = UNEXPECTED, .token_type = token_type, .where = where};
   }
 
-  Type type = UNDEFINED;
+  /// @brief creates an "wrong_format" typed error
+  static Error wrong_format(Token::Type token_type, std::string_view where)
+  {
+    return Error {.error_type = WRONG_FORMAT, .token_type = token_type, .where = where};
+  }
 
-  // where in the expression above the error happenned
+  /// @brief creates an "missing" typed error
+  static Error missing(Token::Type token_type, std::string_view where)
+  {
+    return Error {.error_type = MISSING, .token_type = token_type, .where = where};
+  }
+
+  // kind of error
+  Type error_type = UNDEFINED;
+
+  // on what token
+  Token::Type token_type = Token::UNKNOWN;
+
+  // where in the expression
   std::string_view where;
 };
 

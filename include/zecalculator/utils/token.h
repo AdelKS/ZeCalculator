@@ -54,7 +54,8 @@ struct Token
 
   enum Type : uint8_t
   {
-    NUMBER = 0,
+    UNKNOWN = 0,
+    NUMBER,
     VARIABLE,
     FUNCTION,
     OPERATOR,
@@ -62,31 +63,12 @@ struct Token
     CLOSING_PARENTHESIS,
     FUNCTION_CALL_START, // opening parenthesis for a function call
     FUNCTION_CALL_END, // closing parenthesis for a function call
-    FUNCTION_ARGUMENT_SEPARATOR // e.g. the ',' in 'pow(x, y)'
+    FUNCTION_ARGUMENT_SEPARATOR, // e.g. the ',' in 'pow(x, y)'
+    END_OF_EXPRESSION,
   };
-
-  static constexpr std::array type_to_str_map =
-  {
-    "NUMBER",
-    "VARIABLE",
-    "FUNCTION",
-    "OPERATOR",
-    "OPENING_PARENTHESIS",
-    "CLOSING_PARENTHESIS",
-    "FUNCTION_CALL_START",
-    "FUNCTION_CALL_END",
-    "FUNCTION_ARGUMENT_SEPARATOR"
-  };
-
-  /// @brief returns he name of the type 'type'
-  std::string_view type_name() const
-  {
-    assert(type < type_to_str_map.size());
-    return type_to_str_map[type];
-  }
 
   Token(Type type,
-        std::string_view str_v,
+        std::string_view str_v = {},
         std::optional<std::variant<Operator, double>> type_value = {});
 
   bool operator == (const Token& other) const = default;

@@ -34,15 +34,16 @@ int main()
   {
     auto parsing = parse("2+2*2");
 
-    expect(bool(parsing)) << (parsing ? "" : parsing.error().error_name());
+    expect(bool(parsing)) << parsing;
 
     auto expected_parsing =
         std::vector<Token>({
-          {Token::Type::NUMBER,   "2", 2.},
-          {Token::Type::OPERATOR, "+", Token::Operator::PLUS},
-          {Token::Type::NUMBER,   "2", 2.},
-          {Token::Type::OPERATOR, "*", Token::Operator::MULTIPLY},
-          {Token::Type::NUMBER,   "2", 2.},
+          {Token::NUMBER,   "2", 2.},
+          {Token::OPERATOR, "+", Token::Operator::PLUS},
+          {Token::NUMBER,   "2", 2.},
+          {Token::OPERATOR, "*", Token::Operator::MULTIPLY},
+          {Token::NUMBER,   "2", 2.},
+          {Token::END_OF_EXPRESSION},
         });
 
     expect(*parsing == expected_parsing);
@@ -52,15 +53,16 @@ int main()
   {
     auto parsing = parse("   2 +  2  *2");
 
-    expect(bool(parsing)) << (parsing ? "" : parsing.error().error_name());
+    expect(bool(parsing)) << parsing;
 
     auto expected_parsing =
         std::vector<Token>({
-          {Token::Type::NUMBER,   "2", 2.},
-          {Token::Type::OPERATOR, "+", Token::Operator::PLUS},
-          {Token::Type::NUMBER,   "2", 2.},
-          {Token::Type::OPERATOR, "*", Token::Operator::MULTIPLY},
-          {Token::Type::NUMBER,   "2", 2.},
+          {Token::NUMBER,   "2", 2.},
+          {Token::OPERATOR, "+", Token::Operator::PLUS},
+          {Token::NUMBER,   "2", 2.},
+          {Token::OPERATOR, "*", Token::Operator::MULTIPLY},
+          {Token::NUMBER,   "2", 2.},
+          {Token::END_OF_EXPRESSION},
         });
 
     expect(*parsing == expected_parsing);
@@ -70,23 +72,24 @@ int main()
   {
     auto parsing = parse("(cos(sin(x)+1))+1");
 
-    expect(bool(parsing)) << (parsing ? "" : parsing.error().error_name());
+    expect(bool(parsing)) << parsing;
 
     auto expected_parsing =
         std::vector<Token>({
-          {Token::Type::OPENING_PARENTHESIS, "("},
-          {Token::Type::FUNCTION, "cos"},
-          {Token::Type::FUNCTION_CALL_START, "("},
-          {Token::Type::FUNCTION, "sin"},
-          {Token::Type::FUNCTION_CALL_START, "("},
-          {Token::Type::VARIABLE, "x"},
-          {Token::Type::FUNCTION_CALL_END, ")"},
-          {Token::Type::OPERATOR, "+", '+'},
-          {Token::Type::NUMBER, "1", 1.},
-          {Token::Type::FUNCTION_CALL_END, ")"},
-          {Token::Type::CLOSING_PARENTHESIS, ")"},
-          {Token::Type::OPERATOR, "+", '+'},
-          {Token::Type::NUMBER, "1", 1.},
+          {Token::OPENING_PARENTHESIS, "("},
+          {Token::FUNCTION, "cos"},
+          {Token::FUNCTION_CALL_START, "("},
+          {Token::FUNCTION, "sin"},
+          {Token::FUNCTION_CALL_START, "("},
+          {Token::VARIABLE, "x"},
+          {Token::FUNCTION_CALL_END, ")"},
+          {Token::OPERATOR, "+", '+'},
+          {Token::NUMBER, "1", 1.},
+          {Token::FUNCTION_CALL_END, ")"},
+          {Token::CLOSING_PARENTHESIS, ")"},
+          {Token::OPERATOR, "+", '+'},
+          {Token::NUMBER, "1", 1.},
+          {Token::END_OF_EXPRESSION},
         });
 
     expect(*parsing == expected_parsing);
@@ -96,27 +99,33 @@ int main()
   {
     auto parsing = parse("2*-1");
 
-    expect(not parsing and parsing.error().type == Error::Type::UNEXPECTED_OPERATOR);
+    expect(not parsing and
+           parsing.error().error_type == Error::UNEXPECTED and
+           parsing.error().token_type == Token::OPERATOR and
+           parsing.error().where == "-") << parsing;
   };
 
   "extra parenthesis"_test = []()
   {
     auto parsing = parse("2+2)");
 
-    expect(not parsing and parsing.error().type == Error::Type::UNEXPECTED_CLOSING_PARENTHESIS);
+    expect(not parsing and
+           parsing.error().error_type == Error::UNEXPECTED and
+           parsing.error().token_type == Token::CLOSING_PARENTHESIS);
   };
 
   "floating point operations"_test = []()
   {
     auto parsing = parse("223.231E+13+183.283E-132");
 
-    expect(bool(parsing)) << (parsing ? "" : parsing.error().error_name());
+    expect(bool(parsing)) << parsing;
 
     auto expected_parsing =
         std::vector<Token>({
-          {Token::Type::NUMBER, "223.231E+13", 223.231E+13},
-          {Token::Type::OPERATOR, "+", '+'},
-          {Token::Type::NUMBER, "183.283E-132", 183.283E-132},
+          {Token::NUMBER, "223.231E+13", 223.231E+13},
+          {Token::OPERATOR, "+", '+'},
+          {Token::NUMBER, "183.283E-132", 183.283E-132},
+          {Token::END_OF_EXPRESSION},
         });
 
     expect(*parsing == expected_parsing);

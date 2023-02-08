@@ -1,26 +1,24 @@
 #include <zecalculator/test-utils/print-utils.h>
+#include <zecalculator/test-utils/magic_enum.h>
 
 namespace zc {
 
-std::ostream& operator << (std::stringstream& os, const Token& token)
+std::ostream& operator << (std::ostream& os, const Token& token)
 {
-  switch(token.type)
-  {
-  case Token::Type::NUMBER:
-    os << std::to_string(token.value.value());
-    break;
-  case Token::Type::VARIABLE:
-    os << "var=" << token.str_v;
-    break;
-  case Token::Type::FUNCTION:
-    os << "func=" << token.str_v;
-    break;
-  case Token::Type::OPERATOR:
-    os << token.op.value().name();
-    break;
-  default:
-    os << token.type_name();
-  }
+  os << magic_enum::enum_name(token.type)
+     << " "
+     << token.str_v;
+
+  return os;
+}
+
+std::ostream& operator << (std::ostream& os, const Error& err)
+{
+  os << magic_enum::enum_name(err.error_type)
+     << " "
+     << magic_enum::enum_name(err.token_type)
+     << " at "
+     << err.where;
 
   return os;
 }
