@@ -1,5 +1,6 @@
 sources = files(
     'utils/parser.cpp',
+    'utils/token.cpp',
 )
 
 zecalculator_lib = library('zecalculator',

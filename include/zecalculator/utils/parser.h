@@ -20,14 +20,7 @@
 
 #pragma once
 
-#include <vector>
-#include <optional>
-#include <variant>
-#include <cstdint>
-#include <optional>
-#include <string_view>
-
-#include <zecalculator/external/expected.h>
+#include <zecalculator/utils/token.h>
 #include <zecalculator/utils/error.h>
 
 /* TODO: update approach as the following:
@@ -45,76 +38,6 @@ namespace zc {
 /// @returns if successful, the interpreted double and the number of characters interpreted, otherwise empty
 std::optional<std::pair<double, size_t>> to_double(std::string_view view);
 
-namespace parsing
-{
-
-/// @brief represents a token in a parsed expression
-/// @example an operatr '+', a function name 'cos', a variable 'x', a number '-3.14E+2'
-struct Token
-{
-  struct Operator
-  {
-    enum Type {PLUS, MINUS, MULTIPLY, DIVIDE, POWER};
-    Type op;
-
-    bool operator == (const Operator &other) const = default;
-
-    Operator(Type op_type): op(op_type) {}
-
-    /// @brief builds from char, throws if it's not an operator
-    Operator(const char op_char);
-
-    /// @brief returns the char that corresponds to the operator
-    char name() const;
-  };
-
-  enum Type : uint8_t
-  {
-    NUMBER = 0,
-    VARIABLE,
-    FUNCTION,
-    OPERATOR,
-    OPENING_PARENTHESIS,
-    CLOSING_PARENTHESIS,
-    FUNCTION_CALL_START, // opening parenthesis for a function call
-    FUNCTION_CALL_END, // closing parenthesis for a function call
-    FUNCTION_ARGUMENT_SEPARATOR // e.g. the ',' in 'pow(x, y)'
-  };
-
-  static constexpr std::array type_to_str_map =
-  {
-    "NUMBER",
-    "VARIABLE",
-    "FUNCTION",
-    "OPERATOR",
-    "OPENING_PARENTHESIS",
-    "CLOSING_PARENTHESIS",
-    "FUNCTION_CALL_START",
-    "FUNCTION_CALL_END",
-    "FUNCTION_ARGUMENT_SEPARATOR"
-  };
-
-  /// @brief returns he name of the type 'type'
-  std::string_view type_name() const
-  {
-    assert(type < type_to_str_map.size());
-    return type_to_str_map[type];
-  }
-
-  Token(Type type,
-        std::string_view str_v,
-        std::optional<std::variant<Operator, double>> type_value = {});
-
-  bool operator == (const Token& other) const = default;
-
-  friend std::ostream& operator << (std::stringstream& os, const Token& token);
-
-  Type type;
-  std::string_view str_v; // string view on the token's text within the original expression
-  std::optional<Operator> op = std::optional<Operator>();
-  std::optional<double> value = std::optional<double>();
-};
-
 
 /// @brief parses the expression into a list of tokens
 /// @note the string that is void must remain valid for for the returned instance
@@ -123,5 +46,3 @@ struct Token
 tl::expected<std::vector<Token>, Error> parse(std::string_view expression);
 
 };
-
-}

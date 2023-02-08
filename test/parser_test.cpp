@@ -22,7 +22,6 @@
 #include <boost/ut.hpp>
 
 using namespace zc;
-using namespace zc::parsing;
 
 int main()
 {

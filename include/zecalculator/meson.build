@@ -2,6 +2,7 @@ header_files = files(
     'external/expected.h',
     'utils/error.h',
     'utils/parser.h',
+    'utils/token.h',
 )
 
 if not meson.is_subproject()
