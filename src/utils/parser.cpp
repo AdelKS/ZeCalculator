@@ -186,8 +186,6 @@ tl::expected<std::vector<Token>, Error> parse(std::string_view expression)
   if (not canEnd)
     return tl::unexpected(Error::unexpected(Token::END_OF_EXPRESSION, std::string_view(it-1, 1)));
 
-  parsing->emplace_back(Token::END_OF_EXPRESSION, std::string_view());
-
   return parsing;
 }
 

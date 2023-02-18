@@ -43,7 +43,6 @@ int main()
           {Token::NUMBER,   "2", 2.},
           {Token::OPERATOR, "*", '*'},
           {Token::NUMBER,   "2", 2.},
-          {Token::END_OF_EXPRESSION},
         });
 
     expect(*parsing == expected_parsing);
@@ -62,7 +61,6 @@ int main()
           {Token::NUMBER,   "2", 2.},
           {Token::OPERATOR, "*", '*'},
           {Token::NUMBER,   "2", 2.},
-          {Token::END_OF_EXPRESSION},
         });
 
     expect(*parsing == expected_parsing);
@@ -89,7 +87,6 @@ int main()
           {Token::CLOSING_PARENTHESIS, ")"},
           {Token::OPERATOR, "+", '+'},
           {Token::NUMBER, "1", 1.},
-          {Token::END_OF_EXPRESSION},
         });
 
     expect(*parsing == expected_parsing);
@@ -125,7 +122,6 @@ int main()
           {Token::NUMBER, "223.231E+13", 223.231E+13},
           {Token::OPERATOR, "+", '+'},
           {Token::NUMBER, "183.283E-132", 183.283E-132},
-          {Token::END_OF_EXPRESSION},
         });
 
     expect(*parsing == expected_parsing);
