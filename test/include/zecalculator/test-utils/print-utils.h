@@ -4,10 +4,13 @@
 
 #include <zecalculator/utils/token.h>
 #include <zecalculator/utils/error.h>
+#include <zecalculator/utils/syntax_tree.h>
 
 namespace zc {
 
 std::ostream& operator << (std::ostream& os, const Token& token);
+
+std::ostream& operator << (std::ostream& os, const SyntaxTree& node);
 
 std::ostream& operator << (std::ostream& os, const Error& err);
 

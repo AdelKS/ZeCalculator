@@ -2,6 +2,7 @@ subdir('src')
 
 test_sources = files(
     'parser_test.cpp',
+    'syntax_tree_test.cpp',
 )
 
 cmake = import('cmake')
