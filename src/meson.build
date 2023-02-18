@@ -1,5 +1,6 @@
 sources = files(
     'utils/parser.cpp',
+    'utils/syntax_tree.cpp',
     'utils/token.cpp',
 )
 
