@@ -40,9 +40,11 @@ struct Token
 {
   using Operator = char;
 
-  inline static bool is_operator(const char ch)
+  // operators ordered in increasing order of priority
+  static constexpr std::array operators = {'+', '-', '*', '/', '^'};
+
+  constexpr static bool is_operator(const char ch)
   {
-    static constexpr std::array operators = {'+', '-', '*', '/', '^'};
     return std::ranges::any_of(operators, [&ch](const char op){ return op == ch; });
   }
 
