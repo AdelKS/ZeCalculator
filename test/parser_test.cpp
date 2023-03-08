@@ -36,14 +36,13 @@ int main()
 
     expect(bool(parsing)) << parsing;
 
-    auto expected_parsing =
-        std::vector<Token>({
-          {Token::NUMBER,   "2", 2.},
-          {Token::OPERATOR, "+", '+'},
-          {Token::NUMBER,   "2", 2.},
-          {Token::OPERATOR, "*", '*'},
-          {Token::NUMBER,   "2", 2.},
-        });
+    auto expected_parsing = std::vector<Token>({
+        tokens::Number(2., "2"),
+        tokens::Operator("+"),
+        tokens::Number(2., "2"),
+        tokens::Operator("*"),
+        tokens::Number(2., "2"),
+    });
 
     expect(*parsing == expected_parsing);
   };
@@ -54,14 +53,13 @@ int main()
 
     expect(bool(parsing)) << parsing;
 
-    auto expected_parsing =
-        std::vector<Token>({
-          {Token::NUMBER,   "2", 2.},
-          {Token::OPERATOR, "+", '+'},
-          {Token::NUMBER,   "2", 2.},
-          {Token::OPERATOR, "*", '*'},
-          {Token::NUMBER,   "2", 2.},
-        });
+    auto expected_parsing = std::vector<Token>({
+        tokens::Number(2., "2"),
+        tokens::Operator("+"),
+        tokens::Number(2., "2"),
+        tokens::Operator("*"),
+        tokens::Number(2., "2"),
+    });
 
     expect(*parsing == expected_parsing);
   };
@@ -72,22 +70,21 @@ int main()
 
     expect(bool(parsing)) << parsing;
 
-    auto expected_parsing =
-        std::vector<Token>({
-          {Token::OPENING_PARENTHESIS, "("},
-          {Token::FUNCTION, "cos"},
-          {Token::FUNCTION_CALL_START, "("},
-          {Token::FUNCTION, "sin"},
-          {Token::FUNCTION_CALL_START, "("},
-          {Token::VARIABLE, "x"},
-          {Token::FUNCTION_CALL_END, ")"},
-          {Token::OPERATOR, "+", '+'},
-          {Token::NUMBER, "1", 1.},
-          {Token::FUNCTION_CALL_END, ")"},
-          {Token::CLOSING_PARENTHESIS, ")"},
-          {Token::OPERATOR, "+", '+'},
-          {Token::NUMBER, "1", 1.},
-        });
+    auto expected_parsing = std::vector<Token>({
+        tokens::OpeningParenthesis("("),
+        tokens::Function("cos"),
+        tokens::FunctionCallStart("("),
+        tokens::Function("sin"),
+        tokens::FunctionCallStart("("),
+        tokens::Variable("x"),
+        tokens::FunctionCallEnd(")"),
+        tokens::Operator("+"),
+        tokens::Number(1., "1"),
+        tokens::FunctionCallEnd(")"),
+        tokens::ClosingParenthesis(")"),
+        tokens::Operator("+"),
+        tokens::Number(1., "1"),
+    });
 
     expect(*parsing == expected_parsing);
   };
@@ -97,9 +94,8 @@ int main()
     auto parsing = parse("2*-1");
 
     expect(not parsing and
-           parsing.error().error_type == Error::UNEXPECTED and
-           parsing.error().token_type == Token::OPERATOR and
-           parsing.error().where == "-") << parsing;
+           parsing.error() == Error::unexpected(tokens::Operator("-")))
+        << parsing;
   };
 
   "extra parenthesis"_test = []()
@@ -107,8 +103,7 @@ int main()
     auto parsing = parse("2+2)");
 
     expect(not parsing and
-           parsing.error().error_type == Error::UNEXPECTED and
-           parsing.error().token_type == Token::CLOSING_PARENTHESIS);
+           parsing.error() == Error::unexpected(tokens::ClosingParenthesis(")")));
   };
 
   "floating point operations"_test = []()
@@ -117,12 +112,11 @@ int main()
 
     expect(bool(parsing)) << parsing;
 
-    auto expected_parsing =
-        std::vector<Token>({
-          {Token::NUMBER, "223.231E+13", 223.231E+13},
-          {Token::OPERATOR, "+", '+'},
-          {Token::NUMBER, "183.283E-132", 183.283E-132},
-        });
+    auto expected_parsing = std::vector<Token>({
+        tokens::Number(223.231E+13, "223.231E+13"),
+        tokens::Operator("+"),
+        tokens::Number(183.283E-132, "183.283E-132"),
+    });
 
     expect(*parsing == expected_parsing);
   };

@@ -41,33 +41,14 @@ int main()
 
     expect(bool(expect_node));
 
-    SyntaxTree expected_node = SyntaxTree {
-      .type = SyntaxTree::FUNCTION,
-      .str = "+",
-      .subnodes = {
-        SyntaxTree {
-          .type = SyntaxTree::NUMBER,
-          .str = "2",
-          .value = 2.0
-        },
-        SyntaxTree {
-          .type = SyntaxTree::FUNCTION,
-          .str = "*",
-          .subnodes = {
-            SyntaxTree {
-              .type = SyntaxTree::NUMBER,
-              .str = "2",
-              .value = 2.0
-            },
-            SyntaxTree {
-              .type = SyntaxTree::NUMBER,
-              .str = "2",
-              .value = 2.0
-            },
-          }
-        }
-      }
-    };
+    SyntaxTree expected_node =
+        FunctionNode{.name = "+",
+                     .subnodes = {NumberNode{.value = 2.0},
+                                  FunctionNode{.name = "*",
+                                               .subnodes = {
+                                                   NumberNode{.value = 2.0},
+                                                   NumberNode{.value = 2.0},
+                                               }}}};
 
     expect(*expect_node == expected_node) << *expect_node;
   };
@@ -82,44 +63,25 @@ int main()
 
     expect(bool(expect_node));
 
-    SyntaxTree expected_node = SyntaxTree {
-      .type = SyntaxTree::FUNCTION,
-      .str = "+",
-      .subnodes = {
-        SyntaxTree {
-          .type = SyntaxTree::FUNCTION,
-          .str = "cos",
-          .subnodes = {
-            SyntaxTree {
-              .type = SyntaxTree::FUNCTION,
-              .str = "+",
-              .subnodes = {
-                SyntaxTree {
-                  .type = SyntaxTree::FUNCTION,
-                  .str = "sin",
-                  .subnodes = {
-                    SyntaxTree {
-                      .type = SyntaxTree::VARIABLE,
-                      .str = "x"
-                    },
-                  }
-                },
-                SyntaxTree {
-                  .type = SyntaxTree::NUMBER,
-                  .str = "1",
-                  .value = 1.0
-                },
-              },
-            }
-          }
-        },
-        SyntaxTree {
-          .type = SyntaxTree::NUMBER,
-          .str = "1",
-          .value = 1.0
-        },
-      }
-    };
+    SyntaxTree expected_node = FunctionNode{
+        .name = "+",
+        .subnodes = {
+            FunctionNode{
+                .name = "cos",
+                .subnodes = {FunctionNode{
+                    .name = "+",
+                    .subnodes =
+                        {
+                            FunctionNode{.name = "sin",
+                                         .subnodes =
+                                             {
+                                                 VariableNode{.name = "x"},
+                                             }},
+                            NumberNode{.value = 1.0},
+                        },
+                }}},
+            NumberNode{.value = 1.0},
+        }};
 
     expect(*expect_node == expected_node) << expect_node;
   };

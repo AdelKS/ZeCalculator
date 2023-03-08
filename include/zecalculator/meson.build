@@ -3,7 +3,7 @@ header_files = files(
     'utils/error.h',
     'utils/parser.h',
     'utils/syntax_tree.h',
-    'utils/token.h'
+    'utils/utils.h',
 )
 
 if not meson.is_subproject()

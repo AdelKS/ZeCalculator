@@ -42,31 +42,30 @@ struct Error
   };
 
   /// @brief creates an "unexpected" typed error
-  static Error unexpected(Token::Type token_type, std::string_view where)
+  static Error unexpected(Token token)
   {
-    return Error {.error_type = UNEXPECTED, .token_type = token_type, .where = where};
+    return Error {.error_type = UNEXPECTED, .token = token};
   }
 
   /// @brief creates an "wrong_format" typed error
-  static Error wrong_format(Token::Type token_type, std::string_view where)
+  static Error wrong_format(Token token)
   {
-    return Error {.error_type = WRONG_FORMAT, .token_type = token_type, .where = where};
+    return Error {.error_type = WRONG_FORMAT, .token = token};
   }
 
   /// @brief creates an "missing" typed error
-  static Error missing(Token::Type token_type, std::string_view where)
+  static Error missing(Token token)
   {
-    return Error {.error_type = MISSING, .token_type = token_type, .where = where};
+    return Error {.error_type = MISSING, .token = token};
   }
 
   // kind of error
   Type error_type = UNDEFINED;
 
   // on what token
-  Token::Type token_type = Token::UNKNOWN;
+  Token token;
 
-  // where in the expression
-  std::string_view where;
+  bool operator == (const Error& other) const = default;
 };
 
 }

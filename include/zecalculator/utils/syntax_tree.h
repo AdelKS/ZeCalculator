@@ -25,25 +25,36 @@
 #include <vector>
 
 #include <zecalculator/utils/parser.h>
+
 namespace zc {
 
 struct Error;
+struct FunctionNode;
+struct VariableNode;
+struct NumberNode;
 
-struct SyntaxTree
+using SyntaxTree = std::variant<FunctionNode, VariableNode, NumberNode>;
+
+struct VariableNode
 {
-  // define types with the same value as the parsing ones
-  enum Type {
-    FUNCTION = Token::FUNCTION,
-    NUMBER   = Token::NUMBER,
-    VARIABLE = Token::VARIABLE
-  };
+  std::string name;
 
-  Type type;
-  std::string str;
-  std::optional<double> value = {};
-  std::vector<SyntaxTree> subnodes = {};
+  bool operator == (const VariableNode& other) const = default;
+};
 
-  bool operator == (const SyntaxTree& other) const = default;
+struct NumberNode
+{
+  double value;
+
+  bool operator == (const NumberNode& other) const = default;
+};
+
+struct FunctionNode // Unary
+{
+  std::string name;
+  std::vector<SyntaxTree> subnodes;
+
+  bool operator == (const FunctionNode& other) const = default;
 };
 
 /// @brief creates a SyntaxNode from a parsing
