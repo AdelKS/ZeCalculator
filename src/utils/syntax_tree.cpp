@@ -24,6 +24,7 @@
 #include <zecalculator/utils/syntax_tree.h>
 #include <zecalculator/utils/parser.h>
 #include <zecalculator/utils/error.h>
+#include <zecalculator/utils/utils.h>
 
 namespace zc {
 
@@ -40,25 +41,25 @@ tl::expected<
   // search for parentheses
   for (auto tokenIt = tokens.begin() ; tokenIt != tokens.end() ; tokenIt++)
   {
-    if (tokenIt->type == Token::OPENING_PARENTHESIS)
+    if (std::holds_alternative<tokens::OpeningParenthesis>(*tokenIt))
     {
       last_opened_pth.push(NORMAL_PTH);
     }
-    else if (tokenIt->type == Token::FUNCTION_CALL_START)
+    else if (std::holds_alternative<tokens::FunctionCallStart>(*tokenIt))
     {
       last_opened_pth.push(FUNCTION_CALL_PTH);
     }
-    else if (tokenIt->type == Token::FUNCTION_CALL_END)
+    else if (std::holds_alternative<tokens::FunctionCallEnd>(*tokenIt))
     {
       if (not last_opened_pth.empty() and last_opened_pth.top() == FUNCTION_CALL_PTH)
         last_opened_pth.pop();
-      else return tl::unexpected(Error::unexpected(Token::FUNCTION_CALL_END, tokenIt->str_v));
+      else return tl::unexpected(Error::unexpected(*tokenIt));
     }
-    else if (tokenIt->type == Token::CLOSING_PARENTHESIS)
+    else if (std::holds_alternative<tokens::ClosingParenthesis>(*tokenIt))
     {
       if (not last_opened_pth.empty() and last_opened_pth.top() == NORMAL_PTH)
         last_opened_pth.pop();
-      else return tl::unexpected(Error::unexpected(Token::CLOSING_PARENTHESIS, tokenIt->str_v));
+      else return tl::unexpected(Error::unexpected(*tokenIt));
     }
     // if not a parenthesis, and the token is not enclosed within parentheses, push it
     else if (last_opened_pth.empty())
@@ -104,16 +105,20 @@ tl::expected<SyntaxTree, Error> make_tree(const std::span<Token> tokens)
   if (tokens.size() == 1)
   {
     const Token& single_token = tokens.back();
-    if (single_token.type == Token::NUMBER or
-        single_token.type == Token::VARIABLE)
-    {
-      const double* dbl_value = std::get_if<double>(&single_token.type_value);
-      return SyntaxTree {
-        .type = SyntaxTree::Type(single_token.type),
-        .str = std::string(single_token.str_v),
-        .value = dbl_value ? *dbl_value : std::optional<double>()};
-    }
-    else return tl::unexpected(Error::unexpected(single_token.type, single_token.str_v));
+    tl::expected<SyntaxTree, Error> ret;
+    std::visit(
+        overloaded{
+            [&](const tokens::Number &num) {
+              ret = NumberNode{num.value};
+            },
+            [&](const tokens::Variable &var) {
+              ret = VariableNode{std::string(var.str_v)};
+            },
+            [&](auto &&anything_else) {
+              ret = tl::unexpected(Error::unexpected(anything_else));
+            }},
+        single_token);
+    return ret;
   }
 
   auto expected_non_pth_wrapped_tokens = get_non_pth_enclosed_tokens(tokens);
@@ -124,27 +129,27 @@ tl::expected<SyntaxTree, Error> make_tree(const std::span<Token> tokens)
 
   // experssion of the type "(...)"
   if (non_pth_enclosed_tokens.empty() and tokens.size() > 2 and
-      tokens.begin()->type == Token::OPENING_PARENTHESIS and
-      tokens.rbegin()->type == Token::CLOSING_PARENTHESIS)
+      std::holds_alternative<tokens::OpeningParenthesis>(tokens.front()) and
+      std::holds_alternative<tokens::ClosingParenthesis>(tokens.back()))
   {
     return make_tree(std::span(tokens.begin()+1, tokens.end()-1));
   }
 
   // expression of the type "function(...)"
   else if (non_pth_enclosed_tokens.size() == 1 and tokens.size() > 3 and
-           tokens.begin()->type == Token::FUNCTION and
-           (tokens.begin()+1)->type == Token::FUNCTION_CALL_START and
-           tokens.rbegin()->type == Token::FUNCTION_CALL_END)
+           std::holds_alternative<tokens::Function>(tokens.front()) and
+           std::holds_alternative<tokens::FunctionCallStart>(*(tokens.begin()+1)) and
+           std::holds_alternative<tokens::FunctionCallEnd>(tokens.back()))
   {
+    /// @todo needs changing to support multi-argument functions
+    /// @note here we expect functions that receive that receive a single argument
     auto expected_func_argument = make_tree(std::span(tokens.begin()+2, tokens.end()-1));
     if (not expected_func_argument.has_value())
       return expected_func_argument;
 
-    return SyntaxTree {
-      .type = SyntaxTree::FUNCTION,
-      .str = std::string(tokens.begin()->str_v),
-      .subnodes = {std::move(expected_func_argument.value())}
-    };
+    return FunctionNode{
+        .name = std::string(std::get<tokens::Function>(tokens.front()).str_v),
+        .subnodes = {std::move(expected_func_argument.value())}};
   }
 
   // there are tokens that are not within parentheses
@@ -153,16 +158,16 @@ tl::expected<SyntaxTree, Error> make_tree(const std::span<Token> tokens)
     // we check for operations
     // loop through the expression by increasing operator priority
     // -> because the deepest parts of the syntax tree are to be calculated first
-    for (char op: Token::operators)
+    for (char op: tokens::Operator::operators)
     {
       for (auto tokenIt: non_pth_enclosed_tokens)
       {
-        if (tokenIt->type == Token::OPERATOR and
-            std::get<char>(tokenIt->type_value) == op)
+        if (std::holds_alternative<tokens::Operator>(*tokenIt) and
+            std::get<tokens::Operator>(*tokenIt).str_v.front() == op)
         {
           // we are not within parentheses, and we are at the right operator priority
           if (tokenIt == tokens.begin() or tokenIt+1 == tokens.end())
-            return tl::unexpected(Error::unexpected(Token::OPERATOR, tokenIt->str_v));
+            return tl::unexpected(Error::unexpected(*tokenIt));
 
           auto left_hand_side = make_tree(std::span(tokens.begin(), tokenIt));
           if (not left_hand_side.has_value())
@@ -172,23 +177,25 @@ tl::expected<SyntaxTree, Error> make_tree(const std::span<Token> tokens)
           if (not right_hand_side.has_value())
             return right_hand_side;
 
-          return SyntaxTree {
-            .type = SyntaxTree::FUNCTION,
-            .str = std::string(tokenIt->str_v),
-            .subnodes = {std::move(std::move(left_hand_side.value())),
-                         std::move(right_hand_side.value())}
-          };
+          return FunctionNode{
+              .name = std::string(1, op), // the function's name is the operators
+              .subnodes = {std::move(left_hand_side.value()),
+                           std::move(right_hand_side.value())}};
         }
       }
     }
   }
 
+  // extracts the str_v from a token
+  auto extract_str_v = [](const Token &token) {
+    std::string_view str_v;
+    std::visit([&](auto &&tokenVal) { str_v = tokenVal.str_v; }, token);
+    return str_v;
+  };
+
   // if we reach the end of this function, something is not right
-  return tl::unexpected(
-          Error::unexpected(
-            Token::UNKNOWN,
-            concatenate(tokens | std::views::transform(&Token::str_v)).value()
-         ));
+  return tl::unexpected(Error::unexpected(tokens::Unkown(
+      concatenate(tokens | std::views::transform(extract_str_v)).value())));
 }
 
 }

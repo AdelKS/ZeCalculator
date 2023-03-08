@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include <cmath>
 #include <vector>
 #include <optional>
 #include <variant>
@@ -34,12 +35,39 @@
 
 namespace zc {
 
-/// @brief represents a token in a parsed expression
-/// @example an operatr '+', a function name 'cos', a variable 'x', a number '-3.14E+2'
-struct Token
-{
-  using Operator = char;
+namespace tokens {
 
+struct Text
+{
+  Text(std::string_view str_v) : str_v(str_v) {}
+  std::string_view str_v = {}; // string view on the 's text within the original expression
+
+  bool operator == (const Text& other) const = default;
+};
+
+struct Unkown: Text
+{
+  using Text::Text;
+};
+
+struct Number: Text
+{
+  Number(double value, std::string_view str_v): Text(str_v), value(value) {};
+  double value = std::nan("");
+};
+
+struct Variable: Text
+{
+  using Text::Text;
+};
+
+struct Function: Text
+{
+  using Text::Text;
+};
+
+struct Operator: Text
+{
   // operators ordered in increasing order of priority
   static constexpr std::array operators = {'+', '-', '*', '/', '^'};
 
@@ -48,26 +76,56 @@ struct Token
     return std::ranges::any_of(operators, [&ch](const char op){ return op == ch; });
   }
 
-  enum Type : uint8_t
+  Operator(std::string_view str_v): Text(str_v)
   {
-    UNKNOWN = 0,
-    NUMBER,
-    VARIABLE,
-    FUNCTION,
-    OPERATOR,
-    OPENING_PARENTHESIS,
-    CLOSING_PARENTHESIS,
-    FUNCTION_CALL_START, // opening parenthesis for a function call
-    FUNCTION_CALL_END, // closing parenthesis for a function call
-    FUNCTION_ARGUMENT_SEPARATOR, // e.g. the ',' in 'pow(x, y)'
-    END_OF_EXPRESSION,
-  };
+    assert(str_v.size() == 1 and is_operator(str_v.front()));
+  }
+};
 
-  bool operator == (const Token& other) const = default;
+struct OpeningParenthesis: Text
+{
+  using Text::Text;
+};
 
-  Type type = UNKNOWN;
-  std::string_view str_v = {}; // string view on the token's text within the original expression
-  std::variant<std::monostate, Operator, double> type_value = {};
+struct ClosingParenthesis: Text
+{
+  using Text::Text;
+};
+
+struct FunctionCallStart: Text
+{
+  using Text::Text;
+};
+
+struct FunctionCallEnd: Text
+{
+  using Text::Text;
+};
+
+struct FunctionArgumentSeparator: Text
+{
+  using Text::Text;
+};
+
+struct EndOfExpression: Text // will be used only to signal errors
+{
+  using Text::Text;
+};
+
+}
+
+/// @brief represents a  in a parsed expression
+/// @example an operatr '+', a function name 'cos', a variable 'x', a number '-3.14E+2'
+using TokenType =
+    std::variant<tokens::Unkown, tokens::Number, tokens::Variable,
+                 tokens::Function, tokens::Operator, tokens::OpeningParenthesis,
+                 tokens::ClosingParenthesis, tokens::FunctionCallStart,
+                 tokens::FunctionCallEnd, tokens::FunctionArgumentSeparator,
+                 tokens::EndOfExpression>;
+
+struct Token: TokenType
+{
+  using TokenType::TokenType;
 };
 
 }
