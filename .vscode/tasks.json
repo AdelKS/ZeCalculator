@@ -1,0 +1,39 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "setup",
+            "type": "shell",
+            "command": "[ -d \"${cwd}/build-zc-debug\" ] || meson setup build-zc-debug -D optimization=0 -D buildtype=debug -D test=true",
+        },
+        {
+            "label": "build",
+            "type": "shell",
+            "command": "meson compile",
+            "options": {
+                "cwd": "${cwd}/build-zc-debug"
+            },
+            "dependsOn": "setup",
+            "problemMatcher": ["$meson-gcc"],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "test",
+            "type": "shell",
+            "command": "meson test --verbose",
+            "options": {
+                "cwd": "${cwd}/build-zc-debug"
+            },
+            "dependsOn": "build",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            }
+        }
+    ]
+}

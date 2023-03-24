@@ -1,0 +1,24 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "parser_test",
+            "cwd": "${workspaceRoot}/build-zc-debug/",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceRoot}/build-zc-debug/test/parser_test",
+            "preLaunchTask": "${defaultBuildTask}",
+        },
+        {
+            "name": "syntax_tree_test",
+            "cwd": "${workspaceRoot}/build-zc-debug/",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceRoot}/build-zc-debug/test/syntax_tree_test",
+            "preLaunchTask": "${defaultBuildTask}",
+        }
+    ],
+}
