@@ -2,6 +2,7 @@ sources = files(
     'utils/parser.cpp',
     'utils/syntax_tree.cpp',
     'utils/token.cpp',
+    'mathworld.cpp'
 )
 
 zecalculator_lib = library('zecalculator',

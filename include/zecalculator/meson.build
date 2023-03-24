@@ -6,6 +6,7 @@ header_files = files(
     'utils/token.h',
     'utils/utils.h',
     'builtin_function.h',
+    'mathworld.h',
 )
 
 if not meson.is_subproject()
