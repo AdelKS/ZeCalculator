@@ -37,7 +37,7 @@ using SyntaxTree = std::variant<FunctionNode, VariableNode, NumberNode>;
 
 struct VariableNode
 {
-  std::string name;
+  std::string_view name;
 
   bool operator == (const VariableNode& other) const = default;
 };
@@ -51,7 +51,7 @@ struct NumberNode
 
 struct FunctionNode // Unary
 {
-  std::string name;
+  std::string_view name;
   std::vector<SyntaxTree> subnodes;
 
   bool operator == (const FunctionNode& other) const = default;

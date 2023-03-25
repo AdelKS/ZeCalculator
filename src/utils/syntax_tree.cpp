@@ -101,7 +101,7 @@ std::optional<std::string_view> concatenate(const Range& str_views)
 
 tl::expected<SyntaxTree, ParsingError> make_tree(const std::span<Token> tokens)
 {
-  // when there's only a single token, it can only be number of a variable
+  // when there's only a single token, it can only be number or a variable
   if (tokens.size() == 1)
   {
     const Token& single_token = tokens.back();
@@ -112,7 +112,7 @@ tl::expected<SyntaxTree, ParsingError> make_tree(const std::span<Token> tokens)
               ret = NumberNode{num.value};
             },
             [&](const tokens::Variable &var) {
-              ret = VariableNode{std::string(var.str_v)};
+              ret = VariableNode{var.str_v};
             },
             [&](auto &&anything_else) {
               ret = tl::unexpected(ParsingError::unexpected(anything_else));
@@ -148,7 +148,7 @@ tl::expected<SyntaxTree, ParsingError> make_tree(const std::span<Token> tokens)
       return expected_func_argument;
 
     return FunctionNode{
-        .name = std::string(std::get<tokens::Function>(tokens.front()).str_v),
+        .name = std::get<tokens::Function>(tokens.front()).str_v,
         .subnodes = {std::move(expected_func_argument.value())}};
   }
 
@@ -178,7 +178,7 @@ tl::expected<SyntaxTree, ParsingError> make_tree(const std::span<Token> tokens)
             return right_hand_side;
 
           return FunctionNode{
-              .name = std::string(1, op), // the function's name is the operators
+              .name = std::get<tokens::Operator>(*tokenIt).str_v, // the function's name is the operators
               .subnodes = {std::move(left_hand_side.value()),
                            std::move(right_hand_side.value())}};
         }
