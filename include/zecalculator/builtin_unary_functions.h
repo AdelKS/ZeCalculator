@@ -4,6 +4,6 @@
 
 namespace zc {
 
-using BuiltinFunction = double (*) (double);
+using BuiltinUnaryFunction = double (*) (double);
 
 }

@@ -18,7 +18,6 @@
 **
 ****************************************************************************/
 
-#include "zecalculator/builtin_function.h"
 #include "zecalculator/mathworld.h"
 #include <zecalculator/utils/parser.h>
 
@@ -34,7 +33,7 @@ int main()
 
   "simple test"_test = []()
   {
-    expect(std::get<BuiltinFunction>(mathWorld.get_math_object("sqrt"))(4) == 2);
+    expect(std::get<BuiltinUnaryFunction>(mathWorld.get_math_object("sqrt"))(4) == 2);
   };
 
   return 0;

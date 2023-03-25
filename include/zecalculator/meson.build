@@ -7,7 +7,7 @@ header_files = files(
     'utils/syntax_tree.h',
     'utils/token.h',
     'utils/utils.h',
-    'builtin_function.h',
+    'builtin_unary_functions.h',
     'mathworld.h',
 )
 
