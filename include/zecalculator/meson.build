@@ -1,6 +1,7 @@
 header_files = files(
     'external/expected.h',
     'utils/evaluation_error.h',
+    'utils/evaluation.h',
     'utils/parsing_error.h',
     'utils/parser.h',
     'utils/syntax_tree.h',
