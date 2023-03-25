@@ -20,6 +20,7 @@
 
 #include <zecalculator/utils/parser.h>
 #include <zecalculator/utils/syntax_tree.h>
+#include <zecalculator/utils/evaluation.h>
 
 // testing specific headers
 #include <boost/ut.hpp>
@@ -84,5 +85,18 @@ int main()
         }};
 
     expect(*expect_node == expected_node) << expect_node;
+  };
+
+  "simple function evaluation"_test = []()
+  {
+    auto parsing = parse("cos(2)");
+
+    expect(bool(parsing)) << parsing;
+
+    auto expect_node = make_tree(parsing.value());
+
+    expect(bool(expect_node));
+
+    expect(evaluate(expect_node.value(), mathWorld).value() == std::cos(2.0));
   };
 }
