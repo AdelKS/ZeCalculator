@@ -44,7 +44,7 @@ std::ostream &operator<<(std::ostream &os, const SyntaxTree &node) {
   return os;
 }
 
-std::ostream& operator << (std::ostream& os, const Error& err)
+std::ostream& operator << (std::ostream& os, const ParsingError& err)
 {
   os << magic_enum::enum_name(err.error_type)
      << " at "

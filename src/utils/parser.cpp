@@ -20,7 +20,7 @@
 
 #include <cassert>
 #include <cmath>
-#include <zecalculator/utils/error.h>
+#include <zecalculator/utils/parsing_error.h>
 #include <zecalculator/utils/parser.h>
 
 #include <charconv>
@@ -46,9 +46,9 @@ std::optional<std::pair<double, size_t>> to_double(std::string_view view)
   return result;
 }
 
-tl::expected<std::vector<Token>, Error> parse(std::string_view expression)
+tl::expected<std::vector<Token>, ParsingError> parse(std::string_view expression)
 {
-  tl::expected<std::vector<Token>, Error> parsing;
+  tl::expected<std::vector<Token>, ParsingError> parsing;
 
   auto is_seperator = [](const char ch) {
     static constexpr std::array separators = {'+', '-', '*', '/', '^', ' ', '(', ')'};
@@ -88,7 +88,7 @@ tl::expected<std::vector<Token>, Error> parse(std::string_view expression)
         openingParenthesis = value = numberSign = false;
         ope = canEnd = closingParenthesis = true;
       }
-      else return tl::unexpected(Error::wrong_format(tokens::Number(std::nan(""), char_v)));
+      else return tl::unexpected(ParsingError::wrong_format(tokens::Number(std::nan(""), char_v)));
     }
     else if (tokens::Operator::is_operator(*it))
     {
@@ -100,7 +100,7 @@ tl::expected<std::vector<Token>, Error> parse(std::string_view expression)
         ope = numberSign = closingParenthesis = canEnd = false;
         it++;
       }
-      else return tl::unexpected(Error::unexpected(tokens::Operator(char_v)));
+      else return tl::unexpected(ParsingError::unexpected(tokens::Operator(char_v)));
     }
     else if (*it == '(')
     {
@@ -121,7 +121,7 @@ tl::expected<std::vector<Token>, Error> parse(std::string_view expression)
         ope = closingParenthesis = canEnd = false;
         it++;
       }
-      else return tl::unexpected(Error::unexpected(tokens::OpeningParenthesis(char_v)));
+      else return tl::unexpected(ParsingError::unexpected(tokens::OpeningParenthesis(char_v)));
     }
     else if (*it == ')')
     {
@@ -139,7 +139,7 @@ tl::expected<std::vector<Token>, Error> parse(std::string_view expression)
         value = numberSign = openingParenthesis = false;
         it++;
       }
-      else return tl::unexpected(Error::unexpected(tokens::ClosingParenthesis(char_v)));
+      else return tl::unexpected(ParsingError::unexpected(tokens::ClosingParenthesis(char_v)));
     }
     else if (*it == ' ')
       // spaces are skipped
@@ -174,7 +174,7 @@ tl::expected<std::vector<Token>, Error> parse(std::string_view expression)
           openingParenthesis = true;
         }
       }
-      else return tl::unexpected(Error::unexpected(tokens::Unkown(char_v)));
+      else return tl::unexpected(ParsingError::unexpected(tokens::Unkown(char_v)));
     }
   }
 
@@ -182,12 +182,12 @@ tl::expected<std::vector<Token>, Error> parse(std::string_view expression)
   if (not last_opened_pth.empty())
   {
     if (last_opened_pth.top() == FUNCTION_CALL_PTH)
-      return tl::unexpected(Error::missing(tokens::FunctionCallEnd(last_char_v)));
-    else return tl::unexpected(Error::missing(tokens::ClosingParenthesis(last_char_v)));
+      return tl::unexpected(ParsingError::missing(tokens::FunctionCallEnd(last_char_v)));
+    else return tl::unexpected(ParsingError::missing(tokens::ClosingParenthesis(last_char_v)));
   }
 
   if (not canEnd)
-    return tl::unexpected(Error::unexpected(tokens::EndOfExpression(last_char_v)));
+    return tl::unexpected(ParsingError::unexpected(tokens::EndOfExpression(last_char_v)));
 
   return parsing;
 }

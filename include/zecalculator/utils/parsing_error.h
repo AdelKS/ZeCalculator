@@ -30,7 +30,7 @@
 namespace zc
 {
 
-struct Error
+struct ParsingError
 {
   // type of error
   enum Type : uint8_t
@@ -42,21 +42,21 @@ struct Error
   };
 
   /// @brief creates an "unexpected" typed error
-  static Error unexpected(Token token)
+  static ParsingError unexpected(Token token)
   {
-    return Error {.error_type = UNEXPECTED, .token = token};
+    return ParsingError {.error_type = UNEXPECTED, .token = token};
   }
 
   /// @brief creates an "wrong_format" typed error
-  static Error wrong_format(Token token)
+  static ParsingError wrong_format(Token token)
   {
-    return Error {.error_type = WRONG_FORMAT, .token = token};
+    return ParsingError {.error_type = WRONG_FORMAT, .token = token};
   }
 
   /// @brief creates an "missing" typed error
-  static Error missing(Token token)
+  static ParsingError missing(Token token)
   {
-    return Error {.error_type = MISSING, .token = token};
+    return ParsingError {.error_type = MISSING, .token = token};
   }
 
   // kind of error
@@ -65,7 +65,7 @@ struct Error
   // on what token
   Token token;
 
-  bool operator == (const Error& other) const = default;
+  bool operator == (const ParsingError& other) const = default;
 };
 
 }

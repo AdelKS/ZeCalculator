@@ -94,7 +94,7 @@ int main()
     auto parsing = parse("2*-1");
 
     expect(not parsing and
-           parsing.error() == Error::unexpected(tokens::Operator("-")))
+           parsing.error() == ParsingError::unexpected(tokens::Operator("-")))
         << parsing;
   };
 
@@ -103,7 +103,7 @@ int main()
     auto parsing = parse("2+2)");
 
     expect(not parsing and
-           parsing.error() == Error::unexpected(tokens::ClosingParenthesis(")")));
+           parsing.error() == ParsingError::unexpected(tokens::ClosingParenthesis(")")));
   };
 
   "floating point operations"_test = []()

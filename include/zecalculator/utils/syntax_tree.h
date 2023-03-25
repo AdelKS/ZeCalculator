@@ -28,7 +28,7 @@
 
 namespace zc {
 
-struct Error;
+struct ParsingError;
 struct FunctionNode;
 struct VariableNode;
 struct NumberNode;
@@ -58,6 +58,6 @@ struct FunctionNode // Unary
 };
 
 /// @brief creates a SyntaxNode from a parsing
-tl::expected<SyntaxTree, Error> make_tree(const std::span<Token> tokens);
+tl::expected<SyntaxTree, ParsingError> make_tree(const std::span<Token> tokens);
 
 }

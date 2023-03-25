@@ -21,7 +21,7 @@
 #pragma once
 
 #include <zecalculator/utils/token.h>
-#include <zecalculator/utils/error.h>
+#include <zecalculator/utils/parsing_error.h>
 
 /* TODO: update approach as the following:
     - Parse: aka cut each atom in a formula
@@ -42,6 +42,6 @@ std::optional<std::pair<double, size_t>> to_double(std::string_view view);
 /// @note the string that is void must remain valid for for the returned instance
 ///       to remain valid (for both a successful or unsuccessful  parsing)
 ///       as they contain sub-string views of the input view
-tl::expected<std::vector<Token>, Error> parse(std::string_view expression);
+tl::expected<std::vector<Token>, ParsingError> parse(std::string_view expression);
 
 }

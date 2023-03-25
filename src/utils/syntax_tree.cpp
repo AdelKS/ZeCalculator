@@ -23,14 +23,14 @@
 
 #include <zecalculator/utils/syntax_tree.h>
 #include <zecalculator/utils/parser.h>
-#include <zecalculator/utils/error.h>
+#include <zecalculator/utils/parsing_error.h>
 #include <zecalculator/utils/utils.h>
 
 namespace zc {
 
 tl::expected<
   std::vector<std::span<Token>::iterator>,
-  Error
+  ParsingError
 > get_non_pth_enclosed_tokens(std::span<Token> tokens)
 {
   std::vector<std::span<Token>::iterator> non_pth_enclosed_tokens;
@@ -53,13 +53,13 @@ tl::expected<
     {
       if (not last_opened_pth.empty() and last_opened_pth.top() == FUNCTION_CALL_PTH)
         last_opened_pth.pop();
-      else return tl::unexpected(Error::unexpected(*tokenIt));
+      else return tl::unexpected(ParsingError::unexpected(*tokenIt));
     }
     else if (std::holds_alternative<tokens::ClosingParenthesis>(*tokenIt))
     {
       if (not last_opened_pth.empty() and last_opened_pth.top() == NORMAL_PTH)
         last_opened_pth.pop();
-      else return tl::unexpected(Error::unexpected(*tokenIt));
+      else return tl::unexpected(ParsingError::unexpected(*tokenIt));
     }
     // if not a parenthesis, and the token is not enclosed within parentheses, push it
     else if (last_opened_pth.empty())
@@ -99,13 +99,13 @@ std::optional<std::string_view> concatenate(const Range& str_views)
   return std::optional<std::string_view>(std::in_place, (*str_views.begin()).data(), final_size);
 }
 
-tl::expected<SyntaxTree, Error> make_tree(const std::span<Token> tokens)
+tl::expected<SyntaxTree, ParsingError> make_tree(const std::span<Token> tokens)
 {
   // when there's only a single token, it can only be number of a variable
   if (tokens.size() == 1)
   {
     const Token& single_token = tokens.back();
-    tl::expected<SyntaxTree, Error> ret;
+    tl::expected<SyntaxTree, ParsingError> ret;
     std::visit(
         overloaded{
             [&](const tokens::Number &num) {
@@ -115,7 +115,7 @@ tl::expected<SyntaxTree, Error> make_tree(const std::span<Token> tokens)
               ret = VariableNode{std::string(var.str_v)};
             },
             [&](auto &&anything_else) {
-              ret = tl::unexpected(Error::unexpected(anything_else));
+              ret = tl::unexpected(ParsingError::unexpected(anything_else));
             }},
         single_token);
     return ret;
@@ -167,7 +167,7 @@ tl::expected<SyntaxTree, Error> make_tree(const std::span<Token> tokens)
         {
           // we are not within parentheses, and we are at the right operator priority
           if (tokenIt == tokens.begin() or tokenIt+1 == tokens.end())
-            return tl::unexpected(Error::unexpected(*tokenIt));
+            return tl::unexpected(ParsingError::unexpected(*tokenIt));
 
           auto left_hand_side = make_tree(std::span(tokens.begin(), tokenIt));
           if (not left_hand_side.has_value())
@@ -194,7 +194,7 @@ tl::expected<SyntaxTree, Error> make_tree(const std::span<Token> tokens)
   };
 
   // if we reach the end of this function, something is not right
-  return tl::unexpected(Error::unexpected(tokens::Unkown(
+  return tl::unexpected(ParsingError::unexpected(tokens::Unkown(
       concatenate(tokens | std::views::transform(extract_str_v)).value())));
 }
 
