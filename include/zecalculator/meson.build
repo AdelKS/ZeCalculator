@@ -10,5 +10,5 @@ header_files = files(
 )
 
 if not meson.is_subproject()
-    install_headers(header_files, subdir: 'zecalculator')
+    install_headers(header_files, subdir: 'zecalculator', preserve_path: true)
 endif
