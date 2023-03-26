@@ -99,4 +99,33 @@ int main()
 
     expect(evaluate(expect_node.value(), mathWorld).value() == std::cos(2.0));
   };
+
+  "simple expression evaluation"_test = []()
+  {
+    auto parsing = parse("2+2*2");
+
+    expect(bool(parsing)) << parsing;
+
+    auto expect_node = make_tree(parsing.value());
+
+    expect(bool(expect_node));
+
+    expect(evaluate(expect_node.value(), mathWorld).value() == 6);
+  };
+
+  "complex expression evaluation"_test = []()
+  {
+    auto parsing = parse("2/3+2*2*exp(2)^2.5");
+
+    expect(bool(parsing)) << parsing;
+
+    auto expect_node = make_tree(parsing.value());
+
+    expect(bool(expect_node));
+
+    const double res = evaluate(expect_node.value(), mathWorld).value();
+    const double expected_res = 2./3.+2.*2.*std::pow(std::exp(2.), 2.5);
+
+    expect(res == expected_res);
+  };
 }
