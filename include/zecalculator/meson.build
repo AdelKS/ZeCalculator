@@ -10,6 +10,7 @@ header_files = files(
     'utils/utils.h',
     'builtin_binary_functions.h',
     'builtin_unary_functions.h',
+    'global_constant.h',
     'mathworld.h',
 )
 
