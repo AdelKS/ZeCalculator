@@ -74,6 +74,6 @@ protected:
   std::unordered_map<std::string, std::pair<ObjectType, size_t>, string_hash, std::equal_to<>> inventory;
 };
 
-extern MathWorld mathWorld;
+extern MathWorld global_world;
 
 }

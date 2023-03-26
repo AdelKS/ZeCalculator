@@ -4,6 +4,6 @@
 
 namespace zc {
 
-MathWorld mathWorld;
+MathWorld global_world;
 
 }

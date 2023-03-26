@@ -13,7 +13,7 @@ tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree, const Mat
 
       if constexpr (std::is_same_v<T, FunctionNode>)
       {
-        auto math_obj = mathWorld.get_math_object(node.name);
+        auto math_obj = global_world.get_math_object(node.name);
 
         return std::visit(
           [&](auto&& function) -> ReturnType {
