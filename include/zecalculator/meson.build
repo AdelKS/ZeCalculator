@@ -3,6 +3,7 @@ header_files = files(
     'utils/evaluation_error.h',
     'utils/evaluation.h',
     'utils/parsing_error.h',
+    'utils/slotted_vector.h',
     'utils/parser.h',
     'utils/syntax_tree.h',
     'utils/token.h',
