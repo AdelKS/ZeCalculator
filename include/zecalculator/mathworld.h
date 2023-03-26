@@ -1,6 +1,7 @@
 #pragma once
 
 #include <zecalculator/builtin_unary_functions.h>
+#include <zecalculator/builtin_binary_functions.h>
 
 
 #include <unordered_map>
@@ -13,21 +14,27 @@ class MathWorld
 {
 public:
 
-  using MathObject = std::variant<std::monostate, BuiltinUnaryFunction>;
+  using MathObject = std::variant<std::monostate, BuiltinUnaryFunction, BuiltinBinaryFunction>;
 
   MathWorld()
   {
     // populate inventory with builtin functions
-    size_t i = 0 ;
-    for (const auto &[name, function]: builtin_unary_functions)
+    auto register_builtin_functions = [&](const auto& builtin_functions, const ObjectType function_type )
     {
-      inventory.insert({std::string(name), {ObjectType::BUILTIN_UNARY_FUNCTION, i}});
-      i++;
-    }
+      size_t i = 0 ;
+      for (const auto &[name, function]: builtin_functions)
+      {
+        inventory.insert({std::string(name), {function_type, i}});
+        i++;
+      }
+    };
+
+    register_builtin_functions(builtin_unary_functions,  BUILTIN_UNARY_FUNCTION);
+    register_builtin_functions(builtin_binary_functions, BUILTIN_BINARY_FUNCTION);
   }
 
   // Types of the objects
-  enum ObjectType {NOT_REGISTERED, BUILTIN_UNARY_FUNCTION};
+  enum ObjectType {NOT_REGISTERED, BUILTIN_UNARY_FUNCTION, BUILTIN_BINARY_FUNCTION};
 
   MathObject get_math_object(std::string_view name) const
   {
@@ -39,6 +46,8 @@ public:
     {
       case ObjectType::BUILTIN_UNARY_FUNCTION:
         return builtin_unary_functions[index].second;
+      case ObjectType::BUILTIN_BINARY_FUNCTION:
+        return builtin_binary_functions[index].second;
       default:
         return std::monostate();
     }
