@@ -16,12 +16,20 @@ public:
 
   using MathObject = std::variant<std::monostate, CppUnaryFunction, CppBinaryFunction>;
 
-  MathWorld()
+  /// @brief default world that contains the usual functions (cos, sin ...)
+  static const MathWorld default_world;
+
+  MathWorld() : MathWorld(default_world) {}
+
+  template <size_t unary_fun_num, size_t binary_fun_num>
+  MathWorld(
+    const std::array<std::pair<std::string_view, CppUnaryFunction>, unary_fun_num>& unary_funs,
+    const std::array<std::pair<std::string_view, CppBinaryFunction>, binary_fun_num>& binary_funs)
   {
-    for(auto&& [name, f]: builtin_unary_functions)
+    for(auto&& [name, f]: unary_funs)
       register_cpp_function(name, f);
 
-    for(auto&& [name, f]: builtin_binary_functions)
+    for(auto&& [name, f]: binary_funs)
       register_cpp_function(name, f);
   }
 
