@@ -29,6 +29,19 @@ tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree, const Mat
                 return function(evaluation.value());
               else return evaluation;
             }
+            else if constexpr (std::is_same_v<F, BuiltinBinaryFunction>)
+            {
+              if (node.subnodes.size() != 2)
+                return tl::unexpected(EvaluationError::mismatched_fun_args(node));
+
+              auto evaluation1 = evaluate(node.subnodes.front(), world);
+              auto evaluation2 = evaluate(node.subnodes.back(), world);
+              if (not evaluation1)
+                return evaluation1;
+              else if (not evaluation2)
+                return evaluation2;
+              else return function(evaluation1.value(), evaluation2.value());
+            }
             else return tl::unexpected(EvaluationError::not_implemented(node));
 
           },
