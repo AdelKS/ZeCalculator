@@ -19,7 +19,7 @@ tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree, const Mat
           [&](auto&& function) -> ReturnType {
 
             using F = std::remove_cvref_t<decltype(function)>;
-            if constexpr (std::is_same_v<F, BuiltinUnaryFunction>)
+            if constexpr (std::is_same_v<F, CppUnaryFunction>)
             {
               if (node.subnodes.size() != 1)
                 return tl::unexpected(EvaluationError::mismatched_fun_args(node));
@@ -29,7 +29,7 @@ tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree, const Mat
                 return function(evaluation.value());
               else return evaluation;
             }
-            else if constexpr (std::is_same_v<F, BuiltinBinaryFunction>)
+            else if constexpr (std::is_same_v<F, CppBinaryFunction>)
             {
               if (node.subnodes.size() != 2)
                 return tl::unexpected(EvaluationError::mismatched_fun_args(node));

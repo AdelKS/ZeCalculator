@@ -14,7 +14,7 @@ class MathWorld
 {
 public:
 
-  using MathObject = std::variant<std::monostate, BuiltinUnaryFunction, BuiltinBinaryFunction>;
+  using MathObject = std::variant<std::monostate, CppUnaryFunction, CppBinaryFunction>;
 
   MathWorld()
   {
@@ -29,12 +29,17 @@ public:
       }
     };
 
-    register_builtin_functions(builtin_unary_functions,  BUILTIN_UNARY_FUNCTION);
-    register_builtin_functions(builtin_binary_functions, BUILTIN_BINARY_FUNCTION);
+    register_builtin_functions(builtin_unary_functions,  CPP_UNARY_FUNCTION);
+    register_builtin_functions(builtin_binary_functions, CPP_BINARY_FUNCTION);
   }
 
   // Types of the objects
-  enum ObjectType {NOT_REGISTERED, BUILTIN_UNARY_FUNCTION, BUILTIN_BINARY_FUNCTION};
+  enum ObjectType
+  {
+    NOT_REGISTERED,
+    CPP_UNARY_FUNCTION,
+    CPP_BINARY_FUNCTION
+  };
 
   MathObject get_math_object(std::string_view name) const
   {
@@ -44,9 +49,9 @@ public:
 
     switch(type)
     {
-      case ObjectType::BUILTIN_UNARY_FUNCTION:
+      case ObjectType::CPP_UNARY_FUNCTION:
         return builtin_unary_functions[index].second;
-      case ObjectType::BUILTIN_BINARY_FUNCTION:
+      case ObjectType::CPP_BINARY_FUNCTION:
         return builtin_binary_functions[index].second;
       default:
         return std::monostate();

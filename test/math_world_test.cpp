@@ -33,7 +33,7 @@ int main()
 
   "simple test"_test = []()
   {
-    expect(std::get<BuiltinUnaryFunction>(mathWorld.get_math_object("sqrt"))(4) == 2);
+    expect(std::get<CppUnaryFunction>(mathWorld.get_math_object("sqrt"))(4) == 2);
   };
 
   return 0;
