@@ -3,6 +3,7 @@ sources = files(
     'utils/evaluation.cpp',
     'utils/syntax_tree.cpp',
     'utils/token.cpp',
+    'builtin_binary_functions.cpp',
     'mathworld.cpp'
 )
 
