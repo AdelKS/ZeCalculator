@@ -49,7 +49,12 @@ tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree, const Mat
       }
 
       else if constexpr (std::is_same_v<T, VariableNode>)
-        return tl::unexpected(EvaluationError::not_implemented(node));
+      {
+        auto var_cref_w = world.get_global_constant(node.name);
+        if(var_cref_w)
+          return var_cref_w->get().value;
+        else return tl::unexpected(EvaluationError::undefined_variable(node));
+      }
 
       else if constexpr (std::is_same_v<T, NumberNode>)
         return node.value;
