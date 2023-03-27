@@ -128,4 +128,75 @@ int main()
 
     expect(res == expected_res);
   };
+
+  "global constant expression evaluation"_test = []()
+  {
+    auto parsing = parse("2*math::π + math::pi/2");
+
+    expect(bool(parsing)) << parsing;
+
+    auto expect_node = make_tree(parsing.value());
+
+    expect(bool(expect_node));
+
+    const double res = evaluate(expect_node.value(), global_world).value();
+    const double expected_res = 2.5 * std::numbers::pi;
+
+    expect(res == expected_res);
+  };
+
+  "global constant registering and evaluation"_test = []()
+  {
+    MathWorld world;
+    world.add_global_constant("my_constant1", 2.0);
+    world.add_global_constant("my_constant2", 3.0);
+
+    auto parsing = parse("my_constant1 + my_constant2");
+
+    expect(bool(parsing)) << parsing;
+
+    auto expect_node = make_tree(parsing.value());
+
+    expect(bool(expect_node));
+
+    const double res = evaluate(expect_node.value(), world).value();
+    const double expected_res = 5.0;
+
+    expect(res == expected_res);
+  };
+
+  "global constant registering override"_test = []()
+  {
+    MathWorld world;
+    world.add_global_constant("my_constant1", 2.0);
+    world.add_global_constant("my_constant1", 3.0);
+
+    auto parsing = parse("my_constant1");
+
+    expect(bool(parsing)) << parsing;
+
+    auto expect_node = make_tree(parsing.value());
+
+    expect(bool(expect_node)) << expect_node;
+
+    const double res = evaluate(expect_node.value(), world).value();
+    const double expected_res = 3.0;
+
+    expect(res == expected_res);
+  };
+
+  "undefined global constant"_test = []()
+  {
+    auto parsing = parse("cos(1) + my_constant1");
+
+    expect(bool(parsing)) << parsing;
+
+    auto expect_node = make_tree(parsing.value());
+
+    expect(bool(expect_node)) << expect_node;
+
+    const auto res = evaluate(expect_node.value(), global_world);
+
+    expect(not bool(res)) << res;
+  };
 }
