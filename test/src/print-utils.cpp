@@ -53,4 +53,13 @@ std::ostream& operator << (std::ostream& os, const ParsingError& err)
   return os;
 }
 
+std::ostream& operator << (std::ostream& os, const EvaluationError& err)
+{
+  os << magic_enum::enum_name(err.error_type)
+     << " at "
+     << err.node;
+
+  return os;
+}
+
 }
