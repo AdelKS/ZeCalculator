@@ -1,9 +1,10 @@
 #pragma once
 
-#include <zecalculator/builtin_unary_functions.h>
 #include <zecalculator/builtin_binary_functions.h>
-#include <zecalculator/utils/slotted_vector.h>
+#include <zecalculator/builtin_unary_functions.h>
 #include <zecalculator/global_constant.h>
+#include <zecalculator/utils/name_map.h>
+#include <zecalculator/utils/slotted_vector.h>
 
 #include <unordered_map>
 #include <variant>
@@ -103,18 +104,8 @@ public:
 
 protected:
 
-  struct string_hash
-  {
-      using hash_type = std::hash<std::string_view>;
-      using is_transparent = void;
-
-      std::size_t operator()(const char* str) const        { return hash_type{}(str); }
-      std::size_t operator()(std::string_view str) const   { return hash_type{}(str); }
-      std::size_t operator()(std::string const& str) const { return hash_type{}(str); }
-  };
-
   /// @brief maps an object name to its type and ID (index within the container that holds it)
-  std::unordered_map<std::string, std::pair<ObjectType, size_t>, string_hash, std::equal_to<>> inventory;
+  name_map<std::pair<ObjectType, size_t>> inventory;
 
   SlottedVector<CppUnaryFunction> unary_cpp_functions;
   SlottedVector<CppBinaryFunction> binary_cpp_functions;
