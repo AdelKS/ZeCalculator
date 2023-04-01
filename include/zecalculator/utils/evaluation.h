@@ -6,12 +6,30 @@
 namespace zc {
 
 /// @brief evaluates a syntax tree using a given math world
-tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree, const MathWorld& world);
+/// @param tree: tree to evaluate
+/// @param input_vars: variables that are given as input to the tree, will shadow any variable in the math world
+/// @param world: math world (contains functions, global constants... etc)
+tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree,
+                                               const name_map<double>& input_vars,
+                                               const MathWorld& world);
+
+/// @brief evaluates a syntax tree using a given math world
+inline tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree, const MathWorld& world)
+{
+  return evaluate(tree, {}, world);
+}
 
 /// @brief evaluates a syntax tree using the global math world
 inline tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree)
 {
   return evaluate(tree, global_world);
+}
+
+/// @brief evaluates a syntax tree using the global math world
+/// @param input_vars: variables that are given as input to the tree, will shadow any variable in the math world
+inline tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree, const name_map<double>& input_vars)
+{
+  return evaluate(tree, input_vars, global_world);
 }
 
 }

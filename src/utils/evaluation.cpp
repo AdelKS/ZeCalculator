@@ -3,7 +3,9 @@
 
 namespace zc {
 
-tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree, const MathWorld& world)
+tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree,
+                                               const name_map<double>& input_vars,
+                                               const MathWorld& world)
 {
   using ReturnType = tl::expected<double, EvaluationError>;
   return std::visit(
@@ -24,7 +26,7 @@ tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree, const Mat
               if (node.subnodes.size() != 1)
                 return tl::unexpected(EvaluationError::mismatched_fun_args(node));
 
-              auto evaluation = evaluate(node.subnodes.front(), world);
+              auto evaluation = evaluate(node.subnodes.front(), input_vars, world);
               if (evaluation)
                 return function(evaluation.value());
               else return evaluation;
@@ -34,8 +36,8 @@ tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree, const Mat
               if (node.subnodes.size() != 2)
                 return tl::unexpected(EvaluationError::mismatched_fun_args(node));
 
-              auto evaluation1 = evaluate(node.subnodes.front(), world);
-              auto evaluation2 = evaluate(node.subnodes.back(), world);
+              auto evaluation1 = evaluate(node.subnodes.front(), input_vars, world);
+              auto evaluation2 = evaluate(node.subnodes.back(), input_vars, world);
               if (not evaluation1)
                 return evaluation1;
               else if (not evaluation2)
@@ -50,10 +52,16 @@ tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree, const Mat
 
       else if constexpr (std::is_same_v<T, VariableNode>)
       {
-        auto var_cref_w = world.get_global_constant(node.name);
-        if(var_cref_w)
-          return var_cref_w->get().value;
-        else return tl::unexpected(EvaluationError::undefined_variable(node));
+        auto it = input_vars.find(node.name);
+        if (it != input_vars.end())
+          return it->second;
+        else
+        {
+          auto var_cref_w = world.get_global_constant(node.name);
+          if(var_cref_w)
+            return var_cref_w->get().value;
+          else return tl::unexpected(EvaluationError::undefined_variable(node));
+        }
       }
 
       else if constexpr (std::is_same_v<T, NumberNode>)
