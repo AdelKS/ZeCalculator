@@ -97,7 +97,7 @@ int main()
 
     expect(bool(expect_node));
 
-    expect(evaluate(expect_node.value(), global_world).value() == std::cos(2.0));
+    expect(evaluate(expect_node.value()).value() == std::cos(2.0));
   };
 
   "simple expression evaluation"_test = []()
@@ -110,7 +110,7 @@ int main()
 
     expect(bool(expect_node));
 
-    expect(evaluate(expect_node.value(), global_world).value() == 6);
+    expect(evaluate(expect_node.value()).value() == 6);
   };
 
   "complex expression evaluation"_test = []()
@@ -123,7 +123,7 @@ int main()
 
     expect(bool(expect_node));
 
-    const double res = evaluate(expect_node.value(), global_world).value();
+    const double res = evaluate(expect_node.value()).value();
     const double expected_res = 2./3.+2.*2.*std::pow(std::exp(2.), 2.5);
 
     expect(res == expected_res);
@@ -139,7 +139,7 @@ int main()
 
     expect(bool(expect_node));
 
-    const double res = evaluate(expect_node.value(), global_world).value();
+    const double res = evaluate(expect_node.value()).value();
     const double expected_res = 2.5 * std::numbers::pi;
 
     expect(res == expected_res);
@@ -195,7 +195,7 @@ int main()
 
     expect(bool(expect_node)) << expect_node;
 
-    const auto res = evaluate(expect_node.value(), global_world);
+    const auto res = evaluate(expect_node.value());
 
     expect(not bool(res)) << res;
   };
