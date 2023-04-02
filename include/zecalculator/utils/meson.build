@@ -1,0 +1,11 @@
+utils_header_files = files(
+  'evaluation_error.h',
+  'evaluation.h',
+  'name_map.h',
+  'parsing_error.h',
+  'slotted_vector.h',
+  'parser.h',
+  'syntax_tree.h',
+  'token.h',
+  'utils.h',
+)
