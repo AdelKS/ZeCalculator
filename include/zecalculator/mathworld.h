@@ -7,6 +7,7 @@
 #include <zecalculator/utils/name_map.h>
 #include <zecalculator/utils/slotted_vector.h>
 #include <zecalculator/utils/optional_ref.h>
+#include <zecalculator/function.h>
 
 #include <unordered_map>
 #include <variant>
@@ -18,7 +19,7 @@ class MathWorld
 {
 public:
   using MathObject
-    = std::variant<std::monostate, CppUnaryFunction, CppBinaryFunction, GlobalConstant>;
+    = std::variant<std::monostate, CppUnaryFunction, CppBinaryFunction, GlobalConstant, Function>;
 
   class name_already_taken: public std::runtime_error
   {
@@ -52,7 +53,8 @@ public:
     NOT_REGISTERED,
     CPP_UNARY_FUNCTION,
     CPP_BINARY_FUNCTION,
-    GLOBAL_CONSTANT
+    GLOBAL_CONSTANT,
+    FUNCTION,
   };
 
   MathObject get_math_object(std::string_view name) const
@@ -64,12 +66,14 @@ public:
     /// TODO: bounds check can be removed when code is stable, aka use operator[]
     switch(type)
     {
-      case ObjectType::CPP_UNARY_FUNCTION:
+      case CPP_UNARY_FUNCTION:
         return unary_cpp_functions.at(index);
-      case ObjectType::CPP_BINARY_FUNCTION:
+      case CPP_BINARY_FUNCTION:
         return binary_cpp_functions.at(index);
-      case ObjectType::GLOBAL_CONSTANT:
+      case GLOBAL_CONSTANT:
         return global_variables.at(index);
+      case FUNCTION:
+        return functions.at(index);
       default:
         return std::monostate();
     }
@@ -115,6 +119,16 @@ public:
     return inventory.find(name) != inventory.end();
   }
 
+  /// @brief add a functions
+  /// @returns a reference to the function object, if it got created
+  /// @note if another object has the same name, no function is created and an exception is raised
+  size_t add_function(std::string_view name);
+
+  Function& get_function(size_t id)
+  {
+    return functions[id];
+  }
+
 protected:
 
   /// @brief maps an object name to its type and ID (index within the container that holds it)
@@ -123,6 +137,7 @@ protected:
   SlottedVector<CppUnaryFunction> unary_cpp_functions;
   SlottedVector<CppBinaryFunction> binary_cpp_functions;
   SlottedVector<GlobalConstant> global_variables;
+  SlottedVector<Function> functions;
 };
 
 extern MathWorld global_world;
