@@ -144,4 +144,22 @@ int main()
 
     expect(not bool(res)) << res;
   };
+
+  "input var evaluation shadowing a global constant"_test = []()
+  {
+    MathWorld world;
+    world.add_global_constant("x", 2.0);
+    auto parsing = parse("cos(x) + x");
+
+    expect(bool(parsing)) << parsing;
+
+    auto expect_node = make_tree(parsing.value());
+
+    expect(bool(expect_node)) << expect_node;
+
+    const double res = evaluate(expect_node.value(), {{"x", 1.0}}, world).value();
+
+    const double expected_res = std::cos(1.0) + 1.0;
+    expect(res == expected_res);
+  };
 }
