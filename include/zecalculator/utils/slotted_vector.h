@@ -41,8 +41,14 @@ public:
     return Parent::at(slot).value();
   }
 
-    /// @brief returns the element T at 'slot'
+  /// @brief returns the element T at 'slot'
   const T& operator [] (size_t slot) const
+  {
+    return *Parent::operator [] (slot);
+  }
+
+    /// @brief returns the element T at 'slot'
+  T& operator [] (size_t slot)
   {
     return *Parent::operator [] (slot);
   }
