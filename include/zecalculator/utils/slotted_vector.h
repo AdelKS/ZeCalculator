@@ -23,9 +23,19 @@ public:
   /// @brief finds the a free slot, puts 'val' in it, then returns the slot index
   size_t push(T val)
   {
-    const size_t slot = pop_free_slot();
-    Parent::operator[](slot) = val;
-    return slot;
+    if (free_slots.empty())
+    {
+      const size_t slot = size();
+      Parent::push_back(std::move(val));
+      return slot;
+    }
+    else
+    {
+      const size_t slot = free_slots.top();
+      free_slots.pop();
+      Parent::operator[](slot) = std::move(val);
+      return slot;
+    }
   }
 
   ///@brief frees the slot 'slot'
@@ -54,23 +64,6 @@ public:
   }
 
 protected:
-
-  size_t pop_free_slot()
-  {
-    if (free_slots.empty())
-    {
-      const size_t slot = size();
-      Parent::push_back(std::optional<T>());
-      return slot;
-    }
-    else
-    {
-      const size_t slot = free_slots.top();
-      free_slots.pop();
-      return slot;
-    }
-  }
-
   std::stack<size_t> free_slots;
 };
 
