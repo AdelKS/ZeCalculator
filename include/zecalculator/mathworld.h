@@ -5,6 +5,7 @@
 #include <zecalculator/global_constant.h>
 #include <zecalculator/utils/name_map.h>
 #include <zecalculator/utils/slotted_vector.h>
+#include <zecalculator/utils/optional_ref.h>
 
 #include <unordered_map>
 #include <variant>
@@ -90,7 +91,7 @@ public:
     else inventory.insert({std::string(name), {GLOBAL_CONSTANT, global_variables.push(GlobalConstant{init_value})}});
   }
 
-  std::optional<std::reference_wrapper<const GlobalConstant>> get_global_constant(std::string_view name) const
+  optional_ref<const GlobalConstant> get_global_constant(std::string_view name) const
   {
     auto it = inventory.find(name);
     const auto& [type, index] = (it != inventory.end()) ? it->second
