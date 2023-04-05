@@ -48,7 +48,7 @@ std::optional<std::pair<double, size_t>> to_double(std::string_view view)
 
 tl::expected<std::vector<Token>, ParsingError> parse(std::string_view expression)
 {
-  tl::expected<std::vector<Token>, ParsingError> parsing;
+  std::vector<Token> parsing;
 
   auto is_seperator = [](const char ch) {
     static constexpr std::array separators = {'+', '-', '*', '/', '^', ' ', '(', ')'};
@@ -82,7 +82,7 @@ tl::expected<std::vector<Token>, ParsingError> parse(std::string_view expression
       {
         const auto& [double_opt_val, processed_char_num] = *double_val;
         // parsing successful
-        parsing->push_back(tokens::Number(double_opt_val, std::string_view(it, processed_char_num)));
+        parsing.push_back(tokens::Number(double_opt_val, std::string_view(it, processed_char_num)));
         it += processed_char_num;
 
         openingParenthesis = value = numberSign = false;
@@ -94,7 +94,7 @@ tl::expected<std::vector<Token>, ParsingError> parse(std::string_view expression
     {
       if (ope)
       {
-        parsing->push_back(tokens::Operator(char_v));
+        parsing.push_back(tokens::Operator(char_v));
 
         openingParenthesis = value = true;
         ope = numberSign = closingParenthesis = canEnd = false;
@@ -106,14 +106,14 @@ tl::expected<std::vector<Token>, ParsingError> parse(std::string_view expression
     {
       if (openingParenthesis)
       {
-        if (not parsing->empty() and std::holds_alternative<tokens::Function>(parsing->back()))
+        if (not parsing.empty() and std::holds_alternative<tokens::Function>(parsing.back()))
         {
-          parsing->emplace_back(tokens::FunctionCallStart(char_v));
+          parsing.emplace_back(tokens::FunctionCallStart(char_v));
           last_opened_pth.push(FUNCTION_CALL_PTH);
         }
         else
         {
-          parsing->emplace_back(tokens::OpeningParenthesis(char_v));
+          parsing.emplace_back(tokens::OpeningParenthesis(char_v));
           last_opened_pth.push(NORMAL_PTH);
         }
 
@@ -129,9 +129,9 @@ tl::expected<std::vector<Token>, ParsingError> parse(std::string_view expression
       {
         if (last_opened_pth.top() == FUNCTION_CALL_PTH)
         {
-          parsing->emplace_back(tokens::FunctionCallEnd(char_v));
+          parsing.emplace_back(tokens::FunctionCallEnd(char_v));
         }
-        else parsing->emplace_back(tokens::ClosingParenthesis(char_v));
+        else parsing.emplace_back(tokens::ClosingParenthesis(char_v));
 
         last_opened_pth.pop();
 
@@ -161,14 +161,14 @@ tl::expected<std::vector<Token>, ParsingError> parse(std::string_view expression
         if (it == expression.cend() or *it != '(')
         {
           // can only be a variable when we reach the end of the expression
-          parsing->emplace_back(tokens::Variable(token_v));
+          parsing.emplace_back(tokens::Variable(token_v));
 
           openingParenthesis = numberSign = value = false;
           canEnd = ope = closingParenthesis = true;
         }
         else
         {
-          parsing->emplace_back(tokens::Function(token_v));
+          parsing.emplace_back(tokens::Function(token_v));
 
           canEnd = closingParenthesis = ope = numberSign = value = false;
           openingParenthesis = true;
