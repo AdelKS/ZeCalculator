@@ -20,8 +20,9 @@ std::ostream& operator << (std::ostream& os, const EvaluationError& err);
 template <class T, class U>
 std::ostream& operator << (std::ostream& os, const tl::expected<T, U>& expected)
 {
-  if (not expected)
-    os << expected.error();
+  if (expected)
+    os << expected.value();
+  else os << expected.error();
 
   return os;
 }
