@@ -41,6 +41,7 @@ struct EvaluationError
     MISMATCHING_FUNCTION_ARGS_NUM,
     NOT_IMPLEMENTED,
     EMPTY_EXPRESSION,
+    INVALID_FUNCTION,
   };
 
   static EvaluationError undefined_variable(SyntaxTree tree)
@@ -66,6 +67,11 @@ struct EvaluationError
   static EvaluationError empty_expression()
   {
     return EvaluationError {EMPTY_EXPRESSION};
+  }
+
+  static EvaluationError invalid_function()
+  {
+    return EvaluationError {INVALID_FUNCTION};
   }
 
   // kind of error
