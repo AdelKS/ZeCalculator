@@ -26,4 +26,14 @@ std::ostream& operator << (std::ostream& os, const tl::expected<T, U>& expected)
   return os;
 }
 
+template <class T>
+std::ostream& operator << (std::ostream& os, const std::vector<T>& vec)
+{
+  os << "{ ";
+  for (const auto& val: vec)
+    os << val << ", ";
+  os << " }" << std::endl;
+  return os;
+}
+
 }
