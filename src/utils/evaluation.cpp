@@ -47,6 +47,20 @@ tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree,
                 return tl::unexpected(EvaluationError::mismatched_fun_args(node));
               else return function(evaluations.front(), evaluations.back());
             }
+            else if constexpr (std::is_same_v<F, Function>)
+            {
+//              std::cout << "Evaluating zc function: " << node.name << std::endl;
+              if (evaluations.size() != function.argument_size())
+                return tl::unexpected(EvaluationError::mismatched_fun_args(node));
+              else
+              {
+                ReturnType eval = function(evaluations, world);
+                if (not bool(eval)) [[unlikely]]
+                  return tl::unexpected(EvaluationError::calling_invalid_function(node));
+                else [[likely]]
+                  return eval;
+              }
+            }
             else return tl::unexpected(EvaluationError::not_implemented(node));
 
           },
