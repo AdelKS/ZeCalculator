@@ -17,17 +17,8 @@ std::ostream& operator << (std::ostream& os, const ParsingError& err);
 
 std::ostream& operator << (std::ostream& os, const EvaluationError& err);
 
-template <class T>
-std::ostream& operator << (std::ostream& os, const tl::expected<T, ParsingError>& expected)
-{
-  if (not expected)
-    os << expected.error();
-
-  return os;
-}
-
-template <class T>
-std::ostream& operator << (std::ostream& os, const tl::expected<T, EvaluationError>& expected)
+template <class T, class U>
+std::ostream& operator << (std::ostream& os, const tl::expected<T, U>& expected)
 {
   if (not expected)
     os << expected.error();
