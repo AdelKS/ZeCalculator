@@ -56,4 +56,45 @@ int main()
 
     expect(res == expected_res);
   };
+
+  "function calling another function"_test = []()
+  {
+    MathWorld world;
+    auto f1 = world.add_function("f1");
+    auto f2 = world.add_function("f2");
+
+    *f1 = Function({"x"}, "cos(x) + x + f2(2*x)");
+    *f2 = Function({"x"}, "cos(x) + 2*x^2");
+
+    expect(bool(*f1));
+    expect(bool(*f2));
+
+    auto cpp_f2 = [](double x)
+    {
+      return std::cos(x) + 2*x*x;
+    };
+    auto cpp_f1 = [cpp_f2](double x)
+    {
+      return std::cos(x) + x + cpp_f2(2*x);
+    };
+
+    double x = 6.4;
+
+    const auto expected_res2 = (*f2)({2*x}, world);
+
+    const bool res2_status = bool(expected_res2);
+
+    expect(res2_status);
+
+    if (res2_status)
+      expect(expected_res2.value() == cpp_f2(2*x));
+
+    const auto expected_res1 = (*f1)({x}, world);
+
+    expect(bool(expected_res1));
+
+    if (bool(expected_res1))
+      expect(std::fabs(expected_res1.value() - cpp_f1(x)) < 1e-11) << expected_res1.value() << " = " << cpp_f1(x);
+  };
+
 }
