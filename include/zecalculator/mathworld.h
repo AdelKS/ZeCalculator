@@ -26,6 +26,28 @@ public:
     using std::runtime_error::runtime_error;
   };
 
+  class WorldFunction
+  {
+    public:
+      Function& operator * ()
+      {
+        return world.get_function(id);
+      }
+
+      Function& operator -> ()
+      {
+        return **this;
+      }
+
+    protected:
+      WorldFunction(MathWorld& world, size_t id)
+        : world(world), id(id) {}
+
+      MathWorld& world;
+      size_t id;
+      friend MathWorld;
+  };
+
   /// @brief default world that contains the usual functions (cos, sin ...)
   static const MathWorld default_world;
 
