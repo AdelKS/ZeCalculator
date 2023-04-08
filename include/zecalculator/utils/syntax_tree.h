@@ -57,7 +57,9 @@ struct FunctionNode // Unary
   bool operator == (const FunctionNode& other) const = default;
 };
 
-/// @brief creates a SyntaxNode from a parsing
+/// @brief makes a syntax tree from from a sequence of tokens
+/// @note  the tokens contain string_views to the original expression
+///        i.e. be cautious when using it
 tl::expected<SyntaxTree, ParsingError> make_tree(const std::span<Token> tokens);
 
 }
