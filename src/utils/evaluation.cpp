@@ -13,7 +13,11 @@ tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree,
 
       using T = std::remove_cvref_t<decltype(node)>;
 
-      if constexpr (std::is_same_v<T, FunctionNode>)
+      if constexpr (std::is_same_v<T, std::monostate>)
+      {
+        return tl::unexpected(EvaluationError::empty_expression());
+      }
+      else if constexpr (std::is_same_v<T, FunctionNode>)
       {
         auto math_obj = global_world.get_math_object(node.name);
 

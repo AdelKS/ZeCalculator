@@ -33,7 +33,7 @@ struct FunctionNode;
 struct VariableNode;
 struct NumberNode;
 
-using SyntaxTree = std::variant<FunctionNode, VariableNode, NumberNode>;
+using SyntaxTree = std::variant<std::monostate, FunctionNode, VariableNode, NumberNode>;
 
 struct VariableNode
 {

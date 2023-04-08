@@ -21,7 +21,10 @@ void syntax_node_print_helper(std::ostream& os, const SyntaxTree& node, size_t p
 {
   const std::string padding_str(padding, ' ');
 
-  std::visit(overloaded{[&](const FunctionNode &f) {
+  std::visit(overloaded{[&](std::monostate) {
+                          os << padding_str << "empty tree " << std::endl;
+                        },
+                        [&](const FunctionNode &f) {
                           os << padding_str << "Function " << f.name << " {"
                              << std::endl;
                           for (const SyntaxTree &subnode : f.subnodes)
