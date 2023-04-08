@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdexcept>
 #include <zecalculator/builtin_binary_functions.h>
 #include <zecalculator/builtin_unary_functions.h>
 #include <zecalculator/global_constant.h>
@@ -18,6 +19,11 @@ class MathWorld
 public:
   using MathObject
     = std::variant<std::monostate, CppUnaryFunction, CppBinaryFunction, GlobalConstant>;
+
+  class name_already_taken: public std::runtime_error
+  {
+    using std::runtime_error::runtime_error;
+  };
 
   /// @brief default world that contains the usual functions (cos, sin ...)
   static const MathWorld default_world;
