@@ -40,6 +40,7 @@ struct EvaluationError
     UNDEFINED_FUNCTION,
     MISMATCHING_FUNCTION_ARGS_NUM,
     NOT_IMPLEMENTED,
+    EMPTY_EXPRESSION,
   };
 
   static EvaluationError undefined_variable(SyntaxTree tree)
@@ -62,11 +63,16 @@ struct EvaluationError
     return EvaluationError {NOT_IMPLEMENTED, tree};
   }
 
+  static EvaluationError empty_expression()
+  {
+    return EvaluationError {EMPTY_EXPRESSION};
+  }
+
   // kind of error
   Type error_type = UNDEFINED;
 
   // on what token
-  SyntaxTree node;
+  SyntaxTree node = {};
 
   bool operator == (const EvaluationError& other) const = default;
 };
