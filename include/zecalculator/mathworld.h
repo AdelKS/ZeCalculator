@@ -103,6 +103,12 @@ public:
     else return {};
   }
 
+  /// @brief says if an object with the given name exists within the world
+  bool contains(std::string_view name) const
+  {
+    return inventory.find(name) != inventory.end();
+  }
+
 protected:
 
   /// @brief maps an object name to its type and ID (index within the container that holds it)
