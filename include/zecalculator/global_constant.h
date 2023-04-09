@@ -8,10 +8,11 @@ namespace zc {
 
 struct GlobalConstant
 {
+  constexpr GlobalConstant(double val): value(val) {}
   double value = 0;
 };
 
-constexpr std::array<std::pair<std::string_view, double>, 5> builtin_global_variables =
+constexpr std::array<std::pair<std::string_view, GlobalConstant>, 5> builtin_global_variables =
 {{
   {"math::pi", std::numbers::pi},
   {"math::π",  std::numbers::pi},
