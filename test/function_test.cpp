@@ -48,7 +48,7 @@ int main()
   "function evaluation shadowing a global constant"_test = []()
   {
     MathWorld world;
-    world.add_global_constant("x", 2.0);
+    world.add<GlobalConstant>("x", 2.0);
     auto f = Function({"x"}, "cos(x) + x");
 
     const double res = f({1.0}, world).value();
@@ -60,8 +60,8 @@ int main()
   "function calling another function"_test = []()
   {
     MathWorld world;
-    auto f1 = world.add_function("f1");
-    auto f2 = world.add_function("f2");
+    auto f1 = world.add<Function>("f1");
+    auto f2 = world.add<Function>("f2");
 
     *f1 = Function({"x"}, "cos(x) + x + f2(2*x)");
     *f2 = Function({"x"}, "cos(x) + 2*x^2");

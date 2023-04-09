@@ -33,7 +33,14 @@ int main()
 
   "simple test"_test = []()
   {
-    expect(std::get<CppUnaryFunction>(global_world.get_math_object("sqrt"))(4) == 2);
+    expect((*global_world.get<CppUnaryFunction>("sqrt").value())(4) == 2);
+  };
+
+  "Add same constant twice"_test = []()
+  {
+    MathWorld world;
+    world.add<GlobalConstant>("my_constant1", 2.0);
+    expect(throws([&]{ world.add<GlobalConstant>("my_constant1", 3.0); }));
   };
 
   return 0;

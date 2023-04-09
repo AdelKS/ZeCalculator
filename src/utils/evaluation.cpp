@@ -19,7 +19,7 @@ tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree,
       }
       else if constexpr (std::is_same_v<T, FunctionNode>)
       {
-        auto math_obj = world.get_math_object(node.name);
+        auto math_obj = world.get(node.name);
 
         return std::visit(
           [&](auto&& function) -> ReturnType {
@@ -35,27 +35,26 @@ tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree,
             }
 
             using F = std::remove_cvref_t<decltype(function)>;
-            if constexpr (std::is_convertible_v<F, CppUnaryFunction>)
+            if constexpr (std::is_same_v<F, MathWorld::ConstMathObject<CppUnaryFunction>>)
             {
               if (evaluations.size() != 1)
                 return tl::unexpected(EvaluationError::mismatched_fun_args(node));
-              else return function(evaluations.front());
+              else return (*function)(evaluations.front());
             }
-            else if constexpr (std::is_convertible_v<F, CppBinaryFunction>)
+            else if constexpr (std::is_convertible_v<F, MathWorld::ConstMathObject<CppBinaryFunction>>)
             {
               if (evaluations.size() != 2)
                 return tl::unexpected(EvaluationError::mismatched_fun_args(node));
-              else return function(evaluations.front(), evaluations.back());
+              else return (*function)(evaluations.front(), evaluations.back());
             }
-            else if constexpr (std::is_convertible_v<F, Function>)
+            else if constexpr (std::is_convertible_v<F, MathWorld::ConstMathObject<Function>>)
             {
-              const Function& f = function;
 //              std::cout << "Evaluating zc function: " << node.name << std::endl;
-              if (evaluations.size() != f.argument_size())
+              if (evaluations.size() != (*function).argument_size())
                 return tl::unexpected(EvaluationError::mismatched_fun_args(node));
               else
               {
-                ReturnType eval = f(evaluations, world);
+                ReturnType eval = (*function)(evaluations, world);
                 if (not bool(eval)) [[unlikely]]
                   return tl::unexpected(EvaluationError::calling_invalid_function(node));
                 else [[likely]]
@@ -75,9 +74,9 @@ tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree,
           return it->second;
         else
         {
-          auto var_cref_w = world.get_global_constant(node.name);
-          if(var_cref_w)
-            return var_cref_w->get().value;
+          auto opt_world_var = world.get<GlobalConstant>(node.name);
+          if(opt_world_var)
+            return (*opt_world_var)->value;
           else return tl::unexpected(EvaluationError::undefined_variable(node));
         }
       }

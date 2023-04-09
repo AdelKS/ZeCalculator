@@ -93,8 +93,8 @@ int main()
   "global constant registering and evaluation"_test = []()
   {
     MathWorld world;
-    world.add_global_constant("my_constant1", 2.0);
-    world.add_global_constant("my_constant2", 3.0);
+    world.add<GlobalConstant>("my_constant1", 2.0);
+    world.add<GlobalConstant>("my_constant2", 3.0);
 
     auto parsing = parse("my_constant1 + my_constant2");
 
@@ -106,26 +106,6 @@ int main()
 
     const double res = evaluate(expect_node.value(), world).value();
     const double expected_res = 5.0;
-
-    expect(res == expected_res);
-  };
-
-  "global constant registering override"_test = []()
-  {
-    MathWorld world;
-    world.add_global_constant("my_constant1", 2.0);
-    world.add_global_constant("my_constant1", 3.0);
-
-    auto parsing = parse("my_constant1");
-
-    expect(bool(parsing)) << parsing;
-
-    auto expect_node = make_tree(parsing.value());
-
-    expect(bool(expect_node)) << expect_node;
-
-    const double res = evaluate(expect_node.value(), world).value();
-    const double expected_res = 3.0;
 
     expect(res == expected_res);
   };
@@ -148,7 +128,7 @@ int main()
   "input var evaluation shadowing a global constant"_test = []()
   {
     MathWorld world;
-    world.add_global_constant("x", 2.0);
+    world.add<GlobalConstant>("x", 2.0);
     auto parsing = parse("cos(x) + x");
 
     expect(bool(parsing)) << parsing;
