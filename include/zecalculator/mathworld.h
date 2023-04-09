@@ -15,11 +15,20 @@
 
 namespace zc {
 
+template <class T>
+using cref_t = std::reference_wrapper<const T>;
+
+template <class T>
+using ref_t = std::reference_wrapper<T>;
+
 class MathWorld
 {
 public:
-  using MathObject
-    = std::variant<std::monostate, CppUnaryFunction, CppBinaryFunction, GlobalConstant, Function>;
+  using MathObjectCref = std::variant<std::monostate,
+                                      CppUnaryFunction,
+                                      CppBinaryFunction,
+                                      cref_t<GlobalConstant>,
+                                      cref_t<Function>>;
 
   class name_already_taken: public std::runtime_error
   {
@@ -85,7 +94,7 @@ public:
     FUNCTION,
   };
 
-  MathObject get_math_object(std::string_view name) const
+  MathObjectCref get_math_object(std::string_view name) const
   {
     auto it = inventory.find(name);
     const auto& [type, index] = (it != inventory.end()) ? it->second

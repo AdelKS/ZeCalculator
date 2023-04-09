@@ -35,26 +35,27 @@ tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree,
             }
 
             using F = std::remove_cvref_t<decltype(function)>;
-            if constexpr (std::is_same_v<F, CppUnaryFunction>)
+            if constexpr (std::is_convertible_v<F, CppUnaryFunction>)
             {
               if (evaluations.size() != 1)
                 return tl::unexpected(EvaluationError::mismatched_fun_args(node));
               else return function(evaluations.front());
             }
-            else if constexpr (std::is_same_v<F, CppBinaryFunction>)
+            else if constexpr (std::is_convertible_v<F, CppBinaryFunction>)
             {
               if (evaluations.size() != 2)
                 return tl::unexpected(EvaluationError::mismatched_fun_args(node));
               else return function(evaluations.front(), evaluations.back());
             }
-            else if constexpr (std::is_same_v<F, Function>)
+            else if constexpr (std::is_convertible_v<F, Function>)
             {
+              const Function& f = function;
 //              std::cout << "Evaluating zc function: " << node.name << std::endl;
-              if (evaluations.size() != function.argument_size())
+              if (evaluations.size() != f.argument_size())
                 return tl::unexpected(EvaluationError::mismatched_fun_args(node));
               else
               {
-                ReturnType eval = function(evaluations, world);
+                ReturnType eval = f(evaluations, world);
                 if (not bool(eval)) [[unlikely]]
                   return tl::unexpected(EvaluationError::calling_invalid_function(node));
                 else [[likely]]
