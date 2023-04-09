@@ -51,6 +51,12 @@ public:
     return Parent::at(slot).value();
   }
 
+  /// @brief returns the element T at 'slot', bounds checked
+  T& at(size_t slot)
+  {
+    return Parent::at(slot).value();
+  }
+
   /// @brief returns the element T at 'slot'
   const T& operator [] (size_t slot) const
   {
