@@ -144,7 +144,7 @@ public:
   /// @brief add a functions
   /// @returns a reference to the function object, if it got created
   /// @note if another object has the same name, no function is created and an exception is raised
-  size_t add_function(std::string_view name);
+  WorldFunction add_function(std::string_view name);
 
   Function& get_function(size_t id)
   {
