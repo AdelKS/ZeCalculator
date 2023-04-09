@@ -17,6 +17,11 @@
 namespace zc {
 
 template <class... MathObjectType>
+class MathWorldT;
+
+using MathWorld = MathWorldT<CppUnaryFunction, CppBinaryFunction, GlobalConstant, Function>;
+
+template <class... MathObjectType>
 class MathWorldT
 {
 public:
@@ -85,7 +90,13 @@ public:
   /// @brief const version of the one above
   using ConstDynMathObject = std::variant<UnregisteredObject, ConstMathObject<MathObjectType>...>;
 
-  MathWorldT() = default;
+  /// @brief default constructor when this class is used outside of what it's been planned for
+  MathWorldT() requires (not std::is_same_v<MathWorldT, MathWorld>) = default;
+
+  /// @brief default constructor that defines the usual functions and global constants
+  MathWorldT()
+    requires(std::is_same_v<MathWorldT, MathWorld>)
+    : MathWorldT(builtin_unary_functions, builtin_binary_functions, builtin_global_variables){};
 
   template <class ObjectType1, size_t size1, class... ObjectTypeN, size_t... sizeN>
   MathWorldT(
@@ -95,6 +106,13 @@ public:
   {
     for(auto [name, obj]: objects1)
       add<ObjectType1>(name, obj);
+  }
+
+  template <class ObjectType, size_t size>
+  MathWorldT(const std::array<std::pair<std::string_view, ObjectType>, size>& objects)
+  {
+    for(auto [name, obj]: objects)
+      add<ObjectType>(name, obj);
   }
 
   /// @brief get object from name, the underlying type is to be dynamically resolved at runtime
@@ -200,19 +218,6 @@ protected:
   name_map<DynMathObject> inventory;
 
   std::tuple<SlottedVector<MathObjectType>...> math_objects;
-
-};
-
-class MathWorld: public MathWorldT<CppUnaryFunction, CppBinaryFunction, GlobalConstant, Function>
-{
-  using Parent = MathWorldT<CppUnaryFunction, CppBinaryFunction, GlobalConstant, Function>;
-public:
-  /// @brief default world that contains the usual functions (cos, sin ...)
-  static const MathWorld default_world;
-
-  using Parent::MathWorldT;
-
-  MathWorld() : MathWorld(default_world) {}
 
 };
 

@@ -31,6 +31,9 @@
 #include <zecalculator/utils/evaluation_error.h>
 #include <zecalculator/utils/name_map.h>
 #include <zecalculator/utils/syntax_tree.h>
+#include <zecalculator/builtin_unary_functions.h>
+#include <zecalculator/builtin_binary_functions.h>
+#include <zecalculator/global_constant.h>
 
 /* TODO: update approach as the following:
    - Check for validity
@@ -40,7 +43,12 @@
 
 namespace zc {
 
-class MathWorld;
+class Function;
+
+template <class... MathObjectType>
+class MathWorldT;
+
+using MathWorld = MathWorldT<CppUnaryFunction, CppBinaryFunction, GlobalConstant, Function>;
 
 class Function
 {
