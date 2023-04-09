@@ -6,7 +6,21 @@
 
 namespace zc {
 
-using CppBinaryFunction = double (*) (double, double);
+using CppBinaryFunctionPtr = double (*) (double, double);
+
+class CppBinaryFunction
+{
+public:
+  constexpr CppBinaryFunction(CppBinaryFunctionPtr f_ptr) : f_ptr(f_ptr) {};
+
+  double operator()(double a, double b) const
+  {
+    return f_ptr(a ,b);
+  }
+
+protected:
+  CppBinaryFunctionPtr f_ptr;
+};
 
 double plus(const double a, const double b);
 double minus(const double a, const double b);
@@ -21,7 +35,7 @@ constexpr std::array<std::pair<std::string_view, CppBinaryFunction>, 5> builtin_
   {"-", minus},
   {"*", multiply},
   {"/", divide},
-  {"^", static_cast<CppBinaryFunction>(std::pow)},
+  {"^", CppBinaryFunction(std::pow)},
 }};
 
 }
