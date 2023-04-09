@@ -80,7 +80,7 @@ int main()
 
     double x = 6.4;
 
-    const auto expected_res2 = (*f2)({2*x}, world);
+    const auto expected_res2 = f2({2*x});
 
     const bool res2_status = bool(expected_res2);
 
@@ -89,7 +89,7 @@ int main()
     if (res2_status)
       expect(expected_res2.value() == cpp_f2(2*x));
 
-    const auto expected_res1 = (*f1)({x}, world);
+    const auto expected_res1 = f1({x});
 
     expect(bool(expected_res1));
 

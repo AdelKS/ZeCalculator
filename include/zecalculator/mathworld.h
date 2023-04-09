@@ -64,6 +64,12 @@ public:
       return &world.template get<Object>(id);
     }
 
+    auto operator()(const std::vector<double>& arg) const
+      requires std::is_invocable_v<Object, std::vector<double>, math_world_t>
+    {
+      return (**this)(arg, world);
+    }
+
   protected:
     MathObjectT(const MathObjectT<Object, false>& obj) requires (is_const)
       : world(obj.world), id(obj.id) {}
