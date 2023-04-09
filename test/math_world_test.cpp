@@ -36,6 +36,14 @@ int main()
     expect((*global_world.get<CppUnaryFunction>("sqrt").value())(4) == 2);
   };
 
+  "Add constant then set value"_test = []()
+  {
+    MathWorld world;
+    auto c1 = world.add<GlobalConstant>("my_constant1");
+    *c1 = 2.0;
+    expect(c1->value == 2.0);
+  };
+
   "Add same constant twice"_test = []()
   {
     MathWorld world;
