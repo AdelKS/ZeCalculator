@@ -98,4 +98,45 @@ int main()
       expect(std::fabs(expected_res1.value() - cpp_f1(x)) < 1e-11) << expected_res1.value() << " = " << cpp_f1(x);
   };
 
+  "function overwrites"_test = []{
+    MathWorld world;
+
+    // add a function named "f", note that the constant "my_constant" is only defined after
+    auto f = world.add<Function>("f", Function({"x"}, "x + my_constant + cos(math::pi)"));
+
+    // add a global constant called "my_constant" with an initial value of 3.0
+    auto cst = world.add<GlobalConstant>("my_constant", 3.0);
+
+    double cpp_cst = 3.0;
+    auto cpp_f_1 = [&](double x)
+    {
+      return x + cpp_cst + std::cos(std::numbers::pi);
+    };
+
+    expect(f({1}).value() == cpp_f_1(1.0));
+
+    *cst = 5.0;
+    cpp_cst = 5.0;
+
+    expect(f({1}).value() == cpp_f_1(1.0));
+
+    // override expression and variable name of f
+    *f = Function({"y", "z"}, "y + z + my_constant + g(y)");
+
+    auto cpp_g = [&](double z)
+    {
+      return 2*z + cpp_cst;
+    };
+
+    auto cpp_f_2 = [&](double y, double z)
+    {
+      return y + z + cpp_cst + cpp_g(y);
+    };
+
+    auto g = world.add<Function>("g");
+    *g = Function({"z"}, "2*z + my_constant");
+
+    expect(f({3, 4}).value() == cpp_f_2(3, 4));
+  };
+
 }
