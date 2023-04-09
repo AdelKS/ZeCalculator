@@ -30,61 +30,52 @@ public:
     std::string name;
   };
 
-  template <class Object>
-  class MathObject
+  template <class Object, bool is_const>
+  class MathObjectT
   {
+    using math_world_t = std::conditional_t<is_const, const MathWorldT&, MathWorldT&>;
+
   public:
-    Object& operator * ()
+    MathObjectT(const MathObjectT& obj) = default;
+    MathObjectT(MathObjectT&& obj) = default;
+
+    Object& operator * () requires (not is_const)
     {
-      return world.get<Object>(id);
+      return world.template get<Object>(id);
     }
 
-    Object* operator -> ()
+    Object* operator -> () requires (not is_const)
     {
-      return &world.get<Object>(id);
+      return &world.template get<Object>(id);
     }
 
-  protected:
-    MathObject(MathWorldT& world, size_t id)
-      : world(world), id(id) {}
-
-    MathWorldT& world;
-    size_t id;
-    friend MathWorldT;
-
-    template <class>
-    friend class ConstMathObject;
-  };
-
-
-  template <class Object>
-  class ConstMathObject
-  {
-  public:
     const Object& operator * () const
     {
-      return world.get<Object>(id);
+      return world.template get<Object>(id);
     }
 
     const Object* operator -> () const
     {
-      return &world.get<Object>(id);
+      return &world.template get<Object>(id);
     }
 
   protected:
-    ConstMathObject(MathObject<Object>& math_object)
-      : world(math_object.world), id(math_object.id) {}
+    MathObjectT(const MathObjectT<Object, false>& obj) requires (is_const)
+      : world(obj.world), id(obj.id) {}
 
-    ConstMathObject(const MathWorldT& world, size_t id)
+    MathObjectT(math_world_t world, size_t id)
       : world(world), id(id) {}
 
-    const MathWorldT& world;
+    math_world_t world;
     size_t id;
     friend MathWorldT;
-
-    template <class>
-    friend class MathObject;
   };
+
+  template <class Object>
+  using MathObject = MathObjectT<Object, false>;
+
+  template <class Object>
+  using ConstMathObject = MathObjectT<Object, true>;
 
   class UnregisteredObject {};
 
