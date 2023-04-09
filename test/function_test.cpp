@@ -33,13 +33,14 @@ int main()
 
   "multi-parameter function evaluation"_test = []()
   {
+    MathWorld world;
     auto f = Function({"omega", "t"}, "cos(omega * t) + omega * t");
 
     const double omega = 2;
     const double t = 3;
 
     // note: the order of the arguments is important
-    const double res = f({omega, t}, global_world).value();
+    const double res = f({omega, t}, world).value();
     const double expected_res = std::cos(omega * t) + omega * t;
 
     expect(res == expected_res);

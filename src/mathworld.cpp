@@ -7,6 +7,5 @@
 
 namespace zc {
 
-MathWorld global_world;
 
 }

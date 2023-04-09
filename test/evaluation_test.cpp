@@ -34,6 +34,8 @@ int main()
 
   "simple function evaluation"_test = []()
   {
+    MathWorld world;
+
     auto parsing = parse("cos(2)");
 
     expect(bool(parsing)) << parsing;
@@ -42,11 +44,13 @@ int main()
 
     expect(bool(expect_node));
 
-    expect(evaluate(expect_node.value()).value() == std::cos(2.0));
+    expect(evaluate(expect_node.value(), world).value() == std::cos(2.0));
   };
 
   "simple expression evaluation"_test = []()
   {
+    MathWorld world;
+
     auto parsing = parse("2+2*2");
 
     expect(bool(parsing)) << parsing;
@@ -55,11 +59,13 @@ int main()
 
     expect(bool(expect_node));
 
-    expect(evaluate(expect_node.value()).value() == 6);
+    expect(evaluate(expect_node.value(), world).value() == 6);
   };
 
   "complex expression evaluation"_test = []()
   {
+    MathWorld world;
+
     auto parsing = parse("2/3+2*2*exp(2)^2.5");
 
     expect(bool(parsing)) << parsing;
@@ -68,7 +74,7 @@ int main()
 
     expect(bool(expect_node));
 
-    const double res = evaluate(expect_node.value()).value();
+    const double res = evaluate(expect_node.value(), world).value();
     const double expected_res = 2./3.+2.*2.*std::pow(std::exp(2.), 2.5);
 
     expect(res == expected_res);
@@ -76,6 +82,8 @@ int main()
 
   "global constant expression evaluation"_test = []()
   {
+    MathWorld world;
+
     auto parsing = parse("2*math::π + math::pi/2");
 
     expect(bool(parsing)) << parsing;
@@ -84,7 +92,7 @@ int main()
 
     expect(bool(expect_node));
 
-    const double res = evaluate(expect_node.value()).value();
+    const double res = evaluate(expect_node.value(), world).value();
     const double expected_res = 2.5 * std::numbers::pi;
 
     expect(res == expected_res);
@@ -112,6 +120,8 @@ int main()
 
   "undefined global constant"_test = []()
   {
+    MathWorld world;
+
     auto parsing = parse("cos(1) + my_constant1");
 
     expect(bool(parsing)) << parsing;
@@ -120,7 +130,7 @@ int main()
 
     expect(bool(expect_node)) << expect_node;
 
-    const auto res = evaluate(expect_node.value());
+    const auto res = evaluate(expect_node.value(), world);
 
     expect(not bool(res)) << res;
   };

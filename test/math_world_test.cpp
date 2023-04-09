@@ -33,7 +33,8 @@ int main()
 
   "simple test"_test = []()
   {
-    expect((*global_world.get<CppUnaryFunction>("sqrt").value())(4) == 2);
+    MathWorld world;
+    expect((*world.get<CppUnaryFunction>("sqrt").value())(4) == 2);
   };
 
   "Add constant then set value"_test = []()

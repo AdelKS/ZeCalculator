@@ -227,6 +227,4 @@ protected:
 
 };
 
-extern MathWorld global_world;
-
 }
