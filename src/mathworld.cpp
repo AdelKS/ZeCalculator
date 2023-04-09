@@ -1,4 +1,5 @@
 #include <zecalculator/mathworld.h>
+#include <zecalculator/utils/evaluation.h>
 
 #include <cmath>
 #include <ranges>
@@ -21,6 +22,18 @@ MathWorld::WorldFunction MathWorld::add_function(std::string_view name)
   size_t function_index = functions.push(Function());
   inventory.insert({std::string(name), {FUNCTION, function_index}});
   return WorldFunction(*this, function_index);
+}
+
+tl::expected<double, EvaluationError>
+  MathWorld::WorldFunction::evaluate(const std::vector<double>& args) const
+{
+  return world.get_function(id).evaluate(args, world);
+}
+
+tl::expected<double, EvaluationError>
+  MathWorld::WorldFunction::operator()(const std::vector<double>& args) const
+{
+  return evaluate(args);
 }
 
 }

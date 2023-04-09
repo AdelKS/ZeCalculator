@@ -39,6 +39,12 @@ public:
         return **this;
       }
 
+      /// @brief evaluate the function on this MathWorld
+      tl::expected<double, EvaluationError> evaluate(const std::vector<double>& args) const;
+
+      /// @brief evaluate the function on this MathWorld, operator style
+      tl::expected<double, EvaluationError> operator()(const std::vector<double>& args) const;
+
     protected:
       WorldFunction(MathWorld& world, size_t id)
         : world(world), id(id) {}
