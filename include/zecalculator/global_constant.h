@@ -8,6 +8,7 @@ namespace zc {
 
 struct GlobalConstant
 {
+  constexpr GlobalConstant() = default;
   constexpr GlobalConstant(double val): value(val) {}
   double value = 0;
 };
