@@ -1,3 +1,5 @@
+**Note:** the main branch of this repository will have its history frequently rewritten until the code base is stable enough and a tag is added.
+
 ### ZeCalculator
 
 `ZeCalculator` is a `C++20` library for parsing and computing mathematical expressions and objects.
