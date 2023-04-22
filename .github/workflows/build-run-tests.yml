@@ -1,0 +1,27 @@
+name: Test ZeCalculator
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout ZeCalculator
+        uses: actions/checkout@v3
+
+      - name: Install meson and ninja
+        run: pip install meson ninja
+
+      # Need clang 16 to work with libstdc++ std::ranges
+      - name: Setup meson build folder
+        run: meson setup build -D test=true
+        env:
+          CC: "gcc"
+          CXX: "g++"
+
+      - name: Compile code (GCC)
+        run: cd build && meson compile
+
+      - name: Test code (GCC)
+        run: cd build && meson test

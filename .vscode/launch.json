@@ -11,6 +11,13 @@
             "request": "launch",
             "program": "${workspaceRoot}/build-zc-debug/test/parser_test",
             "preLaunchTask": "${defaultBuildTask}",
+            "setupCommands": [
+                {
+                  "description": "Enable pretty-printing for gdb",
+                  "text": "-enable-pretty-printing",
+                  "ignoreFailures": true
+                }
+            ],
         },
         {
             "name": "syntax_tree_test",
@@ -19,6 +26,13 @@
             "request": "launch",
             "program": "${workspaceRoot}/build-zc-debug/test/syntax_tree_test",
             "preLaunchTask": "${defaultBuildTask}",
+            "setupCommands": [
+                {
+                  "description": "Enable pretty-printing for gdb",
+                  "text": "-enable-pretty-printing",
+                  "ignoreFailures": true
+                }
+            ],
         }
     ],
 }
