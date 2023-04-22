@@ -121,5 +121,37 @@ int main()
     expect(*parsing == expected_parsing);
   };
 
+  "nested multi-variable functions"_test = []()
+  {
+    auto parsing = parse("f(1+g(x, r(h(x))), x)");
+
+    expect(bool(parsing)) << parsing;
+
+    auto expected_parsing = std::vector<Token>({
+        tokens::Function("f"),
+        tokens::FunctionCallStart("("),
+        tokens::Number(1, "1"),
+        tokens::Operator("+"),
+        tokens::Function("g"),
+        tokens::FunctionCallStart("("),
+        tokens::Variable("x"),
+        tokens::FunctionArgumentSeparator(","),
+        tokens::Function("r"),
+        tokens::FunctionCallStart("("),
+        tokens::Function("h"),
+        tokens::FunctionCallStart("("),
+        tokens::Variable("x"),
+        tokens::FunctionCallEnd(")"),
+        tokens::FunctionCallEnd(")"),
+        tokens::FunctionCallEnd(")"),
+        tokens::FunctionArgumentSeparator(","),
+        tokens::Variable("x"),
+        tokens::FunctionCallEnd(")")
+    });
+
+    if(parsing)
+      expect(*parsing == expected_parsing);
+  };
+
   return 0;
 }
