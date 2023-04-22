@@ -143,13 +143,33 @@ tl::expected<SyntaxTree, ParsingError> make_tree(const std::span<Token> tokens)
   {
     /// @todo needs changing to support multi-argument functions
     /// @note here we expect functions that receive that receive a single argument
-    auto expected_func_argument = make_tree(std::span(tokens.begin()+2, tokens.end()-1));
-    if (not expected_func_argument.has_value())
-      return expected_func_argument;
+    auto non_pth_wrapped_args = get_non_pth_enclosed_tokens(
+      std::span(tokens.begin() + 2, tokens.end() - 1));
+
+    if (not non_pth_wrapped_args.has_value())
+      return tl::unexpected(non_pth_wrapped_args.error());
+
+    // add the FunctionCallEnd token so we handle it in the loop
+    non_pth_wrapped_args->push_back(tokens.end()-1);
+
+    std::vector<SyntaxTree> subnodes;
+    auto last_non_coma_token_it = tokens.begin()+2;
+    for (auto tokenIt: *non_pth_wrapped_args)
+    {
+      if (std::holds_alternative<tokens::FunctionArgumentSeparator>(*tokenIt) or
+          std::holds_alternative<tokens::FunctionCallEnd>(*tokenIt))
+      {
+        auto expected_func_argument = make_tree(std::span(last_non_coma_token_it, tokenIt));
+        if (not expected_func_argument.has_value())
+          return expected_func_argument;
+        else subnodes.push_back(std::move(expected_func_argument.value()));
+        last_non_coma_token_it = tokenIt+1;
+      }
+    }
 
     return FunctionNode{
         .name = std::get<tokens::Function>(tokens.front()).str_v,
-        .subnodes = {std::move(expected_func_argument.value())}};
+        .subnodes = std::move(subnodes)};
   }
 
   // there are tokens that are not within parentheses

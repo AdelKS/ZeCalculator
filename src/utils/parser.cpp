@@ -60,6 +60,11 @@ tl::expected<std::vector<Token>, ParsingError> parse(std::string_view expression
     return std::isdigit(static_cast<unsigned char>(ch));
   };
 
+  auto is_argument_separator = [](const char ch)
+  {
+    return ch == ',' or ch == ';';
+  };
+
   bool openingParenthesis = true, numberSign = true, value = true, canEnd = false,
        ope = false, closingParenthesis = false;
 
@@ -144,6 +149,16 @@ tl::expected<std::vector<Token>, ParsingError> parse(std::string_view expression
     else if (*it == ' ')
       // spaces are skipped
       it++;
+    else if (is_argument_separator(*it))
+    {
+      if (last_opened_pth.top() == FUNCTION_CALL_PTH)
+        parsing.emplace_back(tokens::FunctionArgumentSeparator(char_v));
+      else return tl::unexpected(ParsingError::unexpected(tokens::FunctionArgumentSeparator(char_v)));
+
+      openingParenthesis = numberSign = value = true;
+      canEnd = ope = closingParenthesis = false;
+      it++;
+    }
     else
     {
       if (value)
@@ -154,7 +169,8 @@ tl::expected<std::vector<Token>, ParsingError> parse(std::string_view expression
 
         auto token_begin = it;
         while (it != expression.cend() and
-               not is_seperator(*it)) { it++; }
+               not is_seperator(*it) and
+               not is_argument_separator(*it)) { it++; }
 
         std::string_view token_v(token_begin, it);
 
