@@ -139,4 +139,29 @@ int main()
     expect(f({3, 4}).value() == cpp_f_2(3, 4));
   };
 
+  "nested multi-variable functions"_test = []{
+    MathWorld world;
+
+    // add a function named "f", note that the constant "my_constant" is only defined after
+    auto f = world.add<Function>("f", Function({"x", "y"}, "h(x, g(x, y)) + g(y, h(y, x))"));
+    world.add<Function>("g", Function({"a", "b"}, "h(a, a*b) + 3*a - b"));
+    world.add<Function>("h", Function({"c", "d"}, "c*d + c-d"));
+
+    auto cpp_h = [](double c, double d) {
+      return c*d + c-d;
+    };
+
+    auto cpp_g = [&](double a, double b) {
+      return cpp_h(a, a*b) + 3*a - b;
+    };
+
+    auto cpp_f = [&](double x, double y) {
+      return cpp_h(x, cpp_g(x, y)) + cpp_g(y, cpp_h(y, x));
+    };
+
+    const double x = 5, y = 3;
+
+    expect(f({x, y}).value() == cpp_f(x, y));
+  };
+
 }
