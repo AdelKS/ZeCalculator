@@ -39,6 +39,7 @@ namespace tokens {
 
 struct Text
 {
+  Text() = default;
   Text(std::string_view str_v) : str_v(str_v) {}
   std::string_view str_v = {}; // string view on the 's text within the original expression
 

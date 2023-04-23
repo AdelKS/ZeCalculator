@@ -194,16 +194,16 @@ tl::expected<std::vector<Token>, ParsingError> parse(std::string_view expression
     }
   }
 
-  std::string_view last_char_v = std::string_view(it-1, 1);
   if (not last_opened_pth.empty())
   {
+    std::string_view last_char_v = std::string_view(it-1, 1);
     if (last_opened_pth.top() == FUNCTION_CALL_PTH)
       return tl::unexpected(ParsingError::missing(tokens::FunctionCallEnd(last_char_v)));
     else return tl::unexpected(ParsingError::missing(tokens::ClosingParenthesis(last_char_v)));
   }
 
   if (not canEnd)
-    return tl::unexpected(ParsingError::unexpected(tokens::EndOfExpression(last_char_v)));
+    return tl::unexpected(ParsingError::unexpected(tokens::EndOfExpression()));
 
   return parsing;
 }
