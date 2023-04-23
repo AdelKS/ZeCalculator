@@ -30,6 +30,15 @@ int main()
 {
   using namespace boost::ut;
 
+  "empty expression"_test = []()
+  {
+    auto parsing = parse("        ");
+
+    expect(not bool(parsing)
+           and parsing.error() == ParsingError::unexpected(tokens::EndOfExpression()))
+      << parsing;
+  };
+
   "simple expression"_test = []()
   {
     auto parsing = parse("2+2*2");
