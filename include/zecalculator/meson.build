@@ -6,6 +6,7 @@ header_files = files(
     'builtin_unary_functions.h',
     'expression.h',
     'global_constant.h',
+    'global_variable.h',
     'mathworld.h',
 )
 
