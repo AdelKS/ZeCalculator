@@ -4,6 +4,7 @@ test_sources = files(
     'evaluation_test.cpp',
     'expression_test.cpp',
     'function_test.cpp',
+    'global_variable_test.cpp',
     'math_world_test.cpp',
     'parser_test.cpp',
     'syntax_tree_test.cpp',
