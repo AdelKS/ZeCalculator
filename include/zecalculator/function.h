@@ -44,11 +44,14 @@
 namespace zc {
 
 class Function;
+class Expression;
+
+using GlobalVariable = Expression;
 
 template <class... MathObjectType>
 class MathWorldT;
 
-using MathWorld = MathWorldT<CppUnaryFunction, CppBinaryFunction, GlobalConstant, Function>;
+using MathWorld = MathWorldT<CppUnaryFunction, CppBinaryFunction, GlobalConstant, Function, GlobalVariable>;
 
 class Function
 {

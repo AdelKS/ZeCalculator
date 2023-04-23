@@ -4,6 +4,7 @@
 #include <zecalculator/builtin_unary_functions.h>
 #include <zecalculator/function.h>
 #include <zecalculator/global_constant.h>
+#include <zecalculator/global_variable.h>
 #include <zecalculator/utils/name_map.h>
 #include <zecalculator/utils/optional_ref.h>
 #include <zecalculator/utils/slotted_vector.h>
@@ -19,7 +20,7 @@ namespace zc {
 template <class... MathObjectType>
 class MathWorldT;
 
-using MathWorld = MathWorldT<CppUnaryFunction, CppBinaryFunction, GlobalConstant, Function>;
+using MathWorld = MathWorldT<CppUnaryFunction, CppBinaryFunction, GlobalConstant, Function, GlobalVariable>;
 
 template <class... MathObjectType>
 class MathWorldT

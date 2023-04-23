@@ -74,9 +74,15 @@ tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree,
           return it->second;
         else
         {
-          auto opt_world_var = world.get<GlobalConstant>(node.name);
-          if(opt_world_var)
-            return (*opt_world_var)->value;
+          using GlobalConstantWrapper = MathWorld::ConstMathObject<GlobalConstant>;
+          using GlobalVariableWrapper = MathWorld::ConstMathObject<GlobalVariable>;
+
+          auto math_object = world.get(node.name);
+
+          if (std::holds_alternative<GlobalConstantWrapper>(math_object))
+            return std::get<GlobalConstantWrapper>(math_object)->value;
+          else if (std::holds_alternative<GlobalVariableWrapper>(math_object))
+            return std::get<GlobalVariableWrapper>(math_object)();
           else return tl::unexpected(EvaluationError::undefined_variable(node));
         }
       }
