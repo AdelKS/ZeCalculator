@@ -44,4 +44,7 @@ std::optional<std::pair<double, size_t>> to_double(std::string_view view);
 ///       as they contain sub-string views of the input view
 tl::expected<std::vector<Token>, ParsingError> parse(std::string_view expression);
 
+/// @brief tells if the string_view contains a valid math object name
+bool is_valid_name(std::string_view name);
+
 }

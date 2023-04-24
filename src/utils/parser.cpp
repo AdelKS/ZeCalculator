@@ -208,4 +208,12 @@ tl::expected<std::vector<Token>, ParsingError> parse(std::string_view expression
   return parsing;
 }
 
+
+bool is_valid_name(std::string_view name)
+{
+  auto parsing = parse(name);
+  return parsing and parsing->size() == 1
+         and std::holds_alternative<tokens::Variable>(parsing->front());
+}
+
 }
