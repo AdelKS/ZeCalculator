@@ -38,7 +38,8 @@ struct EvaluationError
     UNDEFINED = 0,
     UNDEFINED_VARIABLE,
     UNDEFINED_FUNCTION,
-    MISMATCHING_FUNCTION_ARGS_NUM,
+    CALLING_FUN_ARG_COUNT_MISMATCH,
+    CALLED_FUN_ARG_COUNT_MISMATCH,
     NOT_IMPLEMENTED,
     EMPTY_EXPRESSION,
     INVALID_FUNCTION,
@@ -57,7 +58,12 @@ struct EvaluationError
 
   static EvaluationError mismatched_fun_args(SyntaxTree tree)
   {
-    return EvaluationError {MISMATCHING_FUNCTION_ARGS_NUM, tree};
+    return EvaluationError {CALLING_FUN_ARG_COUNT_MISMATCH, tree};
+  }
+
+    static EvaluationError mismatched_fun_args()
+  {
+    return EvaluationError {CALLED_FUN_ARG_COUNT_MISMATCH};
   }
 
   static EvaluationError not_implemented(SyntaxTree tree)
