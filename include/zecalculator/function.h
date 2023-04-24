@@ -74,7 +74,7 @@ public:
 
   Function& operator = (const Function& f)
   {
-    set_input_vars(f.input_vars);
+    input_vars = f.input_vars;
     if (f.expression)
       set_expression(*f.expression);
     return *this;
