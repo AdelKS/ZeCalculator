@@ -27,18 +27,18 @@ namespace zc {
 tl::expected<double, EvaluationError> Function::evaluate(const std::vector<double>& args,
                                                          const MathWorld& world) const
 {
-  if (not bool(tree)) [[unlikely]]
+  if (not bool(*this)) [[unlikely]]
     return tl::unexpected(EvaluationError::invalid_function());
   else if (std::holds_alternative<std::monostate>(tree.value())) [[unlikely]]
     return tl::unexpected(EvaluationError::empty_expression());
-  else if (args.size() != vars.size()) [[unlikely]]
+  else if (args.size() != vars->size()) [[unlikely]]
     return tl::unexpected(EvaluationError::mismatched_fun_args());
 
   // make a keyword argument list out of the positional arguments
   // note: this overhead will be improved when we bind expressions to math worlds
   name_map<double> var_vals;
-  for (size_t i = 0 ; i != vars.size() ; i++)
-    var_vals[vars[i]] = args[i];
+  for (size_t i = 0 ; i != vars->size() ; i++)
+    var_vals[(*vars)[i]] = args[i];
 
   return zc::evaluate(*tree, var_vals, world);
 }

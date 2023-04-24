@@ -50,7 +50,9 @@ tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree,
             else if constexpr (std::is_convertible_v<F, MathWorld::ConstMathObject<Function>>)
             {
 //              std::cout << "Evaluating zc function: " << node.name << std::endl;
-              if (evaluations.size() != function->argument_size())
+              if (not bool(*function))
+                return tl::unexpected(EvaluationError::calling_invalid_function(node));
+              else if (evaluations.size() != function->argument_size())
                 return tl::unexpected(EvaluationError::mismatched_fun_args(node));
               else
               {

@@ -56,12 +56,18 @@ using MathWorld = MathWorldT<CppUnaryFunction, CppBinaryFunction, GlobalConstant
 class Function
 {
 public:
+
+  struct InvalidInputVar
+  {
+    std::string var_name;
+  };
+
   explicit Function() = default;
 
   /// @brief constructor for a function that takes many input variables
   explicit Function(std::vector<std::string> input_vars, const std::string& expr)
-    : vars(std::move(input_vars))
   {
+    set_input_vars(input_vars);
     set_expression(expr);
   }
 
@@ -88,7 +94,10 @@ public:
   ///       with positional arguments
   void set_input_vars(std::vector<std::string> input_vars)
   {
-    vars = std::move(input_vars);
+    auto it = std::ranges::find_if_not(input_vars, is_valid_name);
+    if (it != input_vars.end())
+      vars = tl::unexpected(InvalidInputVar{*it});
+    else vars = std::move(input_vars);
   }
 
   /// \brief set the expression
@@ -103,15 +112,18 @@ public:
     else tree = tl::unexpected(parsing.error());
   }
 
-  size_t argument_size() const
+  /// @brief returns the number of input variables, if they are valid
+  std::optional<size_t> argument_size() const
   {
-    return vars.size();
+    if (vars)
+      return vars->size();
+    else return {};
   }
 
-  /// @brief tests if the expression within the function is valid
+  /// @brief tests if the function is valid, i.e. has a valid expression and input vars
   operator bool () const
   {
-    return bool(tree) and (not std::holds_alternative<std::monostate>(tree.value()));
+    return bool(tree) and (not std::holds_alternative<std::monostate>(tree.value())) and bool(vars);
   }
 
   const tl::expected<SyntaxTree, ParsingError>& get_tree() const { return tree; }
@@ -131,7 +143,7 @@ protected:
   // and to be able to do move semantics without re-making a tree
 
   tl::expected<SyntaxTree, ParsingError> tree;
-  std::vector<std::string> vars;
+  tl::expected<std::vector<std::string>, InvalidInputVar> vars;
 
 };
 
