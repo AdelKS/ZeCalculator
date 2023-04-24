@@ -32,13 +32,13 @@ tl::expected<double, EvaluationError> Function::evaluate(const std::vector<doubl
   else if (std::holds_alternative<std::monostate>(tree.value())) [[unlikely]]
     return tl::unexpected(EvaluationError::empty_expression());
 
-  assert(args.size() == input_vars.size());
+  assert(args.size() == vars.size());
 
   // make a keyword argument list out of the positional arguments
   // note: this overhead will be improved when we bind expressions to math worlds
   name_map<double> var_vals;
-  for (size_t i = 0 ; i < input_vars.size() ; i++)
-    var_vals[input_vars[i]] = args[i];
+  for (size_t i = 0 ; i < vars.size() ; i++)
+    var_vals[vars[i]] = args[i];
 
   [[maybe_unused]] const auto& tree_val = *tree;
 

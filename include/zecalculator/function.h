@@ -60,13 +60,13 @@ public:
 
   /// @brief constructor for a function that takes many input variables
   explicit Function(std::vector<std::string> input_vars, const std::string& expr)
-    : input_vars(std::move(input_vars))
+    : vars(std::move(input_vars))
   {
     set_expression(expr);
   }
 
   Function(const Function& f)
-    : input_vars(f.input_vars)
+    : vars(f.vars)
   {
     if (f.expression)
       set_expression(*f.expression);
@@ -74,7 +74,7 @@ public:
 
   Function& operator = (const Function& f)
   {
-    input_vars = f.input_vars;
+    vars = f.vars;
     if (f.expression)
       set_expression(*f.expression);
     return *this;
@@ -88,7 +88,7 @@ public:
   ///       with positional arguments
   void set_input_vars(std::vector<std::string> input_vars)
   {
-    this->input_vars = std::move(input_vars);
+    vars = std::move(input_vars);
   }
 
   /// \brief set the expression
@@ -105,7 +105,7 @@ public:
 
   size_t argument_size() const
   {
-    return input_vars.size();
+    return vars.size();
   }
 
   /// @brief tests if the expression within the function is valid
@@ -131,7 +131,7 @@ protected:
   // and to be able to do move semantics without re-making a tree
 
   tl::expected<SyntaxTree, ParsingError> tree;
-  std::vector<std::string> input_vars;
+  std::vector<std::string> vars;
 
 };
 
