@@ -36,6 +36,16 @@ public:
     std::string name;
   };
 
+  class invalid_name_format: public std::runtime_error
+  {
+  public:
+    invalid_name_format(std::string name)
+      : std::runtime_error("name '" + name + "' has an invalid format"),
+        name(name) {};
+
+    std::string name;
+  };
+
   template <class Object, bool is_const>
   class MathObjectT
   {
