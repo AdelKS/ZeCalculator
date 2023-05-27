@@ -178,7 +178,7 @@ tl::expected<SyntaxTree, ParsingError> make_tree(const std::span<Token> tokens)
     // we check for operations
     // loop through the expression by increasing operator priority
     // -> because the deepest parts of the syntax tree are to be calculated first
-    for (char op: tokens::Operator::operators)
+    for (const auto& [op, op_str]: tokens::Operator::operators)
     {
       for (auto tokenIt: non_pth_enclosed_tokens)
       {
@@ -198,7 +198,7 @@ tl::expected<SyntaxTree, ParsingError> make_tree(const std::span<Token> tokens)
             return right_hand_side;
 
           return FunctionNode{
-              .name = std::get<tokens::Operator>(*tokenIt).str_v, // the function's name is the operators
+              .name = op_str, // the function's name is the operators
               .subnodes = {std::move(left_hand_side.value()),
                            std::move(right_hand_side.value())}};
         }

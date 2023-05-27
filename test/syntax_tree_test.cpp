@@ -43,9 +43,9 @@ int main()
     expect(bool(expect_node));
 
     SyntaxTree expected_node =
-        FunctionNode{.name = "+",
+        FunctionNode{.name = tokens::Operator::name_of<'+'>(),
                      .subnodes = {NumberNode{.value = 2.0},
-                                  FunctionNode{.name = "*",
+                                  FunctionNode{.name = tokens::Operator::name_of<'*'>(),
                                                .subnodes = {
                                                    NumberNode{.value = 2.0},
                                                    NumberNode{.value = 2.0},
@@ -65,12 +65,12 @@ int main()
     expect(bool(expect_node));
 
     SyntaxTree expected_node = FunctionNode{
-        .name = "+",
+        .name = tokens::Operator::name_of<'+'>(),
         .subnodes = {
             FunctionNode{
                 .name = "cos",
                 .subnodes = {FunctionNode{
-                    .name = "+",
+                    .name = tokens::Operator::name_of<'+'>(),
                     .subnodes =
                         {
                             FunctionNode{.name = "sin",

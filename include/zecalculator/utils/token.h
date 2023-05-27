@@ -69,12 +69,24 @@ struct Function: Text
 
 struct Operator: Text
 {
+  using pair_type = std::pair<char, std::string_view>;
   // operators ordered in increasing order of priority
-  static constexpr std::array operators = {'+', '-', '*', '/', '^'};
+  static constexpr std::array<pair_type, 5> operators = {{{'+', "internal::plus"},
+                                                          {'-', "internal::minus"},
+                                                          {'*', "internal::multiply"},
+                                                          {'/', "internal::divide"},
+                                                          {'^', "internal::power"}}};
+
+  template <char op> requires (std::ranges::count(operators, op, &pair_type::first) == 1)
+  consteval static std::string_view name_of()
+  {
+    return std::ranges::find(operators, op, &pair_type::first)->second;
+  }
 
   constexpr static bool is_operator(const char ch)
   {
-    return std::ranges::any_of(operators, [&ch](const char op){ return op == ch; });
+    return std::ranges::any_of(
+      operators, [&ch](const char op) { return op == ch; }, &pair_type::first);
   }
 
   Operator(std::string_view str_v): Text(str_v)
