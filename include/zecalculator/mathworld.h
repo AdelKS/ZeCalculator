@@ -195,7 +195,9 @@ public:
   template <class ObjectType>
   MathObject<ObjectType> add(std::string_view name, ObjectType object)
   {
-    if (contains(name))
+    if (not is_valid_name(name))
+      throw invalid_name_format(std::string(name));
+    else if (contains(name))
       throw name_already_taken(std::string(name));
 
     size_t id = std::get<SlottedVector<ObjectType>>(math_objects).push(std::move(object));
@@ -209,7 +211,9 @@ public:
   template <class ObjectType>
   MathObject<ObjectType> add(std::string_view name)
   {
-    if (contains(name))
+    if (not is_valid_name(name))
+      throw invalid_name_format(std::string(name));
+    else if (contains(name))
       throw name_already_taken(std::string(name));
 
     size_t id = std::get<SlottedVector<ObjectType>>(math_objects).push(ObjectType());
