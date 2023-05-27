@@ -23,9 +23,7 @@ The approach is to implement the concept of a "math world":
 
 The library is still in its early stages, but it can already parse and evaluate function expressions
 ```c++
-#include <zecalculator/utils/parser.h>
-#include <zecalculator/utils/syntax_tree.h>
-#include <zecalculator/utils/evaluation.h>
+#include <zecalculator/zecalculator.h>
 
 #include <iostream>
 
