@@ -18,9 +18,7 @@
 **
 ****************************************************************************/
 
-#include <zecalculator/utils/parser.h>
-#include <zecalculator/utils/syntax_tree.h>
-#include <zecalculator/utils/evaluation.h>
+#include <zecalculator/zecalculator.h>
 
 // testing specific headers
 #include <boost/ut.hpp>
