@@ -61,8 +61,8 @@ int main()
   "function calling another function"_test = []()
   {
     MathWorld world;
-    auto f1 = world.add<Function>("f1");
-    auto f2 = world.add<Function>("f2");
+    auto f1 = world.add<Function>("f1").value();
+    auto f2 = world.add<Function>("f2").value();
 
     *f1 = Function({"x"}, "cos(x) + x + f2(2*x)");
     *f2 = Function({"x"}, "cos(x) + 2*x^2");
@@ -102,10 +102,10 @@ int main()
     MathWorld world;
 
     // add a function named "f", note that the constant "my_constant" is only defined after
-    auto f = world.add<Function>("f", Function({"x"}, "x + my_constant + cos(math::pi)"));
+    auto f = world.add<Function>("f", Function({"x"}, "x + my_constant + cos(math::pi)")).value();
 
     // add a global constant called "my_constant" with an initial value of 3.0
-    auto cst = world.add<GlobalConstant>("my_constant", 3.0);
+    auto cst = world.add<GlobalConstant>("my_constant", 3.0).value();
 
     double cpp_cst = 3.0;
     auto cpp_f_1 = [&](double x)
@@ -133,7 +133,7 @@ int main()
       return y + z + cpp_cst + cpp_g(y);
     };
 
-    auto g = world.add<Function>("g");
+    auto g = world.add<Function>("g").value();
     *g = Function({"z"}, "2*z + my_constant");
 
     expect(f({3, 4}).value() == cpp_f_2(3, 4));
@@ -143,7 +143,7 @@ int main()
     MathWorld world;
 
     // add a function named "f", note that the constant "my_constant" is only defined after
-    auto f = world.add<Function>("f", Function({"x", "y"}, "h(x, g(x, y)) + g(y, h(y, x))"));
+    auto f = world.add<Function>("f", Function({"x", "y"}, "h(x, g(x, y)) + g(y, h(y, x))")).value();
     world.add<Function>("g", Function({"a", "b"}, "h(a, a*b) + 3*a - b"));
     world.add<Function>("h", Function({"c", "d"}, "c*d + c-d"));
 

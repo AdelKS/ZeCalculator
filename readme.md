@@ -37,19 +37,24 @@ int main()
 {
   MathWorld world;
 
-  // add a function named "f", note that the constant "my_constant" is only defined after
-  // this function exists only within the math world that creates it
-  auto f = world.add<Function>("f", Function({"x"}, "x + my_constant + cos(math::pi)"));
+  // Notes about adding a math object to a math world:
+  // - Each added object exists only within the math world that creates it
+  // - Adding a math object returns a tl::expected that can have an error instead of the
+  //   handle to the function (e.g.: invalid format for the name, or name is already taken)
 
-  // add a global constant called "my_constant" with an initial value of 3.0
-  // this global variable exists only within the math world that creates it
-  auto cst = world.add<GlobalConstant>("my_constant", 3.0);
+  // Add a function named "f", note that the constant "my_constant" is only defined after
+  // Note: the .value() call from tl::expected<> throws if it actually hold an error
+  auto f = world.add<Function>("f", Function({"x"}, "x + my_constant + cos(math::pi)")).value();
 
-  // evaluate function and get the value
-  // notes:
-  // - here we know the expression is correct, otherwise the call `.value()` will throw
-  // - the error can be recovered with '.error()`
-  // - to know if the result is correct
+  // Add a global constant called "my_constant" with an initial value of 3.0
+  // Note: the .value() call from tl::expected<> throws if it actually hold an error
+  auto cst = world.add<GlobalConstant>("my_constant", 3.0).value();
+
+  // Evaluate function and get the value
+  // Notes:
+  // - We know the expression is correct, otherwise the call `.value()` will throw
+  // - The error can be recovered with '.error()`
+  // - To know if the result is correct
   //   - call `.has_value()`
   //   - use the `bool()` operator on the expression
   std::cout << f({1}).value()  << std::endl; // == 3
@@ -64,7 +69,7 @@ int main()
   *f = Function({"y", "z"}, "y + z + my_constant + g(y)");
 
   // define function 'g'
-  auto g = world.add<Function>("g");
+  auto g = world.add<Function>("g").value();
 
   // assign input variables and expression to 'g'
   *g = Function({"z"}, "2*z + my_constant");

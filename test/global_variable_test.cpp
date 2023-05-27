@@ -34,8 +34,8 @@ int main()
   "dependent expression"_test = []()
   {
     MathWorld world;
-    auto f = world.add("f", Function({"x", "y"}, "cos(math::pi * x) * y + k*g(x) + r"));
-    auto r = world.add("r", GlobalConstant());
+    auto f = world.add("f", Function({"x", "y"}, "cos(math::pi * x) * y + k*g(x) + r")).value();
+    auto r = world.add("r", GlobalConstant()).value();
     world.add("k", GlobalVariable("3*g(3)"));
     world.add("g", Function({"x"}, "sin(3 * math::pi * x) + r"));
 

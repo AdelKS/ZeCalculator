@@ -26,23 +26,22 @@ template <class... MathObjectType>
 class MathWorldT
 {
 public:
-  class name_already_taken: public std::runtime_error
+
+  struct NameError
   {
-  public:
-    name_already_taken(std::string name)
-      : std::runtime_error("name '" + name + "' already taken"),
-        name(name) {};
+    enum Type {ALREADY_TAKEN, INVALID_FORMAT};
 
-    std::string name;
-  };
+    static NameError already_taken(std::string_view name)
+    {
+      return NameError{.type = ALREADY_TAKEN, .name = std::string(name)};
+    }
 
-  class invalid_name_format: public std::runtime_error
-  {
-  public:
-    invalid_name_format(std::string name)
-      : std::runtime_error("name '" + name + "' has an invalid format"),
-        name(name) {};
+    static NameError invalid_format(std::string_view name)
+    {
+      return NameError{.type = INVALID_FORMAT, .name = std::string(name)};
+    }
 
+    Type type;
     std::string name;
   };
 
@@ -193,12 +192,12 @@ public:
   /// @brief moves ObjectType 'object' into the world, under the name 'name'
   /// @note throws if the name is already taken, leaves the world unchanged.
   template <class ObjectType>
-  MathObject<ObjectType> add(std::string_view name, ObjectType object)
+  tl::expected<MathObject<ObjectType>, NameError> add(std::string_view name, ObjectType object)
   {
     if (not is_valid_name(name))
-      throw invalid_name_format(std::string(name));
+      return tl::unexpected(NameError::invalid_format(name));
     else if (contains(name))
-      throw name_already_taken(std::string(name));
+      return tl::unexpected(NameError::already_taken(name));
 
     size_t id = std::get<SlottedVector<ObjectType>>(math_objects).push(std::move(object));
     auto world_object = MathObject<ObjectType>(*this, id);
@@ -209,12 +208,12 @@ public:
   /// @brief default constructs an ObjectType in the world, under the name 'name'
   /// @note throws if the name is already taken, leaves the world unchanged.
   template <class ObjectType>
-  MathObject<ObjectType> add(std::string_view name)
+  tl::expected<MathObject<ObjectType>, NameError> add(std::string_view name)
   {
     if (not is_valid_name(name))
-      throw invalid_name_format(std::string(name));
+      return tl::unexpected(NameError::invalid_format(name));
     else if (contains(name))
-      throw name_already_taken(std::string(name));
+      return tl::unexpected(NameError::already_taken(name));
 
     size_t id = std::get<SlottedVector<ObjectType>>(math_objects).push(ObjectType());
     auto world_object = MathObject<ObjectType>(*this, id);

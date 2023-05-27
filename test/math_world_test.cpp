@@ -40,7 +40,7 @@ int main()
   "Add constant then set value"_test = []()
   {
     MathWorld world;
-    auto c1 = world.add<GlobalConstant>("my_constant1");
+    auto c1 = world.add<GlobalConstant>("my_constant1").value();
     *c1 = 2.0;
     expect(c1->value == 2.0);
   };
@@ -49,7 +49,7 @@ int main()
   {
     MathWorld world;
     world.add<GlobalConstant>("my_constant1", 2.0);
-    expect(throws([&]{ world.add<GlobalConstant>("my_constant1", 3.0); }));
+    expect(not world.add<GlobalConstant>("my_constant1", 3.0).has_value());
   };
 
   return 0;
