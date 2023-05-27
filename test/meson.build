@@ -7,6 +7,7 @@ test_sources = files(
     'global_variable_test.cpp',
     'math_world_test.cpp',
     'parser_test.cpp',
+    'readme_example_test.cpp',
     'syntax_tree_test.cpp',
 )
 
