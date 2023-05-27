@@ -9,6 +9,11 @@
             "command": "[ -d \"${cwd}/build-zc-debug\" ] || meson setup build-zc-debug -D optimization=0 -D buildtype=debug -D test=true",
         },
         {
+            "label": "resetup",
+            "type": "shell",
+            "command": "meson setup --wipe build-zc-debug -D optimization=0 -D buildtype=debug -D test=true",
+        },
+        {
             "label": "build",
             "type": "shell",
             "command": "meson compile",
@@ -16,6 +21,20 @@
                 "cwd": "${cwd}/build-zc-debug"
             },
             "dependsOn": "setup",
+            "problemMatcher": ["$meson-gcc"],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "rebuild",
+            "type": "shell",
+            "command": "meson compile",
+            "options": {
+                "cwd": "${cwd}/build-zc-debug"
+            },
+            "dependsOn": "resetup",
             "problemMatcher": ["$meson-gcc"],
             "group": {
                 "kind": "build",
