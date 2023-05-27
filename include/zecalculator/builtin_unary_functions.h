@@ -26,7 +26,7 @@ protected:
 
 // we save the names along with the function pointers for convenience
 // we could save only the function pointers, and the names only in the inventory
-constexpr std::array<std::pair<std::string_view, CppUnaryFunction>, 31> builtin_unary_functions = {{
+constexpr std::array<std::pair<std::string_view, CppUnaryFunction>, 30> builtin_unary_functions = {{
   {"cos",   CppUnaryFunction(std::cos)},
   {"sin",   CppUnaryFunction(std::sin)},
   {"tan",   CppUnaryFunction(std::tan)},
