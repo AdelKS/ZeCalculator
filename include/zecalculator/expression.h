@@ -42,9 +42,15 @@ public:
     set_expression(expr);
   }
 
-  tl::expected<double, EvaluationError> evaluate(const MathWorld& world) const;
+  tl::expected<double, EvaluationError> evaluate(const MathWorld& world) const
+  {
+    return Function::evaluate({}, world);
+  }
 
-  tl::expected<double, EvaluationError> operator ()(const MathWorld& world) const;
+  tl::expected<double, EvaluationError> operator ()(const MathWorld& world) const
+  {
+    return Function::evaluate({}, world);
+  }
 
 protected:
 

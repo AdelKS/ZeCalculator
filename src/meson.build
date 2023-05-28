@@ -4,7 +4,6 @@ sources = files(
     'utils/syntax_tree.cpp',
     'utils/token.cpp',
     'builtin_binary_functions.cpp',
-    'expression.cpp',
     'function.cpp',
     'mathworld.cpp',
     'sequence.cpp',
