@@ -8,6 +8,59 @@ tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree,
                                                const MathWorld& world)
 {
   using ReturnType = tl::expected<double, EvaluationError>;
+
+  auto function_visiter = [&](auto&& function, const FunctionNode& node) -> ReturnType
+  {
+    std::vector<double> evaluations;
+    for (const auto& subnode : node.subnodes)
+    {
+      auto eval = evaluate(subnode, input_vars, world);
+      if (eval) [[likely]]
+        evaluations.push_back(*eval);
+      else [[unlikely]]
+        return eval;
+    }
+
+    using F = std::remove_cvref_t<decltype(function)>;
+    if constexpr (std::is_same_v<F, MathWorld::ConstMathObject<CppUnaryFunction>>)
+    {
+      if (evaluations.size() != 1)
+        return tl::unexpected(EvaluationError::mismatched_fun_args(node));
+      else
+        return (*function)(evaluations.front());
+    } else if constexpr (std::is_convertible_v<F, MathWorld::ConstMathObject<CppBinaryFunction>>)
+    {
+      if (evaluations.size() != 2)
+        return tl::unexpected(EvaluationError::mismatched_fun_args(node));
+      else
+        return (*function)(evaluations.front(), evaluations.back());
+    } else if constexpr (std::is_convertible_v<F, MathWorld::ConstMathObject<Function>>
+                         or std::is_convertible_v<F, MathWorld::ConstMathObject<Sequence>>)
+    {
+      //              std::cout << "Evaluating zc function: " << node.name << std::endl;
+      if (not bool(*function))
+        return tl::unexpected(EvaluationError::calling_invalid_function(node));
+      else if (evaluations.size() != function->argument_size())
+        return tl::unexpected(EvaluationError::mismatched_fun_args(node));
+      else
+      {
+        auto get_eval = [&]
+        {
+          if constexpr (std::is_convertible_v<F, MathWorld::ConstMathObject<Function>>)
+            return function(evaluations);
+          else // sequence handles only one argument
+            return function(evaluations.front());
+        };
+        ReturnType eval = get_eval();
+        if (not bool(eval)) [[unlikely]]
+          return tl::unexpected(EvaluationError::calling_invalid_function(node));
+        else [[likely]]
+          return eval;
+      }
+    } else
+      return tl::unexpected(EvaluationError::not_implemented(node));
+  };
+
   return std::visit(
     [&](auto&& node) -> ReturnType {
 
@@ -24,59 +77,8 @@ tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree,
         if (std::holds_alternative<MathWorld::UnregisteredObject>(math_obj)) [[unlikely]]
           return tl::unexpected(EvaluationError::undefined_function(node));
 
-        return std::visit(
-          [&](auto&& function) -> ReturnType {
-
-            std::vector<double> evaluations;
-            for (const auto& subnode: node.subnodes)
-            {
-              auto eval = evaluate(subnode, input_vars, world);
-              if (eval) [[likely]]
-                evaluations.push_back(*eval);
-              else [[unlikely]]
-                return eval;
-            }
-
-            using F = std::remove_cvref_t<decltype(function)>;
-            if constexpr (std::is_same_v<F, MathWorld::ConstMathObject<CppUnaryFunction>>)
-            {
-              if (evaluations.size() != 1)
-                return tl::unexpected(EvaluationError::mismatched_fun_args(node));
-              else return (*function)(evaluations.front());
-            }
-            else if constexpr (std::is_convertible_v<F, MathWorld::ConstMathObject<CppBinaryFunction>>)
-            {
-              if (evaluations.size() != 2)
-                return tl::unexpected(EvaluationError::mismatched_fun_args(node));
-              else return (*function)(evaluations.front(), evaluations.back());
-            }
-            else if constexpr (std::is_convertible_v<F, MathWorld::ConstMathObject<Function>> or
-                               std::is_convertible_v<F, MathWorld::ConstMathObject<Sequence>>)
-            {
-//              std::cout << "Evaluating zc function: " << node.name << std::endl;
-              if (not bool(*function))
-                return tl::unexpected(EvaluationError::calling_invalid_function(node));
-              else if (evaluations.size() != function->argument_size())
-                return tl::unexpected(EvaluationError::mismatched_fun_args(node));
-              else
-              {
-                auto get_eval = [&]{
-                  if constexpr (std::is_convertible_v<F, MathWorld::ConstMathObject<Function>>)
-                    return function(evaluations);
-                  else // sequence handles only one argument
-                    return function(evaluations.front());
-                };
-                ReturnType eval = get_eval();
-                if (not bool(eval)) [[unlikely]]
-                  return tl::unexpected(EvaluationError::calling_invalid_function(node));
-                else [[likely]]
-                  return eval;
-              }
-            }
-            else return tl::unexpected(EvaluationError::not_implemented(node));
-
-          },
-          math_obj);
+        return std::visit([&](auto&& function) { return function_visiter(function, node); },
+                          math_obj);
       }
 
       else if constexpr (std::is_same_v<T, VariableNode>)
