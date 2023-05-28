@@ -61,54 +61,55 @@ tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree,
       return tl::unexpected(EvaluationError::not_implemented(node));
   };
 
-  return std::visit(
-    [&](auto&& node) -> ReturnType {
+  auto node_visiter = [&](auto&& node) -> ReturnType
+  {
+    using T = std::remove_cvref_t<decltype(node)>;
 
-      using T = std::remove_cvref_t<decltype(node)>;
+    if constexpr (std::is_same_v<T, std::monostate>)
+    {
+      return tl::unexpected(EvaluationError::empty_expression());
+    }
+    else if constexpr (std::is_same_v<T, FunctionNode>)
+    {
+      auto math_obj = world.get(node.name);
 
-      if constexpr (std::is_same_v<T, std::monostate>)
+      if (std::holds_alternative<MathWorld::UnregisteredObject>(math_obj)) [[unlikely]]
+        return tl::unexpected(EvaluationError::undefined_function(node));
+
+      return std::visit([&](auto&& function) { return function_visiter(function, node); }, math_obj);
+    }
+
+    else if constexpr (std::is_same_v<T, VariableNode>)
+    {
+      auto it = input_vars.find(node.name);
+      if (it != input_vars.end())
+        return it->second;
+      else
       {
-        return tl::unexpected(EvaluationError::empty_expression());
-      }
-      else if constexpr (std::is_same_v<T, FunctionNode>)
-      {
-        auto math_obj = world.get(node.name);
+        using GlobalConstantWrapper = MathWorld::ConstMathObject<GlobalConstant>;
+        using GlobalVariableWrapper = MathWorld::ConstMathObject<GlobalVariable>;
 
-        if (std::holds_alternative<MathWorld::UnregisteredObject>(math_obj)) [[unlikely]]
-          return tl::unexpected(EvaluationError::undefined_function(node));
+        auto math_object = world.get(node.name);
 
-        return std::visit([&](auto&& function) { return function_visiter(function, node); },
-                          math_obj);
-      }
-
-      else if constexpr (std::is_same_v<T, VariableNode>)
-      {
-        auto it = input_vars.find(node.name);
-        if (it != input_vars.end())
-          return it->second;
+        if (std::holds_alternative<MathWorld::UnregisteredObject>(math_object)) [[unlikely]]
+          return tl::unexpected(EvaluationError::undefined_variable(node));
+        else if (std::holds_alternative<GlobalConstantWrapper>(math_object))
+          return std::get<GlobalConstantWrapper>(math_object)->value;
+        else if (std::holds_alternative<GlobalVariableWrapper>(math_object))
+          return std::get<GlobalVariableWrapper>(math_object)();
         else
-        {
-          using GlobalConstantWrapper = MathWorld::ConstMathObject<GlobalConstant>;
-          using GlobalVariableWrapper = MathWorld::ConstMathObject<GlobalVariable>;
-
-          auto math_object = world.get(node.name);
-
-          if (std::holds_alternative<MathWorld::UnregisteredObject>(math_object)) [[unlikely]]
-            return tl::unexpected(EvaluationError::undefined_variable(node));
-          else if (std::holds_alternative<GlobalConstantWrapper>(math_object))
-            return std::get<GlobalConstantWrapper>(math_object)->value;
-          else if (std::holds_alternative<GlobalVariableWrapper>(math_object))
-            return std::get<GlobalVariableWrapper>(math_object)();
-          else return tl::unexpected(EvaluationError::not_implemented(node));
-        }
+          return tl::unexpected(EvaluationError::not_implemented(node));
       }
+    }
 
-      else if constexpr (std::is_same_v<T, NumberNode>)
-        return node.value;
+    else if constexpr (std::is_same_v<T, NumberNode>)
+      return node.value;
 
-      else return tl::unexpected(EvaluationError::not_implemented(node));
-    },
-    tree);
+    else
+      return tl::unexpected(EvaluationError::not_implemented(node));
+  };
+
+  return std::visit(node_visiter, tree);
 }
 
 }
