@@ -46,6 +46,12 @@ public:
 
   tl::expected<double, EvaluationError> operator ()(const MathWorld& world) const;
 
+protected:
+
+  // hide functions that are not needed from Function
+  using Function::evaluate;
+  using Function::set_input_vars;
+
 };
 
 }
