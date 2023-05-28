@@ -45,13 +45,14 @@ namespace zc {
 
 class Function;
 class Expression;
+class Sequence;
 
 using GlobalVariable = Expression;
 
 template <class... MathObjectType>
 class MathWorldT;
 
-using MathWorld = MathWorldT<CppUnaryFunction, CppBinaryFunction, GlobalConstant, Function, GlobalVariable>;
+using MathWorld = MathWorldT<CppUnaryFunction, CppBinaryFunction, GlobalConstant, Function, GlobalVariable, Sequence>;
 
 class Function
 {
@@ -103,6 +104,10 @@ public:
   /// \brief set the expression
   void set_expression(const std::string& expr)
   {
+    // do nothing if it's the same expression
+    if (expression and *expression == expr)
+      return;
+
     expression = std::make_unique<std::string>(expr);
 
     // workaround limitation in tl::expected when using and_then to implicitly converted-to types

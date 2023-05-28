@@ -5,6 +5,7 @@
 #include <zecalculator/function.h>
 #include <zecalculator/global_constant.h>
 #include <zecalculator/global_variable.h>
+#include <zecalculator/sequence.h>
 #include <zecalculator/utils/name_map.h>
 #include <zecalculator/utils/optional_ref.h>
 #include <zecalculator/utils/slotted_vector.h>
@@ -20,7 +21,7 @@ namespace zc {
 template <class... MathObjectType>
 class MathWorldT;
 
-using MathWorld = MathWorldT<CppUnaryFunction, CppBinaryFunction, GlobalConstant, Function, GlobalVariable>;
+using MathWorld = MathWorldT<CppUnaryFunction, CppBinaryFunction, GlobalConstant, Function, GlobalVariable, Sequence>;
 
 template <class... MathObjectType>
 class MathWorldT
@@ -76,6 +77,12 @@ public:
 
     auto operator()(const std::vector<double>& arg) const
       requires std::is_invocable_v<Object, std::vector<double>, math_world_t>
+    {
+      return (**this)(arg, world);
+    }
+
+    auto operator()(double arg) const
+      requires std::is_invocable_v<Object, double, math_world_t>
     {
       return (**this)(arg, world);
     }

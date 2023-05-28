@@ -6,7 +6,8 @@ sources = files(
     'builtin_binary_functions.cpp',
     'expression.cpp',
     'function.cpp',
-    'mathworld.cpp'
+    'mathworld.cpp',
+    'sequence.cpp',
 )
 
 zecalculator_lib = library('zecalculator',

@@ -50,7 +50,8 @@ tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree,
                 return tl::unexpected(EvaluationError::mismatched_fun_args(node));
               else return (*function)(evaluations.front(), evaluations.back());
             }
-            else if constexpr (std::is_convertible_v<F, MathWorld::ConstMathObject<Function>>)
+            else if constexpr (std::is_convertible_v<F, MathWorld::ConstMathObject<Function>> or
+                               std::is_convertible_v<F, MathWorld::ConstMathObject<Sequence>>)
             {
 //              std::cout << "Evaluating zc function: " << node.name << std::endl;
               if (not bool(*function))
@@ -59,7 +60,13 @@ tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree,
                 return tl::unexpected(EvaluationError::mismatched_fun_args(node));
               else
               {
-                ReturnType eval = function(evaluations);
+                auto get_eval = [&]{
+                  if constexpr (std::is_convertible_v<F, MathWorld::ConstMathObject<Function>>)
+                    return function(evaluations);
+                  else // sequence handles only one argument
+                    return function(evaluations.front());
+                };
+                ReturnType eval = get_eval();
                 if (not bool(eval)) [[unlikely]]
                   return tl::unexpected(EvaluationError::calling_invalid_function(node));
                 else [[likely]]
