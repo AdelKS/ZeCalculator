@@ -53,6 +53,15 @@ public:
   }
 
 protected:
+  tl::expected<double, EvaluationError> evaluate(const MathWorld& world, size_t current_recursion_depth) const
+  {
+    return Function::evaluate({}, world, current_recursion_depth);
+  }
+
+  friend tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree,
+                                                      const name_map<double>& input_vars,
+                                                      const MathWorld& world,
+                                                      size_t current_recursion_depth);
 
   // hide functions that are not needed from Function
   using Function::evaluate;

@@ -25,7 +25,8 @@
 namespace zc {
 
 tl::expected<double, EvaluationError> Function::evaluate(const std::vector<double>& args,
-                                                         const MathWorld& world) const
+                                                         const MathWorld& world,
+                                                         size_t current_recursion_depth) const
 {
   if (not bool(*this)) [[unlikely]]
     return tl::unexpected(EvaluationError::invalid_function());
@@ -40,13 +41,20 @@ tl::expected<double, EvaluationError> Function::evaluate(const std::vector<doubl
   for (size_t i = 0 ; i != vars->size() ; i++)
     var_vals[(*vars)[i]] = args[i];
 
-  return zc::evaluate(*tree, var_vals, world);
+  return zc::evaluate(*tree, var_vals, world, current_recursion_depth);
+}
+
+tl::expected<double, EvaluationError> Function::evaluate(const std::vector<double>& args,
+                                                         const MathWorld& world) const
+{
+  // this function is user called, so the recursion depth is zero
+  return evaluate(args, world, 0);
 }
 
 tl::expected<double, EvaluationError> Function::operator () (const std::vector<double>& args,
                                                              const MathWorld& world) const
 {
-  return evaluate(args, world);
+  return evaluate(args, world, 0);
 }
 
 } // namespace zc

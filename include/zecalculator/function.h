@@ -143,6 +143,20 @@ public:
                                                      const MathWorld& world) const;
 
 protected:
+
+  /// @brief evaluation on a given math world with the given input
+  /// @note version that tracks the current recursion depth
+  tl::expected<double, EvaluationError> evaluate(const std::vector<double>& args,
+                                                 const MathWorld& world,
+                                                 size_t current_recursion_depth) const;
+
+  friend tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree,
+                                                        const name_map<double>& input_vars,
+                                                        const MathWorld& world,
+                                                        size_t current_recursion_depth);
+
+  friend class Sequence;
+
   std::unique_ptr<std::string> expression;
   // std::unique_ptr because the tree keeps string_views to it
   // and to be able to do move semantics without re-making a tree

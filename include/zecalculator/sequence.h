@@ -77,6 +77,16 @@ public:
 
 protected:
 
+  /// @brief evaluation with recursion depth tracking
+  tl::expected<double, EvaluationError> evaluate(double index,
+                                                 const MathWorld& world,
+                                                 size_t current_recursion_depth) const;
+
+  friend tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree,
+                                                        const name_map<double>& input_vars,
+                                                        const MathWorld& world,
+                                                        size_t current_recursion_depth);
+
   // hide functions that are not needed from Function
   using Function::evaluate;
   using Function::set_input_vars;

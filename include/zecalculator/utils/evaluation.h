@@ -11,12 +11,21 @@ namespace zc {
 /// @param world: math world (contains functions, global constants... etc)
 tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree,
                                                const name_map<double>& input_vars,
-                                               const MathWorld& world);
+                                               const MathWorld& world,
+                                               size_t current_recursion_depth);
+
+/// @brief evaluates a syntax tree using a given math world
+inline tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree,
+                                                      const name_map<double>& input_vars,
+                                                      const MathWorld& world)
+{
+  return evaluate(tree, input_vars, world, 0);
+}
 
 /// @brief evaluates a syntax tree using a given math world
 inline tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree, const MathWorld& world)
 {
-  return evaluate(tree, {}, world);
+  return evaluate(tree, {}, world, 0);
 }
 
 

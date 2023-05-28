@@ -5,7 +5,8 @@ namespace zc {
 
 tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree,
                                                const name_map<double>& input_vars,
-                                               const MathWorld& world)
+                                               const MathWorld& world,
+                                               size_t current_recursion_depth)
 {
   using ReturnType = tl::expected<double, EvaluationError>;
 
@@ -14,7 +15,7 @@ tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree,
     std::vector<double> evaluations;
     for (const auto& subnode : node.subnodes)
     {
-      auto eval = evaluate(subnode, input_vars, world);
+      auto eval = evaluate(subnode, input_vars, world, current_recursion_depth + 1);
       if (eval) [[likely]]
         evaluations.push_back(*eval);
       else [[unlikely]]
@@ -47,9 +48,9 @@ tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree,
         auto get_eval = [&]
         {
           if constexpr (std::is_convertible_v<F, MathWorld::ConstMathObject<Function>>)
-            return function(evaluations);
+            return function->evaluate(evaluations, world, current_recursion_depth + 1);
           else // sequence handles only one argument
-            return function(evaluations.front());
+            return function->evaluate(evaluations.front(), world, current_recursion_depth + 1);
         };
         ReturnType eval = get_eval();
         if (not bool(eval)) [[unlikely]]
@@ -68,8 +69,7 @@ tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree,
     if constexpr (std::is_same_v<T, std::monostate>)
     {
       return tl::unexpected(EvaluationError::empty_expression());
-    }
-    else if constexpr (std::is_same_v<T, FunctionNode>)
+    } else if constexpr (std::is_same_v<T, FunctionNode>)
     {
       auto math_obj = world.get(node.name);
 
@@ -96,7 +96,8 @@ tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree,
         else if (std::holds_alternative<GlobalConstantWrapper>(math_object))
           return std::get<GlobalConstantWrapper>(math_object)->value;
         else if (std::holds_alternative<GlobalVariableWrapper>(math_object))
-          return std::get<GlobalVariableWrapper>(math_object)();
+          return std::get<GlobalVariableWrapper>(math_object)
+            ->evaluate(world, current_recursion_depth + 1);
         else
           return tl::unexpected(EvaluationError::not_implemented(node));
       }
@@ -112,4 +113,4 @@ tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree,
   return std::visit(node_visiter, tree);
 }
 
-}
+} // namespace zc
