@@ -21,6 +21,9 @@ tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree,
       {
         auto math_obj = world.get(node.name);
 
+        if (std::holds_alternative<MathWorld::UnregisteredObject>(math_obj)) [[unlikely]]
+          return tl::unexpected(EvaluationError::undefined_function(node));
+
         return std::visit(
           [&](auto&& function) -> ReturnType {
 
@@ -81,11 +84,13 @@ tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree,
 
           auto math_object = world.get(node.name);
 
-          if (std::holds_alternative<GlobalConstantWrapper>(math_object))
+          if (std::holds_alternative<MathWorld::UnregisteredObject>(math_object)) [[unlikely]]
+            return tl::unexpected(EvaluationError::undefined_variable(node));
+          else if (std::holds_alternative<GlobalConstantWrapper>(math_object))
             return std::get<GlobalConstantWrapper>(math_object)->value;
           else if (std::holds_alternative<GlobalVariableWrapper>(math_object))
             return std::get<GlobalVariableWrapper>(math_object)();
-          else return tl::unexpected(EvaluationError::undefined_variable(node));
+          else return tl::unexpected(EvaluationError::not_implemented(node));
         }
       }
 
