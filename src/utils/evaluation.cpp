@@ -10,6 +10,9 @@ tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree,
 {
   using ReturnType = tl::expected<double, EvaluationError>;
 
+  if (world.max_recursion_depth < current_recursion_depth)
+    return tl::unexpected(EvaluationError::recursion_depth_overflow());
+
   auto function_visiter = [&](auto&& function, const FunctionNode& node) -> ReturnType
   {
     std::vector<double> evaluations;
