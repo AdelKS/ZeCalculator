@@ -45,18 +45,10 @@ tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree,
         return tl::unexpected(EvaluationError::mismatched_fun_args(node));
       else
       {
-        auto get_eval = [&]
-        {
-          if constexpr (std::is_convertible_v<F, MathWorld::ConstMathObject<Function>>)
-            return function->evaluate(evaluations, world, current_recursion_depth + 1);
-          else // sequence handles only one argument
-            return function->evaluate(evaluations.front(), world, current_recursion_depth + 1);
-        };
-        ReturnType eval = get_eval();
-        if (not bool(eval)) [[unlikely]]
-          return tl::unexpected(EvaluationError::calling_invalid_function(node));
-        else [[likely]]
-          return eval;
+        if constexpr (std::is_convertible_v<F, MathWorld::ConstMathObject<Function>>)
+          return function->evaluate(evaluations, world, current_recursion_depth + 1);
+        else // sequence handles only one argument
+          return function->evaluate(evaluations.front(), world, current_recursion_depth + 1);
       }
     } else
       return tl::unexpected(EvaluationError::not_implemented(node));
