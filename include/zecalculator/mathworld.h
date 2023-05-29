@@ -234,6 +234,10 @@ public:
     return inventory.find(name) != inventory.end();
   }
 
+  /// @brief maximum recursion depth to reach before returning an error
+  size_t max_recursion_depth = 100;
+
+
 protected:
 
   /// @brief converts a DynMathObject to a ConstDynMathObject
