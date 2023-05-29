@@ -42,4 +42,12 @@ int main()
     expect(fib(4).value() == 3.0);
     expect(fib(10).value() == 55.0);
   };
+
+  "recursion depth overflow"_test = []()
+  {
+    MathWorld world;
+    auto bad = world.add("bad", Sequence("n", "bad(n+10) + bad(n+20)", {})).value();
+
+    expect(bad(0).error() == EvaluationError::recursion_depth_overflow());
+  };
 }
