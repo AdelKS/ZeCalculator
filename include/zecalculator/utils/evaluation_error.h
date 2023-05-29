@@ -44,6 +44,7 @@ struct EvaluationError
     EMPTY_EXPRESSION,
     INVALID_FUNCTION,
     CALLING_INVALID_FUNCTION, // expression that contains a function who cannot return values
+    RECURSION_DEPTH_OVERFLOW, // maximum recursion depth has been reached
   };
 
   static EvaluationError undefined_variable(SyntaxTree tree)
@@ -84,6 +85,11 @@ struct EvaluationError
   static EvaluationError calling_invalid_function(SyntaxTree tree)
   {
     return EvaluationError {CALLING_INVALID_FUNCTION, tree};
+  }
+
+  static EvaluationError recursion_depth_overflow()
+  {
+    return EvaluationError{RECURSION_DEPTH_OVERFLOW};
   }
 
   // kind of error
