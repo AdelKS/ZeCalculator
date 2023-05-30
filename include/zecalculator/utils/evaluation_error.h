@@ -62,7 +62,7 @@ struct EvaluationError
     return EvaluationError {CALLING_FUN_ARG_COUNT_MISMATCH, tree};
   }
 
-    static EvaluationError mismatched_fun_args()
+  static EvaluationError mismatched_fun_args()
   {
     return EvaluationError {CALLED_FUN_ARG_COUNT_MISMATCH};
   }
