@@ -24,6 +24,8 @@ zecalculator_dep = declare_dependency(
     link_with : zecalculator_lib
 )
 
+meson.override_dependency('zecalculator', zecalculator_dep)
+
 if get_option('test')
     subdir('test')
 endif
