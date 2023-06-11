@@ -18,6 +18,24 @@
 
 namespace zc {
 
+struct NameError
+{
+  enum Type {ALREADY_TAKEN, INVALID_FORMAT};
+
+  static NameError already_taken(std::string_view name)
+  {
+    return NameError{.type = ALREADY_TAKEN, .name = std::string(name)};
+  }
+
+  static NameError invalid_format(std::string_view name)
+  {
+    return NameError{.type = INVALID_FORMAT, .name = std::string(name)};
+  }
+
+  Type type;
+  std::string name;
+};
+
 template <class... MathObjectType>
 class MathWorldT;
 
@@ -27,24 +45,6 @@ template <class... MathObjectType>
 class MathWorldT
 {
 public:
-
-  struct NameError
-  {
-    enum Type {ALREADY_TAKEN, INVALID_FORMAT};
-
-    static NameError already_taken(std::string_view name)
-    {
-      return NameError{.type = ALREADY_TAKEN, .name = std::string(name)};
-    }
-
-    static NameError invalid_format(std::string_view name)
-    {
-      return NameError{.type = INVALID_FORMAT, .name = std::string(name)};
-    }
-
-    Type type;
-    std::string name;
-  };
 
   template <class Object, bool is_const>
   class MathObjectT
