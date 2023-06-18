@@ -52,6 +52,9 @@ public:
     using math_world_t = std::conditional_t<is_const, const MathWorldT&, MathWorldT&>;
 
   public:
+    math_world_t world;
+    size_t id;
+
     MathObjectT(const MathObjectT& obj) = default;
     MathObjectT(MathObjectT&& obj) = default;
 
@@ -100,8 +103,6 @@ public:
     MathObjectT(math_world_t world, size_t id)
       : world(world), id(id) {}
 
-    math_world_t world;
-    size_t id;
     friend MathWorldT;
   };
 
