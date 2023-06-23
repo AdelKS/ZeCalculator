@@ -40,9 +40,9 @@ int main()
 
     expect(bool(expect_node));
 
-    SyntaxTree expected_node = FunctionNode(tokens::Operator::name_of<'+'>(),
+    SyntaxTree expected_node = FunctionNode(tokens::Operator::name_of('+'),
                                             {NumberNode("2", 2.0),
-                                             FunctionNode(tokens::Operator::name_of<'*'>(),
+                                             FunctionNode(tokens::Operator::name_of('*'),
                                                           {
                                                             NumberNode("2", 2.0),
                                                             NumberNode("2", 2.0),
@@ -62,10 +62,10 @@ int main()
     expect(bool(expect_node));
 
     SyntaxTree expected_node
-      = FunctionNode(tokens::Operator::name_of<'+'>(),
+      = FunctionNode(tokens::Operator::name_of('+'),
                      {
                        FunctionNode("cos",
-                                    {FunctionNode(tokens::Operator::name_of<'+'>(),
+                                    {FunctionNode(tokens::Operator::name_of('+'),
                                                   {
                                                     FunctionNode("sin",
                                                                  {

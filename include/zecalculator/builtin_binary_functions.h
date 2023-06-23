@@ -33,11 +33,11 @@ double divide(const double a, const double b);
 // we save the names along with the function pointers for convenience
 // we could save only the function pointers, and the names only in the inventory
 constexpr std::array<std::pair<std::string_view, CppBinaryFunction>, 5> builtin_binary_functions = {{
-  {tokens::Operator::name_of<'+'>(), plus},
-  {tokens::Operator::name_of<'-'>(), minus},
-  {tokens::Operator::name_of<'*'>(), multiply},
-  {tokens::Operator::name_of<'/'>(), divide},
-  {tokens::Operator::name_of<'^'>(), CppBinaryFunction(std::pow)},
+  {tokens::Operator::name_of('+'), plus},
+  {tokens::Operator::name_of('-'), minus},
+  {tokens::Operator::name_of('*'), multiply},
+  {tokens::Operator::name_of('/'), divide},
+  {tokens::Operator::name_of('^'), CppBinaryFunction(std::pow)},
 }};
 
 }

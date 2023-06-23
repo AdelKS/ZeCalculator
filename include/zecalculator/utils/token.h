@@ -77,9 +77,9 @@ struct Operator: Text
                                                           {'/', "internal::divide"},
                                                           {'^', "internal::power"}}};
 
-  template <char op> requires (std::ranges::count(operators, op, &pair_type::first) == 1)
-  consteval static std::string_view name_of()
+  constexpr static std::string_view name_of(char op)
   {
+    assert(std::ranges::count(operators, op, &pair_type::first) == 1);
     return std::ranges::find(operators, op, &pair_type::first)->second;
   }
 
