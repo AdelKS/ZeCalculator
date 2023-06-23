@@ -109,10 +109,10 @@ tl::expected<SyntaxTree, ParsingError> make_tree(const std::span<Token> tokens)
     std::visit(
         overloaded{
             [&](const tokens::Number &num) {
-              ret = NumberNode{num.value};
+              ret = NumberNode{num, num.value};
             },
             [&](const tokens::Variable &var) {
-              ret = VariableNode{var.str_v};
+              ret = VariableNode{var};
             },
             [&](auto &&anything_else) {
               ret = tl::unexpected(ParsingError::unexpected(anything_else));
@@ -167,9 +167,7 @@ tl::expected<SyntaxTree, ParsingError> make_tree(const std::span<Token> tokens)
       }
     }
 
-    return FunctionNode{
-        .name = std::get<tokens::Function>(tokens.front()).str_v,
-        .subnodes = std::move(subnodes)};
+    return FunctionNode(text_token(tokens.front()), std::move(subnodes));
   }
 
   // there are tokens that are not within parentheses
@@ -197,10 +195,9 @@ tl::expected<SyntaxTree, ParsingError> make_tree(const std::span<Token> tokens)
           if (not right_hand_side.has_value())
             return right_hand_side;
 
-          return FunctionNode{
-              .name = op_str, // the function's name is the operators
-              .subnodes = {std::move(left_hand_side.value()),
-                           std::move(right_hand_side.value())}};
+          return FunctionNode(op_str,
+                              {std::move(left_hand_side.value()),
+                               std::move(right_hand_side.value())});
         }
       }
     }

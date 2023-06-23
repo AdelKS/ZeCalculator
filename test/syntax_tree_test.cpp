@@ -40,14 +40,13 @@ int main()
 
     expect(bool(expect_node));
 
-    SyntaxTree expected_node =
-        FunctionNode{.name = tokens::Operator::name_of<'+'>(),
-                     .subnodes = {NumberNode{.value = 2.0},
-                                  FunctionNode{.name = tokens::Operator::name_of<'*'>(),
-                                               .subnodes = {
-                                                   NumberNode{.value = 2.0},
-                                                   NumberNode{.value = 2.0},
-                                               }}}};
+    SyntaxTree expected_node = FunctionNode(tokens::Operator::name_of<'+'>(),
+                                            {NumberNode("2", 2.0),
+                                             FunctionNode(tokens::Operator::name_of<'*'>(),
+                                                          {
+                                                            NumberNode("2", 2.0),
+                                                            NumberNode("2", 2.0),
+                                                          })});
 
     expect(*expect_node == expected_node) << *expect_node;
   };
@@ -62,25 +61,20 @@ int main()
 
     expect(bool(expect_node));
 
-    SyntaxTree expected_node = FunctionNode{
-        .name = tokens::Operator::name_of<'+'>(),
-        .subnodes = {
-            FunctionNode{
-                .name = "cos",
-                .subnodes = {FunctionNode{
-                    .name = tokens::Operator::name_of<'+'>(),
-                    .subnodes =
-                        {
-                            FunctionNode{.name = "sin",
-                                         .subnodes =
-                                             {
-                                                 VariableNode{.name = "x"},
-                                             }},
-                            NumberNode{.value = 1.0},
-                        },
-                }}},
-            NumberNode{.value = 1.0},
-        }};
+    SyntaxTree expected_node
+      = FunctionNode(tokens::Operator::name_of<'+'>(),
+                     {
+                       FunctionNode("cos",
+                                    {FunctionNode(tokens::Operator::name_of<'+'>(),
+                                                  {
+                                                    FunctionNode("sin",
+                                                                 {
+                                                                   VariableNode("x"),
+                                                                 }),
+                                                    NumberNode("1", 1.0),
+                                                  })}),
+                       NumberNode("1", 1.0),
+                     });
 
     expect(*expect_node == expected_node) << expect_node;
   };

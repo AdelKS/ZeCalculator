@@ -181,9 +181,9 @@ int main()
     world.add("f", Function({"x", "y"}, "1 + x + y")).value();
     auto expr = world.add("val", Expression("1 + f(1)")).value();
 
-    expect(
-      expr()
-      == tl::unexpected(EvaluationError::mismatched_fun_args(FunctionNode{"f", {NumberNode{1}}})))
+    expect(expr()
+           == tl::unexpected(
+             EvaluationError::mismatched_fun_args(FunctionNode{"f", {NumberNode("1", 1)}})))
       << expr();
   };
 

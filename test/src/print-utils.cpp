@@ -25,13 +25,13 @@ void syntax_node_print_helper(std::ostream& os, const SyntaxTree& node, size_t p
                           os << padding_str << "empty tree " << std::endl;
                         },
                         [&](const FunctionNode &f) {
-                          os << padding_str << "Function " << f.name << " {"
+                          os << padding_str << "Function " << f.str_v << " {"
                              << std::endl;
                           for (const SyntaxTree &subnode : f.subnodes)
                             syntax_node_print_helper(os, subnode, padding + 2);
                         },
                         [&](const VariableNode &v) {
-                          os << padding_str << "Variable " << v.name
+                          os << padding_str << "Variable " << v.str_v
                              << std::endl;
                         },
                         [&](const NumberNode &n) {

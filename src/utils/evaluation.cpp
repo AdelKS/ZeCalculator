@@ -64,9 +64,10 @@ tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree,
     if constexpr (std::is_same_v<T, std::monostate>)
     {
       return tl::unexpected(EvaluationError::empty_expression());
-    } else if constexpr (std::is_same_v<T, FunctionNode>)
+    }
+    else if constexpr (std::is_same_v<T, FunctionNode>)
     {
-      auto math_obj = world.get(node.name);
+      auto math_obj = world.get(node.str_v);
 
       if (std::holds_alternative<MathWorld::UnregisteredObject>(math_obj)) [[unlikely]]
         return tl::unexpected(EvaluationError::undefined_function(node));
@@ -76,7 +77,7 @@ tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree,
 
     else if constexpr (std::is_same_v<T, VariableNode>)
     {
-      auto it = input_vars.find(node.name);
+      auto it = input_vars.find(node.str_v);
       if (it != input_vars.end())
         return it->second;
       else
@@ -84,7 +85,7 @@ tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree,
         using GlobalConstantWrapper = MathWorld::ConstMathObject<GlobalConstant>;
         using GlobalVariableWrapper = MathWorld::ConstMathObject<GlobalVariable>;
 
-        auto math_object = world.get(node.name);
+        auto math_object = world.get(node.str_v);
 
         if (std::holds_alternative<MathWorld::UnregisteredObject>(math_object)) [[unlikely]]
           return tl::unexpected(EvaluationError::undefined_variable(node));
