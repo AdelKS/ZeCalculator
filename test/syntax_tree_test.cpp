@@ -40,12 +40,12 @@ int main()
 
     expect(bool(expect_node));
 
-    SyntaxTree expected_node = FunctionNode(tokens::Operator::name_of('+'),
-                                            {NumberNode("2", 2.0),
-                                             FunctionNode(tokens::Operator::name_of('*'),
+    SyntaxTree expected_node = FunctionNode(tokens::Operator('+', 1),
+                                            {NumberNode(2.0, tokens::Text{"2", 0, 1}),
+                                             FunctionNode(tokens::Operator('*', 3),
                                                           {
-                                                            NumberNode("2", 2.0),
-                                                            NumberNode("2", 2.0),
+                                                            NumberNode(2.0, tokens::Text{"2", 2, 1}),
+                                                            NumberNode(2.0, tokens::Text{"2", 4, 1}),
                                                           })});
 
     expect(*expect_node == expected_node) << *expect_node;
@@ -62,18 +62,18 @@ int main()
     expect(bool(expect_node));
 
     SyntaxTree expected_node
-      = FunctionNode(tokens::Operator::name_of('+'),
+      = FunctionNode(tokens::Operator('+', 15),
                      {
-                       FunctionNode("cos",
-                                    {FunctionNode(tokens::Operator::name_of('+'),
+                       FunctionNode(tokens::Text("cos", 1, 3),
+                                    {FunctionNode(tokens::Operator('+', 11),
                                                   {
-                                                    FunctionNode("sin",
+                                                    FunctionNode(tokens::Text("sin", 5, 3),
                                                                  {
-                                                                   VariableNode("x"),
+                                                                   VariableNode("x", 9, 1),
                                                                  }),
-                                                    NumberNode("1", 1.0),
+                                                    NumberNode(1.0, tokens::Text("1", 12, 1)),
                                                   })}),
-                       NumberNode("1", 1.0),
+                       NumberNode(1.0, tokens::Text("1", 16, 1)),
                      });
 
     expect(*expect_node == expected_node) << expect_node;

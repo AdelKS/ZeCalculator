@@ -32,6 +32,7 @@
 #include <ranges>
 
 #include <zecalculator/external/expected.h>
+#include <zecalculator/utils/substr_info.h>
 
 namespace zc {
 
@@ -40,20 +41,35 @@ namespace tokens {
 struct Text
 {
   Text() = default;
-  Text(std::string_view str_v) : str_v(str_v) {}
-  std::string_view str_v = {}; // string view on the 's text within the original expression
+
+  Text(std::string_view substr, std::string_view original_expr)
+    : name(std::string(substr)), substr_info(SubstrInfo::from_views(substr, original_expr))
+  {}
+
+  Text(std::string_view name, size_t begin, size_t size) : name(std::string(name)), substr_info{begin, size} {}
+
+  Text(std::string_view name, SubstrInfo substr_info) : name(std::string(name)), substr_info(substr_info) {}
+
+  /// @brief name of the token, can different from what appears in the expressions
+  /// @example '+' is replaced with 'internal::plus' (a valid function name)
+  std::string name = {};
+
+  /// @brief information about the location of the original token with the original expression
+  /// @example token '+' in '2+2*2' will have: begin=1, size=1
+  SubstrInfo substr_info = {};
 
   bool operator == (const Text& other) const = default;
 };
 
 struct Unkown: Text
 {
+  explicit Unkown(const Text& txt) : Text(txt) {}
   using Text::Text;
 };
 
 struct Number: Text
 {
-  Number(double value, std::string_view str_v): Text(str_v), value(value) {};
+  Number(double value, const tokens::Text& text_token): Text(text_token), value(value) {}
   double value = std::nan("");
 };
 
@@ -89,10 +105,11 @@ struct Operator: Text
       operators, [&ch](const char op) { return op == ch; }, &pair_type::first);
   }
 
-  Operator(std::string_view str_v): Text(str_v)
-  {
-    assert(str_v.size() == 1 and is_operator(str_v.front()));
-  }
+  Operator(char op, size_t begin): Text(name_of(op), begin, 1) {}
+
+  Operator(std::string_view op_v, std::string_view original_expr)
+    : Text(name_of(op_v.front()), SubstrInfo::from_views(op_v, original_expr))
+  {}
 };
 
 struct OpeningParenthesis: Text

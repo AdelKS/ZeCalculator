@@ -37,28 +37,22 @@ using SyntaxTree = std::variant<std::monostate, FunctionNode, VariableNode, Numb
 
 struct VariableNode: tokens::Text
 {
-  VariableNode(std::string_view text): tokens::Text(text) {}
   VariableNode(const tokens::Text& text): tokens::Text(text) {}
+
+  using tokens::Text::Text;
 
   bool operator == (const VariableNode& other) const = default;
 };
 
-struct NumberNode: tokens::Text
+struct NumberNode: tokens::Number
 {
-  NumberNode(std::string_view text, double value) : tokens::Text(text), value(value) {}
-  NumberNode(const tokens::Text& text, double value) : tokens::Text(text), value(value) {}
+  NumberNode(const tokens::Number& number_token) : tokens::Number(number_token) {}
 
-  double value;
-
-  bool operator == (const NumberNode& other) const = default;
+  using tokens::Number::Number;
 };
 
 struct FunctionNode: tokens::Text
 {
-  FunctionNode(std::string_view text, std::vector<SyntaxTree> subnodes)
-    : tokens::Text(text), subnodes(std::move(subnodes))
-  {}
-
   FunctionNode(const tokens::Text& text, std::vector<SyntaxTree> subnodes)
     : tokens::Text(text), subnodes(std::move(subnodes))
   {}

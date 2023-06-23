@@ -20,6 +20,7 @@
 
 #include <tuple>
 #include <stack>
+#include <numeric>
 
 #include <zecalculator/utils/syntax_tree.h>
 #include <zecalculator/utils/parser.h>
@@ -69,36 +70,6 @@ tl::expected<
   return non_pth_enclosed_tokens;
 }
 
-/// @brief when the input range of str views are a split of a bigger str view
-///        returns the str view
-/// @param str_views: container of string_views that are a split of a bigger str_view
-/// @returns the bigger string view
-template <std::ranges::viewable_range Range>
-requires std::is_convertible_v<std::ranges::range_value_t<Range>, std::string_view>
-std::optional<std::string_view> concatenate(const Range& str_views)
-{
-  // check that all string views are just splits of global string view
-  std::string_view previous;
-  size_t final_size = 0;
-
-  for (std::string_view view: str_views)
-  {
-    // set the 'previous' str_view if it's not set
-    if (previous.data() == nullptr)
-      previous = view;
-
-    // if the current view has its data  not start at the end of
-    // the previous, we have an issue and we return an empty optional
-    else if (previous.data() + previous.size() != view.data())
-      return std::optional<std::string_view>();
-
-    previous = view;
-    final_size += view.size();
-  }
-
-  return std::optional<std::string_view>(std::in_place, (*str_views.begin()).data(), final_size);
-}
-
 tl::expected<SyntaxTree, ParsingError> make_tree(const std::span<Token> tokens)
 {
   // when there's only a single token, it can only be number or a variable
@@ -109,7 +80,7 @@ tl::expected<SyntaxTree, ParsingError> make_tree(const std::span<Token> tokens)
     std::visit(
         overloaded{
             [&](const tokens::Number &num) {
-              ret = NumberNode{num, num.value};
+              ret = NumberNode(num);
             },
             [&](const tokens::Variable &var) {
               ret = VariableNode{var};
@@ -181,7 +152,7 @@ tl::expected<SyntaxTree, ParsingError> make_tree(const std::span<Token> tokens)
       for (auto tokenIt: non_pth_enclosed_tokens)
       {
         if (std::holds_alternative<tokens::Operator>(*tokenIt) and
-            std::get<tokens::Operator>(*tokenIt).str_v.front() == op)
+            std::get<tokens::Operator>(*tokenIt).name == op_str)
         {
           // we are not within parentheses, and we are at the right operator priority
           if (tokenIt == tokens.begin() or tokenIt+1 == tokens.end())
@@ -195,7 +166,7 @@ tl::expected<SyntaxTree, ParsingError> make_tree(const std::span<Token> tokens)
           if (not right_hand_side.has_value())
             return right_hand_side;
 
-          return FunctionNode(op_str,
+          return FunctionNode(text_token(*tokenIt),
                               {std::move(left_hand_side.value()),
                                std::move(right_hand_side.value())});
         }
@@ -203,16 +174,14 @@ tl::expected<SyntaxTree, ParsingError> make_tree(const std::span<Token> tokens)
     }
   }
 
-  // extracts the str_v from a token
-  auto extract_str_v = [](const Token &token) {
-    std::string_view str_v;
-    std::visit([&](auto &&tokenVal) { str_v = tokenVal.str_v; }, token);
-    return str_v;
-  };
-
   // if we reach the end of this function, something is not right
-  return tl::unexpected(ParsingError::unexpected(tokens::Unkown(
-      concatenate(tokens | std::views::transform(extract_str_v)).value())));
-}
+  const SubstrInfo substrinfo
+    = std::accumulate(tokens.begin(),
+                      tokens.end(),
+                      substr_info(tokens.front()),
+                      [](const SubstrInfo& info, const Token& t1)
+                      { return substr_info(t1) + info; });
 
+  return tl::unexpected(ParsingError::unexpected(tokens::Unkown("", substrinfo)));
+}
 }

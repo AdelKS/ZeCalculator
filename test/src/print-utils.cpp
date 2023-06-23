@@ -6,12 +6,18 @@
 
 namespace zc {
 
+std::ostream &operator<<(std::ostream &os, const tokens::Text &txt_token)
+{
+  os << txt_token.name << " at (" << txt_token.substr_info.begin  << ", " << txt_token.substr_info.size << ") ";
+  return os;
+}
+
 std::ostream &operator<<(std::ostream &os, const Token &token)
 {
   std::visit(
     [&](auto &&tokenVal) {
       os << boost::ut::reflection::type_name<decltype(tokenVal)>() << " "
-         << tokenVal.str_v;
+         << static_cast<const tokens::Text &>(tokenVal);
     },
     token);
   return os;
@@ -25,17 +31,17 @@ void syntax_node_print_helper(std::ostream& os, const SyntaxTree& node, size_t p
                           os << padding_str << "empty tree " << std::endl;
                         },
                         [&](const FunctionNode &f) {
-                          os << padding_str << "Function " << f.str_v << " {"
+                          os << padding_str << "Function " << f << " {"
                              << std::endl;
                           for (const SyntaxTree &subnode : f.subnodes)
                             syntax_node_print_helper(os, subnode, padding + 2);
                         },
                         [&](const VariableNode &v) {
-                          os << padding_str << "Variable " << v.str_v
+                          os << padding_str << "Variable " << v
                              << std::endl;
                         },
                         [&](const NumberNode &n) {
-                          os << padding_str << "Number " << n.value
+                          os << padding_str << "Number " << n
                              << std::endl;
                         }},
              node);
