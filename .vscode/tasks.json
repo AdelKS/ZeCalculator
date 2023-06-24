@@ -6,12 +6,12 @@
         {
             "label": "setup",
             "type": "shell",
-            "command": "[ -d \"${cwd}/build-zc-debug\" ] || meson setup build-zc-debug -D optimization=0 -D buildtype=debug -D test=true",
+            "command": "[ -d \"${cwd}/build-zc-debug\" ] || meson setup build-zc-debug -D optimization=0 -D buildtype=debug -D test=true -D b_sanitize=address,undefined",
         },
         {
             "label": "resetup",
             "type": "shell",
-            "command": "meson setup --wipe build-zc-debug -D optimization=0 -D buildtype=debug -D test=true",
+            "command": "meson setup --wipe build-zc-debug -D optimization=0 -D buildtype=debug -D test=true -D b_sanitize=address,undefined",
         },
         {
             "label": "build",

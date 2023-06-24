@@ -66,10 +66,10 @@ public:
   explicit Function() = default;
 
   /// @brief constructor for a function that takes many input variables
-  explicit Function(std::vector<std::string> input_vars, const std::string& expr)
+  explicit Function(std::vector<std::string> input_vars, std::string expr)
   {
-    set_input_vars(input_vars);
-    set_expression(expr);
+    set_input_vars(std::move(input_vars));
+    set_expression(std::move(expr));
   }
 
   Function(const Function& f) = default;
