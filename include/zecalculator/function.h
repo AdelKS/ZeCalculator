@@ -119,6 +119,18 @@ public:
     return bool(tree) and (not std::holds_alternative<std::monostate>(tree.value())) and bool(vars);
   }
 
+  struct Ok {};
+  struct Empty {};
+
+  std::variant<Ok, Empty, ParsingError> parsing_status() const
+  {
+    if (not tree.has_value())
+      return tree.error();
+    else if (std::holds_alternative<std::monostate>(tree.value()))
+      return Empty();
+    else return Ok();
+  }
+
   const tl::expected<SyntaxTree, ParsingError>& get_tree() const { return tree; }
 
   /// @brief evaluation on a given math world with the given input
