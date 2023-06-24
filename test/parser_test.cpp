@@ -162,5 +162,19 @@ int main()
       expect(*parsing == expected_parsing);
   };
 
+  "SubstrInfo"_test = []()
+  {
+    static constexpr std::string_view str = "2+cos(3)";
+    auto parsing = parse(str);
+
+    expect(bool(parsing)) << parsing;
+
+    const auto substrinfo = substr_info(parsing.value()[2]);
+
+    expect(substrinfo.substr(str) == "cos");
+    expect(substrinfo.substr_before(str) == "2+");
+    expect(substrinfo.substr_after(str) == "(3)");
+  };
+
   return 0;
 }

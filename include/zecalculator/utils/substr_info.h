@@ -20,6 +20,32 @@ struct SubstrInfo
     return SubstrInfo{.begin = size_t(substr.data() - full_str.data()), .size = substr.size()};
   };
 
+  /// @brief returns the substring this class is refering to within the full string 'full_str'
+  /// @example *this == {2, 3}, full_str = "2+cos(2)" returns "cos"
+  /// @note if the full_str isn't long enough (wrong string given by the end-user), returns empty string_view
+  std::string_view substr(std::string_view full_str) const
+  {
+    if (begin + size > full_str.size())
+      return std::string_view();
+    return full_str.substr(begin, size);
+  }
+
+  /// @brief returns the substring that is before substr(full_str)
+  /// @example *this == {2, 3}, full_str = "2+cos(3)" returns "2+"
+  std::string_view substr_before(std::string_view full_str) const
+  {
+    return full_str.substr(0, begin);
+  }
+
+  /// @brief returns the substring that is after substr(full_str)
+  /// @example *this == {2, 3}, full_str = "2+cos(3)" returns "(3)"
+  std::string_view substr_after(std::string_view full_str) const
+  {
+    if (begin + size > full_str.size())
+      return std::string_view();
+    else return full_str.substr(begin + size);
+  }
+
   ///@brief begin position in the original string
   size_t begin = 0;
 
