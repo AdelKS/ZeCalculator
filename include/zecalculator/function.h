@@ -72,22 +72,10 @@ public:
     set_expression(expr);
   }
 
-  Function(const Function& f)
-    : vars(f.vars)
-  {
-    if (f.expression)
-      set_expression(*f.expression);
-  }
-
-  Function& operator = (const Function& f)
-  {
-    vars = f.vars;
-    if (f.expression)
-      set_expression(*f.expression);
-    return *this;
-  }
-
+  Function(const Function& f) = default;
   Function(Function&& f) = default;
+
+  Function& operator = (const Function& f) = default;
   Function& operator = (Function&& f) = default;
 
   /// @brief sets the names of the input variables
@@ -102,16 +90,16 @@ public:
   }
 
   /// \brief set the expression
-  void set_expression(const std::string& expr)
+  void set_expression(std::string expr)
   {
     // do nothing if it's the same expression
-    if (expression and *expression == expr)
+    if (expression == expr)
       return;
 
-    expression = std::make_unique<std::string>(expr);
+    expression = std::move(expr);
 
     // workaround limitation in tl::expected when using and_then to implicitly converted-to types
-    auto parsing = parse(*expression);
+    auto parsing = parse(expression);
     if (parsing)
       tree = make_tree(parsing.value());
     else tree = tl::unexpected(parsing.error());
@@ -157,9 +145,7 @@ protected:
 
   friend class Sequence;
 
-  std::unique_ptr<std::string> expression;
-  // std::unique_ptr because the tree keeps string_views to it
-  // and to be able to do move semantics without re-making a tree
+  std::string expression;
 
   tl::expected<SyntaxTree, ParsingError> tree;
   tl::expected<std::vector<std::string>, InvalidInputVar> vars;
