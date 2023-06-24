@@ -28,28 +28,11 @@
 
 namespace zc {
 
-struct ParsingError;
 struct FunctionNode;
-struct VariableNode;
-struct NumberNode;
+using VariableNode = tokens::Variable;
+using NumberNode = tokens::Number;
 
 using SyntaxTree = std::variant<std::monostate, FunctionNode, VariableNode, NumberNode>;
-
-struct VariableNode: tokens::Text
-{
-  VariableNode(const tokens::Text& text): tokens::Text(text) {}
-
-  using tokens::Text::Text;
-
-  bool operator == (const VariableNode& other) const = default;
-};
-
-struct NumberNode: tokens::Number
-{
-  NumberNode(const tokens::Number& number_token) : tokens::Number(number_token) {}
-
-  using tokens::Number::Number;
-};
 
 struct FunctionNode: tokens::Text
 {
@@ -63,8 +46,6 @@ struct FunctionNode: tokens::Text
 };
 
 /// @brief makes a syntax tree from from a sequence of tokens
-/// @note  the tokens contain string_views to the original expression
-///        i.e. be cautious when using it
 tl::expected<SyntaxTree, ParsingError> make_tree(const std::span<Token> tokens);
 
 }

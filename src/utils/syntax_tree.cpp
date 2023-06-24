@@ -75,21 +75,13 @@ tl::expected<SyntaxTree, ParsingError> make_tree(const std::span<Token> tokens)
   // when there's only a single token, it can only be number or a variable
   if (tokens.size() == 1)
   {
-    const Token& single_token = tokens.back();
-    tl::expected<SyntaxTree, ParsingError> ret;
-    std::visit(
-        overloaded{
-            [&](const tokens::Number &num) {
-              ret = NumberNode(num);
-            },
-            [&](const tokens::Variable &var) {
-              ret = VariableNode{var};
-            },
-            [&](auto &&anything_else) {
-              ret = tl::unexpected(ParsingError::unexpected(anything_else));
-            }},
-        single_token);
-    return ret;
+    using Ret = tl::expected<SyntaxTree, ParsingError>;
+    return std::visit(overloaded{[&](const tokens::Number& num) -> Ret { return num; },
+                                 [&](const tokens::Variable& var) -> Ret { return var; },
+                                 [&](const auto& anything_else) -> Ret {
+                                   return tl::unexpected(ParsingError::unexpected(anything_else));
+                                 }},
+                      tokens.back());
   }
 
   auto expected_non_pth_wrapped_tokens = get_non_pth_enclosed_tokens(tokens);
