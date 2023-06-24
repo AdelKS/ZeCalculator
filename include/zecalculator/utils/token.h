@@ -146,4 +146,9 @@ inline tokens::Text text_token(const Token& token)
   return std::visit([](const auto& tk) -> tokens::Text { return tk; }, token);
 }
 
+inline SubstrInfo substr_info(const Token& token)
+{
+  return text_token(token).substr_info;
+}
+
 }
