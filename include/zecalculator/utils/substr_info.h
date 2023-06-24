@@ -29,4 +29,13 @@ struct SubstrInfo
   bool operator == (const SubstrInfo& other) const = default;
 };
 
+inline SubstrInfo operator + (const SubstrInfo& a, const SubstrInfo& b)
+{
+  const size_t begin = std::min(a.begin, b.begin);
+  return SubstrInfo
+  {
+    .begin = begin, .size = std::max(a.begin + a.size, b.begin + b.size) - begin
+  };
+}
+
 }
