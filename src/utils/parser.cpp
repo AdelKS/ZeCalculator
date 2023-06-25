@@ -155,7 +155,7 @@ tl::expected<std::vector<Token>, ParsingError> parse(std::string_view expression
       it++;
     else if (is_argument_separator(*it))
     {
-      if (last_opened_pth.top() == FUNCTION_CALL_PTH)
+      if (not last_opened_pth.empty() and last_opened_pth.top() == FUNCTION_CALL_PTH)
         parsing.emplace_back(tokens::FunctionArgumentSeparator(char_v, orig_expr));
       else return tl::unexpected(ParsingError::unexpected(tokens::FunctionArgumentSeparator(char_v, orig_expr)));
 
