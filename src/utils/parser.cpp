@@ -200,14 +200,17 @@ tl::expected<std::vector<Token>, ParsingError> parse(std::string_view expression
 
   if (not last_opened_pth.empty())
   {
-    std::string_view last_char_v = std::string_view(it-1, 1);
+    std::string_view expr_cend = std::string_view(it, 0);
     if (last_opened_pth.top() == FUNCTION_CALL_PTH)
-      return tl::unexpected(ParsingError::missing(tokens::FunctionCallEnd(last_char_v, orig_expr)));
-    else return tl::unexpected(ParsingError::missing(tokens::ClosingParenthesis(last_char_v, orig_expr)));
+      return tl::unexpected(ParsingError::missing(tokens::FunctionCallEnd(expr_cend, orig_expr)));
+    else return tl::unexpected(ParsingError::missing(tokens::ClosingParenthesis(expr_cend, orig_expr)));
   }
 
   if (not canEnd)
-    return tl::unexpected(ParsingError::unexpected(tokens::EndOfExpression()));
+  {
+    std::string_view expr_cend = std::string_view(it, 0);
+    return tl::unexpected(ParsingError::unexpected(tokens::EndOfExpression(expr_cend, orig_expr)));
+  }
 
   return parsing;
 }

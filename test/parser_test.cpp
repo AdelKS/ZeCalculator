@@ -35,7 +35,7 @@ int main()
     auto parsing = parse("        ");
 
     expect(not bool(parsing)
-           and parsing.error() == ParsingError::unexpected(tokens::EndOfExpression()))
+           and parsing.error() == ParsingError::unexpected(tokens::EndOfExpression("", SubstrInfo{8, 0})))
       << parsing;
   };
 
@@ -174,6 +174,37 @@ int main()
     expect(substrinfo.substr(str) == "cos");
     expect(substrinfo.substr_before(str) == "2+");
     expect(substrinfo.substr_after(str) == "(3)");
+  };
+
+  "missing function closing pth"_test = []()
+  {
+    static constexpr std::string_view str = "2+cos(3";
+    auto parsing = parse(str);
+
+    expect(not bool(parsing)) << parsing;
+
+    expect(parsing.error() == ParsingError::missing(tokens::FunctionCallEnd("", SubstrInfo{7, 0}))) << parsing.error();
+  };
+
+  "missing normal closing pth"_test = []()
+  {
+    static constexpr std::string_view str = "(2+cos(3)";
+    auto parsing = parse(str);
+
+    expect(not bool(parsing)) << parsing;
+
+    expect(parsing.error() == ParsingError::missing(tokens::ClosingParenthesis("", SubstrInfo{9, 0}))) << parsing.error();
+  };
+
+  "unexpected end of expression"_test = []()
+  {
+    static constexpr std::string_view str = "2+";
+    auto parsing = parse(str);
+
+    expect(not bool(parsing)) << parsing;
+
+    expect(parsing.error() == ParsingError::unexpected(tokens::EndOfExpression("", SubstrInfo{2, 0})))
+      << parsing.error();
   };
 
   return 0;
