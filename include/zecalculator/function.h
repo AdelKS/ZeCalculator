@@ -98,11 +98,17 @@ public:
 
     expression = std::move(expr);
 
-    // workaround limitation in tl::expected when using and_then to implicitly converted-to types
-    auto parsing = parse(expression);
-    if (parsing)
-      tree = make_tree(parsing.value());
-    else tree = tl::unexpected(parsing.error());
+    if (expression.empty())
+      tree = std::monostate();
+    else
+    {
+      // workaround limitation in tl::expected when using and_then to implicitly converted-to types
+      const auto parsing = parse(expression);
+      if (parsing)
+        tree = make_tree(parsing.value());
+      else tree = tl::unexpected(parsing.error());
+    }
+
   }
 
   /// @brief returns the number of input variables, if they are valid
