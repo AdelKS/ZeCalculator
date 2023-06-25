@@ -46,6 +46,6 @@ struct FunctionNode: tokens::Text
 };
 
 /// @brief makes a syntax tree from from a sequence of tokens
-tl::expected<SyntaxTree, ParsingError> make_tree(const std::span<Token> tokens);
+tl::expected<SyntaxTree, ParsingError> make_tree(std::span<const Token> tokens);
 
 }

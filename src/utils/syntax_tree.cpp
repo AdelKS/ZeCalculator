@@ -30,11 +30,11 @@
 namespace zc {
 
 tl::expected<
-  std::vector<std::span<Token>::iterator>,
+  std::vector<std::span<const Token>::iterator>,
   ParsingError
-> get_non_pth_enclosed_tokens(std::span<Token> tokens)
+> get_non_pth_enclosed_tokens(std::span<const Token> tokens)
 {
-  std::vector<std::span<Token>::iterator> non_pth_enclosed_tokens;
+  std::vector<std::span<const Token>::iterator> non_pth_enclosed_tokens;
 
   enum : bool { FUNCTION_CALL_PTH, NORMAL_PTH};
   std::stack<bool> last_opened_pth;
@@ -70,7 +70,7 @@ tl::expected<
   return non_pth_enclosed_tokens;
 }
 
-tl::expected<SyntaxTree, ParsingError> make_tree(const std::span<Token> tokens)
+tl::expected<SyntaxTree, ParsingError> make_tree(std::span<const Token> tokens)
 {
   // when there's only a single token, it can only be number or a variable
   if (tokens.size() == 1)
