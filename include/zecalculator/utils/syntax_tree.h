@@ -56,4 +56,9 @@ inline tokens::Text text_token(const SyntaxTree& token)
                     token);
 }
 
+inline SubstrInfo substr_info(const SyntaxTree& token)
+{
+  return text_token(token).substr_info;
+}
+
 }
