@@ -141,4 +141,9 @@ struct Token: TokenType
   using TokenType::TokenType;
 };
 
+inline tokens::Text text_token(const Token& token)
+{
+  return std::visit([](const auto& tk) -> tokens::Text { return tk; }, token);
+}
+
 }
