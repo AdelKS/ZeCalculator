@@ -25,6 +25,7 @@
 #include <vector>
 
 #include <zecalculator/utils/parser.h>
+#include <zecalculator/utils/utils.h>
 
 namespace zc {
 
@@ -47,5 +48,12 @@ struct FunctionNode: tokens::Text
 
 /// @brief makes a syntax tree from from a sequence of tokens
 tl::expected<SyntaxTree, ParsingError> make_tree(std::span<const Token> tokens);
+
+inline tokens::Text text_token(const SyntaxTree& token)
+{
+  return std::visit(overloaded{[](const std::monostate&) -> tokens::Text { return tokens::Text(); },
+                               [](const auto& tk) -> tokens::Text { return tk; }},
+                    token);
+}
 
 }
