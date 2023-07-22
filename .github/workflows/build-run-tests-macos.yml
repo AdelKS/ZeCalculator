@@ -1,0 +1,27 @@
+name: Build-Test ZeCalculator Macos
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build-test:
+    runs-on: macos-13
+    steps:
+      - name: Checkout ZeCalculator
+        uses: actions/checkout@v3
+
+      - name: Install meson and ninja
+        run: pip3 install meson ninja
+
+      - name: Select correct Xcode version
+        run: sudo xcode-select -s /Applications/Xcode_15.0.app
+
+      # Need clang 16 to work with libstdc++ std::ranges
+      - name: Setup meson build folder
+        run: meson setup build -D test=true
+
+      - name: Compile code
+        run: cd build && meson compile
+
+      - name: Test code
+        run: cd build && meson test
