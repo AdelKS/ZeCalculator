@@ -86,8 +86,10 @@ int main()
 
     expect(res2_status);
 
+    using namespace boost::ut::literals;
+
     if (res2_status)
-      expect(expected_res2.value() == cpp_f2(2*x));
+      expect(expected_res2.value() - cpp_f2(2*x) == 0.0_d);
 
     const auto expected_res1 = f1({x});
 
