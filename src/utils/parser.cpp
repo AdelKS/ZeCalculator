@@ -37,11 +37,12 @@ namespace zc {
 std::optional<std::pair<double, size_t>> to_double(std::string_view view)
 {
   std::optional<std::pair<double, size_t>> result = std::make_pair(0.0, 0);
-  auto [ptr, ec] = std::from_chars(view.data(), view.data() + view.size(), result->first);
+  char* charAfter = const_cast<char*>(view.data()); // char that comes right after the number
+  result->first = std::strtod(view.data(), &charAfter);
 
-  if (ec == std::errc())
-    result->second = size_t(ptr - view.data());
-  else result.reset();
+  if (charAfter == view.data() or result->first == HUGE_VAL)
+    result.reset();
+  else result->second = size_t(charAfter - view.data());
 
   return result;
 }
