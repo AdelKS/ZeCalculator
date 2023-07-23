@@ -58,6 +58,12 @@ public:
     MathObjectT(const MathObjectT& obj) = default;
     MathObjectT(MathObjectT&& obj) = default;
 
+    MathObjectT<Object, true> to_const() const
+      requires (not is_const)
+    {
+      return MathObjectT<Object, true>(*this);
+    }
+
     Object& operator * () requires (not is_const)
     {
       return world.template get<Object>(id);
@@ -247,7 +253,7 @@ protected:
     return std::visit(
       overloaded{
         [](UnregisteredObject) -> ConstDynMathObject { return UnregisteredObject(); },
-        []<class T>(const MathObject<T>& val) -> ConstDynMathObject { return ConstMathObject<T>(val); }
+        [](auto&& val) -> ConstDynMathObject { return val.to_const(); }
       },
       obj);
   }
