@@ -22,7 +22,10 @@
 
 // testing specific headers
 #include <boost/ut.hpp>
+#include <chrono>
 #include <zecalculator/test-utils/print-utils.h>
+
+using namespace std::chrono;
 
 using namespace zc;
 
@@ -49,5 +52,52 @@ int main()
     };
 
     expect(expr(world).value() == cpp_expr());
+  };
+
+  "expression benchmark"_test = []()
+  {
+    {
+      MathWorld world;
+      auto f = world.add("f", Function({"x"}, "cos(x) + t + 3")).value();
+      auto t = world.add("t", GlobalConstant(0)).value();
+
+      double x = 0;
+      auto begin = high_resolution_clock::now();
+      double res = 0;
+      size_t iterations = 0;
+      while (high_resolution_clock::now() - begin < 1s)
+      {
+        res += f({x}).value();
+        iterations++;
+        x++;
+        t->value++;
+      }
+      auto end = high_resolution_clock::now();
+      std::cout << "Avg zc function eval time: " << duration_cast<nanoseconds>((end - begin)/iterations) << std::endl;
+      std::cout << "dummy val: " << res << std::endl;
+    }
+    {
+      double cpp_t = 0;
+      auto cpp_f = [&](double x) {
+        return cos(x) + cpp_t + 3;
+      };
+
+      double x = 0;
+      auto begin = high_resolution_clock::now();
+      double res = 0;
+      size_t iterations = 0;
+      while (high_resolution_clock::now() - begin < 1s)
+      {
+        res += cpp_f(x);
+        iterations++;
+        x++;
+        cpp_t++;
+      }
+      auto end = high_resolution_clock::now();
+      std::cout << "Avg C++ function eval time: " << duration_cast<nanoseconds>((end - begin)/iterations) << std::endl;
+      std::cout << "dummy val: " << res << std::endl;
+
+    }
+
   };
 }
