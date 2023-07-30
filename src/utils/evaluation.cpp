@@ -32,14 +32,16 @@ tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree,
         return tl::unexpected(EvaluationError::mismatched_fun_args(node));
       else
         return (*function)(evaluations.front());
-    } else if constexpr (std::is_convertible_v<F, MathWorld::ConstMathObject<CppBinaryFunction>>)
+    }
+    else if constexpr (std::is_convertible_v<F, MathWorld::ConstMathObject<CppBinaryFunction>>)
     {
       if (evaluations.size() != 2)
         return tl::unexpected(EvaluationError::mismatched_fun_args(node));
       else
         return (*function)(evaluations.front(), evaluations.back());
-    } else if constexpr (std::is_convertible_v<F, MathWorld::ConstMathObject<Function>>
-                         or std::is_convertible_v<F, MathWorld::ConstMathObject<Sequence>>)
+    }
+    else if constexpr (std::is_convertible_v<F, MathWorld::ConstMathObject<Function>>
+                       or std::is_convertible_v<F, MathWorld::ConstMathObject<Sequence>>)
     {
       //              std::cout << "Evaluating zc function: " << node.name << std::endl;
       if (not bool(*function))
@@ -53,8 +55,9 @@ tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree,
         else // sequence handles only one argument
           return function->evaluate(evaluations.front(), world, current_recursion_depth + 1);
       }
-    } else
-      return tl::unexpected(EvaluationError::not_implemented(node));
+    }
+    else
+      return tl::unexpected(EvaluationError::wrong_object_type(node));
   };
 
   auto node_visiter = [&](auto&& node) -> ReturnType
@@ -95,7 +98,7 @@ tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree,
           return std::get<GlobalVariableWrapper>(math_object)
             ->evaluate(world, current_recursion_depth + 1);
         else
-          return tl::unexpected(EvaluationError::not_implemented(node));
+          return tl::unexpected(EvaluationError::wrong_object_type(node));
       }
     }
 

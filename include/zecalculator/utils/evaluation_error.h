@@ -45,6 +45,7 @@ struct EvaluationError
     INVALID_FUNCTION,
     CALLING_INVALID_FUNCTION, // expression that contains a function who cannot return values
     RECURSION_DEPTH_OVERFLOW, // maximum recursion depth has been reached
+    WRONG_OBJECT_TYPE, // object has been used as a different type as it actually is, example "2+cos" (where cos is a function used here as variable)
   };
 
   static EvaluationError undefined_variable(SyntaxTree tree)
@@ -90,6 +91,11 @@ struct EvaluationError
   static EvaluationError recursion_depth_overflow()
   {
     return EvaluationError{RECURSION_DEPTH_OVERFLOW};
+  }
+
+  static EvaluationError wrong_object_type(SyntaxTree tree)
+  {
+    return EvaluationError {WRONG_OBJECT_TYPE, tree};
   }
 
   // kind of error

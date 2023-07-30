@@ -150,4 +150,29 @@ int main()
     const double expected_res = std::cos(1.0) + 1.0;
     expect(res == expected_res);
   };
+
+  "wrong object type: function as variable"_test = []
+  {
+    MathWorld world;
+    auto expr = Expression("2 + cos");
+
+    auto eval = expr.evaluate(world);
+
+    expect(not bool(eval));
+    expect(eval.error().error_type == EvaluationError::WRONG_OBJECT_TYPE);
+    expect(substr_info(eval.error().node) == SubstrInfo{.begin = 4, .size = 3});
+  };
+
+  "wrong object type: variable as function"_test = []
+  {
+    MathWorld world;
+    world.add("g", GlobalConstant(3));
+    auto expr = Expression("7 + g(3)");
+
+    auto eval = expr.evaluate(world);
+
+    expect(not bool(eval));
+    expect(eval.error().error_type == EvaluationError::WRONG_OBJECT_TYPE);
+    expect(substr_info(eval.error().node) == SubstrInfo{.begin = 4, .size = 1});
+  };
 }
