@@ -84,7 +84,7 @@ struct Function: Text
   using Text::Text;
 };
 
-struct Operator: Text
+struct Operator: Function
 {
   using pair_type = std::pair<char, std::string_view>;
   // operators ordered in increasing order of priority
@@ -106,10 +106,10 @@ struct Operator: Text
       operators, [&ch](const char op) { return op == ch; }, &pair_type::first);
   }
 
-  Operator(char op, size_t begin): Text(name_of(op), begin, 1) {}
+  Operator(char op, size_t begin): Function(name_of(op), begin, 1) {}
 
   Operator(std::string_view op_v, std::string_view original_expr)
-    : Text(name_of(op_v.front()), SubstrInfo::from_views(op_v, original_expr))
+    : Function(name_of(op_v.front()), SubstrInfo::from_views(op_v, original_expr))
   {}
 };
 
