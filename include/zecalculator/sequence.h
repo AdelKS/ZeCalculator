@@ -87,6 +87,8 @@ protected:
                                                         const MathWorld& world,
                                                         size_t current_recursion_depth);
 
+  friend struct FunctionEvaluator;
+
   // hide functions that are not needed from Function
   using Function::evaluate;
   using Function::set_input_vars;

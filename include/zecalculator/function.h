@@ -161,6 +161,8 @@ protected:
                                                         const MathWorld& world,
                                                         size_t current_recursion_depth);
 
+  friend struct FunctionEvaluator;
+
   friend class Sequence;
 
   std::string expression;

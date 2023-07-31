@@ -1,6 +1,7 @@
 utils_header_files = files(
   'evaluation_error.h',
   'evaluation.h',
+  'function_evaluation.h',
   'name_map.h',
   'optional_ref.h',
   'parsing_error.h',
@@ -10,4 +11,5 @@ utils_header_files = files(
   'syntax_tree.h',
   'token.h',
   'utils.h',
+  'variable_evaluation.h',
 )
