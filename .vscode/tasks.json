@@ -11,7 +11,7 @@
         {
             "label": "resetup",
             "type": "shell",
-            "command": "meson setup --wipe build-zc-debug -D optimization=0 -D buildtype=debug -D test=true -D b_sanitize=address,undefined",
+            "command": "rm -rf ${cwd}/build-zc-debug && meson setup build-zc-debug -D optimization=0 -D buildtype=debug -D test=true -D b_sanitize=address,undefined",
         },
         {
             "label": "build",
@@ -49,6 +49,58 @@
                 "cwd": "${cwd}/build-zc-debug"
             },
             "dependsOn": "build",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            }
+        },
+        // CLANG
+        {
+            "label": "setup-clang",
+            "type": "shell",
+            "command": "[ -d \"${cwd}/build-zc-debug-clang\" ] || CC=clang CXX=clang++ C_LD=lld CXX_LD=lld meson setup build-zc-debug-clang -D optimization=0 -D debug=true -D test=true -D b_sanitize=address,undefined -D b_lundef=false",
+        },
+        {
+            "label": "resetup-clang",
+            "type": "shell",
+            "command": "rm -rf ${cwd}/build-zc-debug-clang && CC=clang CXX=clang++ C_LD=lld CXX_LD=lld  meson setup build-zc-debug-clang -D optimization=0 -D debug=true -D test=true -D b_sanitize=address,undefined -D b_lundef=false",
+        },
+        {
+            "label": "build-clang",
+            "type": "shell",
+            "command": "meson compile",
+            "options": {
+                "cwd": "${cwd}/build-zc-debug-clang"
+            },
+            "dependsOn": "setup-clang",
+            "problemMatcher": ["$meson-gcc"],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "rebuild-clang",
+            "type": "shell",
+            "command": "meson compile",
+            "options": {
+                "cwd": "${cwd}/build-zc-debug-clang"
+            },
+            "dependsOn": "resetup-clang",
+            "problemMatcher": ["$meson-gcc"],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "test-clang",
+            "type": "shell",
+            "command": "meson test --verbose",
+            "options": {
+                "cwd": "${cwd}/build-zc-debug-clang"
+            },
+            "dependsOn": "build-clang",
             "group": {
                 "kind": "test",
                 "isDefault": true
