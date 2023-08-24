@@ -54,6 +54,58 @@
                 "isDefault": true
             }
         },
+        // GCC RELEASE
+        {
+            "label": "setup-release",
+            "type": "shell",
+            "command": "[ -d \"${cwd}/build-zc-release\" ] || meson setup build-zc-release -D optimization=3 -D debug=false -D test=true",
+        },
+        {
+            "label": "resetup-release",
+            "type": "shell",
+            "command": "rm -rf ${cwd}/build-zc-release && meson setup build-zc-release -D optimization=3 -D debug=false -D test=true",
+        },
+        {
+            "label": "build-release",
+            "type": "shell",
+            "command": "meson compile",
+            "options": {
+                "cwd": "${cwd}/build-zc-release"
+            },
+            "dependsOn": "setup-release",
+            "problemMatcher": ["$meson-gcc"],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "rebuild-release",
+            "type": "shell",
+            "command": "meson compile",
+            "options": {
+                "cwd": "${cwd}/build-zc-release"
+            },
+            "dependsOn": "resetup-release",
+            "problemMatcher": ["$meson-gcc"],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "test-release",
+            "type": "shell",
+            "command": "meson test --verbose",
+            "options": {
+                "cwd": "${cwd}/build-zc-release"
+            },
+            "dependsOn": "build-release",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            }
+        },
         // CLANG
         {
             "label": "setup-clang",
@@ -105,6 +157,58 @@
                 "kind": "test",
                 "isDefault": true
             }
-        }
+        },
+        // CLANG RELEASE
+        {
+            "label": "setup-release-clang",
+            "type": "shell",
+            "command": "[ -d \"${cwd}/build-zc-release-clang\" ] || CC=clang CXX=clang++ C_LD=lld CXX_LD=lld meson setup build-zc-release-clang -D optimization=3 -D debug=false -D test=true",
+        },
+        {
+            "label": "resetup-release-clang",
+            "type": "shell",
+            "command": "rm -rf ${cwd}/build-zc-release-clang && CC=clang CXX=clang++ C_LD=lld CXX_LD=lld meson setup build-zc-release-clang -D optimization=3 -D debug=false -D test=true",
+        },
+        {
+            "label": "build-release-clang",
+            "type": "shell",
+            "command": "meson compile",
+            "options": {
+                "cwd": "${cwd}/build-zc-release-clang"
+            },
+            "dependsOn": "setup-release-clang",
+            "problemMatcher": ["$meson-gcc"],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "rebuild-release-clang",
+            "type": "shell",
+            "command": "meson compile",
+            "options": {
+                "cwd": "${cwd}/build-zc-release-clang"
+            },
+            "dependsOn": "resetup-release-clang",
+            "problemMatcher": ["$meson-gcc"],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "test-release-clang",
+            "type": "shell",
+            "command": "meson test --verbose",
+            "options": {
+                "cwd": "${cwd}/build-zc-release-clang"
+            },
+            "dependsOn": "build-release-clang",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            }
+        },
     ]
 }
