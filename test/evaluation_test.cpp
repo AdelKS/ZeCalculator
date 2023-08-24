@@ -160,7 +160,7 @@ int main()
 
     expect(not bool(eval));
     expect(eval.error().error_type == EvaluationError::WRONG_OBJECT_TYPE);
-    expect(eval.error().node.substr_info == SubstrInfo{.begin = 4, .size = 3});
+    expect(eval.error().token.substr_info == SubstrInfo{.begin = 4, .size = 3});
   };
 
   "wrong object type: variable as function"_test = []
@@ -173,6 +173,6 @@ int main()
 
     expect(not bool(eval));
     expect(eval.error().error_type == EvaluationError::WRONG_OBJECT_TYPE);
-    expect(eval.error().node.substr_info == SubstrInfo{.begin = 4, .size = 1});
+    expect(eval.error().token.substr_info == SubstrInfo{.begin = 4, .size = 1});
   };
 }

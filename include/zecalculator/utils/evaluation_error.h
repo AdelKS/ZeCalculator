@@ -103,7 +103,7 @@ struct EvaluationError
   Type error_type = UNDEFINED;
 
   // on what token
-  tokens::Text node = {};
+  tokens::Text token = {};
 
   bool operator == (const EvaluationError& other) const = default;
 };
