@@ -246,7 +246,7 @@ protected:
     return std::visit(
       overloaded{
         [](UnregisteredObject) -> ConstDynMathObject { return UnregisteredObject(); },
-        [](auto&& val) -> ConstDynMathObject { return ConstMathObject(val); }
+        []<class T>(const MathObject<T>& val) -> ConstDynMathObject { return ConstMathObject<T>(val); }
       },
       obj);
   }
