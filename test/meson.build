@@ -8,6 +8,7 @@ test_sources = files(
     'math_world_test.cpp',
     'parser_test.cpp',
     'readme_example_test.cpp',
+    'rpn_expression_test.cpp',
     'sequence_test.cpp',
     'syntax_tree_test.cpp',
 )
