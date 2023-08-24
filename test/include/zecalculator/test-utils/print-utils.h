@@ -2,10 +2,14 @@
 
 #include <ostream>
 
+#include <boost/ut.hpp>
 #include <zecalculator/utils/token.h>
 #include <zecalculator/utils/parsing_error.h>
 #include <zecalculator/utils/syntax_tree.h>
 #include <zecalculator/utils/evaluation_error.h>
+
+template <class T, class... U>
+concept is_any_of = (std::is_same_v<T, U> or ...);
 
 namespace std {
 
@@ -49,5 +53,30 @@ std::ostream& operator << (std::ostream& os, const SyntaxTree& node);
 std::ostream& operator << (std::ostream& os, const ParsingError& err);
 
 std::ostream& operator << (std::ostream& os, const EvaluationError& err);
+
+namespace tokens {
+
+std::ostream& operator<<(std::ostream &, const tokens::Text&);
+
+template <class Tok>
+  requires is_any_of<Tok,
+                     tokens::Unkown,
+                     tokens::Number,
+                     tokens::Variable,
+                     tokens::Function,
+                     tokens::Operator,
+                     tokens::OpeningParenthesis,
+                     tokens::ClosingParenthesis,
+                     tokens::FunctionCallStart,
+                     tokens::FunctionCallEnd,
+                     tokens::FunctionArgumentSeparator,
+                     tokens::EndOfExpression>
+std::ostream& operator<<(std::ostream& os, const Tok& token)
+{
+  os << boost::ut::reflection::type_name<Tok>() << " " << static_cast<const tokens::Text&>(token);
+  return os;
+}
+
+}
 
 }

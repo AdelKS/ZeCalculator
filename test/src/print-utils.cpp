@@ -6,20 +6,19 @@
 
 namespace zc {
 
-std::ostream &operator<<(std::ostream &os, const tokens::Text &txt_token)
+namespace tokens {
+
+std::ostream& operator<<(std::ostream& os, const tokens::Text& txt_token)
 {
   os << txt_token.name << " at (" << txt_token.substr_info.begin  << ", " << txt_token.substr_info.size << ") ";
   return os;
 }
 
+}
+
 std::ostream &operator<<(std::ostream &os, const Token &token)
 {
-  std::visit(
-    [&](auto &&tokenVal) {
-      os << boost::ut::reflection::type_name<decltype(tokenVal)>() << " "
-         << static_cast<const tokens::Text &>(tokenVal);
-    },
-    token);
+  os << static_cast<const TokenType&>(token);
   return os;
 }
 
