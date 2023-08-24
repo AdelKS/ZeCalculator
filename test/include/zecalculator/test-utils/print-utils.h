@@ -7,15 +7,7 @@
 #include <zecalculator/utils/syntax_tree.h>
 #include <zecalculator/utils/evaluation_error.h>
 
-namespace zc {
-
-std::ostream& operator << (std::ostream& os, const Token& token);
-
-std::ostream& operator << (std::ostream& os, const SyntaxTree& node);
-
-std::ostream& operator << (std::ostream& os, const ParsingError& err);
-
-std::ostream& operator << (std::ostream& os, const EvaluationError& err);
+namespace std {
 
 template <class T, class U>
 std::ostream& operator << (std::ostream& os, const tl::expected<T, U>& expected)
@@ -36,5 +28,17 @@ std::ostream& operator << (std::ostream& os, const std::vector<T>& vec)
   os << " }" << std::endl;
   return os;
 }
+
+}
+
+namespace zc {
+
+std::ostream& operator << (std::ostream& os, const Token& token);
+
+std::ostream& operator << (std::ostream& os, const SyntaxTree& node);
+
+std::ostream& operator << (std::ostream& os, const ParsingError& err);
+
+std::ostream& operator << (std::ostream& os, const EvaluationError& err);
 
 }
