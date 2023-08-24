@@ -73,7 +73,7 @@ int main()
         t->value++;
       }
       auto end = high_resolution_clock::now();
-      std::cout << "Avg zc function eval time: " << duration_cast<nanoseconds>((end - begin)/iterations) << std::endl;
+      std::cout << "Avg zc function eval time: " << duration_cast<nanoseconds>((end - begin)/iterations).count() << "ns" << std::endl;
       std::cout << "dummy val: " << res << std::endl;
     }
     {
@@ -94,7 +94,7 @@ int main()
         cpp_t++;
       }
       auto end = high_resolution_clock::now();
-      std::cout << "Avg C++ function eval time: " << duration_cast<nanoseconds>((end - begin)/iterations) << std::endl;
+      std::cout << "Avg C++ function eval time: " << duration_cast<nanoseconds>((end - begin)/iterations).count() << "ns" << std::endl;
       std::cout << "dummy val: " << res << std::endl;
 
     }
