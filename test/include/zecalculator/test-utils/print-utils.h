@@ -29,6 +29,15 @@ std::ostream& operator << (std::ostream& os, const std::vector<T>& vec)
   return os;
 }
 
+template <class... T> requires (sizeof...(T) > 0)
+std::ostream& operator << (std::ostream& os, const std::variant<T...>& var)
+{
+  std::visit(overloaded{[&](std::monostate) { os << "std::monostate"; },
+                        [&](auto&& alt) { os << alt; }},
+             var);
+  return os;
+}
+
 }
 
 namespace zc {
