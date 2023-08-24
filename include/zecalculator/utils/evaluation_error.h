@@ -26,6 +26,7 @@
 #include <cassert>
 
 #include <zecalculator/utils/syntax_tree.h>
+#include <zecalculator/utils/token.h>
 
 namespace zc
 {
@@ -48,19 +49,19 @@ struct EvaluationError
     WRONG_OBJECT_TYPE, // object has been used as a different type as it actually is, example "2+cos" (where cos is a function used here as variable)
   };
 
-  static EvaluationError undefined_variable(SyntaxTree tree)
+  static EvaluationError undefined_variable(tokens::Text tokenTxt)
   {
-    return EvaluationError {UNDEFINED_VARIABLE, tree};
+    return EvaluationError {UNDEFINED_VARIABLE, tokenTxt};
   }
 
-  static EvaluationError undefined_function(SyntaxTree tree)
+  static EvaluationError undefined_function(tokens::Text tokenTxt)
   {
-    return EvaluationError {UNDEFINED_FUNCTION, tree};
+    return EvaluationError {UNDEFINED_FUNCTION, tokenTxt};
   }
 
-  static EvaluationError mismatched_fun_args(SyntaxTree tree)
+  static EvaluationError mismatched_fun_args(tokens::Text tokenTxt)
   {
-    return EvaluationError {CALLING_FUN_ARG_COUNT_MISMATCH, tree};
+    return EvaluationError {CALLING_FUN_ARG_COUNT_MISMATCH, tokenTxt};
   }
 
   static EvaluationError mismatched_fun_args()
@@ -68,9 +69,9 @@ struct EvaluationError
     return EvaluationError {CALLED_FUN_ARG_COUNT_MISMATCH};
   }
 
-  static EvaluationError not_implemented(SyntaxTree tree)
+  static EvaluationError not_implemented(tokens::Text tokenTxt)
   {
-    return EvaluationError {NOT_IMPLEMENTED, tree};
+    return EvaluationError {NOT_IMPLEMENTED, tokenTxt};
   }
 
   static EvaluationError empty_expression()
@@ -83,9 +84,9 @@ struct EvaluationError
     return EvaluationError {INVALID_FUNCTION};
   }
 
-  static EvaluationError calling_invalid_function(SyntaxTree tree)
+  static EvaluationError calling_invalid_function(tokens::Text tokenTxt)
   {
-    return EvaluationError {CALLING_INVALID_FUNCTION, tree};
+    return EvaluationError {CALLING_INVALID_FUNCTION, tokenTxt};
   }
 
   static EvaluationError recursion_depth_overflow()
@@ -93,16 +94,16 @@ struct EvaluationError
     return EvaluationError{RECURSION_DEPTH_OVERFLOW};
   }
 
-  static EvaluationError wrong_object_type(SyntaxTree tree)
+  static EvaluationError wrong_object_type(tokens::Text tokenTxt)
   {
-    return EvaluationError {WRONG_OBJECT_TYPE, tree};
+    return EvaluationError {WRONG_OBJECT_TYPE, tokenTxt};
   }
 
   // kind of error
   Type error_type = UNDEFINED;
 
   // on what token
-  SyntaxTree node = {};
+  tokens::Text node = {};
 
   bool operator == (const EvaluationError& other) const = default;
 };
