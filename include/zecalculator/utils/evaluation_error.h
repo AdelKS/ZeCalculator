@@ -49,6 +49,11 @@ struct EvaluationError
     WRONG_OBJECT_TYPE, // object has been used as a different type as it actually is, example "2+cos" (where cos is a function used here as variable)
   };
 
+  static EvaluationError unkown()
+  {
+    return EvaluationError {UNKNOWN};
+  }
+
   static EvaluationError undefined_variable(tokens::Text tokenTxt)
   {
     return EvaluationError {UNDEFINED_VARIABLE, tokenTxt};
