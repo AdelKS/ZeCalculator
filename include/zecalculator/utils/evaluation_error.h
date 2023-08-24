@@ -36,7 +36,7 @@ struct EvaluationError
   // type of error
   enum Type : uint8_t
   {
-    UNDEFINED = 0,
+    UNKNOWN = 0,
     UNDEFINED_VARIABLE,
     UNDEFINED_FUNCTION,
     CALLING_FUN_ARG_COUNT_MISMATCH,
@@ -100,7 +100,7 @@ struct EvaluationError
   }
 
   // kind of error
-  Type error_type = UNDEFINED;
+  Type error_type = UNKNOWN;
 
   // on what token
   tokens::Text token = {};
