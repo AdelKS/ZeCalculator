@@ -24,7 +24,7 @@
 #include <zecalculator/test-utils/print-utils.h>
 #include <boost/ut.hpp>
 #include <chrono>
-#include <zecalculator/utils/rpn_expression.h>
+#include <zecalculator/parsing/data_structures/rpn_expression.h>
 
 using namespace std::chrono;
 

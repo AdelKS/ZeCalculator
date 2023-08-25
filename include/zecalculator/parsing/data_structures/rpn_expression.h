@@ -1,6 +1,6 @@
 #pragma once
 
-#include <zecalculator/parsing/token.h>
+#include <zecalculator/parsing/data_structures/token.h>
 #include <zecalculator/parsing/data_structures/tree.h>
 #include <vector>
 
