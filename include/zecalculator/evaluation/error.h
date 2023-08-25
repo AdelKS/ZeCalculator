@@ -28,8 +28,7 @@
 #include <zecalculator/utils/syntax_tree.h>
 #include <zecalculator/utils/token.h>
 
-namespace zc
-{
+namespace zc {
 
 struct EvaluationError
 {

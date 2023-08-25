@@ -84,7 +84,7 @@ More examples of what the library can do are in the [test](./test/) folder.
 #### Implementation details
 To try to fulfill the goals described above, the following implementation is targeted:
 - Except for testing. Only the C++23 class [expected](https://github.com/TartanLlama/expected) has been embedded to this library as it is very useful for writing lean code.
-- Error messages when expressions have faulty syntax or semantics are expressed through the [zc::ParsingError](include/zecalculator/utils/parsing_error.h) and [zc::EvaluationError](include/zecalculator/utils/evaluation_error.h) classes:
+- Error messages when expressions have faulty syntax or semantics are expressed through the [zc::ParsingError](include/zecalculator/utils/parsing_error.h) and [zc::EvaluationError](include/zecalculator/evaluation/evaluation_error.h) classes:
   - Gives exactly what part of the expression is making issues with a `std::string_view` on the original `std::string` expression (owned by the math object).
   - Gives the type of error that was met, if it is known.
 - Flexible evaluation of mathematical expressions, where mathematical objects are looked up by name in the provided "math world".

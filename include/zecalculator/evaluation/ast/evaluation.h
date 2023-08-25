@@ -1,9 +1,10 @@
 #pragma once
 
 #include <zecalculator/mathworld.h>
-#include <zecalculator/utils/evaluation_error.h>
-#include <zecalculator/utils/function_evaluation.h>
-#include <zecalculator/utils/variable_evaluation.h>
+#include <zecalculator/evaluation/error.h>
+#include <zecalculator/evaluation/ast/function.h>
+#include <zecalculator/evaluation/ast/variable.h>
+#include <zecalculator/utils/name_map.h>
 
 namespace zc {
 

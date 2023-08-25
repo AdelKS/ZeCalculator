@@ -28,7 +28,7 @@
 #include <iostream>
 
 #include <zecalculator/external/expected.h>
-#include <zecalculator/utils/evaluation_error.h>
+#include <zecalculator/evaluation/error.h>
 #include <zecalculator/utils/name_map.h>
 #include <zecalculator/utils/syntax_tree.h>
 #include <zecalculator/builtin_unary_functions.h>

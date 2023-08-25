@@ -1,11 +1,9 @@
 sources = files(
     'utils/parser.cpp',
-    'utils/evaluation.cpp',
     'utils/syntax_tree.cpp',
     'utils/token.cpp',
     'builtin_binary_functions.cpp',
     'function.cpp',
-    'mathworld.cpp',
     'sequence.cpp',
 )
 

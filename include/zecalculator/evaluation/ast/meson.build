@@ -1,7 +1,9 @@
 if not meson.is_subproject()
   install_headers(
     files(
-      'expected.h',
+      'evaluation.h',
+      'function.h',
+      'variable.h'
     ),
     subdir: 'zecalculator',
     preserve_path: true

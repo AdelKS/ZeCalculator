@@ -20,7 +20,7 @@
 
 #include <zecalculator/function.h>
 #include <zecalculator/mathworld.h>
-#include <zecalculator/utils/evaluation.h>
+#include <zecalculator/evaluation/ast/evaluation.h>
 
 namespace zc {
 

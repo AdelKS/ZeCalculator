@@ -1,7 +1,7 @@
 #pragma once
 
 #include <zecalculator/mathworld.h>
-#include <zecalculator/utils/evaluation_error.h>
+#include <zecalculator/evaluation/error.h>
 
 namespace zc {
 

@@ -6,7 +6,7 @@
 #include <zecalculator/utils/token.h>
 #include <zecalculator/utils/parsing_error.h>
 #include <zecalculator/utils/syntax_tree.h>
-#include <zecalculator/utils/evaluation_error.h>
+#include <zecalculator/evaluation/error.h>
 
 template <class T, class... U>
 concept is_any_of = (std::is_same_v<T, U> or ...);
