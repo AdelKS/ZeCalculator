@@ -2,10 +2,10 @@
 
 #include <zecalculator/math_objects/builtin_binary_functions.h>
 #include <zecalculator/math_objects/builtin_unary_functions.h>
-#include <zecalculator/math_objects/function.h>
+#include <zecalculator/math_objects/decl/function.h>
+#include <zecalculator/math_objects/decl/sequence.h>
 #include <zecalculator/math_objects/global_constant.h>
 #include <zecalculator/math_objects/global_variable.h>
-#include <zecalculator/math_objects/sequence.h>
 #include <zecalculator/utils/name_map.h>
 #include <zecalculator/utils/optional_ref.h>
 #include <zecalculator/utils/slotted_vector.h>

@@ -1,5 +1,3 @@
-#pragma once
-
 /****************************************************************************
 **  Copyright (c) 2023, Adel Kara Slimane <adel.ks@zegrapher.com>
 **
@@ -20,5 +18,42 @@
 **
 ****************************************************************************/
 
-#include <zecalculator/math_objects/decl/sequence.h>
-#include <zecalculator/math_objects/impl/sequence.h>
+#pragma once
+
+#include <zecalculator/math_objects/decl/expression.h>
+
+#include <zecalculator/math_objects/impl/function.h>
+
+/* TODO: update approach as the following:
+   - Check for validity
+   - Enable setting custom names for functions and variables
+   - Performance improvement: flatten trees
+*/
+
+namespace zc {
+
+namespace eval {
+  struct Variable;
+}
+
+Expression::Expression(const std::string& expr)
+{
+  set_expression(expr);
+}
+
+tl::expected<double, eval::Error> Expression::evaluate(const MathWorld& world) const
+{
+  return Function::evaluate({}, world);
+}
+
+tl::expected<double, eval::Error> Expression::operator ()(const MathWorld& world) const
+{
+  return Function::evaluate({}, world);
+}
+
+tl::expected<double, eval::Error> Expression::evaluate(const MathWorld& world, size_t current_recursion_depth) const
+{
+  return Function::evaluate({}, world, current_recursion_depth);
+}
+
+}

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <zecalculator/math_objects/expression.h>
+#include <zecalculator/math_objects/decl/expression.h>
 
 namespace zc {
 

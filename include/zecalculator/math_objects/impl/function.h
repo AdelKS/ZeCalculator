@@ -1,3 +1,5 @@
+#pragma once
+
 /****************************************************************************
 **  Copyright (c) 2023, Adel Kara Slimane <adel.ks@zegrapher.com>
 **
@@ -18,15 +20,15 @@
 **
 ****************************************************************************/
 
-#include <zecalculator/math_objects/function.h>
+#include <zecalculator/math_objects/decl/function.h>
 #include <zecalculator/mathworld.h>
 #include <zecalculator/evaluation/ast/evaluation.h>
 
 namespace zc {
 
-tl::expected<double, eval::Error> Function::evaluate(const std::vector<double>& args,
-                                                         const MathWorld& world,
-                                                         size_t current_recursion_depth) const
+inline tl::expected<double, eval::Error> Function::evaluate(const std::vector<double>& args,
+                                                            const MathWorld& world,
+                                                            size_t current_recursion_depth) const
 {
   if (not bool(*this)) [[unlikely]]
     return tl::unexpected(eval::Error::invalid_function());
@@ -44,15 +46,15 @@ tl::expected<double, eval::Error> Function::evaluate(const std::vector<double>& 
   return zc::evaluate(*tree, var_vals, world, current_recursion_depth);
 }
 
-tl::expected<double, eval::Error> Function::evaluate(const std::vector<double>& args,
-                                                         const MathWorld& world) const
+inline tl::expected<double, eval::Error> Function::evaluate(const std::vector<double>& args,
+                                                            const MathWorld& world) const
 {
   // this function is user called, so the recursion depth is zero
   return evaluate(args, world, 0);
 }
 
-tl::expected<double, eval::Error> Function::operator () (const std::vector<double>& args,
-                                                             const MathWorld& world) const
+inline tl::expected<double, eval::Error> Function::operator()(const std::vector<double>& args,
+                                                              const MathWorld& world) const
 {
   return evaluate(args, world, 0);
 }

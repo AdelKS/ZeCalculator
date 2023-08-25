@@ -1,3 +1,6 @@
+subdir('decl')
+subdir('impl')
+
 if not meson.is_subproject()
   install_headers(
     files(

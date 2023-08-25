@@ -1,12 +1,9 @@
-subdir('decl')
-subdir('impl')
-
 if not meson.is_subproject()
   install_headers(
     files(
-      'evaluation.h',
+      'expression.h',
       'function.h',
-      'variable.h',
+      'sequence.h',
     ),
     subdir: 'zecalculator',
     preserve_path: true
