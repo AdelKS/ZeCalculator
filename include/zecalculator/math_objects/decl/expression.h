@@ -36,7 +36,7 @@ namespace eval {
 
 /// @brief a class that represents a general expression
 /// @note  an expression is a function that does not have any input
-class Expression: public Function
+class Expression: public ast::Function
 {
 public:
   explicit Expression() = default;

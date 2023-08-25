@@ -28,7 +28,7 @@ inline Function::ReturnType Function::operator () (const MathWorld::ConstMathObj
     return (*function)(evaluations.front(), evaluations.back());
 }
 
-inline Function::ReturnType Function::operator()(const MathWorld::ConstMathObject<zc::Function>& function)
+inline Function::ReturnType Function::operator()(const MathWorld::ConstMathObject<zc::ast::Function>& function)
 {
   //              std::cout << "Evaluating zc function: " << node.name << std::endl;
   if (not bool(*function))

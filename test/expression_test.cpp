@@ -40,7 +40,7 @@ int main()
 
     const double t = 3;
 
-    world.add("f", Function({"x", "y"}, "x + y"));
+    world.add("f", ast::Function({"x", "y"}, "x + y"));
     world.add("t", GlobalConstant(t));
 
     auto cpp_f = [](double x, double y) {
@@ -58,7 +58,7 @@ int main()
   {
     {
       MathWorld world;
-      auto f = world.add("f", Function({"x"}, "cos(x) + t + 3")).value();
+      auto f = world.add("f", ast::Function({"x"}, "cos(x) + t + 3")).value();
       auto t = world.add("t", GlobalConstant(0)).value();
 
       double x = 0;

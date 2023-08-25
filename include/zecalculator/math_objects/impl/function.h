@@ -26,14 +26,15 @@
 
 namespace zc {
 
-inline Function::Function(std::vector<std::string> input_vars, std::string expr)
+template <parsing::Type type>
+Function<type>::Function(std::vector<std::string> input_vars, std::string expr)
 {
   set_input_vars(std::move(input_vars));
   set_expression(std::move(expr));
 }
 
-
-inline void Function::set_input_vars(std::vector<std::string> input_vars)
+template <parsing::Type type>
+void Function<type>::set_input_vars(std::vector<std::string> input_vars)
 {
   auto it = std::ranges::find_if_not(input_vars, parsing::is_valid_name);
   if (it != input_vars.end())
@@ -41,7 +42,8 @@ inline void Function::set_input_vars(std::vector<std::string> input_vars)
   else vars = std::move(input_vars);
 }
 
-inline void Function::set_expression(std::string expr)
+template <parsing::Type type>
+void Function<type>::set_expression(std::string expr)
 {
   // do nothing if it's the same expression
   if (expression == expr)
@@ -62,19 +64,22 @@ inline void Function::set_expression(std::string expr)
 
 }
 
-inline std::optional<size_t> Function::argument_size() const
+template <parsing::Type type>
+std::optional<size_t> Function<type>::argument_size() const
 {
   if (vars)
     return vars->size();
   else return {};
 }
 
-inline Function::operator bool () const
+template <parsing::Type type>
+Function<type>::operator bool () const
 {
   return bool(tree) and (not std::holds_alternative<std::monostate>(tree.value())) and bool(vars);
 }
 
-inline std::variant<Ok, Empty, parsing::Error> Function::parsing_status() const
+template <parsing::Type type>
+std::variant<Ok, Empty, parsing::Error> Function<type>::parsing_status() const
 {
   if (not tree.has_value())
     return tree.error();
@@ -83,10 +88,11 @@ inline std::variant<Ok, Empty, parsing::Error> Function::parsing_status() const
   else return Ok();
 }
 
-inline const tl::expected<ast::Tree, parsing::Error>& Function::get_tree() const { return tree; }
+template <parsing::Type type>
+const tl::expected<ast::Tree, parsing::Error>& Function<type>::get_tree() const { return tree; }
 
-
-inline tl::expected<double, eval::Error> Function::evaluate(const std::vector<double>& args,
+template <parsing::Type type>
+tl::expected<double, eval::Error> Function<type>::evaluate(const std::vector<double>& args,
                                                             const MathWorld& world,
                                                             size_t current_recursion_depth) const
 {
@@ -106,14 +112,16 @@ inline tl::expected<double, eval::Error> Function::evaluate(const std::vector<do
   return zc::evaluate(*tree, var_vals, world, current_recursion_depth);
 }
 
-inline tl::expected<double, eval::Error> Function::evaluate(const std::vector<double>& args,
+template <parsing::Type type>
+tl::expected<double, eval::Error> Function<type>::evaluate(const std::vector<double>& args,
                                                             const MathWorld& world) const
 {
   // this function is user called, so the recursion depth is zero
   return evaluate(args, world, 0);
 }
 
-inline tl::expected<double, eval::Error> Function::operator()(const std::vector<double>& args,
+template <parsing::Type type>
+tl::expected<double, eval::Error> Function<type>::operator()(const std::vector<double>& args,
                                                               const MathWorld& world) const
 {
   return evaluate(args, world, 0);

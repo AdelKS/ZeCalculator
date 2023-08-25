@@ -33,10 +33,10 @@ int main()
   "dependent expression"_test = []()
   {
     MathWorld world;
-    auto f = world.add("f", Function({"x", "y"}, "cos(math::pi * x) * y + k*g(x) + r")).value();
+    auto f = world.add("f", ast::Function({"x", "y"}, "cos(math::pi * x) * y + k*g(x) + r")).value();
     auto r = world.add("r", GlobalConstant()).value();
     world.add("k", GlobalVariable("3*g(3)"));
-    world.add("g", Function({"x"}, "sin(3 * math::pi * x) + r"));
+    world.add("g", ast::Function({"x"}, "sin(3 * math::pi * x) + r"));
 
     double cpp_r = 3;
     *r = cpp_r;

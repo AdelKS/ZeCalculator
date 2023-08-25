@@ -21,7 +21,7 @@ struct Function
 
   ReturnType operator () (const MathWorld::ConstMathObject<CppBinaryFunction>& function);
 
-  ReturnType operator()(const MathWorld::ConstMathObject<zc::Function>& function);
+  ReturnType operator()(const MathWorld::ConstMathObject<zc::ast::Function>& function);
 
   ReturnType operator()(const MathWorld::ConstMathObject<zc::Sequence>& sequence);
 

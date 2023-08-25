@@ -36,7 +36,7 @@ namespace eval{
 }
 
 /// @brief a class that represents a Sequence of single argument
-class Sequence: public zc::Function
+class Sequence: public zc::ast::Function
 {
 public:
   explicit Sequence() = default;

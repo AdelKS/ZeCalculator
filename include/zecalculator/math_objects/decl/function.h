@@ -48,6 +48,13 @@ namespace eval{
   struct Function;
 }
 
+template <parsing::Type>
+class Function;
+
+namespace ast {
+  using Function = zc::Function<parsing::Type::AST>;
+}
+
 struct Ok {};
 struct Empty {};
 
@@ -56,6 +63,7 @@ struct InvalidInputVar
   std::string var_name;
 };
 
+template <parsing::Type type>
 class Function
 {
 public:
@@ -91,7 +99,7 @@ public:
 
   /// @brief evaluation on a given math world with the given input
   tl::expected<double, eval::Error> evaluate(const std::vector<double>& args,
-                                                 const MathWorld& world) const;
+                                             const MathWorld& world) const;
 
   /// @brief evaluation on a given math world with the given input
   /// @note operator style
@@ -103,8 +111,8 @@ protected:
   /// @brief evaluation on a given math world with the given input
   /// @note version that tracks the current recursion depth
   tl::expected<double, eval::Error> evaluate(const std::vector<double>& args,
-                                                 const MathWorld& world,
-                                                 size_t current_recursion_depth) const;
+                                             const MathWorld& world,
+                                             size_t current_recursion_depth) const;
 
   friend tl::expected<double, eval::Error> evaluate(const ast::Tree& tree,
                                                     const name_map<double>& input_vars,

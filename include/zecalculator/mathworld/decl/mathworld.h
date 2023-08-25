@@ -6,6 +6,7 @@
 
 namespace zc {
 
+template <parsing::Type>
 class Function;
 class Sequence;
 struct GlobalConstant;
@@ -13,6 +14,6 @@ class Expression;
 
 using GlobalVariable = Expression;
 
-using MathWorld = MathWorldT<CppUnaryFunction, CppBinaryFunction, GlobalConstant, Function, GlobalVariable, Sequence>;
+using MathWorld = MathWorldT<CppUnaryFunction, CppBinaryFunction, GlobalConstant, Function<parsing::AST>, GlobalVariable, Sequence>;
 
 }

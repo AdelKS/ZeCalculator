@@ -37,6 +37,8 @@
 namespace zc {
 namespace parsing {
 
+enum Type {AST, RPN};
+
 /// @brief interprets "view" as a floating number
 /// @returns if successful, the interpreted double and the number of characters interpreted, otherwise empty
 std::optional<std::pair<double, size_t>> to_double(std::string_view view);

@@ -37,7 +37,7 @@ int main()
 
   // Add a function named "f", note that the constant "my_constant" is only defined after
   // Note: the .value() call from tl::expected<> throws if it actually hold an error
-  auto f = world.add("f", Function({"x"}, "x + my_constant + cos(math::pi)")).value();
+  auto f = world.add("f", ast::Function({"x"}, "x + my_constant + cos(math::pi)")).value();
 
   // Add a global constant called "my_constant" with an initial value of 3.0
   // Note: the .value() call from tl::expected<> throws if it actually hold an error
@@ -59,13 +59,13 @@ int main()
   std::cout << f({1}).value()  << std::endl; // == 5
 
   // change 'f': new variable names and count, call a function g
-  *f = Function({"y", "z"}, "y + z + my_constant + g(y)");
+  *f = ast::Function({"y", "z"}, "y + z + my_constant + g(y)");
 
   // define function 'g'
-  auto g = world.add<Function>("g").value();
+  auto g = world.add<ast::Function>("g").value();
 
   // assign input variables and expression to 'g'
-  *g = Function({"z"}, "2*z + my_constant");
+  *g = ast::Function({"z"}, "2*z + my_constant");
 
   // evaluate function again and get the new value
   std::cout << f({3, 4}).value() << std::endl; // == 23

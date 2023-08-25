@@ -33,7 +33,7 @@ int main()
   "multi-parameter function evaluation"_test = []()
   {
     MathWorld world;
-    auto f = Function({"omega", "t"}, "cos(omega * t) + omega * t");
+    auto f = ast::Function({"omega", "t"}, "cos(omega * t) + omega * t");
 
     const double omega = 2;
     const double t = 3;
@@ -49,7 +49,7 @@ int main()
   {
     MathWorld world;
     world.add<GlobalConstant>("x", 2.0);
-    auto f = Function({"x"}, "cos(x) + x");
+    auto f = ast::Function({"x"}, "cos(x) + x");
 
     const double res = f({1.0}, world).value();
     const double expected_res = std::cos(1.0) + 1.0;
@@ -60,11 +60,11 @@ int main()
   "function calling another function"_test = []()
   {
     MathWorld world;
-    auto f1 = world.add<Function>("f1").value();
-    auto f2 = world.add<Function>("f2").value();
+    auto f1 = world.add<ast::Function>("f1").value();
+    auto f2 = world.add<ast::Function>("f2").value();
 
-    *f1 = Function({"x"}, "cos(x) + x + f2(2*x)");
-    *f2 = Function({"x"}, "cos(x) + 2*x^2");
+    *f1 = ast::Function({"x"}, "cos(x) + x + f2(2*x)");
+    *f2 = ast::Function({"x"}, "cos(x) + 2*x^2");
 
     expect(bool(*f1));
     expect(bool(*f2));
@@ -103,7 +103,7 @@ int main()
     MathWorld world;
 
     // add a function named "f", note that the constant "my_constant" is only defined after
-    auto f = world.add<Function>("f", Function({"x"}, "x + my_constant + cos(math::pi)")).value();
+    auto f = world.add<ast::Function>("f", ast::Function({"x"}, "x + my_constant + cos(math::pi)")).value();
 
     // add a global constant called "my_constant" with an initial value of 3.0
     auto cst = world.add<GlobalConstant>("my_constant", 3.0).value();
@@ -122,7 +122,7 @@ int main()
     expect(f({1}).value() == cpp_f_1(1.0));
 
     // override expression and variable name of f
-    *f = Function({"y", "z"}, "y + z + my_constant + g(y)");
+    *f = ast::Function({"y", "z"}, "y + z + my_constant + g(y)");
 
     auto cpp_g = [&](double z)
     {
@@ -134,8 +134,8 @@ int main()
       return y + z + cpp_cst + cpp_g(y);
     };
 
-    auto g = world.add<Function>("g").value();
-    *g = Function({"z"}, "2*z + my_constant");
+    auto g = world.add<ast::Function>("g").value();
+    *g = ast::Function({"z"}, "2*z + my_constant");
 
     expect(f({3, 4}).value() == cpp_f_2(3, 4));
   };
@@ -144,9 +144,9 @@ int main()
     MathWorld world;
 
     // add a function named "f", note that the constant "my_constant" is only defined after
-    auto f = world.add<Function>("f", Function({"x", "y"}, "h(x, g(x, y)) + g(y, h(y, x))")).value();
-    world.add<Function>("g", Function({"a", "b"}, "h(a, a*b) + 3*a - b"));
-    world.add<Function>("h", Function({"c", "d"}, "c*d + c-d"));
+    auto f = world.add<ast::Function>("f", ast::Function({"x", "y"}, "h(x, g(x, y)) + g(y, h(y, x))")).value();
+    world.add<ast::Function>("g", ast::Function({"a", "b"}, "h(a, a*b) + 3*a - b"));
+    world.add<ast::Function>("h", ast::Function({"c", "d"}, "c*d + c-d"));
 
     auto cpp_h = [](double c, double d) {
       return c*d + c-d;
@@ -169,7 +169,7 @@ int main()
     MathWorld world;
 
     // add a function named "f", note that the constant "my_constant" is only defined after
-    auto fx = world.add("f.x", Function({"x"}, "1 + x")).value();
+    auto fx = world.add("f.x", ast::Function({"x"}, "1 + x")).value();
     auto fy = world.add("f.y", Expression("2.0 + f.x(1)")).value();
 
     expect(fx({1}) == 2.0);
@@ -180,7 +180,7 @@ int main()
     MathWorld world;
 
     // add a function named "f", note that the constant "my_constant" is only defined after
-    world.add("f", Function({"x", "y"}, "1 + x + y")).value();
+    world.add("f", ast::Function({"x", "y"}, "1 + x + y")).value();
     auto expr = world.add("val", Expression("1 + f(1)")).value();
 
     expect(expr()

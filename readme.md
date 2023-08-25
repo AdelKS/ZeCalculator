@@ -42,7 +42,7 @@ int main()
 
   // Add a function named "f", note that the constant "my_constant" is only defined after
   // Note: the .value() call from tl::expected<> throws if it actually hold an error
-  auto f = world.add<Function>("f", Function({"x"}, "x + my_constant + cos(math::pi)")).value();
+  auto f = world.add<ast::Function>("f", ast::Function({"x"}, "x + my_constant + cos(math::pi)")).value();
 
   // Add a global constant called "my_constant" with an initial value of 3.0
   // Note: the .value() call from tl::expected<> throws if it actually hold an error
