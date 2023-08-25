@@ -19,7 +19,7 @@ inline Variable::ReturnType
 }
 
 inline Variable::ReturnType
-  Variable::operator()(const MathWorld::ConstMathObject<GlobalVariable>& global_variable)
+  Variable::operator()(const MathWorld::ConstMathObject<ast::GlobalVariable>& global_variable)
 {
   return global_variable->evaluate(world, current_recursion_depth + 1);
 }

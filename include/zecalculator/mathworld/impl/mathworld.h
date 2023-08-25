@@ -10,6 +10,6 @@
 
 namespace zc {
 
-using MathWorld = MathWorldT<CppUnaryFunction, CppBinaryFunction, GlobalConstant, ast::Function, GlobalVariable, ast::Sequence>;
+using MathWorld = MathWorldT<CppUnaryFunction, CppBinaryFunction, GlobalConstant, ast::Function, ast::GlobalVariable, ast::Sequence>;
 
 }

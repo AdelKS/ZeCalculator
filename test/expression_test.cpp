@@ -36,7 +36,7 @@ int main()
   "dependent expression"_test = []()
   {
     MathWorld world;
-    auto expr = Expression("cos(math::pi * t) + 2 + f(3, 4)");
+    auto expr = ast::Expression("cos(math::pi * t) + 2 + f(3, 4)");
 
     const double t = 3;
 

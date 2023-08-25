@@ -34,9 +34,17 @@ namespace eval {
   struct Variable;
 }
 
+template <parsing::Type>
+class Expression;
+
+namespace ast {
+  using Expression = zc::Expression<parsing::Type::AST>;
+}
+
 /// @brief a class that represents a general expression
 /// @note  an expression is a function that does not have any input
-class Expression: public ast::Function
+template <parsing::Type type>
+class Expression: public Function<type>
 {
 public:
   explicit Expression() = default;
@@ -58,8 +66,8 @@ protected:
   friend struct eval::Variable;
 
   // hide functions that are not needed from Function
-  using Function::evaluate;
-  using Function::set_input_vars;
+  using Function<type>::evaluate;
+  using Function<type>::set_input_vars;
 
 };
 

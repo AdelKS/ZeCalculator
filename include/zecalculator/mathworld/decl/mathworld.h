@@ -14,10 +14,17 @@ template <parsing::Type>
 class Sequence;
 
 struct GlobalConstant;
+
+template <parsing::Type>
 class Expression;
 
-using GlobalVariable = Expression;
+template <parsing::Type type>
+using GlobalVariable = Expression<type>;
 
-using MathWorld = MathWorldT<CppUnaryFunction, CppBinaryFunction, GlobalConstant, Function<parsing::AST>, GlobalVariable, Sequence<parsing::AST>>;
-
+using MathWorld = MathWorldT<CppUnaryFunction,
+                             CppBinaryFunction,
+                             GlobalConstant,
+                             Function<parsing::AST>,
+                             GlobalVariable<parsing::AST>,
+                             Sequence<parsing::AST>>;
 }

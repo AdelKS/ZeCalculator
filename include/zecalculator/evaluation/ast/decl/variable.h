@@ -2,6 +2,7 @@
 
 #include <zecalculator/evaluation/error.h>
 #include <zecalculator/mathworld/mathworld.h>
+#include <zecalculator/math_objects/global_variable.h>
 
 namespace zc {
 namespace eval {
@@ -18,7 +19,7 @@ struct Variable
 
   ReturnType operator () (const MathWorld::ConstMathObject<GlobalConstant>& global_constant);
 
-  ReturnType operator () (const MathWorld::ConstMathObject<GlobalVariable>& global_variable);
+  ReturnType operator () (const MathWorld::ConstMathObject<ast::GlobalVariable>& global_variable);
 
   ReturnType operator () (const auto&);
 };

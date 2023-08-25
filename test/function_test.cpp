@@ -170,7 +170,7 @@ int main()
 
     // add a function named "f", note that the constant "my_constant" is only defined after
     auto fx = world.add("f.x", ast::Function({"x"}, "1 + x")).value();
-    auto fy = world.add("f.y", Expression("2.0 + f.x(1)")).value();
+    auto fy = world.add("f.y", ast::Expression("2.0 + f.x(1)")).value();
 
     expect(fx({1}) == 2.0);
     expect(fy() == 4.0);
@@ -181,7 +181,7 @@ int main()
 
     // add a function named "f", note that the constant "my_constant" is only defined after
     world.add("f", ast::Function({"x", "y"}, "1 + x + y")).value();
-    auto expr = world.add("val", Expression("1 + f(1)")).value();
+    auto expr = world.add("val", ast::Expression("1 + f(1)")).value();
 
     expect(expr()
            == tl::unexpected(eval::Error::mismatched_fun_args(

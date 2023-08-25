@@ -35,7 +35,7 @@ int main()
     MathWorld world;
     auto f = world.add("f", ast::Function({"x", "y"}, "cos(math::pi * x) * y + k*g(x) + r")).value();
     auto r = world.add("r", GlobalConstant()).value();
-    world.add("k", GlobalVariable("3*g(3)"));
+    world.add("k", ast::GlobalVariable("3*g(3)"));
     world.add("g", ast::Function({"x"}, "sin(3 * math::pi * x) + r"));
 
     double cpp_r = 3;

@@ -154,7 +154,7 @@ int main()
   "wrong object type: function as variable"_test = []
   {
     MathWorld world;
-    auto expr = Expression("2 + cos");
+    auto expr = ast::Expression("2 + cos");
 
     auto eval = expr.evaluate(world);
 
@@ -167,7 +167,7 @@ int main()
   {
     MathWorld world;
     world.add("g", GlobalConstant(3));
-    auto expr = Expression("7 + g(3)");
+    auto expr = ast::Expression("7 + g(3)");
 
     auto eval = expr.evaluate(world);
 

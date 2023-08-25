@@ -36,24 +36,28 @@ namespace eval {
   struct Variable;
 }
 
-Expression::Expression(const std::string& expr)
+template <parsing::Type type>
+Expression<type>::Expression(const std::string& expr)
 {
-  set_expression(expr);
+  this->set_expression(expr);
 }
 
-tl::expected<double, eval::Error> Expression::evaluate(const MathWorld& world) const
+template <parsing::Type type>
+tl::expected<double, eval::Error> Expression<type>::evaluate(const MathWorld& world) const
 {
-  return Function::evaluate({}, world);
+  return Function<type>::evaluate({}, world);
 }
 
-tl::expected<double, eval::Error> Expression::operator ()(const MathWorld& world) const
+template <parsing::Type type>
+tl::expected<double, eval::Error> Expression<type>::operator ()(const MathWorld& world) const
 {
-  return Function::evaluate({}, world);
+  return Function<type>::evaluate({}, world);
 }
 
-tl::expected<double, eval::Error> Expression::evaluate(const MathWorld& world, size_t current_recursion_depth) const
+template <parsing::Type type>
+tl::expected<double, eval::Error> Expression<type>::evaluate(const MathWorld& world, size_t current_recursion_depth) const
 {
-  return Function::evaluate({}, world, current_recursion_depth);
+  return Function<type>::evaluate({}, world, current_recursion_depth);
 }
 
 }
