@@ -23,14 +23,15 @@
 #include <zecalculator/parsing/error.h>
 #include <zecalculator/parsing/parser.h>
 
-#include <charconv>
-#include <optional>
-#include <string_view>
-#include <array>
-#include <ranges>
 #include <algorithm>
+#include <array>
+#include <charconv>
+#include <numeric>
+#include <optional>
+#include <ranges>
 #include <sstream>
 #include <stack>
+#include <string_view>
 
 namespace zc {
 namespace parsing {
@@ -48,10 +49,10 @@ std::optional<std::pair<double, size_t>> to_double(std::string_view view)
   return result;
 }
 
-tl::expected<std::vector<parsing::Token>, parsing::Error> parse(std::string_view expression)
+tl::expected<std::vector<Token>, Error> parse(std::string_view expression)
 {
   const std::string_view orig_expr = expression;
-  std::vector<parsing::Token> parsing;
+  std::vector<Token> parsing;
 
   auto is_seperator = [](const char ch) {
     static constexpr std::array separators = {'+', '-', '*', '/', '^', ' ', '(', ')'};
@@ -91,40 +92,40 @@ tl::expected<std::vector<parsing::Token>, parsing::Error> parse(std::string_view
         const auto& [double_opt_val, processed_char_num] = *double_val;
         const std::string_view val_str_v(it, processed_char_num);
         // parsing successful
-        parsing.push_back(parsing::tokens::Number(double_opt_val, parsing::tokens::Text(val_str_v, orig_expr)));
+        parsing.push_back(tokens::Number(double_opt_val, tokens::Text(val_str_v, orig_expr)));
         it += processed_char_num;
 
         openingParenthesis = value = numberSign = false;
         ope = canEnd = closingParenthesis = true;
       }
       else
-        return tl::unexpected(parsing::Error::wrong_format(
-          parsing::tokens::Number(std::nan(""), parsing::tokens::Text(char_v, orig_expr))));
+        return tl::unexpected(Error::wrong_format(
+          tokens::Number(std::nan(""), tokens::Text(char_v, orig_expr))));
     }
-    else if (parsing::tokens::Operator::is_operator(*it))
+    else if (tokens::Operator::is_operator(*it))
     {
       if (ope)
       {
-        parsing.push_back(parsing::tokens::Operator(char_v, orig_expr));
+        parsing.push_back(tokens::Operator(char_v, orig_expr));
 
         openingParenthesis = value = true;
         ope = numberSign = closingParenthesis = canEnd = false;
         it++;
       }
-      else return tl::unexpected(parsing::Error::unexpected(parsing::tokens::Operator(char_v, orig_expr)));
+      else return tl::unexpected(Error::unexpected(tokens::Operator(char_v, orig_expr)));
     }
     else if (*it == '(')
     {
       if (openingParenthesis)
       {
-        if (not parsing.empty() and std::holds_alternative<parsing::tokens::Function>(parsing.back()))
+        if (not parsing.empty() and std::holds_alternative<tokens::Function>(parsing.back()))
         {
-          parsing.emplace_back(parsing::tokens::FunctionCallStart(char_v, orig_expr));
+          parsing.emplace_back(tokens::FunctionCallStart(char_v, orig_expr));
           last_opened_pth.push(FUNCTION_CALL_PTH);
         }
         else
         {
-          parsing.emplace_back(parsing::tokens::OpeningParenthesis(char_v, orig_expr));
+          parsing.emplace_back(tokens::OpeningParenthesis(char_v, orig_expr));
           last_opened_pth.push(NORMAL_PTH);
         }
 
@@ -132,7 +133,7 @@ tl::expected<std::vector<parsing::Token>, parsing::Error> parse(std::string_view
         ope = closingParenthesis = canEnd = false;
         it++;
       }
-      else return tl::unexpected(parsing::Error::unexpected(parsing::tokens::OpeningParenthesis(char_v, orig_expr)));
+      else return tl::unexpected(Error::unexpected(tokens::OpeningParenthesis(char_v, orig_expr)));
     }
     else if (*it == ')')
     {
@@ -140,9 +141,9 @@ tl::expected<std::vector<parsing::Token>, parsing::Error> parse(std::string_view
       {
         if (last_opened_pth.top() == FUNCTION_CALL_PTH)
         {
-          parsing.emplace_back(parsing::tokens::FunctionCallEnd(char_v, orig_expr));
+          parsing.emplace_back(tokens::FunctionCallEnd(char_v, orig_expr));
         }
-        else parsing.emplace_back(parsing::tokens::ClosingParenthesis(char_v, orig_expr));
+        else parsing.emplace_back(tokens::ClosingParenthesis(char_v, orig_expr));
 
         last_opened_pth.pop();
 
@@ -150,7 +151,7 @@ tl::expected<std::vector<parsing::Token>, parsing::Error> parse(std::string_view
         value = numberSign = openingParenthesis = false;
         it++;
       }
-      else return tl::unexpected(parsing::Error::unexpected(parsing::tokens::ClosingParenthesis(char_v, orig_expr)));
+      else return tl::unexpected(Error::unexpected(tokens::ClosingParenthesis(char_v, orig_expr)));
     }
     else if (*it == ' ')
       // spaces are skipped
@@ -158,8 +159,8 @@ tl::expected<std::vector<parsing::Token>, parsing::Error> parse(std::string_view
     else if (is_argument_separator(*it))
     {
       if (not last_opened_pth.empty() and last_opened_pth.top() == FUNCTION_CALL_PTH)
-        parsing.emplace_back(parsing::tokens::FunctionArgumentSeparator(char_v, orig_expr));
-      else return tl::unexpected(parsing::Error::unexpected(parsing::tokens::FunctionArgumentSeparator(char_v, orig_expr)));
+        parsing.emplace_back(tokens::FunctionArgumentSeparator(char_v, orig_expr));
+      else return tl::unexpected(Error::unexpected(tokens::FunctionArgumentSeparator(char_v, orig_expr)));
 
       openingParenthesis = numberSign = value = true;
       canEnd = ope = closingParenthesis = false;
@@ -183,20 +184,20 @@ tl::expected<std::vector<parsing::Token>, parsing::Error> parse(std::string_view
         if (it == expression.cend() or *it != '(')
         {
           // can only be a variable when we reach the end of the expression
-          parsing.emplace_back(parsing::tokens::Variable(token_v, orig_expr));
+          parsing.emplace_back(tokens::Variable(token_v, orig_expr));
 
           openingParenthesis = numberSign = value = false;
           canEnd = ope = closingParenthesis = true;
         }
         else
         {
-          parsing.emplace_back(parsing::tokens::Function(token_v, orig_expr));
+          parsing.emplace_back(tokens::Function(token_v, orig_expr));
 
           canEnd = closingParenthesis = ope = numberSign = value = false;
           openingParenthesis = true;
         }
       }
-      else return tl::unexpected(parsing::Error::unexpected(parsing::tokens::Unkown(char_v, orig_expr)));
+      else return tl::unexpected(Error::unexpected(tokens::Unkown(char_v, orig_expr)));
     }
   }
 
@@ -204,14 +205,14 @@ tl::expected<std::vector<parsing::Token>, parsing::Error> parse(std::string_view
   {
     std::string_view expr_cend = std::string_view(it, 0);
     if (last_opened_pth.top() == FUNCTION_CALL_PTH)
-      return tl::unexpected(parsing::Error::missing(parsing::tokens::FunctionCallEnd(expr_cend, orig_expr)));
-    else return tl::unexpected(parsing::Error::missing(parsing::tokens::ClosingParenthesis(expr_cend, orig_expr)));
+      return tl::unexpected(Error::missing(tokens::FunctionCallEnd(expr_cend, orig_expr)));
+    else return tl::unexpected(Error::missing(tokens::ClosingParenthesis(expr_cend, orig_expr)));
   }
 
   if (not canEnd)
   {
     std::string_view expr_cend = std::string_view(it, 0);
-    return tl::unexpected(parsing::Error::unexpected(parsing::tokens::EndOfExpression(expr_cend, orig_expr)));
+    return tl::unexpected(Error::unexpected(tokens::EndOfExpression(expr_cend, orig_expr)));
   }
 
   return parsing;
@@ -222,7 +223,155 @@ bool is_valid_name(std::string_view name)
 {
   auto parsing = parse(name);
   return parsing and parsing->size() == 1
-         and std::holds_alternative<parsing::tokens::Variable>(parsing->front());
+         and std::holds_alternative<tokens::Variable>(parsing->front());
+}
+
+tl::expected<
+  std::vector<std::span<const Token>::iterator>,
+  Error
+> get_non_pth_enclosed_tokens(std::span<const Token> tokens)
+{
+  std::vector<std::span<const Token>::iterator> non_pth_enclosed_tokens;
+
+  enum : bool { FUNCTION_CALL_PTH, NORMAL_PTH};
+  std::stack<bool> last_opened_pth;
+
+  // search for parentheses
+  for (auto tokenIt = tokens.begin() ; tokenIt != tokens.end() ; tokenIt++)
+  {
+    if (std::holds_alternative<tokens::OpeningParenthesis>(*tokenIt))
+    {
+      last_opened_pth.push(NORMAL_PTH);
+    }
+    else if (std::holds_alternative<tokens::FunctionCallStart>(*tokenIt))
+    {
+      last_opened_pth.push(FUNCTION_CALL_PTH);
+    }
+    else if (std::holds_alternative<tokens::FunctionCallEnd>(*tokenIt))
+    {
+      if (not last_opened_pth.empty() and last_opened_pth.top() == FUNCTION_CALL_PTH)
+        last_opened_pth.pop();
+      else return tl::unexpected(Error::unexpected(*tokenIt));
+    }
+    else if (std::holds_alternative<tokens::ClosingParenthesis>(*tokenIt))
+    {
+      if (not last_opened_pth.empty() and last_opened_pth.top() == NORMAL_PTH)
+        last_opened_pth.pop();
+      else return tl::unexpected(Error::unexpected(*tokenIt));
+    }
+    // if not a parenthesis, and the token is not enclosed within parentheses, push it
+    else if (last_opened_pth.empty())
+      non_pth_enclosed_tokens.push_back(tokenIt);
+  }
+
+  return non_pth_enclosed_tokens;
+}
+
+tl::expected<ast::Tree, Error> make_tree(std::span<const Token> tokens)
+{
+  // when there's only a single token, it can only be number or a variable
+  if (tokens.size() == 1)
+  {
+    using Ret = tl::expected<ast::Tree, Error>;
+    return std::visit(overloaded{[&](const tokens::Number& num) -> Ret { return num; },
+                                 [&](const tokens::Variable& var) -> Ret { return var; },
+                                 [&](const auto& anything_else) -> Ret {
+                                   return tl::unexpected(Error::unexpected(anything_else));
+                                 }},
+                      tokens.back());
+  }
+
+  auto expected_non_pth_wrapped_tokens = get_non_pth_enclosed_tokens(tokens);
+  if (not expected_non_pth_wrapped_tokens.has_value())
+    return tl::unexpected(expected_non_pth_wrapped_tokens.error());
+
+  const auto& non_pth_enclosed_tokens = expected_non_pth_wrapped_tokens.value();
+
+  // experssion of the type "(...)"
+  if (non_pth_enclosed_tokens.empty() and tokens.size() > 2 and
+      std::holds_alternative<tokens::OpeningParenthesis>(tokens.front()) and
+      std::holds_alternative<tokens::ClosingParenthesis>(tokens.back()))
+  {
+    return make_tree(std::span(tokens.begin()+1, tokens.end()-1));
+  }
+
+  // expression of the type "function(...)"
+  else if (non_pth_enclosed_tokens.size() == 1 and tokens.size() > 3 and
+           std::holds_alternative<tokens::Function>(tokens.front()) and
+           std::holds_alternative<tokens::FunctionCallStart>(*(tokens.begin()+1)) and
+           std::holds_alternative<tokens::FunctionCallEnd>(tokens.back()))
+  {
+    /// @todo needs changing to support multi-argument functions
+    /// @note here we expect functions that receive that receive a single argument
+    auto non_pth_wrapped_args = get_non_pth_enclosed_tokens(
+      std::span(tokens.begin() + 2, tokens.end() - 1));
+
+    if (not non_pth_wrapped_args.has_value())
+      return tl::unexpected(non_pth_wrapped_args.error());
+
+    // add the FunctionCallEnd token so we handle it in the loop
+    non_pth_wrapped_args->push_back(tokens.end()-1);
+
+    std::vector<ast::Tree> subnodes;
+    auto last_non_coma_token_it = tokens.begin()+2;
+    for (auto tokenIt: *non_pth_wrapped_args)
+    {
+      if (std::holds_alternative<tokens::FunctionArgumentSeparator>(*tokenIt) or
+          std::holds_alternative<tokens::FunctionCallEnd>(*tokenIt))
+      {
+        auto expected_func_argument = make_tree(std::span(last_non_coma_token_it, tokenIt));
+        if (not expected_func_argument.has_value())
+          return expected_func_argument;
+        else subnodes.push_back(std::move(expected_func_argument.value()));
+        last_non_coma_token_it = tokenIt+1;
+      }
+    }
+
+    return ast::node::Function(text_token(tokens.front()), std::move(subnodes));
+  }
+
+  // there are tokens that are not within parentheses
+  else if (not non_pth_enclosed_tokens.empty())
+  {
+    // we check for operations
+    // loop through the expression by increasing operator priority
+    // -> because the deepest parts of the syntax tree are to be calculated first
+    for (const auto& [op, op_str]: tokens::Operator::operators)
+    {
+      for (auto tokenIt: non_pth_enclosed_tokens)
+      {
+        if (std::holds_alternative<tokens::Operator>(*tokenIt) and
+            std::get<tokens::Operator>(*tokenIt).name == op_str)
+        {
+          // we are not within parentheses, and we are at the right operator priority
+          if (tokenIt == tokens.begin() or tokenIt+1 == tokens.end())
+            return tl::unexpected(Error::unexpected(*tokenIt));
+
+          auto left_hand_side = make_tree(std::span(tokens.begin(), tokenIt));
+          if (not left_hand_side.has_value())
+            return left_hand_side;
+
+          auto right_hand_side = make_tree(std::span(tokenIt+1, tokens.end()));
+          if (not right_hand_side.has_value())
+            return right_hand_side;
+
+          return ast::node::Function(text_token(*tokenIt),
+                                     {std::move(left_hand_side.value()),
+                                      std::move(right_hand_side.value())});
+        }
+      }
+    }
+  }
+
+  // if we reach the end of this function, something is not right
+  const SubstrInfo substrinfo
+    = std::accumulate(tokens.begin(),
+                      tokens.end(),
+                      substr_info(tokens.front()),
+                      [](const SubstrInfo& info, const Token& t1)
+                      { return substr_info(t1) + info; });
+
+  return tl::unexpected(Error::unexpected(tokens::Unkown("", substrinfo)));
 }
 
 }

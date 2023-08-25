@@ -3,7 +3,6 @@ sources = files(
     'function.cpp',
     'parsing/parser.cpp',
     'sequence.cpp',
-    'tree.cpp',
     'utils/token.cpp',
 )
 

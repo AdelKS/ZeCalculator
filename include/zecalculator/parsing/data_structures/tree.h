@@ -24,7 +24,7 @@
 #include <span>
 #include <vector>
 
-#include <zecalculator/parsing/parser.h>
+#include <zecalculator/parsing/data_structures/token.h>
 #include <zecalculator/utils/utils.h>
 
 namespace zc {
@@ -53,9 +53,6 @@ struct Function: parsing::tokens::Text
 
 }
 }
-
-/// @brief makes a syntax tree from from a sequence of tokens
-tl::expected<ast::Tree, parsing::Error> make_tree(std::span<const parsing::Token> tokens);
 
 inline parsing::tokens::Text text_token(const ast::Tree& token)
 {

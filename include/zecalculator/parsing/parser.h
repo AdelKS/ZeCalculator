@@ -21,6 +21,7 @@
 #pragma once
 
 #include <zecalculator/parsing/data_structures/token.h>
+#include <zecalculator/parsing/data_structures/tree.h>
 #include <zecalculator/parsing/error.h>
 
 /* TODO: update approach as the following:
@@ -47,6 +48,9 @@ tl::expected<std::vector<Token>, Error> parse(std::string_view expression);
 
 /// @brief tells if the string_view contains a valid math object name
 bool is_valid_name(std::string_view name);
+
+/// @brief makes a syntax tree from from a sequence of tokens
+tl::expected<ast::Tree, parsing::Error> make_tree(std::span<const parsing::Token> tokens);
 
 }
 }
