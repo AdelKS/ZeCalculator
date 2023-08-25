@@ -24,7 +24,7 @@
 #include <zecalculator/test-utils/print-utils.h>
 #include <boost/ut.hpp>
 #include <chrono>
-#include <zecalculator/parsing/data_structures/rpn_expression.h>
+#include <zecalculator/parsing/data_structures/rpn.h>
 
 using namespace std::chrono;
 
@@ -45,16 +45,16 @@ int main()
 
     expect(bool(expect_tree));
 
-    auto rpn_expr = make_rpn_expression(expect_tree.value());
+    auto rpn_expr = rpn::make_RPN(expect_tree.value());
 
-    rpn_expression expected_rpn_expr;
-    expected_rpn_expr.push_back(tokens::Number(2.0, tokens::Text{"2", 0, 1}));
-    expected_rpn_expr.push_back(tokens::Number(3.0, tokens::Text{"3", 4, 1}));
-    expected_rpn_expr.push_back(tokens::Operator('-', 2));
-    expected_rpn_expr.push_back(tokens::Number(2.0, tokens::Text{"2", 8, 1}));
-    expected_rpn_expr.push_back(tokens::Operator('+', 6));
+    rpn::RPN expected_rpn;
+    expected_rpn.push_back(tokens::Number(2.0, tokens::Text{"2", 0, 1}));
+    expected_rpn.push_back(tokens::Number(3.0, tokens::Text{"3", 4, 1}));
+    expected_rpn.push_back(tokens::Operator('-', 2));
+    expected_rpn.push_back(tokens::Number(2.0, tokens::Text{"2", 8, 1}));
+    expected_rpn.push_back(tokens::Operator('+', 6));
 
-    expect(bool(rpn_expr == expected_rpn_expr)) << "Expected: " << expected_rpn_expr << "Answer: " << rpn_expr;
+    expect(bool(rpn_expr == expected_rpn)) << "Expected: " << expected_rpn << "Answer: " << rpn_expr;
   };
 
 }

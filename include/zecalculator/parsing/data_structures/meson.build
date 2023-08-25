@@ -1,7 +1,7 @@
 if not meson.is_subproject()
   install_headers(
     files(
-      'rpn_expression.h',
+      'rpn.h',
       'token.h',
       'tree.h',
     ),
