@@ -1,7 +1,7 @@
 #pragma once
 
 #include <zecalculator/parsing/token.h>
-#include <zecalculator/tree.h>
+#include <zecalculator/parsing/data_structures/tree.h>
 #include <vector>
 
 namespace zc {

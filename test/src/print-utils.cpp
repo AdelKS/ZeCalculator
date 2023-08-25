@@ -1,7 +1,7 @@
 #include <boost/ut.hpp>
 #include <zecalculator/test-utils/magic_enum.h>
 #include <zecalculator/test-utils/print-utils.h>
-#include <zecalculator/tree.h>
+#include <zecalculator/parsing/data_structures/tree.h>
 #include <zecalculator/utils/utils.h>
 
 namespace zc {

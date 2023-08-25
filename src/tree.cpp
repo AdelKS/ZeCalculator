@@ -22,7 +22,7 @@
 #include <stack>
 #include <numeric>
 
-#include <zecalculator/tree.h>
+#include <zecalculator/parsing/data_structures/tree.h>
 #include <zecalculator/parsing/parser.h>
 #include <zecalculator/parsing/error.h>
 #include <zecalculator/utils/utils.h>

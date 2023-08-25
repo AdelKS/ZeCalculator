@@ -5,7 +5,7 @@
 #include <boost/ut.hpp>
 #include <zecalculator/parsing/token.h>
 #include <zecalculator/parsing/error.h>
-#include <zecalculator/tree.h>
+#include <zecalculator/parsing/data_structures/tree.h>
 #include <zecalculator/evaluation/error.h>
 
 template <class T, class... U>

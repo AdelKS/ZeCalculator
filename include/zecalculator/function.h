@@ -32,7 +32,7 @@
 #include <zecalculator/evaluation/error.h>
 #include <zecalculator/external/expected.h>
 #include <zecalculator/global_constant.h>
-#include <zecalculator/tree.h>
+#include <zecalculator/parsing/data_structures/tree.h>
 #include <zecalculator/utils/name_map.h>
 
 /* TODO: update approach as the following:
