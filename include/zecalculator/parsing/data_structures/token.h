@@ -77,11 +77,13 @@ struct Number: Text
 
 struct Variable: Text
 {
+  explicit Variable(const Text& txtTok): Text(txtTok) {}
   using Text::Text;
 };
 
 struct Function: Text
 {
+  explicit Function(const Text& txtTok): Text(txtTok) {}
   using Text::Text;
 };
 
