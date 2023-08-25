@@ -374,5 +374,50 @@ tl::expected<ast::Tree, Error> make_tree(std::span<const Token> tokens)
   return tl::unexpected(Error::unexpected(tokens::Unkown("", substrinfo)));
 }
 
+
+struct RpnMaker
+{
+  rpn::RPN operator () (std::monostate)
+  {
+    return rpn::RPN{std::monostate()};
+  }
+
+  rpn::RPN operator () (const ast::node::Function& func)
+  {
+    rpn::RPN res;
+    for (const ast::Tree& sub_node: func.subnodes)
+    {
+      rpn::RPN tmp = std::visit(*this, sub_node);
+      if (std::ranges::any_of(tmp,
+                              [](const rpn::Token& token) {
+                                return std::holds_alternative<std::monostate>(token);
+                              })) [[unlikely]]
+        return rpn::RPN{std::monostate()};
+      else [[likely]]
+        std::ranges::move(tmp, std::back_inserter(res));
+    }
+    res.push_back(parsing::tokens::Function(func));
+    return res;
+  }
+
+  rpn::RPN operator () (const ast::node::Variable& var)
+  {
+    return rpn::RPN(1, var);
+  }
+
+  rpn::RPN operator () (const ast::node::Number& number)
+  {
+    return rpn::RPN(1, number);
+  }
+
+};
+
+rpn::RPN make_RPN(const ast::Tree& tree)
+{
+  return std::visit(RpnMaker{}, tree);
+}
+
+
+
 }
 }

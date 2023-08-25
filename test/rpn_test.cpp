@@ -45,7 +45,7 @@ int main()
 
     expect(bool(expect_tree));
 
-    auto rpn_expr = rpn::make_RPN(expect_tree.value());
+    auto rpn_expr = parsing::make_RPN(expect_tree.value());
 
     rpn::RPN expected_rpn;
     expected_rpn.push_back(tokens::Number(2.0, tokens::Text{"2", 0, 1}));
