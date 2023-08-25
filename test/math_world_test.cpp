@@ -18,7 +18,7 @@
 **
 ****************************************************************************/
 
-#include <zecalculator/mathworld.h>
+#include <zecalculator/mathworld/mathworld.h>
 
 // testing specific headers
 #include <boost/ut.hpp>

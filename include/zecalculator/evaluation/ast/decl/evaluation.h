@@ -1,18 +1,14 @@
 #pragma once
 
 #include <zecalculator/evaluation/error.h>
-#include <zecalculator/utils/name_map.h>
-#include <zecalculator/math_objects/decl/function.h>
-#include <zecalculator/math_objects/builtin_unary_functions.h>
 #include <zecalculator/math_objects/builtin_binary_functions.h>
+#include <zecalculator/math_objects/builtin_unary_functions.h>
+#include <zecalculator/math_objects/decl/function.h>
 #include <zecalculator/math_objects/global_constant.h>
+#include <zecalculator/mathworld/decl/mathworld.h>
+#include <zecalculator/utils/name_map.h>
 
 namespace zc {
-
-template <class... MathObjectType>
-class MathWorldT;
-
-using MathWorld = MathWorldT<CppUnaryFunction, CppBinaryFunction, GlobalConstant, Function, GlobalVariable, Sequence>;
 
 namespace eval {
 

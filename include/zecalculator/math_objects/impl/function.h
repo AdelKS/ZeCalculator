@@ -21,7 +21,7 @@
 ****************************************************************************/
 
 #include <zecalculator/math_objects/decl/function.h>
-#include <zecalculator/mathworld.h>
+
 #include <zecalculator/evaluation/ast/evaluation.h>
 
 namespace zc {

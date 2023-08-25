@@ -2,6 +2,8 @@
 
 #include <zecalculator/evaluation/ast/decl/variable.h>
 
+#include <zecalculator/math_objects/impl/expression.h>
+
 namespace zc {
 namespace eval {
 

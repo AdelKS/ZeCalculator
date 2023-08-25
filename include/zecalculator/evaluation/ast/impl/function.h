@@ -2,6 +2,8 @@
 
 #include <zecalculator/evaluation/ast/decl/function.h>
 
+#include <zecalculator/math_objects/impl/sequence.h>
+
 namespace zc {
 namespace eval {
 

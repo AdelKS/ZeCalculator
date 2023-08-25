@@ -32,6 +32,7 @@
 #include <zecalculator/math_objects/builtin_binary_functions.h>
 #include <zecalculator/math_objects/builtin_unary_functions.h>
 #include <zecalculator/math_objects/global_constant.h>
+#include <zecalculator/mathworld/decl/mathworld.h>
 #include <zecalculator/parsing/parser.h>
 #include <zecalculator/utils/name_map.h>
 
@@ -42,17 +43,6 @@
 */
 
 namespace zc {
-
-class Function;
-class Expression;
-class Sequence;
-
-using GlobalVariable = Expression;
-
-template <class... MathObjectType>
-class MathWorldT;
-
-using MathWorld = MathWorldT<CppUnaryFunction, CppBinaryFunction, GlobalConstant, Function, GlobalVariable, Sequence>;
 
 namespace eval{
   struct Function;

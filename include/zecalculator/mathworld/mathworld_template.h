@@ -1,15 +1,13 @@
 #pragma once
 
-#include <zecalculator/math_objects/builtin_binary_functions.h>
-#include <zecalculator/math_objects/builtin_unary_functions.h>
-#include <zecalculator/math_objects/decl/function.h>
-#include <zecalculator/math_objects/decl/sequence.h>
-#include <zecalculator/math_objects/global_constant.h>
-#include <zecalculator/math_objects/global_variable.h>
+#include <zecalculator/parsing/parser.h>
 #include <zecalculator/utils/name_map.h>
 #include <zecalculator/utils/optional_ref.h>
 #include <zecalculator/utils/slotted_vector.h>
 #include <zecalculator/utils/utils.h>
+#include <zecalculator/math_objects/builtin_binary_functions.h>
+#include <zecalculator/math_objects/builtin_unary_functions.h>
+#include <zecalculator/math_objects/global_constant.h>
 
 #include <stdexcept>
 #include <string>
@@ -35,11 +33,6 @@ struct NameError
   Type type;
   std::string name;
 };
-
-template <class... MathObjectType>
-class MathWorldT;
-
-using MathWorld = MathWorldT<CppUnaryFunction, CppBinaryFunction, GlobalConstant, Function, GlobalVariable, Sequence>;
 
 template <class... MathObjectType>
 class MathWorldT
@@ -126,18 +119,13 @@ public:
   /// @brief const version of the one above
   using ConstDynMathObject = std::variant<UnregisteredObject, ConstMathObject<MathObjectType>...>;
 
-  /// @brief default constructor when this class is used outside of what it's been planned for
-  MathWorldT() requires (not std::is_same_v<MathWorldT, MathWorld>) = default;
-
   /// @brief default constructor that defines the usual functions and global constants
   MathWorldT()
-    requires(std::is_same_v<MathWorldT, MathWorld>)
     : MathWorldT(builtin_unary_functions, builtin_binary_functions, builtin_global_variables){};
 
   template <class ObjectType1, size_t size1, class... ObjectTypeN, size_t... sizeN>
-  MathWorldT(
-    const std::array<std::pair<std::string_view, ObjectType1>, size1>& objects1,
-    const std::array<std::pair<std::string_view, ObjectTypeN>, sizeN>&... objectsN)
+  MathWorldT(const std::array<std::pair<std::string_view, ObjectType1>, size1>& objects1,
+             const std::array<std::pair<std::string_view, ObjectTypeN>, sizeN>&... objectsN)
     : MathWorldT(objectsN...)
   {
     for(auto [name, obj]: objects1)

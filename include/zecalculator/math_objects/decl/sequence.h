@@ -21,6 +21,7 @@
 ****************************************************************************/
 
 #include <zecalculator/math_objects/decl/function.h>
+#include <zecalculator/mathworld/mathworld.h>
 
 /* TODO: update approach as the following:
    - Check for validity
@@ -35,7 +36,7 @@ namespace eval{
 }
 
 /// @brief a class that represents a Sequence of single argument
-class Sequence: public Function
+class Sequence: public zc::Function
 {
 public:
   explicit Sequence() = default;
