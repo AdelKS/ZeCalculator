@@ -1,7 +1,7 @@
 #pragma once
 
 #include <zecalculator/utils/token.h>
-#include <zecalculator/utils/syntax_tree.h>
+#include <zecalculator/tree.h>
 #include <vector>
 
 namespace zc {
@@ -17,10 +17,10 @@ struct RpnMaker
     return rpn_expression{std::monostate()};
   }
 
-  rpn_expression operator () (const FunctionNode& func)
+  rpn_expression operator () (const ast::node::Function& func)
   {
     rpn_expression res;
-    for (const SyntaxTree& sub_node: func.subnodes)
+    for (const ast::Tree& sub_node: func.subnodes)
     {
       rpn_expression tmp = std::visit(*this, sub_node);
       if (std::ranges::any_of(tmp, [](const rpn_token& token){ return std::holds_alternative<std::monostate>(token); })) [[unlikely]]
@@ -32,19 +32,19 @@ struct RpnMaker
     return res;
   }
 
-  rpn_expression operator () (const VariableNode& var)
+  rpn_expression operator () (const ast::node::Variable& var)
   {
     return rpn_expression(1, var);
   }
 
-  rpn_expression operator () (const NumberNode& number)
+  rpn_expression operator () (const ast::node::Number& number)
   {
     return rpn_expression(1, number);
   }
 
 };
 
-inline rpn_expression make_rpn_expression(const SyntaxTree& tree)
+inline rpn_expression make_rpn_expression(const ast::Tree& tree)
 {
   return std::visit(RpnMaker{}, tree);
 }

@@ -25,7 +25,7 @@ struct Node
     return tl::unexpected(Error::empty_expression());
   }
 
-  ReturnType operator () (const FunctionNode& node)
+  ReturnType operator () (const ast::node::Function& node)
   {
     if (world.max_recursion_depth < current_recursion_depth)
       return tl::unexpected(Error::recursion_depth_overflow());
@@ -49,7 +49,7 @@ struct Node
                       math_obj);
   }
 
-  ReturnType operator () (const VariableNode& node)
+  ReturnType operator () (const ast::node::Variable& node)
   {
     auto it = input_vars.find(node.name);
     if (it != input_vars.end())
@@ -65,7 +65,7 @@ struct Node
     }
   }
 
-  ReturnType operator () (const NumberNode& node)
+  ReturnType operator () (const ast::node::Number& node)
   {
     return node.value;
   }
@@ -78,7 +78,7 @@ struct Node
 /// @param tree: tree to evaluate
 /// @param input_vars: variables that are given as input to the tree, will shadow any variable in the math world
 /// @param world: math world (contains functions, global constants... etc)
-inline tl::expected<double, eval::Error> evaluate(const SyntaxTree& tree,
+inline tl::expected<double, eval::Error> evaluate(const ast::Tree& tree,
                                                   const name_map<double>& input_vars,
                                                   const MathWorld& world,
                                                   size_t current_recursion_depth)
@@ -90,7 +90,7 @@ inline tl::expected<double, eval::Error> evaluate(const SyntaxTree& tree,
 }
 
 /// @brief evaluates a syntax tree using a given math world
-inline tl::expected<double, eval::Error> evaluate(const SyntaxTree& tree,
+inline tl::expected<double, eval::Error> evaluate(const ast::Tree& tree,
                                                   const name_map<double>& input_vars,
                                                   const MathWorld& world)
 {
@@ -98,7 +98,7 @@ inline tl::expected<double, eval::Error> evaluate(const SyntaxTree& tree,
 }
 
 /// @brief evaluates a syntax tree using a given math world
-inline tl::expected<double, eval::Error> evaluate(const SyntaxTree& tree, const MathWorld& world)
+inline tl::expected<double, eval::Error> evaluate(const ast::Tree& tree, const MathWorld& world)
 {
   return evaluate(tree, {}, world, 0);
 }

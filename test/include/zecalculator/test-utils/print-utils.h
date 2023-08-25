@@ -5,7 +5,7 @@
 #include <boost/ut.hpp>
 #include <zecalculator/utils/token.h>
 #include <zecalculator/utils/parsing_error.h>
-#include <zecalculator/utils/syntax_tree.h>
+#include <zecalculator/tree.h>
 #include <zecalculator/evaluation/error.h>
 
 template <class T, class... U>
@@ -47,10 +47,13 @@ std::ostream& operator << (std::ostream& os, const std::variant<T...>& var)
 namespace zc {
 
 std::ostream& operator << (std::ostream& os, const Token& token);
-
-std::ostream& operator << (std::ostream& os, const SyntaxTree& node);
-
 std::ostream& operator << (std::ostream& os, const ParsingError& err);
+
+namespace ast {
+
+std::ostream& operator << (std::ostream& os, const Tree& node);
+
+}
 
 namespace eval {
 

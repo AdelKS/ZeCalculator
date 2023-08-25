@@ -7,7 +7,6 @@ if not meson.is_subproject()
       'slotted_vector.h',
       'substr_info.h',
       'parser.h',
-      'syntax_tree.h',
       'token.h',
       'utils.h',
     ),

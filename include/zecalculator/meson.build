@@ -12,6 +12,7 @@ if not meson.is_subproject()
       'global_constant.h',
       'global_variable.h',
       'mathworld.h',
+      'tree.h',
     ),
     subdir: 'zecalculator',
     preserve_path: true

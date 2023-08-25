@@ -28,37 +28,46 @@
 #include <zecalculator/utils/utils.h>
 
 namespace zc {
+namespace ast {
+namespace node {
 
-struct FunctionNode;
-using VariableNode = tokens::Variable;
-using NumberNode = tokens::Number;
+struct Function;
+using Variable = tokens::Variable;
+using Number = tokens::Number;
 
-using SyntaxTree = std::variant<std::monostate, FunctionNode, VariableNode, NumberNode>;
+}
 
-struct FunctionNode: tokens::Text
+using Tree = std::variant<std::monostate, node::Function, node::Variable, node::Number>;
+
+namespace node {
+struct Function: tokens::Text
 {
-  FunctionNode(const tokens::Text& text, std::vector<SyntaxTree> subnodes)
+  Function(const tokens::Text& text, std::vector<Tree> subnodes)
     : tokens::Text(text), subnodes(std::move(subnodes))
   {}
 
-  std::vector<SyntaxTree> subnodes;
+  std::vector<Tree> subnodes;
 
-  bool operator == (const FunctionNode& other) const = default;
+  bool operator == (const Function& other) const = default;
 };
 
-/// @brief makes a syntax tree from from a sequence of tokens
-tl::expected<SyntaxTree, ParsingError> make_tree(std::span<const Token> tokens);
+}
+}
 
-inline tokens::Text text_token(const SyntaxTree& token)
+/// @brief makes a syntax tree from from a sequence of tokens
+tl::expected<ast::Tree, ParsingError> make_tree(std::span<const Token> tokens);
+
+inline tokens::Text text_token(const ast::Tree& token)
 {
   return std::visit(overloaded{[](const std::monostate&) -> tokens::Text { return tokens::Text(); },
                                [](const auto& tk) -> tokens::Text { return tk; }},
                     token);
 }
 
-inline SubstrInfo substr_info(const SyntaxTree& token)
+inline SubstrInfo substr_info(const ast::Tree& token)
 {
   return text_token(token).substr_info;
+
 }
 
 }

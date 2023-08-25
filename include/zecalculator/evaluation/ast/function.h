@@ -9,7 +9,7 @@ namespace eval {
 struct Function
 {
   const MathWorld& world;
-  const FunctionNode& node;
+  const ast::node::Function& node;
   const std::vector<double>& evaluations;
   const size_t current_recursion_depth;
 

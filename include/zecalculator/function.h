@@ -27,13 +27,13 @@
 #include <optional>
 #include <iostream>
 
-#include <zecalculator/external/expected.h>
-#include <zecalculator/evaluation/error.h>
-#include <zecalculator/utils/name_map.h>
-#include <zecalculator/utils/syntax_tree.h>
-#include <zecalculator/builtin_unary_functions.h>
 #include <zecalculator/builtin_binary_functions.h>
+#include <zecalculator/builtin_unary_functions.h>
+#include <zecalculator/evaluation/error.h>
+#include <zecalculator/external/expected.h>
 #include <zecalculator/global_constant.h>
+#include <zecalculator/tree.h>
+#include <zecalculator/utils/name_map.h>
 
 /* TODO: update approach as the following:
    - Check for validity
@@ -141,7 +141,7 @@ public:
     else return Ok();
   }
 
-  const tl::expected<SyntaxTree, ParsingError>& get_tree() const { return tree; }
+  const tl::expected<ast::Tree, ParsingError>& get_tree() const { return tree; }
 
   /// @brief evaluation on a given math world with the given input
   tl::expected<double, eval::Error> evaluate(const std::vector<double>& args,
@@ -160,7 +160,7 @@ protected:
                                                  const MathWorld& world,
                                                  size_t current_recursion_depth) const;
 
-  friend tl::expected<double, eval::Error> evaluate(const SyntaxTree& tree,
+  friend tl::expected<double, eval::Error> evaluate(const ast::Tree& tree,
                                                     const name_map<double>& input_vars,
                                                     const MathWorld& world,
                                                     size_t current_recursion_depth);
@@ -171,7 +171,7 @@ protected:
 
   std::string expression;
 
-  tl::expected<SyntaxTree, ParsingError> tree;
+  tl::expected<ast::Tree, ParsingError> tree;
   tl::expected<std::vector<std::string>, InvalidInputVar> vars;
 
 };

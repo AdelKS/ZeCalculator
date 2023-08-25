@@ -62,7 +62,7 @@ protected:
     return Function::evaluate({}, world, current_recursion_depth);
   }
 
-  friend tl::expected<double, eval::Error> evaluate(const SyntaxTree& tree,
+  friend tl::expected<double, eval::Error> evaluate(const ast::Tree& tree,
                                                     const name_map<double>& input_vars,
                                                     const MathWorld& world,
                                                     size_t current_recursion_depth);

@@ -9,7 +9,7 @@ namespace eval {
 struct Variable
 {
   const MathWorld& world;
-  const VariableNode& node;
+  const ast::node::Variable& node;
   const size_t current_recursion_depth;
 
   using ReturnType = tl::expected<double, Error>;

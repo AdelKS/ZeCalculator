@@ -22,7 +22,7 @@
 #include <stack>
 #include <numeric>
 
-#include <zecalculator/utils/syntax_tree.h>
+#include <zecalculator/tree.h>
 #include <zecalculator/utils/parser.h>
 #include <zecalculator/utils/parsing_error.h>
 #include <zecalculator/utils/utils.h>
@@ -70,12 +70,12 @@ tl::expected<
   return non_pth_enclosed_tokens;
 }
 
-tl::expected<SyntaxTree, ParsingError> make_tree(std::span<const Token> tokens)
+tl::expected<ast::Tree, ParsingError> make_tree(std::span<const Token> tokens)
 {
   // when there's only a single token, it can only be number or a variable
   if (tokens.size() == 1)
   {
-    using Ret = tl::expected<SyntaxTree, ParsingError>;
+    using Ret = tl::expected<ast::Tree, ParsingError>;
     return std::visit(overloaded{[&](const tokens::Number& num) -> Ret { return num; },
                                  [&](const tokens::Variable& var) -> Ret { return var; },
                                  [&](const auto& anything_else) -> Ret {
@@ -115,7 +115,7 @@ tl::expected<SyntaxTree, ParsingError> make_tree(std::span<const Token> tokens)
     // add the FunctionCallEnd token so we handle it in the loop
     non_pth_wrapped_args->push_back(tokens.end()-1);
 
-    std::vector<SyntaxTree> subnodes;
+    std::vector<ast::Tree> subnodes;
     auto last_non_coma_token_it = tokens.begin()+2;
     for (auto tokenIt: *non_pth_wrapped_args)
     {
@@ -130,7 +130,7 @@ tl::expected<SyntaxTree, ParsingError> make_tree(std::span<const Token> tokens)
       }
     }
 
-    return FunctionNode(text_token(tokens.front()), std::move(subnodes));
+    return ast::node::Function(text_token(tokens.front()), std::move(subnodes));
   }
 
   // there are tokens that are not within parentheses
@@ -158,9 +158,9 @@ tl::expected<SyntaxTree, ParsingError> make_tree(std::span<const Token> tokens)
           if (not right_hand_side.has_value())
             return right_hand_side;
 
-          return FunctionNode(text_token(*tokenIt),
-                              {std::move(left_hand_side.value()),
-                               std::move(right_hand_side.value())});
+          return ast::node::Function(text_token(*tokenIt),
+                                     {std::move(left_hand_side.value()),
+                                      std::move(right_hand_side.value())});
         }
       }
     }
@@ -176,4 +176,5 @@ tl::expected<SyntaxTree, ParsingError> make_tree(std::span<const Token> tokens)
 
   return tl::unexpected(ParsingError::unexpected(tokens::Unkown("", substrinfo)));
 }
+
 }

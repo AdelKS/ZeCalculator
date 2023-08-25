@@ -1,10 +1,10 @@
 sources = files(
-    'utils/parser.cpp',
-    'utils/syntax_tree.cpp',
-    'utils/token.cpp',
     'builtin_binary_functions.cpp',
     'function.cpp',
     'sequence.cpp',
+    'tree.cpp',
+    'utils/parser.cpp',
+    'utils/token.cpp',
 )
 
 zecalculator_lib = library('zecalculator',

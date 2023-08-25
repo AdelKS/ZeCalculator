@@ -25,7 +25,7 @@
 #include <array>
 #include <cassert>
 
-#include <zecalculator/utils/syntax_tree.h>
+#include <zecalculator/tree.h>
 #include <zecalculator/utils/token.h>
 
 namespace zc {
