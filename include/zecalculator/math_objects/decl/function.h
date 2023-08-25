@@ -99,24 +99,24 @@ public:
 
   /// @brief evaluation on a given math world with the given input
   tl::expected<double, eval::Error> evaluate(const std::vector<double>& args,
-                                             const MathWorld& world) const;
+                                             const MathWorld<type>& world) const;
 
   /// @brief evaluation on a given math world with the given input
   /// @note operator style
   tl::expected<double, eval::Error> operator () (const std::vector<double>& args,
-                                                     const MathWorld& world) const;
+                                                     const MathWorld<type>& world) const;
 
 protected:
 
   /// @brief evaluation on a given math world with the given input
   /// @note version that tracks the current recursion depth
   tl::expected<double, eval::Error> evaluate(const std::vector<double>& args,
-                                             const MathWorld& world,
+                                             const MathWorld<type>& world,
                                              size_t current_recursion_depth) const;
 
   friend tl::expected<double, eval::Error> evaluate(const ast::Tree& tree,
                                                     const name_map<double>& input_vars,
-                                                    const MathWorld& world,
+                                                    const MathWorld<parsing::AST>& world,
                                                     size_t current_recursion_depth);
 
   friend struct eval::Function;

@@ -35,7 +35,7 @@ int main()
 
   "dependent expression"_test = []()
   {
-    MathWorld world;
+    ast::MathWorld world;
     auto expr = ast::Expression("cos(math::pi * t) + 2 + f(3, 4)");
 
     const double t = 3;
@@ -57,7 +57,7 @@ int main()
   "expression benchmark"_test = []()
   {
     {
-      MathWorld world;
+      ast::MathWorld world;
       auto f = world.add("f", ast::Function({"x"}, "cos(x) + t + 3")).value();
       auto t = world.add("t", GlobalConstant(0)).value();
 

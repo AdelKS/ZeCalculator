@@ -93,7 +93,7 @@ const tl::expected<ast::Tree, parsing::Error>& Function<type>::get_tree() const 
 
 template <parsing::Type type>
 tl::expected<double, eval::Error> Function<type>::evaluate(const std::vector<double>& args,
-                                                            const MathWorld& world,
+                                                            const MathWorld<type>& world,
                                                             size_t current_recursion_depth) const
 {
   if (not bool(*this)) [[unlikely]]
@@ -114,7 +114,7 @@ tl::expected<double, eval::Error> Function<type>::evaluate(const std::vector<dou
 
 template <parsing::Type type>
 tl::expected<double, eval::Error> Function<type>::evaluate(const std::vector<double>& args,
-                                                            const MathWorld& world) const
+                                                            const MathWorld<type>& world) const
 {
   // this function is user called, so the recursion depth is zero
   return evaluate(args, world, 0);
@@ -122,7 +122,7 @@ tl::expected<double, eval::Error> Function<type>::evaluate(const std::vector<dou
 
 template <parsing::Type type>
 tl::expected<double, eval::Error> Function<type>::operator()(const std::vector<double>& args,
-                                                              const MathWorld& world) const
+                                                              const MathWorld<type>& world) const
 {
   return evaluate(args, world, 0);
 }

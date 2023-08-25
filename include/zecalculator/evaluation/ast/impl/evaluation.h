@@ -67,7 +67,7 @@ inline Node::ReturnType Node::operator () (const ast::node::Number& node)
 /// @param world: math world (contains functions, global constants... etc)
 inline tl::expected<double, eval::Error> evaluate(const ast::Tree& tree,
                                                   const name_map<double>& input_vars,
-                                                  const MathWorld& world,
+                                                  const ast::MathWorld& world,
                                                   size_t current_recursion_depth)
 {
   return std::visit(eval::Node{.world = world,
@@ -79,13 +79,13 @@ inline tl::expected<double, eval::Error> evaluate(const ast::Tree& tree,
 /// @brief evaluates a syntax tree using a given math world
 inline tl::expected<double, eval::Error> evaluate(const ast::Tree& tree,
                                                   const name_map<double>& input_vars,
-                                                  const MathWorld& world)
+                                                  const ast::MathWorld& world)
 {
   return std::visit(eval::Node{.world = world, .input_vars = input_vars}, tree);
 }
 
 /// @brief evaluates a syntax tree using a given math world
-inline tl::expected<double, eval::Error> evaluate(const ast::Tree& tree, const MathWorld& world)
+inline tl::expected<double, eval::Error> evaluate(const ast::Tree& tree, const ast::MathWorld& world)
 {
   return evaluate(tree, {}, world, 0);
 }

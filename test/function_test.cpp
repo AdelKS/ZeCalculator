@@ -32,7 +32,7 @@ int main()
 
   "multi-parameter function evaluation"_test = []()
   {
-    MathWorld world;
+    ast::MathWorld world;
     auto f = ast::Function({"omega", "t"}, "cos(omega * t) + omega * t");
 
     const double omega = 2;
@@ -47,7 +47,7 @@ int main()
 
   "function evaluation shadowing a global constant"_test = []()
   {
-    MathWorld world;
+    ast::MathWorld world;
     world.add<GlobalConstant>("x", 2.0);
     auto f = ast::Function({"x"}, "cos(x) + x");
 
@@ -59,7 +59,7 @@ int main()
 
   "function calling another function"_test = []()
   {
-    MathWorld world;
+    ast::MathWorld world;
     auto f1 = world.add<ast::Function>("f1").value();
     auto f2 = world.add<ast::Function>("f2").value();
 
@@ -100,7 +100,7 @@ int main()
   };
 
   "function overwrites"_test = []{
-    MathWorld world;
+    ast::MathWorld world;
 
     // add a function named "f", note that the constant "my_constant" is only defined after
     auto f = world.add<ast::Function>("f", ast::Function({"x"}, "x + my_constant + cos(math::pi)")).value();
@@ -141,7 +141,7 @@ int main()
   };
 
   "nested multi-variable functions"_test = []{
-    MathWorld world;
+    ast::MathWorld world;
 
     // add a function named "f", note that the constant "my_constant" is only defined after
     auto f = world.add<ast::Function>("f", ast::Function({"x", "y"}, "h(x, g(x, y)) + g(y, h(y, x))")).value();
@@ -166,7 +166,7 @@ int main()
   };
 
   "function with dot in name"_test = []{
-    MathWorld world;
+    ast::MathWorld world;
 
     // add a function named "f", note that the constant "my_constant" is only defined after
     auto fx = world.add("f.x", ast::Function({"x"}, "1 + x")).value();
@@ -177,7 +177,7 @@ int main()
   };
 
   "calling function without arguments"_test = []{
-    MathWorld world;
+    ast::MathWorld world;
 
     // add a function named "f", note that the constant "my_constant" is only defined after
     world.add("f", ast::Function({"x", "y"}, "1 + x + y")).value();

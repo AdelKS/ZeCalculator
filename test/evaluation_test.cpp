@@ -32,7 +32,7 @@ int main()
 
   "simple function evaluation"_test = []()
   {
-    MathWorld world;
+    ast::MathWorld world;
 
     auto parsing = parsing::tokenize("cos(2)");
 
@@ -47,7 +47,7 @@ int main()
 
   "simple expression evaluation"_test = []()
   {
-    MathWorld world;
+    ast::MathWorld world;
 
     auto parsing = parsing::tokenize("2+2*2");
 
@@ -62,7 +62,7 @@ int main()
 
   "complex expression evaluation"_test = []()
   {
-    MathWorld world;
+    ast::MathWorld world;
 
     auto parsing = parsing::tokenize("2/3+2*2*exp(2)^2.5");
 
@@ -80,7 +80,7 @@ int main()
 
   "global constant expression evaluation"_test = []()
   {
-    MathWorld world;
+    ast::MathWorld world;
 
     auto parsing = parsing::tokenize("2*math::π + math::pi/2");
 
@@ -98,7 +98,7 @@ int main()
 
   "global constant registering and evaluation"_test = []()
   {
-    MathWorld world;
+    ast::MathWorld world;
     world.add<GlobalConstant>("my_constant1", 2.0);
     world.add<GlobalConstant>("my_constant2", 3.0);
 
@@ -118,7 +118,7 @@ int main()
 
   "undefined global constant"_test = []()
   {
-    MathWorld world;
+    ast::MathWorld world;
 
     auto parsing = parsing::tokenize("cos(1) + my_constant1");
 
@@ -135,7 +135,7 @@ int main()
 
   "input var evaluation shadowing a global constant"_test = []()
   {
-    MathWorld world;
+    ast::MathWorld world;
     world.add<GlobalConstant>("x", 2.0);
     auto parsing = parsing::tokenize("cos(x) + x");
 
@@ -153,7 +153,7 @@ int main()
 
   "wrong object type: function as variable"_test = []
   {
-    MathWorld world;
+    ast::MathWorld world;
     auto expr = ast::Expression("2 + cos");
 
     auto eval = expr.evaluate(world);
@@ -165,7 +165,7 @@ int main()
 
   "wrong object type: variable as function"_test = []
   {
-    MathWorld world;
+    ast::MathWorld world;
     world.add("g", GlobalConstant(3));
     auto expr = ast::Expression("7 + g(3)");
 

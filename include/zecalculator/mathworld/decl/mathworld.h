@@ -21,10 +21,22 @@ class Expression;
 template <parsing::Type type>
 using GlobalVariable = Expression<type>;
 
+template <parsing::Type type>
+using MathWorld = MathWorldT<CppUnaryFunction,
+                             CppBinaryFunction,
+                             GlobalConstant,
+                             Function<type>,
+                             GlobalVariable<type>,
+                             Sequence<type>>;
+
+namespace ast {
+
 using MathWorld = MathWorldT<CppUnaryFunction,
                              CppBinaryFunction,
                              GlobalConstant,
                              Function<parsing::AST>,
                              GlobalVariable<parsing::AST>,
                              Sequence<parsing::AST>>;
+
+}
 }

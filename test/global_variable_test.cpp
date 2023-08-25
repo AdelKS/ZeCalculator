@@ -32,7 +32,7 @@ int main()
 
   "dependent expression"_test = []()
   {
-    MathWorld world;
+    ast::MathWorld world;
     auto f = world.add("f", ast::Function({"x", "y"}, "cos(math::pi * x) * y + k*g(x) + r")).value();
     auto r = world.add("r", GlobalConstant()).value();
     world.add("k", ast::GlobalVariable("3*g(3)"));

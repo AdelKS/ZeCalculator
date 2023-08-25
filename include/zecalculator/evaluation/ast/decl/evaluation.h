@@ -14,7 +14,7 @@ namespace eval {
 
 struct Node
 {
-  const MathWorld& world;
+  const ast::MathWorld& world;
   const name_map<double>& input_vars;
   const size_t current_recursion_depth = 0;
 
@@ -41,16 +41,16 @@ struct Node
 /// @param world: math world (contains functions, global constants... etc)
 inline tl::expected<double, eval::Error> evaluate(const ast::Tree& tree,
                                                   const name_map<double>& input_vars,
-                                                  const MathWorld& world,
+                                                  const ast::MathWorld& world,
                                                   size_t current_recursion_depth);
 
 /// @brief evaluates a syntax tree using a given math world
 inline tl::expected<double, eval::Error> evaluate(const ast::Tree& tree,
                                                   const name_map<double>& input_vars,
-                                                  const MathWorld& world);
+                                                  const ast::MathWorld& world);
 
 /// @brief evaluates a syntax tree using a given math world
-inline tl::expected<double, eval::Error> evaluate(const ast::Tree& tree, const MathWorld& world);
+inline tl::expected<double, eval::Error> evaluate(const ast::Tree& tree, const ast::MathWorld& world);
 
 
 }

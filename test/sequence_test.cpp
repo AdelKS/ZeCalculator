@@ -32,7 +32,7 @@ int main()
 
   "fibonacci sequence"_test = []()
   {
-    MathWorld world;
+    ast::MathWorld world;
     auto fib = world.add("fib", ast::Sequence("n", "fib(n-1) + fib(n-2)", {0, 1})).value();
 
     expect(fib(0).value() == 0.0);
@@ -45,7 +45,7 @@ int main()
 
   "recursion depth overflow"_test = []()
   {
-    MathWorld world;
+    ast::MathWorld world;
     auto bad = world.add("bad", ast::Sequence("n", "bad(n+10) + bad(n+20)", {})).value();
 
     expect(bad(0).error() == eval::Error::recursion_depth_overflow());

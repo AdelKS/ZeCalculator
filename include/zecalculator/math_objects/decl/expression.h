@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include "zecalculator/parsing/parser.h"
 #include <zecalculator/math_objects/decl/function.h>
 
 /* TODO: update approach as the following:
@@ -51,16 +52,16 @@ public:
 
   explicit Expression(const std::string& expr);
 
-  tl::expected<double, eval::Error> evaluate(const MathWorld& world) const;
+  tl::expected<double, eval::Error> evaluate(const MathWorld<type>& world) const;
 
-  tl::expected<double, eval::Error> operator ()(const MathWorld& world) const;
+  tl::expected<double, eval::Error> operator ()(const MathWorld<type>& world) const;
 
 protected:
-  tl::expected<double, eval::Error> evaluate(const MathWorld& world, size_t current_recursion_depth) const;
+  tl::expected<double, eval::Error> evaluate(const MathWorld<type>& world, size_t current_recursion_depth) const;
 
   friend tl::expected<double, eval::Error> evaluate(const ast::Tree& tree,
                                                     const name_map<double>& input_vars,
-                                                    const MathWorld& world,
+                                                    const MathWorld<parsing::AST>& world,
                                                     size_t current_recursion_depth);
 
   friend struct eval::Variable;

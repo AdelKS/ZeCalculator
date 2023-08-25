@@ -28,7 +28,7 @@ using namespace std;
 
 int main()
 {
-  MathWorld world;
+  ast::MathWorld world;
 
   // Notes about adding a math object to a math world:
   // - Each added object exists only within the math world that creates it

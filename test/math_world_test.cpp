@@ -32,13 +32,13 @@ int main()
 
   "simple test"_test = []()
   {
-    MathWorld world;
+    ast::MathWorld world;
     expect((*world.get<CppUnaryFunction>("sqrt").value())(4) == 2);
   };
 
   "Add constant then set value"_test = []()
   {
-    MathWorld world;
+    ast::MathWorld world;
     auto c1 = world.add<GlobalConstant>("my_constant1").value();
     *c1 = 2.0;
     expect(c1->value == 2.0);
@@ -46,7 +46,7 @@ int main()
 
   "Add same constant twice"_test = []()
   {
-    MathWorld world;
+    ast::MathWorld world;
     world.add<GlobalConstant>("my_constant1", 2.0);
     expect(not world.add<GlobalConstant>("my_constant1", 3.0).has_value());
   };
