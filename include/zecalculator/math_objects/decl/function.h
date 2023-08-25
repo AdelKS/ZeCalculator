@@ -48,23 +48,22 @@ namespace eval{
   struct Function;
 }
 
+struct Ok {};
+struct Empty {};
+
+struct InvalidInputVar
+{
+  std::string var_name;
+};
+
 class Function
 {
 public:
 
-  struct InvalidInputVar
-  {
-    std::string var_name;
-  };
-
   explicit Function() = default;
 
   /// @brief constructor for a function that takes many input variables
-  explicit Function(std::vector<std::string> input_vars, std::string expr)
-  {
-    set_input_vars(std::move(input_vars));
-    set_expression(std::move(expr));
-  }
+  explicit Function(std::vector<std::string> input_vars, std::string expr);
 
   Function(const Function& f) = default;
   Function(Function&& f) = default;
@@ -75,63 +74,20 @@ public:
   /// @brief sets the names of the input variables
   /// @note the order of the input variables is important when calling the function
   ///       with positional arguments
-  void set_input_vars(std::vector<std::string> input_vars)
-  {
-    auto it = std::ranges::find_if_not(input_vars, parsing::is_valid_name);
-    if (it != input_vars.end())
-      vars = tl::unexpected(InvalidInputVar{*it});
-    else vars = std::move(input_vars);
-  }
+  void set_input_vars(std::vector<std::string> input_vars);
 
   /// \brief set the expression
-  void set_expression(std::string expr)
-  {
-    // do nothing if it's the same expression
-    if (expression == expr)
-      return;
-
-    expression = std::move(expr);
-
-    if (expression.empty())
-      tree = std::monostate();
-    else
-    {
-      // workaround limitation in tl::expected when using and_then to implicitly converted-to types
-      const auto parsing = parsing::tokenize(expression);
-      if (parsing)
-        tree = make_tree(parsing.value());
-      else tree = tl::unexpected(parsing.error());
-    }
-
-  }
+  void set_expression(std::string expr);
 
   /// @brief returns the number of input variables, if they are valid
-  std::optional<size_t> argument_size() const
-  {
-    if (vars)
-      return vars->size();
-    else return {};
-  }
+  std::optional<size_t> argument_size() const;
 
   /// @brief tests if the function is valid, i.e. has a valid expression and input vars
-  operator bool () const
-  {
-    return bool(tree) and (not std::holds_alternative<std::monostate>(tree.value())) and bool(vars);
-  }
+  operator bool () const;
 
-  struct Ok {};
-  struct Empty {};
+  std::variant<Ok, Empty, parsing::Error> parsing_status() const;
 
-  std::variant<Ok, Empty, parsing::Error> parsing_status() const
-  {
-    if (not tree.has_value())
-      return tree.error();
-    else if (std::holds_alternative<std::monostate>(tree.value()))
-      return Empty();
-    else return Ok();
-  }
-
-  const tl::expected<ast::Tree, parsing::Error>& get_tree() const { return tree; }
+  const tl::expected<ast::Tree, parsing::Error>& get_tree() const;
 
   /// @brief evaluation on a given math world with the given input
   tl::expected<double, eval::Error> evaluate(const std::vector<double>& args,
