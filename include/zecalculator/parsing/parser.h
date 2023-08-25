@@ -44,7 +44,7 @@ std::optional<std::pair<double, size_t>> to_double(std::string_view view);
 /// @note the string that is void must remain valid for for the returned instance
 ///       to remain valid (for both a successful or unsuccessful  parsing)
 ///       as they contain sub-string views of the input view
-tl::expected<std::vector<Token>, Error> parse(std::string_view expression);
+tl::expected<std::vector<Token>, Error> tokenize(std::string_view expression);
 
 /// @brief tells if the string_view contains a valid math object name
 bool is_valid_name(std::string_view name);

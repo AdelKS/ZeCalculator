@@ -34,7 +34,7 @@ int main()
   {
     MathWorld world;
 
-    auto parsing = parsing::parse("cos(2)");
+    auto parsing = parsing::tokenize("cos(2)");
 
     expect(bool(parsing)) << parsing;
 
@@ -49,7 +49,7 @@ int main()
   {
     MathWorld world;
 
-    auto parsing = parsing::parse("2+2*2");
+    auto parsing = parsing::tokenize("2+2*2");
 
     expect(bool(parsing)) << parsing;
 
@@ -64,7 +64,7 @@ int main()
   {
     MathWorld world;
 
-    auto parsing = parsing::parse("2/3+2*2*exp(2)^2.5");
+    auto parsing = parsing::tokenize("2/3+2*2*exp(2)^2.5");
 
     expect(bool(parsing)) << parsing;
 
@@ -82,7 +82,7 @@ int main()
   {
     MathWorld world;
 
-    auto parsing = parsing::parse("2*math::π + math::pi/2");
+    auto parsing = parsing::tokenize("2*math::π + math::pi/2");
 
     expect(bool(parsing)) << parsing;
 
@@ -102,7 +102,7 @@ int main()
     world.add<GlobalConstant>("my_constant1", 2.0);
     world.add<GlobalConstant>("my_constant2", 3.0);
 
-    auto parsing = parsing::parse("my_constant1 + my_constant2");
+    auto parsing = parsing::tokenize("my_constant1 + my_constant2");
 
     expect(bool(parsing)) << parsing;
 
@@ -120,7 +120,7 @@ int main()
   {
     MathWorld world;
 
-    auto parsing = parsing::parse("cos(1) + my_constant1");
+    auto parsing = parsing::tokenize("cos(1) + my_constant1");
 
     expect(bool(parsing)) << parsing;
 
@@ -137,7 +137,7 @@ int main()
   {
     MathWorld world;
     world.add<GlobalConstant>("x", 2.0);
-    auto parsing = parsing::parse("cos(x) + x");
+    auto parsing = parsing::tokenize("cos(x) + x");
 
     expect(bool(parsing)) << parsing;
 

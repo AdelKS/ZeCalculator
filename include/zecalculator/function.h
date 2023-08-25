@@ -107,7 +107,7 @@ public:
     else
     {
       // workaround limitation in tl::expected when using and_then to implicitly converted-to types
-      const auto parsing = parsing::parse(expression);
+      const auto parsing = parsing::tokenize(expression);
       if (parsing)
         tree = make_tree(parsing.value());
       else tree = tl::unexpected(parsing.error());

@@ -34,7 +34,7 @@ int main()
 
   "simple expression"_test = []()
   {
-    auto parsing = parse("2+2*2");
+    auto parsing = tokenize("2+2*2");
 
     expect(bool(parsing)) << parsing;
 
@@ -55,7 +55,7 @@ int main()
 
   "function expression"_test = []()
   {
-    auto parsing = parse("(cos(sin(x)+1))+1");
+    auto parsing = tokenize("(cos(sin(x)+1))+1");
 
     expect(bool(parsing)) << parsing;
 

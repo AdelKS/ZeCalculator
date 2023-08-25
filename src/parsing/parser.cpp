@@ -49,7 +49,7 @@ std::optional<std::pair<double, size_t>> to_double(std::string_view view)
   return result;
 }
 
-tl::expected<std::vector<Token>, Error> parse(std::string_view expression)
+tl::expected<std::vector<Token>, Error> tokenize(std::string_view expression)
 {
   const std::string_view orig_expr = expression;
   std::vector<Token> parsing;
@@ -221,7 +221,7 @@ tl::expected<std::vector<Token>, Error> parse(std::string_view expression)
 
 bool is_valid_name(std::string_view name)
 {
-  auto parsing = parse(name);
+  auto parsing = tokenize(name);
   return parsing and parsing->size() == 1
          and std::holds_alternative<tokens::Variable>(parsing->front());
 }

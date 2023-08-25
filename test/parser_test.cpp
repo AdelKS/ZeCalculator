@@ -33,7 +33,7 @@ int main()
 
   "empty expression"_test = []()
   {
-    auto parsing = parse("        ");
+    auto parsing = tokenize("        ");
 
     expect(not bool(parsing)
            and parsing.error() == Error::unexpected(tokens::EndOfExpression("", SubstrInfo{8, 0})))
@@ -42,7 +42,7 @@ int main()
 
   "simple expression"_test = []()
   {
-    auto parsing = parse("2+2*2");
+    auto parsing = tokenize("2+2*2");
 
     expect(bool(parsing)) << parsing;
 
@@ -59,7 +59,7 @@ int main()
 
   "simple expression with spaces"_test = []()
   {
-    auto parsing = parse("   2 +  2  *2");
+    auto parsing = tokenize("   2 +  2  *2");
 
     expect(bool(parsing)) << parsing;
 
@@ -76,7 +76,7 @@ int main()
 
   "function expression"_test = []()
   {
-    auto parsing = parse("(cos(sin(x)+1))+1");
+    auto parsing = tokenize("(cos(sin(x)+1))+1");
 
     expect(bool(parsing)) << parsing;
 
@@ -101,7 +101,7 @@ int main()
 
   "two operators"_test = []()
   {
-    auto parsing = parse("2*-1");
+    auto parsing = tokenize("2*-1");
 
     expect(not parsing and
            parsing.error() == Error::unexpected(tokens::Operator('-', 2)))
@@ -110,7 +110,7 @@ int main()
 
   "extra parenthesis"_test = []()
   {
-    auto parsing = parse("2+2)");
+    auto parsing = tokenize("2+2)");
 
     expect(not parsing and
            parsing.error() == Error::unexpected(tokens::ClosingParenthesis(")", 3, 1)));
@@ -118,7 +118,7 @@ int main()
 
   "floating point operations"_test = []()
   {
-    auto parsing = parse("223.231E+13+183.283E-132");
+    auto parsing = tokenize("223.231E+13+183.283E-132");
 
     expect(bool(parsing)) << parsing;
 
@@ -133,7 +133,7 @@ int main()
 
   "nested multi-variable functions"_test = []()
   {
-    auto parsing = parse("f(1+g(x, r(h(x))), x)");
+    auto parsing = tokenize("f(1+g(x, r(h(x))), x)");
 
     expect(bool(parsing)) << parsing;
 
@@ -166,7 +166,7 @@ int main()
   "SubstrInfo"_test = []()
   {
     static constexpr std::string_view str = "2+cos(3)";
-    auto parsing = parse(str);
+    auto parsing = tokenize(str);
 
     expect(bool(parsing)) << parsing;
 
@@ -180,7 +180,7 @@ int main()
   "missing function closing pth"_test = []()
   {
     static constexpr std::string_view str = "2+cos(3";
-    auto parsing = parse(str);
+    auto parsing = tokenize(str);
 
     expect(not bool(parsing)) << parsing;
 
@@ -190,7 +190,7 @@ int main()
   "missing normal closing pth"_test = []()
   {
     static constexpr std::string_view str = "(2+cos(3)";
-    auto parsing = parse(str);
+    auto parsing = tokenize(str);
 
     expect(not bool(parsing)) << parsing;
 
@@ -200,7 +200,7 @@ int main()
   "unexpected end of expression"_test = []()
   {
     static constexpr std::string_view str = "2+";
-    auto parsing = parse(str);
+    auto parsing = tokenize(str);
 
     expect(not bool(parsing)) << parsing;
 

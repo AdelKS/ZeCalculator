@@ -37,7 +37,7 @@ int main()
 
   "simple rpn expression"_test = []()
   {
-   auto parsing = parse("2 - 3 + 2");
+   auto parsing = tokenize("2 - 3 + 2");
 
     expect(bool(parsing)) << parsing;
 
