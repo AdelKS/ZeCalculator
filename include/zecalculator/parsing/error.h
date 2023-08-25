@@ -25,12 +25,12 @@
 #include <array>
 #include <cassert>
 
-#include <zecalculator/utils/token.h>
+#include <zecalculator/parsing/token.h>
 
-namespace zc
-{
+namespace zc {
+namespace parsing {
 
-struct ParsingError
+struct Error
 {
   // type of error
   enum Type : uint8_t
@@ -42,21 +42,21 @@ struct ParsingError
   };
 
   /// @brief creates an "unexpected" typed error
-  static ParsingError unexpected(Token token)
+  static Error unexpected(Token token)
   {
-    return ParsingError {.error_type = UNEXPECTED, .token = token};
+    return Error {.error_type = UNEXPECTED, .token = token};
   }
 
   /// @brief creates an "wrong_format" typed error
-  static ParsingError wrong_format(Token token)
+  static Error wrong_format(Token token)
   {
-    return ParsingError {.error_type = WRONG_FORMAT, .token = token};
+    return Error {.error_type = WRONG_FORMAT, .token = token};
   }
 
   /// @brief creates an "missing" typed error
-  static ParsingError missing(Token token)
+  static Error missing(Token token)
   {
-    return ParsingError {.error_type = MISSING, .token = token};
+    return Error {.error_type = MISSING, .token = token};
   }
 
   // kind of error
@@ -65,7 +65,8 @@ struct ParsingError
   // on what token
   Token token;
 
-  bool operator == (const ParsingError& other) const = default;
+  bool operator == (const Error& other) const = default;
 };
 
+}
 }

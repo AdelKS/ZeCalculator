@@ -1,5 +1,6 @@
 subdir('external')
 subdir('utils')
+subdir('parsing')
 subdir('evaluation')
 
 if not meson.is_subproject()

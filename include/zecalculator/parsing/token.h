@@ -36,6 +36,7 @@
 #include <zecalculator/utils/substr_info.h>
 
 namespace zc {
+namespace parsing {
 
 namespace tokens {
 
@@ -169,4 +170,5 @@ inline SubstrInfo substr_info(const Token& token)
   return text_token(token).substr_info;
 }
 
+}
 }

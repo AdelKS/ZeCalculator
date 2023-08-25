@@ -1,11 +1,9 @@
 if not meson.is_subproject()
   install_headers(
     files(
-      'name_map.h',
-      'optional_ref.h',
-      'slotted_vector.h',
-      'substr_info.h',
-      'utils.h',
+      'error.h',
+      'parser.h',
+      'token.h',
     ),
     subdir: 'zecalculator',
     preserve_path: true

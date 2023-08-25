@@ -1,13 +1,16 @@
 #pragma once
 
-#include <zecalculator/utils/token.h>
+#include <zecalculator/parsing/token.h>
 #include <zecalculator/tree.h>
 #include <vector>
 
 namespace zc {
 
 /// @brief represents a mathematical expression in reverse polish / postfix notation
-using rpn_token = std::variant<std::monostate, tokens::Function, tokens::Variable, tokens::Number>;
+using rpn_token = std::variant<std::monostate,
+                               parsing::tokens::Function,
+                               parsing::tokens::Variable,
+                               parsing::tokens::Number>;
 using rpn_expression = std::vector<rpn_token>;
 
 struct RpnMaker
@@ -28,7 +31,7 @@ struct RpnMaker
       else [[likely]]
         std::ranges::move(tmp, std::back_inserter(res));
     }
-    res.push_back(tokens::Function(func.name, substr_info(func)));
+    res.push_back(parsing::tokens::Function(func.name, substr_info(func)));
     return res;
   }
 

@@ -29,6 +29,7 @@
 using namespace std::chrono;
 
 using namespace zc;
+using namespace zc::parsing;
 
 int main()
 {

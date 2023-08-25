@@ -208,7 +208,7 @@ public:
   template <class ObjectType>
   tl::expected<MathObject<ObjectType>, NameError> add(std::string_view name, ObjectType object)
   {
-    if (not is_valid_name(name))
+    if (not parsing::is_valid_name(name))
       return tl::unexpected(NameError::invalid_format(name));
     else if (contains(name))
       return tl::unexpected(NameError::already_taken(name));
@@ -224,7 +224,7 @@ public:
   template <class ObjectType>
   tl::expected<MathObject<ObjectType>, NameError> add(std::string_view name)
   {
-    if (not is_valid_name(name))
+    if (not parsing::is_valid_name(name))
       return tl::unexpected(NameError::invalid_format(name));
     else if (contains(name))
       return tl::unexpected(NameError::already_taken(name));

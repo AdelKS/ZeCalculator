@@ -23,18 +23,18 @@
 #include <numeric>
 
 #include <zecalculator/tree.h>
-#include <zecalculator/utils/parser.h>
-#include <zecalculator/utils/parsing_error.h>
+#include <zecalculator/parsing/parser.h>
+#include <zecalculator/parsing/error.h>
 #include <zecalculator/utils/utils.h>
 
 namespace zc {
 
 tl::expected<
-  std::vector<std::span<const Token>::iterator>,
-  ParsingError
-> get_non_pth_enclosed_tokens(std::span<const Token> tokens)
+  std::vector<std::span<const parsing::Token>::iterator>,
+  parsing::Error
+> get_non_pth_enclosed_tokens(std::span<const parsing::Token> tokens)
 {
-  std::vector<std::span<const Token>::iterator> non_pth_enclosed_tokens;
+  std::vector<std::span<const parsing::Token>::iterator> non_pth_enclosed_tokens;
 
   enum : bool { FUNCTION_CALL_PTH, NORMAL_PTH};
   std::stack<bool> last_opened_pth;
@@ -42,25 +42,25 @@ tl::expected<
   // search for parentheses
   for (auto tokenIt = tokens.begin() ; tokenIt != tokens.end() ; tokenIt++)
   {
-    if (std::holds_alternative<tokens::OpeningParenthesis>(*tokenIt))
+    if (std::holds_alternative<parsing::tokens::OpeningParenthesis>(*tokenIt))
     {
       last_opened_pth.push(NORMAL_PTH);
     }
-    else if (std::holds_alternative<tokens::FunctionCallStart>(*tokenIt))
+    else if (std::holds_alternative<parsing::tokens::FunctionCallStart>(*tokenIt))
     {
       last_opened_pth.push(FUNCTION_CALL_PTH);
     }
-    else if (std::holds_alternative<tokens::FunctionCallEnd>(*tokenIt))
+    else if (std::holds_alternative<parsing::tokens::FunctionCallEnd>(*tokenIt))
     {
       if (not last_opened_pth.empty() and last_opened_pth.top() == FUNCTION_CALL_PTH)
         last_opened_pth.pop();
-      else return tl::unexpected(ParsingError::unexpected(*tokenIt));
+      else return tl::unexpected(parsing::Error::unexpected(*tokenIt));
     }
-    else if (std::holds_alternative<tokens::ClosingParenthesis>(*tokenIt))
+    else if (std::holds_alternative<parsing::tokens::ClosingParenthesis>(*tokenIt))
     {
       if (not last_opened_pth.empty() and last_opened_pth.top() == NORMAL_PTH)
         last_opened_pth.pop();
-      else return tl::unexpected(ParsingError::unexpected(*tokenIt));
+      else return tl::unexpected(parsing::Error::unexpected(*tokenIt));
     }
     // if not a parenthesis, and the token is not enclosed within parentheses, push it
     else if (last_opened_pth.empty())
@@ -70,16 +70,16 @@ tl::expected<
   return non_pth_enclosed_tokens;
 }
 
-tl::expected<ast::Tree, ParsingError> make_tree(std::span<const Token> tokens)
+tl::expected<ast::Tree, parsing::Error> make_tree(std::span<const parsing::Token> tokens)
 {
   // when there's only a single token, it can only be number or a variable
   if (tokens.size() == 1)
   {
-    using Ret = tl::expected<ast::Tree, ParsingError>;
-    return std::visit(overloaded{[&](const tokens::Number& num) -> Ret { return num; },
-                                 [&](const tokens::Variable& var) -> Ret { return var; },
+    using Ret = tl::expected<ast::Tree, parsing::Error>;
+    return std::visit(overloaded{[&](const parsing::tokens::Number& num) -> Ret { return num; },
+                                 [&](const parsing::tokens::Variable& var) -> Ret { return var; },
                                  [&](const auto& anything_else) -> Ret {
-                                   return tl::unexpected(ParsingError::unexpected(anything_else));
+                                   return tl::unexpected(parsing::Error::unexpected(anything_else));
                                  }},
                       tokens.back());
   }
@@ -92,17 +92,17 @@ tl::expected<ast::Tree, ParsingError> make_tree(std::span<const Token> tokens)
 
   // experssion of the type "(...)"
   if (non_pth_enclosed_tokens.empty() and tokens.size() > 2 and
-      std::holds_alternative<tokens::OpeningParenthesis>(tokens.front()) and
-      std::holds_alternative<tokens::ClosingParenthesis>(tokens.back()))
+      std::holds_alternative<parsing::tokens::OpeningParenthesis>(tokens.front()) and
+      std::holds_alternative<parsing::tokens::ClosingParenthesis>(tokens.back()))
   {
     return make_tree(std::span(tokens.begin()+1, tokens.end()-1));
   }
 
   // expression of the type "function(...)"
   else if (non_pth_enclosed_tokens.size() == 1 and tokens.size() > 3 and
-           std::holds_alternative<tokens::Function>(tokens.front()) and
-           std::holds_alternative<tokens::FunctionCallStart>(*(tokens.begin()+1)) and
-           std::holds_alternative<tokens::FunctionCallEnd>(tokens.back()))
+           std::holds_alternative<parsing::tokens::Function>(tokens.front()) and
+           std::holds_alternative<parsing::tokens::FunctionCallStart>(*(tokens.begin()+1)) and
+           std::holds_alternative<parsing::tokens::FunctionCallEnd>(tokens.back()))
   {
     /// @todo needs changing to support multi-argument functions
     /// @note here we expect functions that receive that receive a single argument
@@ -119,8 +119,8 @@ tl::expected<ast::Tree, ParsingError> make_tree(std::span<const Token> tokens)
     auto last_non_coma_token_it = tokens.begin()+2;
     for (auto tokenIt: *non_pth_wrapped_args)
     {
-      if (std::holds_alternative<tokens::FunctionArgumentSeparator>(*tokenIt) or
-          std::holds_alternative<tokens::FunctionCallEnd>(*tokenIt))
+      if (std::holds_alternative<parsing::tokens::FunctionArgumentSeparator>(*tokenIt) or
+          std::holds_alternative<parsing::tokens::FunctionCallEnd>(*tokenIt))
       {
         auto expected_func_argument = make_tree(std::span(last_non_coma_token_it, tokenIt));
         if (not expected_func_argument.has_value())
@@ -139,16 +139,16 @@ tl::expected<ast::Tree, ParsingError> make_tree(std::span<const Token> tokens)
     // we check for operations
     // loop through the expression by increasing operator priority
     // -> because the deepest parts of the syntax tree are to be calculated first
-    for (const auto& [op, op_str]: tokens::Operator::operators)
+    for (const auto& [op, op_str]: parsing::tokens::Operator::operators)
     {
       for (auto tokenIt: non_pth_enclosed_tokens)
       {
-        if (std::holds_alternative<tokens::Operator>(*tokenIt) and
-            std::get<tokens::Operator>(*tokenIt).name == op_str)
+        if (std::holds_alternative<parsing::tokens::Operator>(*tokenIt) and
+            std::get<parsing::tokens::Operator>(*tokenIt).name == op_str)
         {
           // we are not within parentheses, and we are at the right operator priority
           if (tokenIt == tokens.begin() or tokenIt+1 == tokens.end())
-            return tl::unexpected(ParsingError::unexpected(*tokenIt));
+            return tl::unexpected(parsing::Error::unexpected(*tokenIt));
 
           auto left_hand_side = make_tree(std::span(tokens.begin(), tokenIt));
           if (not left_hand_side.has_value())
@@ -171,10 +171,10 @@ tl::expected<ast::Tree, ParsingError> make_tree(std::span<const Token> tokens)
     = std::accumulate(tokens.begin(),
                       tokens.end(),
                       substr_info(tokens.front()),
-                      [](const SubstrInfo& info, const Token& t1)
+                      [](const SubstrInfo& info, const parsing::Token& t1)
                       { return substr_info(t1) + info; });
 
-  return tl::unexpected(ParsingError::unexpected(tokens::Unkown("", substrinfo)));
+  return tl::unexpected(parsing::Error::unexpected(parsing::tokens::Unkown("", substrinfo)));
 }
 
 }

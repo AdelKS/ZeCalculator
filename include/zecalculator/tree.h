@@ -24,7 +24,7 @@
 #include <span>
 #include <vector>
 
-#include <zecalculator/utils/parser.h>
+#include <zecalculator/parsing/parser.h>
 #include <zecalculator/utils/utils.h>
 
 namespace zc {
@@ -32,18 +32,18 @@ namespace ast {
 namespace node {
 
 struct Function;
-using Variable = tokens::Variable;
-using Number = tokens::Number;
+using Variable = parsing::tokens::Variable;
+using Number = parsing::tokens::Number;
 
 }
 
 using Tree = std::variant<std::monostate, node::Function, node::Variable, node::Number>;
 
 namespace node {
-struct Function: tokens::Text
+struct Function: parsing::tokens::Text
 {
-  Function(const tokens::Text& text, std::vector<Tree> subnodes)
-    : tokens::Text(text), subnodes(std::move(subnodes))
+  Function(const parsing::tokens::Text& text, std::vector<Tree> subnodes)
+    : parsing::tokens::Text(text), subnodes(std::move(subnodes))
   {}
 
   std::vector<Tree> subnodes;
@@ -55,12 +55,13 @@ struct Function: tokens::Text
 }
 
 /// @brief makes a syntax tree from from a sequence of tokens
-tl::expected<ast::Tree, ParsingError> make_tree(std::span<const Token> tokens);
+tl::expected<ast::Tree, parsing::Error> make_tree(std::span<const parsing::Token> tokens);
 
-inline tokens::Text text_token(const ast::Tree& token)
+inline parsing::tokens::Text text_token(const ast::Tree& token)
 {
-  return std::visit(overloaded{[](const std::monostate&) -> tokens::Text { return tokens::Text(); },
-                               [](const auto& tk) -> tokens::Text { return tk; }},
+  return std::visit(overloaded{[](const std::monostate&) -> parsing::tokens::Text
+                               { return parsing::tokens::Text(); },
+                               [](const auto& tk) -> parsing::tokens::Text { return tk; }},
                     token);
 }
 

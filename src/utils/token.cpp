@@ -1,7 +1,7 @@
 #include <stdexcept>
 #include <sstream>
 
-#include <zecalculator/utils/token.h>
+#include <zecalculator/parsing/token.h>
 
 namespace zc {
 

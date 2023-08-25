@@ -6,6 +6,7 @@
 
 namespace zc {
 
+namespace parsing {
 namespace tokens {
 
 std::ostream& operator<<(std::ostream& os, const tokens::Text& txt_token)
@@ -20,6 +21,17 @@ std::ostream &operator<<(std::ostream &os, const Token &token)
 {
   os << static_cast<const TokenType&>(token);
   return os;
+}
+
+std::ostream& operator << (std::ostream& os, const Error& err)
+{
+  os << magic_enum::enum_name(err.error_type)
+     << " at "
+     << err.token;
+
+  return os;
+}
+
 }
 
 namespace ast {
@@ -54,15 +66,6 @@ std::ostream &operator<<(std::ostream &os, const Tree &node) {
   return os;
 }
 
-}
-
-std::ostream& operator << (std::ostream& os, const ParsingError& err)
-{
-  os << magic_enum::enum_name(err.error_type)
-     << " at "
-     << err.token;
-
-  return os;
 }
 
 namespace eval {

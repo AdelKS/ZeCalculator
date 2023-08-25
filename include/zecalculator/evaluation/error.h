@@ -26,7 +26,7 @@
 #include <cassert>
 
 #include <zecalculator/tree.h>
-#include <zecalculator/utils/token.h>
+#include <zecalculator/parsing/token.h>
 
 namespace zc {
 namespace eval {
@@ -54,17 +54,17 @@ struct Error
     return Error {UNKNOWN};
   }
 
-  static Error undefined_variable(tokens::Text tokenTxt)
+  static Error undefined_variable(parsing::tokens::Text tokenTxt)
   {
     return Error {UNDEFINED_VARIABLE, tokenTxt};
   }
 
-  static Error undefined_function(tokens::Text tokenTxt)
+  static Error undefined_function(parsing::tokens::Text tokenTxt)
   {
     return Error {UNDEFINED_FUNCTION, tokenTxt};
   }
 
-  static Error mismatched_fun_args(tokens::Text tokenTxt)
+  static Error mismatched_fun_args(parsing::tokens::Text tokenTxt)
   {
     return Error {CALLING_FUN_ARG_COUNT_MISMATCH, tokenTxt};
   }
@@ -74,7 +74,7 @@ struct Error
     return Error {CALLED_FUN_ARG_COUNT_MISMATCH};
   }
 
-  static Error not_implemented(tokens::Text tokenTxt)
+  static Error not_implemented(parsing::tokens::Text tokenTxt)
   {
     return Error {NOT_IMPLEMENTED, tokenTxt};
   }
@@ -89,7 +89,7 @@ struct Error
     return Error {INVALID_FUNCTION};
   }
 
-  static Error calling_invalid_function(tokens::Text tokenTxt)
+  static Error calling_invalid_function(parsing::tokens::Text tokenTxt)
   {
     return Error {CALLING_INVALID_FUNCTION, tokenTxt};
   }
@@ -99,7 +99,7 @@ struct Error
     return Error{RECURSION_DEPTH_OVERFLOW};
   }
 
-  static Error wrong_object_type(tokens::Text tokenTxt)
+  static Error wrong_object_type(parsing::tokens::Text tokenTxt)
   {
     return Error {WRONG_OBJECT_TYPE, tokenTxt};
   }
@@ -108,7 +108,7 @@ struct Error
   Type error_type = UNKNOWN;
 
   // on what token
-  tokens::Text token = {};
+  parsing::tokens::Text token = {};
 
   bool operator == (const Error& other) const = default;
 };

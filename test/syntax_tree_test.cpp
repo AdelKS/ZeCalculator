@@ -26,6 +26,7 @@
 
 using namespace zc;
 using namespace zc::ast;
+using namespace zc::parsing;
 
 int main()
 {

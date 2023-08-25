@@ -18,13 +18,14 @@
 **
 ****************************************************************************/
 
-#include <zecalculator/utils/parser.h>
+#include <zecalculator/parsing/parser.h>
 
 // testing specific headers
 #include <boost/ut.hpp>
 #include <zecalculator/test-utils/print-utils.h>
 
 using namespace zc;
+using namespace zc::parsing;
 
 int main()
 {
@@ -35,7 +36,7 @@ int main()
     auto parsing = parse("        ");
 
     expect(not bool(parsing)
-           and parsing.error() == ParsingError::unexpected(tokens::EndOfExpression("", SubstrInfo{8, 0})))
+           and parsing.error() == Error::unexpected(tokens::EndOfExpression("", SubstrInfo{8, 0})))
       << parsing;
   };
 
@@ -103,7 +104,7 @@ int main()
     auto parsing = parse("2*-1");
 
     expect(not parsing and
-           parsing.error() == ParsingError::unexpected(tokens::Operator('-', 2)))
+           parsing.error() == Error::unexpected(tokens::Operator('-', 2)))
         << parsing;
   };
 
@@ -112,7 +113,7 @@ int main()
     auto parsing = parse("2+2)");
 
     expect(not parsing and
-           parsing.error() == ParsingError::unexpected(tokens::ClosingParenthesis(")", 3, 1)));
+           parsing.error() == Error::unexpected(tokens::ClosingParenthesis(")", 3, 1)));
   };
 
   "floating point operations"_test = []()
@@ -183,7 +184,7 @@ int main()
 
     expect(not bool(parsing)) << parsing;
 
-    expect(parsing.error() == ParsingError::missing(tokens::FunctionCallEnd("", SubstrInfo{7, 0}))) << parsing.error();
+    expect(parsing.error() == Error::missing(tokens::FunctionCallEnd("", SubstrInfo{7, 0}))) << parsing.error();
   };
 
   "missing normal closing pth"_test = []()
@@ -193,7 +194,7 @@ int main()
 
     expect(not bool(parsing)) << parsing;
 
-    expect(parsing.error() == ParsingError::missing(tokens::ClosingParenthesis("", SubstrInfo{9, 0}))) << parsing.error();
+    expect(parsing.error() == Error::missing(tokens::ClosingParenthesis("", SubstrInfo{9, 0}))) << parsing.error();
   };
 
   "unexpected end of expression"_test = []()
@@ -203,7 +204,7 @@ int main()
 
     expect(not bool(parsing)) << parsing;
 
-    expect(parsing.error() == ParsingError::unexpected(tokens::EndOfExpression("", SubstrInfo{2, 0})))
+    expect(parsing.error() == Error::unexpected(tokens::EndOfExpression("", SubstrInfo{2, 0})))
       << parsing.error();
   };
 

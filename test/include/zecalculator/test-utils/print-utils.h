@@ -3,8 +3,8 @@
 #include <ostream>
 
 #include <boost/ut.hpp>
-#include <zecalculator/utils/token.h>
-#include <zecalculator/utils/parsing_error.h>
+#include <zecalculator/parsing/token.h>
+#include <zecalculator/parsing/error.h>
 #include <zecalculator/tree.h>
 #include <zecalculator/evaluation/error.h>
 
@@ -45,21 +45,10 @@ std::ostream& operator << (std::ostream& os, const std::variant<T...>& var)
 }
 
 namespace zc {
+namespace parsing {
 
 std::ostream& operator << (std::ostream& os, const Token& token);
-std::ostream& operator << (std::ostream& os, const ParsingError& err);
-
-namespace ast {
-
-std::ostream& operator << (std::ostream& os, const Tree& node);
-
-}
-
-namespace eval {
-
 std::ostream& operator << (std::ostream& os, const Error& err);
-
-}
 
 namespace tokens {
 
@@ -83,6 +72,20 @@ std::ostream& operator<<(std::ostream& os, const Tok& token)
   os << boost::ut::reflection::type_name<Tok>() << " " << static_cast<const tokens::Text&>(token);
   return os;
 }
+
+}
+
+}
+
+namespace ast {
+
+std::ostream& operator << (std::ostream& os, const Tree& node);
+
+}
+
+namespace eval {
+
+std::ostream& operator << (std::ostream& os, const Error& err);
 
 }
 

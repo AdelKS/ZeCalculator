@@ -87,7 +87,7 @@ public:
   ///       with positional arguments
   void set_input_vars(std::vector<std::string> input_vars)
   {
-    auto it = std::ranges::find_if_not(input_vars, is_valid_name);
+    auto it = std::ranges::find_if_not(input_vars, parsing::is_valid_name);
     if (it != input_vars.end())
       vars = tl::unexpected(InvalidInputVar{*it});
     else vars = std::move(input_vars);
@@ -107,7 +107,7 @@ public:
     else
     {
       // workaround limitation in tl::expected when using and_then to implicitly converted-to types
-      const auto parsing = parse(expression);
+      const auto parsing = parsing::parse(expression);
       if (parsing)
         tree = make_tree(parsing.value());
       else tree = tl::unexpected(parsing.error());
@@ -132,7 +132,7 @@ public:
   struct Ok {};
   struct Empty {};
 
-  std::variant<Ok, Empty, ParsingError> parsing_status() const
+  std::variant<Ok, Empty, parsing::Error> parsing_status() const
   {
     if (not tree.has_value())
       return tree.error();
@@ -141,7 +141,7 @@ public:
     else return Ok();
   }
 
-  const tl::expected<ast::Tree, ParsingError>& get_tree() const { return tree; }
+  const tl::expected<ast::Tree, parsing::Error>& get_tree() const { return tree; }
 
   /// @brief evaluation on a given math world with the given input
   tl::expected<double, eval::Error> evaluate(const std::vector<double>& args,
@@ -171,7 +171,7 @@ protected:
 
   std::string expression;
 
-  tl::expected<ast::Tree, ParsingError> tree;
+  tl::expected<ast::Tree, parsing::Error> tree;
   tl::expected<std::vector<std::string>, InvalidInputVar> vars;
 
 };
