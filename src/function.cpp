@@ -18,7 +18,7 @@
 **
 ****************************************************************************/
 
-#include <zecalculator/function.h>
+#include <zecalculator/math_objects/function.h>
 #include <zecalculator/mathworld.h>
 #include <zecalculator/evaluation/ast/evaluation.h>
 

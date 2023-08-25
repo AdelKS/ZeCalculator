@@ -27,11 +27,11 @@
 #include <optional>
 #include <iostream>
 
-#include <zecalculator/builtin_binary_functions.h>
-#include <zecalculator/builtin_unary_functions.h>
 #include <zecalculator/evaluation/error.h>
 #include <zecalculator/external/expected.h>
-#include <zecalculator/global_constant.h>
+#include <zecalculator/math_objects/builtin_binary_functions.h>
+#include <zecalculator/math_objects/builtin_unary_functions.h>
+#include <zecalculator/math_objects/global_constant.h>
 #include <zecalculator/parsing/parser.h>
 #include <zecalculator/utils/name_map.h>
 

@@ -1,4 +1,4 @@
-#include <zecalculator/sequence.h>
+#include <zecalculator/math_objects/sequence.h>
 
 namespace zc {
 

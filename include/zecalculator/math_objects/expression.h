@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include <zecalculator/function.h>
+#include <zecalculator/math_objects/function.h>
 
 /* TODO: update approach as the following:
    - Check for validity
