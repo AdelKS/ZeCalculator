@@ -3,7 +3,6 @@ if not meson.is_subproject()
     files(
       'error.h',
       'parser.h',
-      'token.h',
     ),
     subdir: 'zecalculator',
     preserve_path: true

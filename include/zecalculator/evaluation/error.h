@@ -26,7 +26,7 @@
 #include <cassert>
 
 #include <zecalculator/parsing/data_structures/tree.h>
-#include <zecalculator/parsing/token.h>
+#include <zecalculator/parsing/data_structures/token.h>
 
 namespace zc {
 namespace eval {

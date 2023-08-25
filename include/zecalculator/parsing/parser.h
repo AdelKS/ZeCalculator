@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include <zecalculator/parsing/token.h>
+#include <zecalculator/parsing/data_structures/token.h>
 #include <zecalculator/parsing/error.h>
 
 /* TODO: update approach as the following:
