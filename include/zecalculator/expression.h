@@ -30,6 +30,10 @@
 
 namespace zc {
 
+namespace eval {
+  struct Variable;
+}
+
 /// @brief a class that represents a general expression
 /// @note  an expression is a function that does not have any input
 class Expression: public Function
@@ -42,28 +46,28 @@ public:
     set_expression(expr);
   }
 
-  tl::expected<double, EvaluationError> evaluate(const MathWorld& world) const
+  tl::expected<double, eval::Error> evaluate(const MathWorld& world) const
   {
     return Function::evaluate({}, world);
   }
 
-  tl::expected<double, EvaluationError> operator ()(const MathWorld& world) const
+  tl::expected<double, eval::Error> operator ()(const MathWorld& world) const
   {
     return Function::evaluate({}, world);
   }
 
 protected:
-  tl::expected<double, EvaluationError> evaluate(const MathWorld& world, size_t current_recursion_depth) const
+  tl::expected<double, eval::Error> evaluate(const MathWorld& world, size_t current_recursion_depth) const
   {
     return Function::evaluate({}, world, current_recursion_depth);
   }
 
-  friend tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree,
-                                                      const name_map<double>& input_vars,
-                                                      const MathWorld& world,
-                                                      size_t current_recursion_depth);
+  friend tl::expected<double, eval::Error> evaluate(const SyntaxTree& tree,
+                                                    const name_map<double>& input_vars,
+                                                    const MathWorld& world,
+                                                    size_t current_recursion_depth);
 
-  friend struct VariableEvaluator;
+  friend struct eval::Variable;
 
   // hide functions that are not needed from Function
   using Function::evaluate;

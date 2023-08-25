@@ -24,16 +24,16 @@
 
 namespace zc {
 
-tl::expected<double, EvaluationError> Function::evaluate(const std::vector<double>& args,
+tl::expected<double, eval::Error> Function::evaluate(const std::vector<double>& args,
                                                          const MathWorld& world,
                                                          size_t current_recursion_depth) const
 {
   if (not bool(*this)) [[unlikely]]
-    return tl::unexpected(EvaluationError::invalid_function());
+    return tl::unexpected(eval::Error::invalid_function());
   else if (std::holds_alternative<std::monostate>(tree.value())) [[unlikely]]
-    return tl::unexpected(EvaluationError::empty_expression());
+    return tl::unexpected(eval::Error::empty_expression());
   else if (args.size() != vars->size()) [[unlikely]]
-    return tl::unexpected(EvaluationError::mismatched_fun_args());
+    return tl::unexpected(eval::Error::mismatched_fun_args());
 
   // make a keyword argument list out of the positional arguments
   // note: this overhead will be improved when we bind expressions to math worlds
@@ -44,14 +44,14 @@ tl::expected<double, EvaluationError> Function::evaluate(const std::vector<doubl
   return zc::evaluate(*tree, var_vals, world, current_recursion_depth);
 }
 
-tl::expected<double, EvaluationError> Function::evaluate(const std::vector<double>& args,
+tl::expected<double, eval::Error> Function::evaluate(const std::vector<double>& args,
                                                          const MathWorld& world) const
 {
   // this function is user called, so the recursion depth is zero
   return evaluate(args, world, 0);
 }
 
-tl::expected<double, EvaluationError> Function::operator () (const std::vector<double>& args,
+tl::expected<double, eval::Error> Function::operator () (const std::vector<double>& args,
                                                              const MathWorld& world) const
 {
   return evaluate(args, world, 0);

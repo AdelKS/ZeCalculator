@@ -29,8 +29,9 @@
 #include <zecalculator/utils/token.h>
 
 namespace zc {
+namespace eval {
 
-struct EvaluationError
+struct Error
 {
   // type of error
   enum Type : uint8_t
@@ -48,59 +49,59 @@ struct EvaluationError
     WRONG_OBJECT_TYPE, // object has been used as a different type as it actually is, example "2+cos" (where cos is a function used here as variable)
   };
 
-  static EvaluationError unkown()
+  static Error unkown()
   {
-    return EvaluationError {UNKNOWN};
+    return Error {UNKNOWN};
   }
 
-  static EvaluationError undefined_variable(tokens::Text tokenTxt)
+  static Error undefined_variable(tokens::Text tokenTxt)
   {
-    return EvaluationError {UNDEFINED_VARIABLE, tokenTxt};
+    return Error {UNDEFINED_VARIABLE, tokenTxt};
   }
 
-  static EvaluationError undefined_function(tokens::Text tokenTxt)
+  static Error undefined_function(tokens::Text tokenTxt)
   {
-    return EvaluationError {UNDEFINED_FUNCTION, tokenTxt};
+    return Error {UNDEFINED_FUNCTION, tokenTxt};
   }
 
-  static EvaluationError mismatched_fun_args(tokens::Text tokenTxt)
+  static Error mismatched_fun_args(tokens::Text tokenTxt)
   {
-    return EvaluationError {CALLING_FUN_ARG_COUNT_MISMATCH, tokenTxt};
+    return Error {CALLING_FUN_ARG_COUNT_MISMATCH, tokenTxt};
   }
 
-  static EvaluationError mismatched_fun_args()
+  static Error mismatched_fun_args()
   {
-    return EvaluationError {CALLED_FUN_ARG_COUNT_MISMATCH};
+    return Error {CALLED_FUN_ARG_COUNT_MISMATCH};
   }
 
-  static EvaluationError not_implemented(tokens::Text tokenTxt)
+  static Error not_implemented(tokens::Text tokenTxt)
   {
-    return EvaluationError {NOT_IMPLEMENTED, tokenTxt};
+    return Error {NOT_IMPLEMENTED, tokenTxt};
   }
 
-  static EvaluationError empty_expression()
+  static Error empty_expression()
   {
-    return EvaluationError {EMPTY_EXPRESSION};
+    return Error {EMPTY_EXPRESSION};
   }
 
-  static EvaluationError invalid_function()
+  static Error invalid_function()
   {
-    return EvaluationError {INVALID_FUNCTION};
+    return Error {INVALID_FUNCTION};
   }
 
-  static EvaluationError calling_invalid_function(tokens::Text tokenTxt)
+  static Error calling_invalid_function(tokens::Text tokenTxt)
   {
-    return EvaluationError {CALLING_INVALID_FUNCTION, tokenTxt};
+    return Error {CALLING_INVALID_FUNCTION, tokenTxt};
   }
 
-  static EvaluationError recursion_depth_overflow()
+  static Error recursion_depth_overflow()
   {
-    return EvaluationError{RECURSION_DEPTH_OVERFLOW};
+    return Error{RECURSION_DEPTH_OVERFLOW};
   }
 
-  static EvaluationError wrong_object_type(tokens::Text tokenTxt)
+  static Error wrong_object_type(tokens::Text tokenTxt)
   {
-    return EvaluationError {WRONG_OBJECT_TYPE, tokenTxt};
+    return Error {WRONG_OBJECT_TYPE, tokenTxt};
   }
 
   // kind of error
@@ -109,7 +110,8 @@ struct EvaluationError
   // on what token
   tokens::Text token = {};
 
-  bool operator == (const EvaluationError& other) const = default;
+  bool operator == (const Error& other) const = default;
 };
 
+}
 }

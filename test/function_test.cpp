@@ -184,7 +184,7 @@ int main()
     auto expr = world.add("val", Expression("1 + f(1)")).value();
 
     expect(expr()
-           == tl::unexpected(EvaluationError::mismatched_fun_args(
+           == tl::unexpected(eval::Error::mismatched_fun_args(
              FunctionNode(tokens::Text("f", 4, 1), {NumberNode(1.0, tokens::Text("1", 6, 1))}))))
       << expr();
   };

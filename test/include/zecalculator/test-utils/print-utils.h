@@ -52,7 +52,11 @@ std::ostream& operator << (std::ostream& os, const SyntaxTree& node);
 
 std::ostream& operator << (std::ostream& os, const ParsingError& err);
 
-std::ostream& operator << (std::ostream& os, const EvaluationError& err);
+namespace eval {
+
+std::ostream& operator << (std::ostream& os, const Error& err);
+
+}
 
 namespace tokens {
 

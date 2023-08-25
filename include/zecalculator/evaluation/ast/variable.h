@@ -4,18 +4,19 @@
 #include <zecalculator/evaluation/error.h>
 
 namespace zc {
+namespace eval {
 
-struct VariableEvaluator
+struct Variable
 {
   const MathWorld& world;
   const VariableNode& node;
   const size_t current_recursion_depth;
 
-  using ReturnType = tl::expected<double, EvaluationError>;
+  using ReturnType = tl::expected<double, Error>;
 
   ReturnType operator () (MathWorld::UnregisteredObject)
   {
-    return tl::unexpected(EvaluationError::undefined_variable(node));
+    return tl::unexpected(Error::undefined_variable(node));
   }
 
   ReturnType operator () (const MathWorld::ConstMathObject<GlobalConstant>& global_constant)
@@ -30,8 +31,9 @@ struct VariableEvaluator
 
   ReturnType operator () (const auto&)
   {
-    return tl::unexpected(EvaluationError::wrong_object_type(node));
+    return tl::unexpected(Error::wrong_object_type(node));
   }
 };
 
+}
 }

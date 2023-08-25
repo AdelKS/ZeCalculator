@@ -30,6 +30,10 @@
 
 namespace zc {
 
+namespace eval{
+  struct Function;
+}
+
 /// @brief a class that represents a Sequence of single argument
 class Sequence: public Function
 {
@@ -70,24 +74,24 @@ public:
   /// @brief evaluates the sequence at the given index
   /// @note evaluation modifies the state of the sequence, as values get saved within
   ///       the instance, and a locking mechanism is triggered to detect ill-formed seqs
-  tl::expected<double, EvaluationError> evaluate(double index, const MathWorld& world) const;
+  tl::expected<double, eval::Error> evaluate(double index, const MathWorld& world) const;
 
   /// @brief operator version of evaluate
-  tl::expected<double, EvaluationError> operator () (double index, const MathWorld& world) const;
+  tl::expected<double, eval::Error> operator () (double index, const MathWorld& world) const;
 
 protected:
 
   /// @brief evaluation with recursion depth tracking
-  tl::expected<double, EvaluationError> evaluate(double index,
-                                                 const MathWorld& world,
-                                                 size_t current_recursion_depth) const;
+  tl::expected<double, eval::Error> evaluate(double index,
+                                             const MathWorld& world,
+                                             size_t current_recursion_depth) const;
 
-  friend tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree,
-                                                        const name_map<double>& input_vars,
-                                                        const MathWorld& world,
-                                                        size_t current_recursion_depth);
+  friend tl::expected<double, eval::Error> evaluate(const SyntaxTree& tree,
+                                                    const name_map<double>& input_vars,
+                                                    const MathWorld& world,
+                                                    size_t current_recursion_depth);
 
-  friend struct FunctionEvaluator;
+  friend struct eval::Function;
 
   // hide functions that are not needed from Function
   using Function::evaluate;

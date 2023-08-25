@@ -2,7 +2,7 @@
 
 namespace zc {
 
-tl::expected<double, EvaluationError> Sequence::evaluate(double index,
+tl::expected<double, eval::Error> Sequence::evaluate(double index,
                                                          const MathWorld& world,
                                                          size_t current_recursion_depth) const
 {
@@ -16,12 +16,12 @@ tl::expected<double, EvaluationError> Sequence::evaluate(double index,
   else return Function::evaluate({double(integer_index)}, world, current_recursion_depth);
 }
 
-tl::expected<double, EvaluationError> Sequence::evaluate(double index, const MathWorld& world) const
+tl::expected<double, eval::Error> Sequence::evaluate(double index, const MathWorld& world) const
 {
   return evaluate(index, world, 0);
 }
 
-tl::expected<double, EvaluationError> Sequence::operator ()(double index, const MathWorld& world) const
+tl::expected<double, eval::Error> Sequence::operator ()(double index, const MathWorld& world) const
 {
   return evaluate(index, world);
 }

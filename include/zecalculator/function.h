@@ -54,6 +54,10 @@ class MathWorldT;
 
 using MathWorld = MathWorldT<CppUnaryFunction, CppBinaryFunction, GlobalConstant, Function, GlobalVariable, Sequence>;
 
+namespace eval{
+  struct Function;
+}
+
 class Function
 {
 public:
@@ -140,28 +144,28 @@ public:
   const tl::expected<SyntaxTree, ParsingError>& get_tree() const { return tree; }
 
   /// @brief evaluation on a given math world with the given input
-  tl::expected<double, EvaluationError> evaluate(const std::vector<double>& args,
+  tl::expected<double, eval::Error> evaluate(const std::vector<double>& args,
                                                  const MathWorld& world) const;
 
   /// @brief evaluation on a given math world with the given input
   /// @note operator style
-  tl::expected<double, EvaluationError> operator () (const std::vector<double>& args,
+  tl::expected<double, eval::Error> operator () (const std::vector<double>& args,
                                                      const MathWorld& world) const;
 
 protected:
 
   /// @brief evaluation on a given math world with the given input
   /// @note version that tracks the current recursion depth
-  tl::expected<double, EvaluationError> evaluate(const std::vector<double>& args,
+  tl::expected<double, eval::Error> evaluate(const std::vector<double>& args,
                                                  const MathWorld& world,
                                                  size_t current_recursion_depth) const;
 
-  friend tl::expected<double, EvaluationError> evaluate(const SyntaxTree& tree,
-                                                        const name_map<double>& input_vars,
-                                                        const MathWorld& world,
-                                                        size_t current_recursion_depth);
+  friend tl::expected<double, eval::Error> evaluate(const SyntaxTree& tree,
+                                                    const name_map<double>& input_vars,
+                                                    const MathWorld& world,
+                                                    size_t current_recursion_depth);
 
-  friend struct FunctionEvaluator;
+  friend struct eval::Function;
 
   friend class Sequence;
 
