@@ -41,7 +41,7 @@ inline Function::ReturnType Function::operator()(const MathWorld::ConstMathObjec
   }
 }
 
-inline Function::ReturnType Function::operator()(const MathWorld::ConstMathObject<zc::Sequence>& sequence)
+inline Function::ReturnType Function::operator()(const MathWorld::ConstMathObject<zc::ast::Sequence>& sequence)
 {
   //              std::cout << "Evaluating zc function: " << node.name << std::endl;
   if (not bool(*sequence))

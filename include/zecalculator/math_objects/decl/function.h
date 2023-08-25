@@ -121,7 +121,7 @@ protected:
 
   friend struct eval::Function;
 
-  friend class Sequence;
+  friend class Sequence<type>;
 
   std::string expression;
 

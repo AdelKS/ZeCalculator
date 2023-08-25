@@ -35,8 +35,16 @@ namespace eval{
   struct Function;
 }
 
+template <parsing::Type>
+class Sequence;
+
+namespace ast {
+  using Sequence = zc::Sequence<parsing::Type::AST>;
+}
+
 /// @brief a class that represents a Sequence of single argument
-class Sequence: public zc::ast::Function
+template <parsing::Type type>
+class Sequence: public zc::Function<type>
 {
 public:
   explicit Sequence() = default;
@@ -79,8 +87,8 @@ protected:
   friend struct eval::Function;
 
   // hide functions that are not needed from Function
-  using Function::evaluate;
-  using Function::set_input_vars;
+  using Function<type>::evaluate;
+  using Function<type>::set_input_vars;
 
   // index of the first value
   int first_val_index = 0;

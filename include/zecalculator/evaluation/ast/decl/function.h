@@ -2,6 +2,7 @@
 
 #include <zecalculator/evaluation/error.h>
 #include <zecalculator/mathworld/mathworld.h>
+#include <zecalculator/math_objects/decl/sequence.h>
 
 namespace zc {
 namespace eval {
@@ -23,7 +24,7 @@ struct Function
 
   ReturnType operator()(const MathWorld::ConstMathObject<zc::ast::Function>& function);
 
-  ReturnType operator()(const MathWorld::ConstMathObject<zc::Sequence>& sequence);
+  ReturnType operator()(const MathWorld::ConstMathObject<zc::ast::Sequence>& sequence);
 
   ReturnType operator()(const auto&);
 };
