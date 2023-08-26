@@ -3,10 +3,10 @@
 /****************************************************************************
 **  Copyright (c) 2023, Adel Kara Slimane <adel.ks@zegrapher.com>
 **
-**  This file is part of ZeGrapher's source code.
+**  This file is part of ZeCalculator's source code.
 **
-**  ZeGrapher is free software: you may copy, redistribute and/or modify it
-**  under the terms of the GNU General Public License as published by the
+**  ZeCalculators is free software: you may copy, redistribute and/or modify it
+**  under the terms of the GNU Affero General Public License as published by the
 **  Free Software Foundation, either version 3 of the License, or (at your
 **  option) any later version.
 **
