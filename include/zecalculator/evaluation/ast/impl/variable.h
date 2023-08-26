@@ -26,20 +26,21 @@
 
 namespace zc {
 namespace eval {
+namespace ast {
 
-inline Variable::ReturnType Variable::operator()(ast::MathWorld::UnregisteredObject)
+inline Variable::ReturnType Variable::operator()(zc::ast::MathWorld::UnregisteredObject)
 {
   return tl::unexpected(Error::undefined_variable(node));
 }
 
 inline Variable::ReturnType
-  Variable::operator()(const ast::MathWorld::ConstMathObject<GlobalConstant>& global_constant)
+  Variable::operator()(const zc::ast::MathWorld::ConstMathObject<GlobalConstant>& global_constant)
 {
   return global_constant->value;
 }
 
 inline Variable::ReturnType
-  Variable::operator()(const ast::MathWorld::ConstMathObject<ast::GlobalVariable>& global_variable)
+  Variable::operator()(const zc::ast::MathWorld::ConstMathObject<zc::ast::GlobalVariable>& global_variable)
 {
   return global_variable->evaluate(world, current_recursion_depth + 1);
 }
@@ -49,5 +50,6 @@ inline Variable::ReturnType Variable::operator()(const auto&)
   return tl::unexpected(Error::wrong_object_type(node));
 }
 
+}
 }
 }

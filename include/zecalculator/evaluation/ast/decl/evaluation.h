@@ -29,12 +29,12 @@
 #include <zecalculator/utils/name_map.h>
 
 namespace zc {
-
 namespace eval {
+namespace ast {
 
 struct Node
 {
-  const ast::MathWorld& world;
+  const zc::ast::MathWorld& world;
   const name_map<double>& input_vars;
   const size_t current_recursion_depth = 0;
 
@@ -45,14 +45,15 @@ struct Node
 
   ReturnType operator () (std::monostate);
 
-  ReturnType operator () (const ast::node::Function& node);
+  ReturnType operator () (const zc::ast::node::Function& node);
 
-  ReturnType operator () (const ast::node::Variable& node);
+  ReturnType operator () (const zc::ast::node::Variable& node);
 
-  ReturnType operator () (const ast::node::Number& node);
+  ReturnType operator () (const zc::ast::node::Number& node);
 
 };
 
+}
 }
 
 /// @brief evaluates a syntax tree using a given math world

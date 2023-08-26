@@ -32,7 +32,9 @@
 namespace zc {
 
 namespace eval {
+namespace ast {
   struct Variable;
+}
 }
 
 template <parsing::Type>
@@ -68,7 +70,7 @@ protected:
                                                     const MathWorld<parsing::AST>& world,
                                                     size_t current_recursion_depth);
 
-  friend struct eval::Variable;
+  friend struct eval::ast::Variable;
 
   // hide functions that are not needed from Function
   using Function<type>::evaluate;

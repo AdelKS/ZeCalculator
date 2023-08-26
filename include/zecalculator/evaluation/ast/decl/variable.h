@@ -26,23 +26,25 @@
 
 namespace zc {
 namespace eval {
+namespace ast {
 
 struct Variable
 {
-  const ast::MathWorld& world;
-  const ast::node::Variable& node;
+  const zc::ast::MathWorld& world;
+  const zc::ast::node::Variable& node;
   const size_t current_recursion_depth;
 
   using ReturnType = tl::expected<double, Error>;
 
-  ReturnType operator () (ast::MathWorld::UnregisteredObject);
+  ReturnType operator () (zc::ast::MathWorld::UnregisteredObject);
 
-  ReturnType operator () (const ast::MathWorld::ConstMathObject<GlobalConstant>& global_constant);
+  ReturnType operator () (const zc::ast::MathWorld::ConstMathObject<GlobalConstant>& global_constant);
 
-  ReturnType operator () (const ast::MathWorld::ConstMathObject<ast::GlobalVariable>& global_variable);
+  ReturnType operator () (const zc::ast::MathWorld::ConstMathObject<zc::ast::GlobalVariable>& global_variable);
 
   ReturnType operator () (const auto&);
 };
 
+}
 }
 }

@@ -26,13 +26,15 @@
 
 namespace zc {
 namespace eval {
+namespace ast {
 
-inline Function::ReturnType Function::operator () (ast::MathWorld::UnregisteredObject)
+inline Function::ReturnType Function::operator()(zc::ast::MathWorld::UnregisteredObject)
 {
   return tl::unexpected(Error::undefined_function(node));
 }
 
-inline Function::ReturnType Function::operator () (const ast::MathWorld::ConstMathObject<CppUnaryFunction>& function)
+inline Function::ReturnType
+  Function::operator()(const zc::ast::MathWorld::ConstMathObject<CppUnaryFunction>& function)
 {
   if (evaluations.size() != 1)
     return tl::unexpected(Error::mismatched_fun_args(node));
@@ -40,7 +42,8 @@ inline Function::ReturnType Function::operator () (const ast::MathWorld::ConstMa
     return (*function)(evaluations.front());
 }
 
-inline Function::ReturnType Function::operator () (const ast::MathWorld::ConstMathObject<CppBinaryFunction>& function)
+inline Function::ReturnType
+  Function::operator()(const zc::ast::MathWorld::ConstMathObject<CppBinaryFunction>& function)
 {
   if (evaluations.size() != 2)
     return tl::unexpected(Error::mismatched_fun_args(node));
@@ -48,7 +51,8 @@ inline Function::ReturnType Function::operator () (const ast::MathWorld::ConstMa
     return (*function)(evaluations.front(), evaluations.back());
 }
 
-inline Function::ReturnType Function::operator()(const ast::MathWorld::ConstMathObject<zc::ast::Function>& function)
+inline Function::ReturnType
+  Function::operator()(const zc::ast::MathWorld::ConstMathObject<zc::ast::Function>& function)
 {
   //              std::cout << "Evaluating zc function: " << node.name << std::endl;
   if (not bool(*function))
@@ -61,7 +65,8 @@ inline Function::ReturnType Function::operator()(const ast::MathWorld::ConstMath
   }
 }
 
-inline Function::ReturnType Function::operator()(const ast::MathWorld::ConstMathObject<zc::ast::Sequence>& sequence)
+inline Function::ReturnType
+  Function::operator()(const zc::ast::MathWorld::ConstMathObject<zc::ast::Sequence>& sequence)
 {
   //              std::cout << "Evaluating zc function: " << node.name << std::endl;
   if (not bool(*sequence))
@@ -80,5 +85,6 @@ inline Function::ReturnType Function::operator()(const auto&)
   return tl::unexpected(Error::wrong_object_type(node));
 }
 
+}
 }
 }

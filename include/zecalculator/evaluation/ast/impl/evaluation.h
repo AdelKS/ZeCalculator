@@ -27,14 +27,14 @@
 
 namespace zc {
 namespace eval {
-
+namespace ast {
 
 inline Node::ReturnType Node::operator () (std::monostate)
 {
   return tl::unexpected(Error::empty_expression());
 }
 
-inline Node::ReturnType Node::operator () (const ast::node::Function& node)
+inline Node::ReturnType Node::operator () (const zc::ast::node::Function& node)
 {
   if (world.max_recursion_depth < current_recursion_depth)
     return tl::unexpected(Error::recursion_depth_overflow());
@@ -58,7 +58,7 @@ inline Node::ReturnType Node::operator () (const ast::node::Function& node)
                     math_obj);
 }
 
-inline Node::ReturnType Node::operator () (const ast::node::Variable& node)
+inline Node::ReturnType Node::operator () (const zc::ast::node::Variable& node)
 {
   auto it = input_vars.find(node.name);
   if (it != input_vars.end())
@@ -74,11 +74,12 @@ inline Node::ReturnType Node::operator () (const ast::node::Variable& node)
   }
 }
 
-inline Node::ReturnType Node::operator () (const ast::node::Number& node)
+inline Node::ReturnType Node::operator () (const zc::ast::node::Number& node)
 {
   return node.value;
 }
 
+}
 }
 
 /// @brief evaluates a syntax tree using a given math world
@@ -90,7 +91,7 @@ inline tl::expected<double, eval::Error> evaluate(const ast::Tree& tree,
                                                   const ast::MathWorld& world,
                                                   size_t current_recursion_depth)
 {
-  return std::visit(eval::Node{.world = world,
+  return std::visit(eval::ast::Node{.world = world,
                                .input_vars = input_vars,
                                .current_recursion_depth = current_recursion_depth},
                     tree);
@@ -101,7 +102,7 @@ inline tl::expected<double, eval::Error> evaluate(const ast::Tree& tree,
                                                   const name_map<double>& input_vars,
                                                   const ast::MathWorld& world)
 {
-  return std::visit(eval::Node{.world = world, .input_vars = input_vars}, tree);
+  return std::visit(eval::ast::Node{.world = world, .input_vars = input_vars}, tree);
 }
 
 /// @brief evaluates a syntax tree using a given math world

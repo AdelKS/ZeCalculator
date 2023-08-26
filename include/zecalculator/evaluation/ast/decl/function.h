@@ -26,28 +26,30 @@
 
 namespace zc {
 namespace eval {
+namespace ast {
 
 struct Function
 {
-  const ast::MathWorld& world;
-  const ast::node::Function& node;
+  const zc::ast::MathWorld& world;
+  const zc::ast::node::Function& node;
   const std::vector<double>& evaluations;
   const size_t current_recursion_depth;
 
   using ReturnType = tl::expected<double, Error>;
 
-  ReturnType operator () (ast::MathWorld::UnregisteredObject);
+  ReturnType operator () (zc::ast::MathWorld::UnregisteredObject);
 
-  ReturnType operator () (const ast::MathWorld::ConstMathObject<CppUnaryFunction>& function);
+  ReturnType operator () (const zc::ast::MathWorld::ConstMathObject<CppUnaryFunction>& function);
 
-  ReturnType operator () (const ast::MathWorld::ConstMathObject<CppBinaryFunction>& function);
+  ReturnType operator () (const zc::ast::MathWorld::ConstMathObject<CppBinaryFunction>& function);
 
-  ReturnType operator()(const ast::MathWorld::ConstMathObject<zc::ast::Function>& function);
+  ReturnType operator()(const zc::ast::MathWorld::ConstMathObject<zc::ast::Function>& function);
 
-  ReturnType operator()(const ast::MathWorld::ConstMathObject<zc::ast::Sequence>& sequence);
+  ReturnType operator()(const zc::ast::MathWorld::ConstMathObject<zc::ast::Sequence>& sequence);
 
   ReturnType operator()(const auto&);
 };
 
+}
 }
 }
