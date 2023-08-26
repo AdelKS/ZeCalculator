@@ -24,6 +24,7 @@
 #include <zecalculator/parsing/parser.h>
 
 #include <zecalculator/evaluation/ast/evaluation.h>
+#include <zecalculator/evaluation/rpn/evaluation.h>
 
 namespace zc {
 

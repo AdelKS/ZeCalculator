@@ -35,6 +35,9 @@ namespace eval {
 namespace ast {
   struct Variable;
 }
+namespace rpn {
+  struct Variable;
+}
 }
 
 template <parsing::Type>
@@ -67,10 +70,16 @@ protected:
 
   friend tl::expected<double, eval::Error> evaluate(const ast::Tree& tree,
                                                     const name_map<double>& input_vars,
-                                                    const MathWorld<parsing::AST>& world,
+                                                    const ast::MathWorld& world,
+                                                    size_t current_recursion_depth);
+
+  friend tl::expected<double, eval::Error> evaluate(const rpn::RPN& tree,
+                                                    const name_map<double>& input_vars,
+                                                    const rpn::MathWorld& world,
                                                     size_t current_recursion_depth);
 
   friend struct eval::ast::Variable;
+  friend struct eval::rpn::Variable;
 
   // hide functions that are not needed from Function
   using Function<type>::evaluate;
