@@ -125,7 +125,7 @@ protected:
 
   std::string expression;
 
-  tl::expected<ast::Tree, parsing::Error> tree;
+  tl::expected<ast::Tree, parsing::Error> parsed_expr;
   tl::expected<std::vector<std::string>, InvalidInputVar> vars;
 
 };

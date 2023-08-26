@@ -52,14 +52,14 @@ void Function<type>::set_expression(std::string expr)
   expression = std::move(expr);
 
   if (expression.empty())
-    tree = std::monostate();
+    parsed_expr = std::monostate();
   else
   {
     // workaround limitation in tl::expected when using and_then to implicitly converted-to types
     const auto parsing = parsing::tokenize(expression);
     if (parsing)
-      tree = make_tree(parsing.value());
-    else tree = tl::unexpected(parsing.error());
+      parsed_expr = make_tree(parsing.value());
+    else parsed_expr = tl::unexpected(parsing.error());
   }
 
 }
@@ -75,21 +75,21 @@ std::optional<size_t> Function<type>::argument_size() const
 template <parsing::Type type>
 Function<type>::operator bool () const
 {
-  return bool(tree) and (not std::holds_alternative<std::monostate>(tree.value())) and bool(vars);
+  return bool(parsed_expr) and (not std::holds_alternative<std::monostate>(parsed_expr.value())) and bool(vars);
 }
 
 template <parsing::Type type>
 std::variant<Ok, Empty, parsing::Error> Function<type>::parsing_status() const
 {
-  if (not tree.has_value())
-    return tree.error();
-  else if (std::holds_alternative<std::monostate>(tree.value()))
+  if (not parsed_expr.has_value())
+    return parsed_expr.error();
+  else if (std::holds_alternative<std::monostate>(parsed_expr.value()))
     return Empty();
   else return Ok();
 }
 
 template <parsing::Type type>
-const tl::expected<ast::Tree, parsing::Error>& Function<type>::get_tree() const { return tree; }
+const tl::expected<ast::Tree, parsing::Error>& Function<type>::get_tree() const { return parsed_expr; }
 
 template <parsing::Type type>
 tl::expected<double, eval::Error> Function<type>::evaluate(const std::vector<double>& args,
@@ -98,7 +98,7 @@ tl::expected<double, eval::Error> Function<type>::evaluate(const std::vector<dou
 {
   if (not bool(*this)) [[unlikely]]
     return tl::unexpected(eval::Error::invalid_function());
-  else if (std::holds_alternative<std::monostate>(tree.value())) [[unlikely]]
+  else if (std::holds_alternative<std::monostate>(parsed_expr.value())) [[unlikely]]
     return tl::unexpected(eval::Error::empty_expression());
   else if (args.size() != vars->size()) [[unlikely]]
     return tl::unexpected(eval::Error::mismatched_fun_args());
@@ -109,7 +109,7 @@ tl::expected<double, eval::Error> Function<type>::evaluate(const std::vector<dou
   for (size_t i = 0 ; i != vars->size() ; i++)
     var_vals[(*vars)[i]] = args[i];
 
-  return zc::evaluate(*tree, var_vals, world, current_recursion_depth);
+  return zc::evaluate(*parsed_expr, var_vals, world, current_recursion_depth);
 }
 
 template <parsing::Type type>
