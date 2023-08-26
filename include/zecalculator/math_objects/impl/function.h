@@ -21,6 +21,7 @@
 ****************************************************************************/
 
 #include <zecalculator/math_objects/decl/function.h>
+#include <zecalculator/parsing/parser.h>
 
 #include <zecalculator/evaluation/ast/evaluation.h>
 
@@ -52,16 +53,29 @@ void Function<type>::set_expression(std::string expr)
   expression = std::move(expr);
 
   if (expression.empty())
-    parsed_expr = std::monostate();
+  {
+    if constexpr (type == parsing::AST)
+      parsed_expr = std::monostate();
+    else parsed_expr = {std::monostate()};
+  }
   else
   {
     // workaround limitation in tl::expected when using and_then to implicitly converted-to types
-    const auto parsing = parsing::tokenize(expression);
-    if (parsing)
-      parsed_expr = make_tree(parsing.value());
-    else parsed_expr = tl::unexpected(parsing.error());
+    const auto tokens = parsing::tokenize(expression);
+    if (tokens)
+    {
+      if constexpr (type == parsing::AST)
+        parsed_expr = make_tree(tokens.value());
+      else
+      {
+        auto expected_tree = make_tree(tokens.value());
+        if (expected_tree)
+          parsed_expr = parsing::make_RPN(*expected_tree);
+        else parsed_expr = tl::unexpected(expected_tree.error());
+      }
+    }
+    else parsed_expr = tl::unexpected(tokens.error());
   }
-
 }
 
 template <parsing::Type type>
@@ -75,7 +89,9 @@ std::optional<size_t> Function<type>::argument_size() const
 template <parsing::Type type>
 Function<type>::operator bool () const
 {
-  return bool(parsed_expr) and (not std::holds_alternative<std::monostate>(parsed_expr.value())) and bool(vars);
+  if constexpr (type == parsing::AST)
+    return bool(parsed_expr) and (not std::holds_alternative<std::monostate>(parsed_expr.value())) and bool(vars);
+  else return bool(parsed_expr) and (not std::holds_alternative<std::monostate>(parsed_expr.value().front())) and bool(vars);
 }
 
 template <parsing::Type type>
@@ -89,7 +105,18 @@ std::variant<Ok, Empty, parsing::Error> Function<type>::parsing_status() const
 }
 
 template <parsing::Type type>
-const tl::expected<ast::Tree, parsing::Error>& Function<type>::get_tree() const { return parsed_expr; }
+const tl::expected<ast::Tree, parsing::Error>& Function<type>::get_tree() const
+  requires(type == parsing::AST)
+{
+  return parsed_expr;
+}
+
+template <parsing::Type type>
+const tl::expected<rpn::RPN, parsing::Error>& Function<type>::get_rpn() const
+  requires (type == parsing::RPN)
+{
+  return parsed_expr;
+}
 
 template <parsing::Type type>
 tl::expected<double, eval::Error> Function<type>::evaluate(const std::vector<double>& args,
@@ -98,10 +125,19 @@ tl::expected<double, eval::Error> Function<type>::evaluate(const std::vector<dou
 {
   if (not bool(*this)) [[unlikely]]
     return tl::unexpected(eval::Error::invalid_function());
-  else if (std::holds_alternative<std::monostate>(parsed_expr.value())) [[unlikely]]
-    return tl::unexpected(eval::Error::empty_expression());
   else if (args.size() != vars->size()) [[unlikely]]
     return tl::unexpected(eval::Error::mismatched_fun_args());
+
+  if constexpr (type == parsing::AST)
+  {
+    if (std::holds_alternative<std::monostate>(parsed_expr.value())) [[unlikely]]
+      return tl::unexpected(eval::Error::empty_expression());
+  }
+  else
+  {
+    if (std::holds_alternative<std::monostate>(parsed_expr.value().front())) [[unlikely]]
+      return tl::unexpected(eval::Error::empty_expression());
+  }
 
   // make a keyword argument list out of the positional arguments
   // note: this overhead will be improved when we bind expressions to math worlds

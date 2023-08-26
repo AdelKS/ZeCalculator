@@ -23,6 +23,7 @@
 #include <memory>
 #include <string>
 #include <string_view>
+#include <type_traits>
 #include <vector>
 #include <optional>
 #include <iostream>
@@ -95,7 +96,11 @@ public:
 
   std::variant<Ok, Empty, parsing::Error> parsing_status() const;
 
-  const tl::expected<ast::Tree, parsing::Error>& get_tree() const;
+  const tl::expected<ast::Tree, parsing::Error>& get_tree() const
+    requires (type == parsing::AST);
+
+  const tl::expected<rpn::RPN, parsing::Error>& get_rpn() const
+    requires (type == parsing::RPN);
 
   /// @brief evaluation on a given math world with the given input
   tl::expected<double, eval::Error> evaluate(const std::vector<double>& args,
@@ -125,7 +130,9 @@ protected:
 
   std::string expression;
 
-  tl::expected<ast::Tree, parsing::Error> parsed_expr;
+  using ParsingType = typename std::conditional_t<type == parsing::AST, ast::Tree, rpn::RPN>;
+
+  tl::expected<ParsingType, parsing::Error> parsed_expr;
   tl::expected<std::vector<std::string>, InvalidInputVar> vars;
 
 };
