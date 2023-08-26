@@ -23,6 +23,7 @@
 // testing specific headers
 #include <boost/ut.hpp>
 #include <zecalculator/test-utils/print-utils.h>
+#include <zecalculator/test-utils/structs.h>
 
 using namespace zc;
 
@@ -30,149 +31,135 @@ int main()
 {
   using namespace boost::ut;
 
-  "simple function evaluation"_test = []()
+  "simple function evaluation"_test = []<class StructType>()
   {
-    ast::MathWorld world;
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::AST : parsing::RPN;
 
-    auto parsing = parsing::tokenize("cos(2)");
+    MathWorld<type> world;
 
-    expect(bool(parsing)) << parsing;
+    auto expr = Expression<type>("cos(2)");
 
-    auto expect_node = make_tree(parsing.value());
+    expect(expr.evaluate(world).value() == std::cos(2.0));
 
-    expect(bool(expect_node));
+  } | std::tuple<AST_TEST, RPN_TEST>{};
 
-    expect(evaluate(expect_node.value(), world).value() == std::cos(2.0));
-  };
-
-  "simple expression evaluation"_test = []()
+  "simple expression evaluation"_test = []<class StructType>()
   {
-    ast::MathWorld world;
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::AST : parsing::RPN;
 
-    auto parsing = parsing::tokenize("2+2*2");
+    MathWorld<type> world;
 
-    expect(bool(parsing)) << parsing;
+    auto expr = Expression<type>("2+2*2");
 
-    auto expect_node = make_tree(parsing.value());
+    expect(expr.evaluate(world).value() == 6);
 
-    expect(bool(expect_node));
+  } | std::tuple<AST_TEST, RPN_TEST>{};
 
-    expect(evaluate(expect_node.value(), world).value() == 6);
-  };
-
-  "complex expression evaluation"_test = []()
+  "complex expression evaluation"_test = []<class StructType>()
   {
-    ast::MathWorld world;
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::AST : parsing::RPN;
 
-    auto parsing = parsing::tokenize("2/3+2*2*exp(2)^2.5");
+    MathWorld<type> world;
 
-    expect(bool(parsing)) << parsing;
+    auto expr = Expression<type>("2/3+2*2*exp(2)^2.5");
 
-    auto expect_node = make_tree(parsing.value());
-
-    expect(bool(expect_node));
-
-    const double res = evaluate(expect_node.value(), world).value();
+    const double res = expr.evaluate(world).value();
     const double expected_res = 2./3.+2.*2.*std::pow(std::exp(2.), 2.5);
 
     expect(res == expected_res);
-  };
 
-  "global constant expression evaluation"_test = []()
+  } | std::tuple<AST_TEST, RPN_TEST>{};
+
+  "global constant expression evaluation"_test = []<class StructType>()
   {
-    ast::MathWorld world;
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::AST : parsing::RPN;
 
-    auto parsing = parsing::tokenize("2*math::π + math::pi/2");
+    MathWorld<type> world;
 
-    expect(bool(parsing)) << parsing;
+    auto expr = Expression<type>("2*math::π + math::pi/2");
 
-    auto expect_node = make_tree(parsing.value());
-
-    expect(bool(expect_node));
-
-    const double res = evaluate(expect_node.value(), world).value();
+    const double res = expr.evaluate(world).value();
     const double expected_res = 2.5 * std::numbers::pi;
 
     expect(res == expected_res);
-  };
 
-  "global constant registering and evaluation"_test = []()
+  } | std::tuple<AST_TEST, RPN_TEST>{};
+
+  "global constant registering and evaluation"_test = []<class StructType>()
   {
-    ast::MathWorld world;
-    world.add<GlobalConstant>("my_constant1", 2.0);
-    world.add<GlobalConstant>("my_constant2", 3.0);
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::AST : parsing::RPN;
 
-    auto parsing = parsing::tokenize("my_constant1 + my_constant2");
+    MathWorld<type> world;
+    world.add("my_constant1", GlobalConstant(2.0));
+    world.add("my_constant2", GlobalConstant(3.0));
 
-    expect(bool(parsing)) << parsing;
+    auto expr = Expression<type>("my_constant1 + my_constant2");
 
-    auto expect_node = make_tree(parsing.value());
-
-    expect(bool(expect_node));
-
-    const double res = evaluate(expect_node.value(), world).value();
+    const double res = expr.evaluate(world).value();
     const double expected_res = 5.0;
 
     expect(res == expected_res);
-  };
+  } | std::tuple<AST_TEST, RPN_TEST>{};
 
-  "undefined global constant"_test = []()
+  "undefined global constant"_test = []<class StructType>()
   {
-    ast::MathWorld world;
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::AST : parsing::RPN;
 
-    auto parsing = parsing::tokenize("cos(1) + my_constant1");
+    MathWorld<type> world;
 
-    expect(bool(parsing)) << parsing;
+    auto expr = Expression<type>("cos(1) + my_constant1");
 
-    auto expect_node = make_tree(parsing.value());
-
-    expect(bool(expect_node)) << expect_node;
-
-    const auto res = evaluate(expect_node.value(), world);
+    const auto res = expr.evaluate(world);
 
     expect(not bool(res)) << res;
-  };
 
-  "input var evaluation shadowing a global constant"_test = []()
+  } | std::tuple<AST_TEST, RPN_TEST>{};
+
+  "input var evaluation shadowing a global constant"_test = []<class StructType>()
   {
-    ast::MathWorld world;
-    world.add<GlobalConstant>("x", 2.0);
-    auto parsing = parsing::tokenize("cos(x) + x");
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::AST : parsing::RPN;
 
-    expect(bool(parsing)) << parsing;
+    MathWorld<type> world;
+    world.add("x", GlobalConstant(2.0));
 
-    auto expect_node = make_tree(parsing.value());
+    auto expr = Expression<type>("cos(x) + x");
 
-    expect(bool(expect_node)) << expect_node;
-
-    const double res = evaluate(expect_node.value(), {{"x", 1.0}}, world).value();
+    const double res = evaluate(expr.get_parsing().value(), {{"x", 1.0}}, world).value();
 
     const double expected_res = std::cos(1.0) + 1.0;
-    expect(res == expected_res);
-  };
 
-  "wrong object type: function as variable"_test = []
+    expect(res == expected_res);
+
+  } | std::tuple<AST_TEST, RPN_TEST>{};
+
+  "wrong object type: function as variable"_test = []<class StructType>()
   {
-    ast::MathWorld world;
-    auto expr = ast::Expression("2 + cos");
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::AST : parsing::RPN;
+
+    MathWorld<type> world;
+    auto expr = Expression<type>("2 + cos");
 
     auto eval = expr.evaluate(world);
 
     expect(not bool(eval));
     expect(eval.error().error_type == eval::Error::WRONG_OBJECT_TYPE);
     expect(eval.error().token.substr_info == SubstrInfo{.begin = 4, .size = 3});
-  };
 
-  "wrong object type: variable as function"_test = []
+  } | std::tuple<AST_TEST, RPN_TEST>{};
+
+  "wrong object type: variable as function"_test = []<class StructType>()
   {
-    ast::MathWorld world;
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::AST : parsing::RPN;
+
+    MathWorld<type> world;
     world.add("g", GlobalConstant(3));
-    auto expr = ast::Expression("7 + g(3)");
+    auto expr = Expression<type>("7 + g(3)");
 
     auto eval = expr.evaluate(world);
 
     expect(not bool(eval));
     expect(eval.error().error_type == eval::Error::WRONG_OBJECT_TYPE);
     expect(eval.error().token.substr_info == SubstrInfo{.begin = 4, .size = 1});
-  };
+
+  } | std::tuple<AST_TEST, RPN_TEST>{};
 }
