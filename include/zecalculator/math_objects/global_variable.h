@@ -36,4 +36,8 @@ namespace ast {
   using GlobalVariable = zc::Expression<parsing::AST>;
 }
 
+namespace rpn {
+  using GlobalVariable = zc::Expression<parsing::RPN>;
+}
+
 }

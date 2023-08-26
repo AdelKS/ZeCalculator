@@ -42,6 +42,10 @@ namespace ast {
   using Expression = zc::Expression<parsing::Type::AST>;
 }
 
+namespace rpn {
+  using Expression = zc::Expression<parsing::Type::RPN>;
+}
+
 /// @brief a class that represents a general expression
 /// @note  an expression is a function that does not have any input
 template <parsing::Type type>

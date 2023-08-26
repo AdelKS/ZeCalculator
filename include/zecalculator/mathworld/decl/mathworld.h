@@ -59,4 +59,16 @@ using MathWorld = MathWorldT<CppUnaryFunction,
                              Sequence<parsing::AST>>;
 
 }
+
+namespace rpn {
+
+using MathWorld = MathWorldT<CppUnaryFunction,
+                             CppBinaryFunction,
+                             GlobalConstant,
+                             Function<parsing::RPN>,
+                             GlobalVariable<parsing::RPN>,
+                             Sequence<parsing::RPN>>;
+
+}
+
 }

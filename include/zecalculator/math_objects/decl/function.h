@@ -56,6 +56,10 @@ namespace ast {
   using Function = zc::Function<parsing::Type::AST>;
 }
 
+namespace rpn {
+  using Function = zc::Function<parsing::Type::RPN>;
+}
+
 struct Ok {};
 struct Empty {};
 

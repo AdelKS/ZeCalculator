@@ -43,6 +43,10 @@ namespace ast {
   using Sequence = zc::Sequence<parsing::Type::AST>;
 }
 
+namespace rpn {
+  using Sequence = zc::Sequence<parsing::Type::RPN>;
+}
+
 /// @brief a class that represents a Sequence of single argument
 template <parsing::Type type>
 class Sequence: public zc::Function<type>
