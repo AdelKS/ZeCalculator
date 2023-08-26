@@ -23,6 +23,7 @@
 // testing specific headers
 #include <boost/ut.hpp>
 #include <zecalculator/test-utils/print-utils.h>
+#include <zecalculator/test-utils/structs.h>
 
 using namespace zc;
 
@@ -30,13 +31,15 @@ int main()
 {
   using namespace boost::ut;
 
-  "dependent expression"_test = []()
+  "dependent expression"_test = []<class StructType>()
   {
-    ast::MathWorld world;
-    auto f = world.add("f", ast::Function({"x", "y"}, "cos(math::pi * x) * y + k*g(x) + r")).value();
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::AST : parsing::RPN;
+
+    MathWorld<type> world;
+    auto f = world.add("f", Function<type>({"x", "y"}, "cos(math::pi * x) * y + k*g(x) + r")).value();
     auto r = world.add("r", GlobalConstant()).value();
-    world.add("k", ast::GlobalVariable("3*g(3)"));
-    world.add("g", ast::Function({"x"}, "sin(3 * math::pi * x) + r"));
+    world.add("k", GlobalVariable<type>("3*g(3)"));
+    world.add("g", Function<type>({"x"}, "sin(3 * math::pi * x) + r"));
 
     double cpp_r = 3;
     *r = cpp_r;
@@ -61,5 +64,5 @@ int main()
     *r = cpp_r;
 
     expect(f({x, y}).value() == cpp_f(x, y));
-  };
+  } | std::tuple<AST_TEST, RPN_TEST>{};
 }
