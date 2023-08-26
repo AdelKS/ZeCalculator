@@ -106,6 +106,12 @@ std::variant<Ok, Empty, parsing::Error> Function<type>::parsing_status() const
 }
 
 template <parsing::Type type>
+const tl::expected<typename Function<type>::ParsingType, parsing::Error>& Function<type>::get_parsing() const
+{
+  return parsed_expr;
+}
+
+template <parsing::Type type>
 const tl::expected<ast::Tree, parsing::Error>& Function<type>::get_tree() const
   requires(type == parsing::AST)
 {

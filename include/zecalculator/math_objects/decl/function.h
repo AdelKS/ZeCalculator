@@ -77,6 +77,7 @@ template <parsing::Type type>
 class Function
 {
 public:
+  using ParsingType = typename std::conditional_t<type == parsing::AST, ast::Tree, rpn::RPN>;
 
   explicit Function() = default;
 
@@ -104,6 +105,8 @@ public:
   operator bool () const;
 
   std::variant<Ok, Empty, parsing::Error> parsing_status() const;
+
+  const tl::expected<ParsingType, parsing::Error>& get_parsing() const;
 
   const tl::expected<ast::Tree, parsing::Error>& get_tree() const
     requires (type == parsing::AST);
@@ -144,8 +147,6 @@ protected:
   friend class Sequence<type>;
 
   std::string expression;
-
-  using ParsingType = typename std::conditional_t<type == parsing::AST, ast::Tree, rpn::RPN>;
 
   tl::expected<ParsingType, parsing::Error> parsed_expr;
   tl::expected<std::vector<std::string>, InvalidInputVar> vars;
