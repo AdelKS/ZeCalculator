@@ -57,7 +57,7 @@ inline Function::ReturnType
   //              std::cout << "Evaluating zc function: " << node.name << std::endl;
   if (not bool(*function))
     return tl::unexpected(Error::calling_invalid_function(node));
-  else if (evaluations.size() != function->argument_size())
+  else if (evaluations.size() != function->argument_size().value())
     return tl::unexpected(Error::mismatched_fun_args(node));
   else
   {
@@ -71,7 +71,7 @@ inline Function::ReturnType
   //              std::cout << "Evaluating zc function: " << node.name << std::endl;
   if (not bool(*sequence))
     return tl::unexpected(Error::calling_invalid_function(node));
-  else if (evaluations.size() != sequence->argument_size())
+  else if (evaluations.size() != sequence->argument_size().value())
     return tl::unexpected(Error::mismatched_fun_args(node));
   else
   {
