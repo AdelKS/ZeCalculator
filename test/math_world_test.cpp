@@ -23,6 +23,7 @@
 // testing specific headers
 #include <boost/ut.hpp>
 #include <zecalculator/test-utils/print-utils.h>
+#include <zecalculator/test-utils/structs.h>
 
 using namespace zc;
 
@@ -30,26 +31,35 @@ int main()
 {
   using namespace boost::ut;
 
-  "simple test"_test = []()
+  "simple test"_test = []<class StructType>()
   {
-    ast::MathWorld world;
-    expect((*world.get<CppUnaryFunction>("sqrt").value())(4) == 2);
-  };
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::AST : parsing::RPN;
 
-  "Add constant then set value"_test = []()
+    MathWorld<type> world;
+    expect((*world.template get<CppUnaryFunction>("sqrt").value())(4) == 2);
+
+  } | std::tuple<AST_TEST, RPN_TEST>{};
+
+  "Add constant then set value"_test = []<class StructType>()
   {
-    ast::MathWorld world;
-    auto c1 = world.add<GlobalConstant>("my_constant1").value();
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::AST : parsing::RPN;
+
+    MathWorld<type> world;
+    auto c1 = world.template add<GlobalConstant>("my_constant1").value();
     *c1 = 2.0;
     expect(c1->value == 2.0);
-  };
 
-  "Add same constant twice"_test = []()
+  } | std::tuple<AST_TEST, RPN_TEST>{};
+
+  "Add same constant twice"_test = []<class StructType>()
   {
-    ast::MathWorld world;
-    world.add<GlobalConstant>("my_constant1", 2.0);
-    expect(not world.add<GlobalConstant>("my_constant1", 3.0).has_value());
-  };
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::AST : parsing::RPN;
+
+    MathWorld<type> world;
+    world.add("my_constant1", GlobalConstant(2.0));
+    expect(not world.add("my_constant1", GlobalConstant(3.0)).has_value());
+
+  } | std::tuple<AST_TEST, RPN_TEST>{};
 
   return 0;
 }
