@@ -23,6 +23,7 @@
 // testing specific headers
 #include <boost/ut.hpp>
 #include <zecalculator/test-utils/print-utils.h>
+#include <zecalculator/test-utils/structs.h>
 
 using namespace zc;
 
@@ -30,10 +31,12 @@ int main()
 {
   using namespace boost::ut;
 
-  "fibonacci sequence"_test = []()
+  "fibonacci sequence"_test = []<class StructType>()
   {
-    ast::MathWorld world;
-    auto fib = world.add("fib", ast::Sequence("n", "fib(n-1) + fib(n-2)", {0, 1})).value();
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::AST : parsing::RPN;
+
+    MathWorld<type> world;
+    auto fib = world.add("fib", Sequence<type>("n", "fib(n-1) + fib(n-2)", {0, 1})).value();
 
     expect(fib(0).value() == 0.0);
     expect(fib(1).value() == 1.0);
@@ -41,13 +44,17 @@ int main()
     expect(fib(3).value() == 2.0);
     expect(fib(4).value() == 3.0);
     expect(fib(10).value() == 55.0);
-  };
 
-  "recursion depth overflow"_test = []()
+  } | std::tuple<AST_TEST, RPN_TEST>{};
+
+  "recursion depth overflow"_test = []<class StructType>()
   {
-    ast::MathWorld world;
-    auto bad = world.add("bad", ast::Sequence("n", "bad(n+10) + bad(n+20)", {})).value();
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::AST : parsing::RPN;
+
+    MathWorld<type> world;
+    auto bad = world.add("bad", Sequence<type>("n", "bad(n+10) + bad(n+20)", {})).value();
 
     expect(bad(0).error() == eval::Error::recursion_depth_overflow());
-  };
+
+  } | std::tuple<AST_TEST, RPN_TEST>{};
 }
