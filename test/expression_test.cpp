@@ -24,6 +24,7 @@
 #include <boost/ut.hpp>
 #include <chrono>
 #include <zecalculator/test-utils/print-utils.h>
+#include <zecalculator/test-utils/structs.h>
 
 using namespace std::chrono;
 
@@ -33,14 +34,16 @@ int main()
 {
   using namespace boost::ut;
 
-  "dependent expression"_test = []()
+  "dependent expression"_test = []<class StructType>()
   {
-    ast::MathWorld world;
-    auto expr = ast::Expression("cos(math::pi * t) + 2 + f(3, 4)");
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::AST : parsing::RPN;
+
+    MathWorld<type> world;
+    auto expr = Expression<type>("cos(math::pi * t) + 2 + f(3, 4)");
 
     const double t = 3;
 
-    world.add("f", ast::Function({"x", "y"}, "x + y"));
+    world.add("f", Function<type>({"x", "y"}, "x + y"));
     world.add("t", GlobalConstant(t));
 
     auto cpp_f = [](double x, double y) {
@@ -52,13 +55,17 @@ int main()
     };
 
     expect(expr(world).value() == cpp_expr());
-  };
 
-  "expression benchmark"_test = []()
+  } | std::tuple<AST_TEST, RPN_TEST>{};
+
+  "expression benchmark"_test = []<class StructType>()
   {
     {
-      ast::MathWorld world;
-      auto f = world.add("f", ast::Function({"x"}, "cos(x) + t + 3")).value();
+      constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::AST : parsing::RPN;
+      constexpr std::string_view data_type_str_v = std::is_same_v<StructType, AST_TEST> ? "AST" : "RPN";
+
+      MathWorld<type> world;
+      auto f = world.add("f", Function<type> ({"x"}, "cos(x) + t + 3")).value();
       auto t = world.add("t", GlobalConstant(0)).value();
 
       double x = 0;
@@ -73,7 +80,9 @@ int main()
         t->value++;
       }
       auto end = high_resolution_clock::now();
-      std::cout << "Avg zc function eval time: " << duration_cast<nanoseconds>((end - begin)/iterations).count() << "ns" << std::endl;
+      std::cout << "Avg zc::Function<" << data_type_str_v << "> eval time: "
+                << duration_cast<nanoseconds>((end - begin) / iterations).count() << "ns"
+                << std::endl;
       std::cout << "dummy val: " << res << std::endl;
     }
     {
@@ -99,5 +108,5 @@ int main()
 
     }
 
-  };
+  } | std::tuple<AST_TEST, RPN_TEST>{};
 }
