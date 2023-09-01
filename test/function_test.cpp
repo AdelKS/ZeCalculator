@@ -22,10 +22,12 @@
 
 // testing specific headers
 #include <boost/ut.hpp>
+#include <chrono>
 #include <zecalculator/test-utils/print-utils.h>
 #include <zecalculator/test-utils/structs.h>
 
 using namespace zc;
+using namespace std::chrono;
 
 int main()
 {
@@ -226,6 +228,58 @@ int main()
         << expr();
     }
 
+
+  } | std::tuple<AST_TEST, RPN_TEST>{};
+
+  "parametric function benchmark"_test = []<class StructType>()
+  {
+    {
+      constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::AST : parsing::RPN;
+      constexpr std::string_view data_type_str_v = std::is_same_v<StructType, AST_TEST> ? "AST" : "RPN";
+
+      MathWorld<type> world;
+      auto f = world.add("f", Function<type> ({"x"}, "cos(x) + t + 3")).value();
+      auto t = world.add("t", GlobalConstant(0)).value();
+
+      double x = 0;
+      auto begin = high_resolution_clock::now();
+      double res = 0;
+      size_t iterations = 0;
+      while (high_resolution_clock::now() - begin < 1s)
+      {
+        res += f({x}).value();
+        iterations++;
+        x++;
+        t->value++;
+      }
+      auto end = high_resolution_clock::now();
+      std::cout << "Avg zc::Function<" << data_type_str_v << "> eval time: "
+                << duration_cast<nanoseconds>((end - begin) / iterations).count() << "ns"
+                << std::endl;
+      std::cout << "dummy val: " << res << std::endl;
+    }
+    {
+      double cpp_t = 0;
+      auto cpp_f = [&](double x) {
+        return cos(x) + cpp_t + 3;
+      };
+
+      double x = 0;
+      auto begin = high_resolution_clock::now();
+      double res = 0;
+      size_t iterations = 0;
+      while (high_resolution_clock::now() - begin < 1s)
+      {
+        res += cpp_f(x);
+        iterations++;
+        x++;
+        cpp_t++;
+      }
+      auto end = high_resolution_clock::now();
+      std::cout << "Avg C++ function eval time: " << duration_cast<nanoseconds>((end - begin)/iterations).count() << "ns" << std::endl;
+      std::cout << "dummy val: " << res << std::endl;
+
+    }
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
