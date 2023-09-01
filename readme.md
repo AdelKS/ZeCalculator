@@ -1,5 +1,3 @@
-**Note:** the main branch of this repository will have its history frequently rewritten until the code base is stable enough and a tag is added.
-
 ### ZeCalculator
 
 `ZeCalculator` is a `C++20` library for parsing and computing mathematical expressions and objects.
@@ -12,16 +10,16 @@ The aim of this library is to provide the required features for the software [Ze
 - Has little dependencies for easy packaging
 - Faster repetitive evaluation of math objects, once the user has properly defined every math object.
 
-#### Design
+#### Design goals
 The approach is to implement the concept of a "math world":
-- Within a "math world", objects can reach and call each other for querying and evaluation.
-  - Every instance of `MathWorld` is based on a `default world` that contains the usual functions and constants.
-- C++ functions can be added to a world, which makes it extendable.
-- A math world can be locked -- i.e. objects cannot be modified by the user (except global constants) -- so that evaluation can become faster with less runtime checks & lookups.
+- [x] Within a "math world", objects can reach and call each other for querying and evaluation.
+  - [x] Every instance of `MathWorld` is based on a `default world` that contains the usual functions and constants.
+- [x] C++ functions can be added to a world, which makes it extendable.
+- [ ]  A math world can be locked -- i.e. objects cannot be modified by the user (except global constants) -- so that evaluation can become faster with less runtime checks & lookups.
 
 #### Current example code
 
-The library is still in its early stages, but it can already parse and evaluate function expressions
+The library is still in its early stages, but it can already parse and evaluate math expressions
 ```c++
 #include <zecalculator/zecalculator.h>
 
@@ -85,10 +83,87 @@ More examples of what the library can do are in the [test](./test/) folder.
 To try to fulfill the goals described above, the following implementation is targeted:
 - Except for testing. Only the C++23 class [expected](https://github.com/TartanLlama/expected) has been embedded to this library as it is very useful for writing lean code.
 - Error messages when expressions have faulty syntax or semantics are expressed through the [zc::parsing::Error](include/zecalculator/parsing/error.h) and [zc::eval::Error](include/zecalculator/evaluation/error.h) classes:
-  - Gives exactly what part of the expression is making issues with a `std::string_view` on the original `std::string` expression (owned by the math object).
+  - Gives exactly what part of the expression is making issues with an [zc::SubstrInfo](include/zecalculator/utils/substr_info.h) instance.
   - Gives the type of error that was met, if it is known.
 - Flexible evaluation of mathematical expressions, where mathematical objects are looked up by name in the provided "math world".
 - Fast evaluation by binding expression to a "math world" where function and variables names are directly pointed to by reference.
+
+
+Two namespaces are offered where objects are defined:
+- `zc::ast`: using the abstract syntax tree representation (AST)
+- `zc::rpn`: using reverese polish notation (RPN) / postfix notation in a flat representation in memory.
+
+The RPN representation has faster evaluation but is generated from an `ast` representation, therefore it has slower parsing time.
+
+#### Benchmarks
+There is for now one benchmark defined in the tests, called "parametric function benchmark" in the file [test/function_test.cpp](test/function_test.cpp), that computes the average evaluation time of the function `f(x) = cos(x) + t + 3`, where t is a global constant, in `ast` vs `rpn` vs `c++`.
+
+The current results are (AMD Ryzen 5950X, `gcc 13.2.1`, `-march=native -O3` compile flags)
+- `ast`: 225ns
+- `rpn`: 191ns
+- `c++`: 29ns
+
+There is ongoing work to implement the last design goal with evaluating math objects without name lookups on "frozen" math worlds, which should be the fastest.
+
+<details>
+
+<summary>Benchmark code snippet</summary>
+
+```c++
+ "parametric function benchmark"_test = []<class StructType>()
+  {
+    {
+      constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::AST : parsing::RPN;
+      constexpr std::string_view data_type_str_v = std::is_same_v<StructType, AST_TEST> ? "AST" : "RPN";
+
+      MathWorld<type> world;
+      auto f = world.add("f", Function<type> ({"x"}, "cos(x) + t + 3")).value();
+      auto t = world.add("t", GlobalConstant(0)).value();
+
+      double x = 0;
+      auto begin = high_resolution_clock::now();
+      double res = 0;
+      size_t iterations = 0;
+      while (high_resolution_clock::now() - begin < 1s)
+      {
+        res += f({x}).value();
+        iterations++;
+        x++;
+        t->value++;
+      }
+      auto end = high_resolution_clock::now();
+      std::cout << "Avg zc::Function<" << data_type_str_v << "> eval time: "
+                << duration_cast<nanoseconds>((end - begin) / iterations).count() << "ns"
+                << std::endl;
+      std::cout << "dummy val: " << res << std::endl;
+    }
+    {
+      double cpp_t = 0;
+      auto cpp_f = [&](double x) {
+        return cos(x) + cpp_t + 3;
+      };
+
+      double x = 0;
+      auto begin = high_resolution_clock::now();
+      double res = 0;
+      size_t iterations = 0;
+      while (high_resolution_clock::now() - begin < 1s)
+      {
+        res += cpp_f(x);
+        iterations++;
+        x++;
+        cpp_t++;
+      }
+      auto end = high_resolution_clock::now();
+      std::cout << "Avg C++ function eval time: " << duration_cast<nanoseconds>((end - begin)/iterations).count() << "ns" << std::endl;
+      std::cout << "dummy val: " << res << std::endl;
+
+    }
+
+  } | std::tuple<AST_TEST, RPN_TEST>{};
+```
+
+</details>
 
 #### How to build
 
