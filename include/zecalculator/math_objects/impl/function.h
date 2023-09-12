@@ -61,21 +61,11 @@ void Function<type>::set_expression(std::string expr)
   }
   else
   {
-    // workaround limitation in tl::expected when using and_then to implicitly converted-to types
-    const auto tokens = parsing::tokenize(expression);
-    if (tokens)
-    {
-      if constexpr (type == parsing::AST)
-        parsed_expr = make_tree(tokens.value());
-      else
-      {
-        auto expected_tree = make_tree(tokens.value());
-        if (expected_tree)
-          parsed_expr = parsing::make_RPN(*expected_tree);
-        else parsed_expr = tl::unexpected(expected_tree.error());
-      }
-    }
-    else parsed_expr = tl::unexpected(tokens.error());
+    if constexpr (type == parsing::AST)
+      parsed_expr = parsing::tokenize(expression).and_then(parsing::make_tree);
+    else
+      parsed_expr
+        = parsing::tokenize(expression).and_then(parsing::make_tree).transform(parsing::make_RPN);
   }
 }
 
