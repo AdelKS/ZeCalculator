@@ -22,7 +22,7 @@
 
 #include "zecalculator/external/expected.h"
 #include "zecalculator/parsing/data_structures/rpn.h"
-#include <zecalculator/evaluation/error.h>
+#include <zecalculator/error.h>
 #include <zecalculator/math_objects/builtin_binary_functions.h>
 #include <zecalculator/math_objects/builtin_unary_functions.h>
 #include <zecalculator/math_objects/decl/function.h>
@@ -39,7 +39,7 @@ struct RPN
 {
   const zc::rpn::MathWorld& world;
   const name_map<double>& input_vars;
-  tl::expected<std::vector<double>, zc::eval::Error> expected_eval_stack = {};
+  tl::expected<std::vector<double>, zc::Error> expected_eval_stack = {};
   const size_t current_recursion_depth = 0;
 
 
@@ -64,18 +64,18 @@ struct RPN
 /// @param tree: tree to evaluate
 /// @param input_vars: variables that are given as input to the tree, will shadow any variable in the math world
 /// @param world: math world (contains functions, global constants... etc)
-inline tl::expected<double, eval::Error> evaluate(const rpn::RPN& expr,
-                                                  const name_map<double>& input_vars,
-                                                  const rpn::MathWorld& world,
-                                                  size_t current_recursion_depth);
+inline tl::expected<double, Error> evaluate(const rpn::RPN& expr,
+                                            const name_map<double>& input_vars,
+                                            const rpn::MathWorld& world,
+                                            size_t current_recursion_depth);
 
 /// @brief evaluates a syntax tree using a given math world
-inline tl::expected<double, eval::Error> evaluate(const rpn::RPN& expr,
-                                                  const name_map<double>& input_vars,
-                                                  const rpn::MathWorld& world);
+inline tl::expected<double, Error> evaluate(const rpn::RPN& expr,
+                                            const name_map<double>& input_vars,
+                                            const rpn::MathWorld& world);
 
 /// @brief evaluates a syntax tree using a given math world
-inline tl::expected<double, eval::Error> evaluate(const rpn::RPN& tree, const rpn::MathWorld& world);
+inline tl::expected<double, Error> evaluate(const rpn::RPN& tree, const rpn::MathWorld& world);
 
 
 }

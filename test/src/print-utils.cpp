@@ -23,6 +23,8 @@ std::ostream &operator<<(std::ostream &os, const Token &token)
   return os;
 }
 
+}
+
 std::ostream& operator << (std::ostream& os, const Error& err)
 {
   os << magic_enum::enum_name(err.error_type)
@@ -30,8 +32,6 @@ std::ostream& operator << (std::ostream& os, const Error& err)
      << err.token;
 
   return os;
-}
-
 }
 
 namespace ast {

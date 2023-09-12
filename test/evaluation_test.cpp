@@ -142,7 +142,7 @@ int main()
     auto eval = expr.evaluate(world);
 
     expect(not bool(eval));
-    expect(eval.error().error_type == eval::Error::WRONG_OBJECT_TYPE);
+    expect(eval.error().error_type == Error::WRONG_OBJECT_TYPE);
     expect(eval.error().token.substr_info == SubstrInfo{.begin = 4, .size = 3});
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
@@ -158,7 +158,7 @@ int main()
     auto eval = expr.evaluate(world);
 
     expect(not bool(eval));
-    expect(eval.error().error_type == eval::Error::WRONG_OBJECT_TYPE);
+    expect(eval.error().error_type == Error::WRONG_OBJECT_TYPE);
     expect(eval.error().token.substr_info == SubstrInfo{.begin = 4, .size = 1});
 
   } | std::tuple<AST_TEST, RPN_TEST>{};

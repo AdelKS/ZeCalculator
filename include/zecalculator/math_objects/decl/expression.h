@@ -61,22 +61,22 @@ public:
 
   explicit Expression(const std::string& expr);
 
-  tl::expected<double, eval::Error> evaluate(const MathWorld<type>& world) const;
+  tl::expected<double, Error> evaluate(const MathWorld<type>& world) const;
 
-  tl::expected<double, eval::Error> operator ()(const MathWorld<type>& world) const;
+  tl::expected<double, Error> operator ()(const MathWorld<type>& world) const;
 
 protected:
-  tl::expected<double, eval::Error> evaluate(const MathWorld<type>& world, size_t current_recursion_depth) const;
+  tl::expected<double, Error> evaluate(const MathWorld<type>& world, size_t current_recursion_depth) const;
 
-  friend tl::expected<double, eval::Error> evaluate(const ast::Tree& tree,
-                                                    const name_map<double>& input_vars,
-                                                    const ast::MathWorld& world,
-                                                    size_t current_recursion_depth);
+  friend tl::expected<double, Error> evaluate(const ast::Tree& tree,
+                                              const name_map<double>& input_vars,
+                                              const ast::MathWorld& world,
+                                              size_t current_recursion_depth);
 
-  friend tl::expected<double, eval::Error> evaluate(const rpn::RPN& tree,
-                                                    const name_map<double>& input_vars,
-                                                    const rpn::MathWorld& world,
-                                                    size_t current_recursion_depth);
+  friend tl::expected<double, Error> evaluate(const rpn::RPN& tree,
+                                              const name_map<double>& input_vars,
+                                              const rpn::MathWorld& world,
+                                              size_t current_recursion_depth);
 
   friend struct eval::ast::Variable;
   friend struct eval::rpn::Variable;

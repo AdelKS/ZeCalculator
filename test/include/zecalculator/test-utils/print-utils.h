@@ -4,9 +4,8 @@
 
 #include <boost/ut.hpp>
 #include <zecalculator/parsing/data_structures/token.h>
-#include <zecalculator/parsing/error.h>
+#include <zecalculator/error.h>
 #include <zecalculator/parsing/data_structures/tree.h>
-#include <zecalculator/evaluation/error.h>
 
 template <class T, class... U>
 concept is_any_of = (std::is_same_v<T, U> or ...);
@@ -48,7 +47,6 @@ namespace zc {
 namespace parsing {
 
 std::ostream& operator << (std::ostream& os, const Token& token);
-std::ostream& operator << (std::ostream& os, const Error& err);
 
 namespace tokens {
 
@@ -77,15 +75,11 @@ std::ostream& operator<<(std::ostream& os, const Tok& token)
 
 }
 
+std::ostream& operator << (std::ostream& os, const Error& err);
+
 namespace ast {
 
 std::ostream& operator << (std::ostream& os, const Tree& node);
-
-}
-
-namespace eval {
-
-std::ostream& operator << (std::ostream& os, const Error& err);
 
 }
 

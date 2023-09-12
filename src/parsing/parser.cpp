@@ -20,7 +20,7 @@
 
 #include <cassert>
 #include <cmath>
-#include <zecalculator/parsing/error.h>
+#include <zecalculator/error.h>
 #include <zecalculator/parsing/parser.h>
 
 #include <algorithm>
@@ -251,13 +251,13 @@ tl::expected<
     {
       if (not last_opened_pth.empty() and last_opened_pth.top() == FUNCTION_CALL_PTH)
         last_opened_pth.pop();
-      else return tl::unexpected(Error::unexpected(*tokenIt));
+      else return tl::unexpected(Error::unexpected(text_token(*tokenIt)));
     }
     else if (std::holds_alternative<tokens::ClosingParenthesis>(*tokenIt))
     {
       if (not last_opened_pth.empty() and last_opened_pth.top() == NORMAL_PTH)
         last_opened_pth.pop();
-      else return tl::unexpected(Error::unexpected(*tokenIt));
+      else return tl::unexpected(Error::unexpected(text_token(*tokenIt)));
     }
     // if not a parenthesis, and the token is not enclosed within parentheses, push it
     else if (last_opened_pth.empty())
@@ -345,7 +345,7 @@ tl::expected<ast::Tree, Error> make_tree(std::span<const Token> tokens)
         {
           // we are not within parentheses, and we are at the right operator priority
           if (tokenIt == tokens.begin() or tokenIt+1 == tokens.end())
-            return tl::unexpected(Error::unexpected(*tokenIt));
+            return tl::unexpected(Error::unexpected(text_token(*tokenIt)));
 
           auto left_hand_side = make_tree(std::span(tokens.begin(), tokenIt));
           if (not left_hand_side.has_value())

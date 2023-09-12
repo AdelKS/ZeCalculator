@@ -96,7 +96,7 @@ Function<type>::operator bool () const
 }
 
 template <parsing::Type type>
-std::variant<Ok, Empty, parsing::Error> Function<type>::parsing_status() const
+std::variant<Ok, Empty, Error> Function<type>::parsing_status() const
 {
   if (not parsed_expr.has_value())
     return parsed_expr.error();
@@ -106,44 +106,44 @@ std::variant<Ok, Empty, parsing::Error> Function<type>::parsing_status() const
 }
 
 template <parsing::Type type>
-const tl::expected<typename Function<type>::ParsingType, parsing::Error>& Function<type>::get_parsing() const
+const tl::expected<typename Function<type>::ParsingType, Error>& Function<type>::get_parsing() const
 {
   return parsed_expr;
 }
 
 template <parsing::Type type>
-const tl::expected<ast::Tree, parsing::Error>& Function<type>::get_tree() const
+const tl::expected<ast::Tree, Error>& Function<type>::get_tree() const
   requires(type == parsing::AST)
 {
   return parsed_expr;
 }
 
 template <parsing::Type type>
-const tl::expected<rpn::RPN, parsing::Error>& Function<type>::get_rpn() const
+const tl::expected<rpn::RPN, Error>& Function<type>::get_rpn() const
   requires (type == parsing::RPN)
 {
   return parsed_expr;
 }
 
 template <parsing::Type type>
-tl::expected<double, eval::Error> Function<type>::evaluate(const std::vector<double>& args,
-                                                            const MathWorld<type>& world,
-                                                            size_t current_recursion_depth) const
+tl::expected<double, Error> Function<type>::evaluate(const std::vector<double>& args,
+                                                     const MathWorld<type>& world,
+                                                     size_t current_recursion_depth) const
 {
   if (not bool(*this)) [[unlikely]]
-    return tl::unexpected(eval::Error::invalid_function());
+    return tl::unexpected(Error::invalid_function());
   else if (args.size() != vars->size()) [[unlikely]]
-    return tl::unexpected(eval::Error::mismatched_fun_args());
+    return tl::unexpected(Error::mismatched_fun_args());
 
   if constexpr (type == parsing::AST)
   {
     if (std::holds_alternative<std::monostate>(parsed_expr.value())) [[unlikely]]
-      return tl::unexpected(eval::Error::empty_expression());
+      return tl::unexpected(Error::empty_expression());
   }
   else
   {
     if (std::holds_alternative<std::monostate>(parsed_expr.value().front())) [[unlikely]]
-      return tl::unexpected(eval::Error::empty_expression());
+      return tl::unexpected(Error::empty_expression());
   }
 
   // make a keyword argument list out of the positional arguments
@@ -156,16 +156,16 @@ tl::expected<double, eval::Error> Function<type>::evaluate(const std::vector<dou
 }
 
 template <parsing::Type type>
-tl::expected<double, eval::Error> Function<type>::evaluate(const std::vector<double>& args,
-                                                            const MathWorld<type>& world) const
+tl::expected<double, Error> Function<type>::evaluate(const std::vector<double>& args,
+                                                     const MathWorld<type>& world) const
 {
   // this function is user called, so the recursion depth is zero
   return evaluate(args, world, 0);
 }
 
 template <parsing::Type type>
-tl::expected<double, eval::Error> Function<type>::operator()(const std::vector<double>& args,
-                                                              const MathWorld<type>& world) const
+tl::expected<double, Error> Function<type>::operator()(const std::vector<double>& args,
+                                                       const MathWorld<type>& world) const
 {
   return evaluate(args, world, 0);
 }

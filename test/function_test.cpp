@@ -213,7 +213,7 @@ int main()
     if constexpr (type == parsing::AST)
     {
       expect(expr()
-             == tl::unexpected(eval::Error::mismatched_fun_args(
+             == tl::unexpected(Error::mismatched_fun_args(
                ast::node::Function(parsing::tokens::Text("f", 4, 1),
                                    {ast::node::Number(1.0, parsing::tokens::Text("1", 6, 1))}))))
         << expr();
@@ -224,7 +224,7 @@ int main()
       // "1 + f(1)" -> "1, 1, f, +" and 'f' will pick the first two values, then '+' ends up with just one
       // value
       expect(expr()
-             == tl::unexpected(eval::Error::mismatched_fun_args(parsing::tokens::Operator('+', 2))))
+             == tl::unexpected(Error::mismatched_fun_args(parsing::tokens::Operator('+', 2))))
         << expr();
     }
 

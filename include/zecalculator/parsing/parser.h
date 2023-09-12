@@ -23,7 +23,7 @@
 #include <zecalculator/parsing/data_structures/token.h>
 #include <zecalculator/parsing/data_structures/tree.h>
 #include <zecalculator/parsing/data_structures/rpn.h>
-#include <zecalculator/parsing/error.h>
+#include <zecalculator/error.h>
 
 /* TODO: update approach as the following:
     - Parse: aka cut each atom in a formula
@@ -53,7 +53,7 @@ tl::expected<std::vector<Token>, Error> tokenize(std::string_view expression);
 bool is_valid_name(std::string_view name);
 
 /// @brief makes a syntax tree from from a sequence of tokens
-tl::expected<ast::Tree, parsing::Error> make_tree(std::span<const parsing::Token> tokens);
+tl::expected<ast::Tree, Error> make_tree(std::span<const parsing::Token> tokens);
 
 /// @brief transforms a syntax tree to a flat Reverse Polish / postfix notation representation
 rpn::RPN make_RPN(const ast::Tree& tree);

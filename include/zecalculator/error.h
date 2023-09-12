@@ -29,7 +29,6 @@
 #include <zecalculator/parsing/data_structures/token.h>
 
 namespace zc {
-namespace eval {
 
 struct Error
 {
@@ -37,6 +36,9 @@ struct Error
   enum Type : uint8_t
   {
     UNKNOWN = 0,
+    WRONG_FORMAT,
+    UNEXPECTED,
+    MISSING,
     UNDEFINED_VARIABLE,
     UNDEFINED_FUNCTION,
     CALLING_FUN_ARG_COUNT_MISMATCH,
@@ -48,6 +50,21 @@ struct Error
     RECURSION_DEPTH_OVERFLOW, // maximum recursion depth has been reached
     WRONG_OBJECT_TYPE, // object has been used as a different type as it actually is, example "2+cos" (where cos is a function used here as variable)
   };
+
+  static Error unexpected(parsing::tokens::Text  token)
+  {
+    return Error {.error_type = UNEXPECTED, .token = token};
+  }
+
+  static Error wrong_format(parsing::tokens::Text  token)
+  {
+    return Error {.error_type = WRONG_FORMAT, .token = token};
+  }
+
+  static Error missing(parsing::tokens::Text  token)
+  {
+    return Error {.error_type = MISSING, .token = token};
+  }
 
   static Error unkown()
   {
@@ -113,5 +130,4 @@ struct Error
   bool operator == (const Error& other) const = default;
 };
 
-}
 }

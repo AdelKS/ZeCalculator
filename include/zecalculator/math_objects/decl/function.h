@@ -28,7 +28,7 @@
 #include <optional>
 #include <iostream>
 
-#include <zecalculator/evaluation/error.h>
+#include <zecalculator/error.h>
 #include <zecalculator/external/expected.h>
 #include <zecalculator/math_objects/builtin_binary_functions.h>
 #include <zecalculator/math_objects/builtin_unary_functions.h>
@@ -104,42 +104,42 @@ public:
   /// @brief tests if the function is valid, i.e. has a valid expression and input vars
   operator bool () const;
 
-  std::variant<Ok, Empty, parsing::Error> parsing_status() const;
+  std::variant<Ok, Empty, Error> parsing_status() const;
 
-  const tl::expected<ParsingType, parsing::Error>& get_parsing() const;
+  const tl::expected<ParsingType, Error>& get_parsing() const;
 
-  const tl::expected<ast::Tree, parsing::Error>& get_tree() const
+  const tl::expected<ast::Tree, Error>& get_tree() const
     requires (type == parsing::AST);
 
-  const tl::expected<rpn::RPN, parsing::Error>& get_rpn() const
+  const tl::expected<rpn::RPN, Error>& get_rpn() const
     requires (type == parsing::RPN);
 
   /// @brief evaluation on a given math world with the given input
-  tl::expected<double, eval::Error> evaluate(const std::vector<double>& args,
-                                             const MathWorld<type>& world) const;
+  tl::expected<double, Error> evaluate(const std::vector<double>& args,
+                                       const MathWorld<type>& world) const;
 
   /// @brief evaluation on a given math world with the given input
   /// @note operator style
-  tl::expected<double, eval::Error> operator () (const std::vector<double>& args,
-                                                     const MathWorld<type>& world) const;
+  tl::expected<double, Error> operator()(const std::vector<double>& args,
+                                         const MathWorld<type>& world) const;
 
 protected:
 
   /// @brief evaluation on a given math world with the given input
   /// @note version that tracks the current recursion depth
-  tl::expected<double, eval::Error> evaluate(const std::vector<double>& args,
-                                             const MathWorld<type>& world,
-                                             size_t current_recursion_depth) const;
+  tl::expected<double, Error> evaluate(const std::vector<double>& args,
+                                       const MathWorld<type>& world,
+                                       size_t current_recursion_depth) const;
 
-  friend tl::expected<double, eval::Error> evaluate(const ast::Tree& tree,
-                                                    const name_map<double>& input_vars,
-                                                    const ast::MathWorld& world,
-                                                    size_t current_recursion_depth);
+  friend tl::expected<double, Error> evaluate(const ast::Tree& tree,
+                                              const name_map<double>& input_vars,
+                                              const ast::MathWorld& world,
+                                              size_t current_recursion_depth);
 
-  friend tl::expected<double, eval::Error> evaluate(const rpn::RPN& tree,
-                                                    const name_map<double>& input_vars,
-                                                    const rpn::MathWorld& world,
-                                                    size_t current_recursion_depth);
+  friend tl::expected<double, Error> evaluate(const rpn::RPN& tree,
+                                              const name_map<double>& input_vars,
+                                              const rpn::MathWorld& world,
+                                              size_t current_recursion_depth);
 
   friend struct eval::ast::Function;
   friend struct eval::rpn::Function;
@@ -148,7 +148,7 @@ protected:
 
   std::string expression;
 
-  tl::expected<ParsingType, parsing::Error> parsed_expr;
+  tl::expected<ParsingType, Error> parsed_expr;
   tl::expected<std::vector<std::string>, InvalidInputVar> vars;
 
 };

@@ -41,9 +41,9 @@ template <parsing::Type type>
 constexpr int Sequence<type>::get_first_val_index() const { return first_val_index; };
 
 template <parsing::Type type>
-tl::expected<double, eval::Error> Sequence<type>::evaluate(double index,
-                                                           const MathWorld<type>& world,
-                                                           size_t current_recursion_depth) const
+tl::expected<double, Error> Sequence<type>::evaluate(double index,
+                                                     const MathWorld<type>& world,
+                                                     size_t current_recursion_depth) const
 {
   // round double to nearest integer
   int integer_index = std::lround(index);
@@ -56,13 +56,13 @@ tl::expected<double, eval::Error> Sequence<type>::evaluate(double index,
 }
 
 template <parsing::Type type>
-tl::expected<double, eval::Error> Sequence<type>::evaluate(double index, const MathWorld<type>& world) const
+tl::expected<double, Error> Sequence<type>::evaluate(double index, const MathWorld<type>& world) const
 {
   return evaluate(index, world, 0);
 }
 
 template <parsing::Type type>
-tl::expected<double, eval::Error> Sequence<type>::operator ()(double index, const MathWorld<type>& world) const
+tl::expected<double, Error> Sequence<type>::operator ()(double index, const MathWorld<type>& world) const
 {
   return evaluate(index, world);
 }

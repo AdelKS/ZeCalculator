@@ -20,7 +20,7 @@
 **
 ****************************************************************************/
 
-#include "zecalculator/evaluation/error.h"
+#include "zecalculator/error.h"
 #include <variant>
 #include <zecalculator/evaluation/rpn/decl/evaluation.h>
 
@@ -83,10 +83,10 @@ inline void RPN::operator () (const parsing::tokens::Number& node)
 /// @param expr: expr to evaluate
 /// @param input_vars: variables that are given as input to the expr, will shadow any variable in the math world
 /// @param world: math world (contains functions, global constants... etc)
-inline tl::expected<double, eval::Error> evaluate(const rpn::RPN& expr,
-                                                  const name_map<double>& input_vars,
-                                                  const rpn::MathWorld& world,
-                                                  size_t current_recursion_depth)
+inline tl::expected<double, Error> evaluate(const rpn::RPN& expr,
+                                            const name_map<double>& input_vars,
+                                            const rpn::MathWorld& world,
+                                            size_t current_recursion_depth)
 {
   eval::rpn::RPN stateful_evaluator{.world = world,
                                     .input_vars = input_vars,
@@ -103,13 +103,13 @@ inline tl::expected<double, eval::Error> evaluate(const rpn::RPN& expr,
   {
     if (stateful_evaluator.expected_eval_stack->size() == 1)
       return stateful_evaluator.expected_eval_stack->front();
-    else return tl::unexpected(eval::Error::unkown());
+    else return tl::unexpected(Error::unkown());
   }
   else return tl::unexpected(stateful_evaluator.expected_eval_stack.error());
 }
 
 /// @brief evaluates a syntax expr using a given math world
-inline tl::expected<double, eval::Error> evaluate(const rpn::RPN& expr,
+inline tl::expected<double, Error> evaluate(const rpn::RPN& expr,
                                                   const name_map<double>& input_vars,
                                                   const rpn::MathWorld& world)
 {
@@ -117,7 +117,7 @@ inline tl::expected<double, eval::Error> evaluate(const rpn::RPN& expr,
 }
 
 /// @brief evaluates a syntax expr using a given math world
-inline tl::expected<double, eval::Error> evaluate(const rpn::RPN& expr, const rpn::MathWorld& world)
+inline tl::expected<double, Error> evaluate(const rpn::RPN& expr, const rpn::MathWorld& world)
 {
   return evaluate(expr, {}, world, 0);
 }

@@ -77,27 +77,27 @@ public:
   /// @brief evaluates the sequence at the given index
   /// @note evaluation modifies the state of the sequence, as values get saved within
   ///       the instance, and a locking mechanism is triggered to detect ill-formed seqs
-  tl::expected<double, eval::Error> evaluate(double index, const MathWorld<type>& world) const;
+  tl::expected<double, Error> evaluate(double index, const MathWorld<type>& world) const;
 
   /// @brief operator version of evaluate
-  tl::expected<double, eval::Error> operator () (double index, const MathWorld<type>& world) const;
+  tl::expected<double, Error> operator () (double index, const MathWorld<type>& world) const;
 
 protected:
 
   /// @brief evaluation with recursion depth tracking
-  tl::expected<double, eval::Error> evaluate(double index,
-                                             const MathWorld<type>& world,
-                                             size_t current_recursion_depth) const;
+  tl::expected<double, Error> evaluate(double index,
+                                       const MathWorld<type>& world,
+                                       size_t current_recursion_depth) const;
 
-  friend tl::expected<double, eval::Error> evaluate(const ast::Tree& tree,
-                                                    const name_map<double>& input_vars,
-                                                    const ast::MathWorld& world,
-                                                    size_t current_recursion_depth);
+  friend tl::expected<double, Error> evaluate(const ast::Tree& tree,
+                                              const name_map<double>& input_vars,
+                                              const ast::MathWorld& world,
+                                              size_t current_recursion_depth);
 
-  friend tl::expected<double, eval::Error> evaluate(const rpn::RPN& rpn_expr,
-                                                    const name_map<double>& input_vars,
-                                                    const rpn::MathWorld& world,
-                                                    size_t current_recursion_depth);
+  friend tl::expected<double, Error> evaluate(const rpn::RPN& rpn_expr,
+                                              const name_map<double>& input_vars,
+                                              const rpn::MathWorld& world,
+                                              size_t current_recursion_depth);
 
   friend struct eval::ast::Function;
   friend struct eval::rpn::Function;

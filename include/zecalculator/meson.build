@@ -9,6 +9,7 @@ if not meson.is_subproject()
   install_headers(
     files(
       'zecalculator.h',
+      'error.h'
     ),
     subdir: 'zecalculator',
     preserve_path: true

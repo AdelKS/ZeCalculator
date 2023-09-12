@@ -20,7 +20,7 @@
 **
 ****************************************************************************/
 
-#include <zecalculator/evaluation/error.h>
+#include <zecalculator/error.h>
 #include <zecalculator/mathworld/mathworld.h>
 #include <zecalculator/math_objects/global_variable.h>
 

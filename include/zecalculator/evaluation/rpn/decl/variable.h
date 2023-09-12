@@ -20,7 +20,7 @@
 **
 ****************************************************************************/
 
-#include <zecalculator/evaluation/error.h>
+#include <zecalculator/error.h>
 #include <zecalculator/mathworld/mathworld.h>
 #include <zecalculator/math_objects/global_variable.h>
 
@@ -32,7 +32,7 @@ struct Variable
 {
   const zc::rpn::MathWorld& world;
   const parsing::tokens::Variable& var_token;
-  tl::expected<std::vector<double>, zc::eval::Error>& expected_eval_stack;
+  tl::expected<std::vector<double>, zc::Error>& expected_eval_stack;
   const size_t current_recursion_depth;
 
   void operator () (zc::rpn::MathWorld::UnregisteredObject);
