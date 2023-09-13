@@ -120,7 +120,7 @@ const tl::expected<rpn::RPN, Error>& Function<type>::get_rpn() const
 }
 
 template <parsing::Type type>
-tl::expected<double, Error> Function<type>::evaluate(const std::vector<double>& args,
+tl::expected<double, Error> Function<type>::evaluate(std::span<const double> args,
                                                      const MathWorld<type>& world,
                                                      size_t current_recursion_depth) const
 {
@@ -152,7 +152,22 @@ tl::expected<double, Error> Function<type>::evaluate(const std::vector<double>& 
 }
 
 template <parsing::Type type>
+tl::expected<double, Error> Function<type>::evaluate(std::span<const double> args,
+                                                     const MathWorld<type>& world) const
+{
+  // this function is user called, so the recursion depth is zero
+  return evaluate(args, world, 0);
+}
+
+template <parsing::Type type>
 tl::expected<double, Error> Function<type>::operator()(const std::vector<double>& args,
+                                                       const MathWorld<type>& world) const
+{
+  return evaluate(args, world, 0);
+}
+
+template <parsing::Type type>
+tl::expected<double, Error> Function<type>::operator()(std::span<const double> args,
                                                        const MathWorld<type>& world) const
 {
   return evaluate(args, world, 0);

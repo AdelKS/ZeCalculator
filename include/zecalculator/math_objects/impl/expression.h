@@ -45,19 +45,19 @@ Expression<type>::Expression(const std::string& expr)
 template <parsing::Type type>
 tl::expected<double, Error> Expression<type>::evaluate(const MathWorld<type>& world) const
 {
-  return Function<type>::evaluate({}, world);
+  return Function<type>::evaluate(std::span<double>(), world);
 }
 
 template <parsing::Type type>
 tl::expected<double, Error> Expression<type>::operator ()(const MathWorld<type>& world) const
 {
-  return Function<type>::evaluate({}, world);
+  return Function<type>::evaluate(std::span<double>(), world);
 }
 
 template <parsing::Type type>
 tl::expected<double, Error> Expression<type>::evaluate(const MathWorld<type>& world, size_t current_recursion_depth) const
 {
-  return Function<type>::evaluate({}, world, current_recursion_depth);
+  return Function<type>::evaluate(std::span<double>(), world, current_recursion_depth);
 }
 
 }

@@ -118,16 +118,24 @@ public:
   tl::expected<double, Error> evaluate(const std::vector<double>& args,
                                        const MathWorld<type>& world) const;
 
+  // span version
+  tl::expected<double, Error> evaluate(std::span<const double> args,
+                                       const MathWorld<type>& world) const;
+
   /// @brief evaluation on a given math world with the given input
   /// @note operator style
   tl::expected<double, Error> operator()(const std::vector<double>& args,
+                                         const MathWorld<type>& world) const;
+
+  // span version
+  tl::expected<double, Error> operator()(std::span<const double> args,
                                          const MathWorld<type>& world) const;
 
 protected:
 
   /// @brief evaluation on a given math world with the given input
   /// @note version that tracks the current recursion depth
-  tl::expected<double, Error> evaluate(const std::vector<double>& args,
+  tl::expected<double, Error> evaluate(std::span<const double> args,
                                        const MathWorld<type>& world,
                                        size_t current_recursion_depth) const;
 

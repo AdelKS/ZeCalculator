@@ -52,7 +52,7 @@ tl::expected<double, Error> Sequence<type>::evaluate(double index,
     return std::nan("");
   else if (size_t(integer_index - first_val_index) < values.size())
     return values[size_t(integer_index - first_val_index)];
-  else return Function<type>::evaluate({double(integer_index)}, world, current_recursion_depth);
+  else return Function<type>::evaluate(std::vector{double(integer_index)}, world, current_recursion_depth);
 }
 
 template <parsing::Type type>
