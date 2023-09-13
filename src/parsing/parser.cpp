@@ -267,17 +267,27 @@ tl::expected<
   return non_pth_enclosed_tokens;
 }
 
-tl::expected<ast::Tree, Error> make_tree(std::span<const Token> tokens)
+tl::expected<ast::Tree, Error> make_tree(std::span<const Token> tokens,
+                                         const std::vector<std::string>& input_vars)
 {
   // when there's only a single token, it can only be number or a variable
   if (tokens.size() == 1)
   {
     using Ret = tl::expected<ast::Tree, Error>;
     return std::visit(overloaded{[&](const tokens::Number& num) -> Ret { return num; },
-                                 [&](const tokens::Variable& var) -> Ret { return var; },
-                                 [&](const auto& anything_else) -> Ret {
-                                   return tl::unexpected(Error::unexpected(anything_else));
-                                 }},
+                                 [&](const tokens::Variable& var) -> Ret
+                                 {
+                                   // if variable is in 'input_vars' then treat it as such
+                                   // this will avoid name lookup when we evaluate
+                                   auto it = std::ranges::find(input_vars, var.name);
+                                   if (it != input_vars.end())
+                                     // the index is computed with the distance between begin() and 'it'
+                                     return ast::node::InputVariable(var, std::distance(input_vars.begin(), it));
+                                   else
+                                     return var;
+                                 },
+                                 [&](const auto& anything_else) -> Ret
+                                 { return tl::unexpected(Error::unexpected(anything_else)); }},
                       tokens.back());
   }
 
@@ -287,12 +297,12 @@ tl::expected<ast::Tree, Error> make_tree(std::span<const Token> tokens)
 
   const auto& non_pth_enclosed_tokens = expected_non_pth_wrapped_tokens.value();
 
-  // experssion of the type "(...)"
+  // expression of the type "(...)"
   if (non_pth_enclosed_tokens.empty() and tokens.size() > 2 and
       std::holds_alternative<tokens::OpeningParenthesis>(tokens.front()) and
       std::holds_alternative<tokens::ClosingParenthesis>(tokens.back()))
   {
-    return make_tree(std::span(tokens.begin()+1, tokens.end()-1));
+    return make_tree(std::span(tokens.begin()+1, tokens.end()-1), input_vars);
   }
 
   // expression of the type "function(...)"
@@ -319,7 +329,7 @@ tl::expected<ast::Tree, Error> make_tree(std::span<const Token> tokens)
       if (std::holds_alternative<tokens::FunctionArgumentSeparator>(*tokenIt) or
           std::holds_alternative<tokens::FunctionCallEnd>(*tokenIt))
       {
-        auto expected_func_argument = make_tree(std::span(last_non_coma_token_it, tokenIt));
+        auto expected_func_argument = make_tree(std::span(last_non_coma_token_it, tokenIt), input_vars);
         if (not expected_func_argument.has_value())
           return expected_func_argument;
         else subnodes.push_back(std::move(expected_func_argument.value()));
@@ -347,11 +357,11 @@ tl::expected<ast::Tree, Error> make_tree(std::span<const Token> tokens)
           if (tokenIt == tokens.begin() or tokenIt+1 == tokens.end())
             return tl::unexpected(Error::unexpected(text_token(*tokenIt)));
 
-          auto left_hand_side = make_tree(std::span(tokens.begin(), tokenIt));
+          auto left_hand_side = make_tree(std::span(tokens.begin(), tokenIt), input_vars);
           if (not left_hand_side.has_value())
             return left_hand_side;
 
-          auto right_hand_side = make_tree(std::span(tokenIt+1, tokens.end()));
+          auto right_hand_side = make_tree(std::span(tokenIt+1, tokens.end()), input_vars);
           if (not right_hand_side.has_value())
             return right_hand_side;
 
@@ -398,6 +408,11 @@ struct RpnMaker
     }
     res.push_back(parsing::tokens::Function(func));
     return res;
+  }
+
+  rpn::RPN operator () (const ast::node::InputVariable& in_var)
+  {
+    return rpn::RPN(1, in_var);
   }
 
   rpn::RPN operator () (const ast::node::Variable& var)

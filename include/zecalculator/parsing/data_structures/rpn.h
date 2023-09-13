@@ -30,6 +30,7 @@ namespace rpn {
 /// @brief represents a mathematical expression in reverse polish / postfix notation
 using Token = std::variant<std::monostate,
                            parsing::tokens::Function,
+                           ast::node::InputVariable,
                            parsing::tokens::Variable,
                            parsing::tokens::Number>;
 using RPN = std::vector<Token>;

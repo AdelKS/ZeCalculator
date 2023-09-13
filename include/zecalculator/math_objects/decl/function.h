@@ -131,16 +131,6 @@ protected:
                                        const MathWorld<type>& world,
                                        size_t current_recursion_depth) const;
 
-  friend tl::expected<double, Error> evaluate(const ast::Tree& tree,
-                                              const name_map<double>& input_vars,
-                                              const ast::MathWorld& world,
-                                              size_t current_recursion_depth);
-
-  friend tl::expected<double, Error> evaluate(const rpn::RPN& tree,
-                                              const name_map<double>& input_vars,
-                                              const rpn::MathWorld& world,
-                                              size_t current_recursion_depth);
-
   friend struct eval::ast::Function;
   friend struct eval::rpn::Function;
 

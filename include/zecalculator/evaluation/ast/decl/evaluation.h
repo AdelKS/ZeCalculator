@@ -35,7 +35,7 @@ namespace ast {
 struct Node
 {
   const zc::ast::MathWorld& world;
-  const name_map<double>& input_vars;
+  const std::span<const double> input_vars;
   const size_t current_recursion_depth = 0;
 
 
@@ -46,6 +46,8 @@ struct Node
   ReturnType operator () (std::monostate);
 
   ReturnType operator () (const zc::ast::node::Function& node);
+
+  ReturnType operator () (const zc::ast::node::InputVariable& node);
 
   ReturnType operator () (const zc::ast::node::Variable& node);
 
@@ -61,13 +63,13 @@ struct Node
 /// @param input_vars: variables that are given as input to the tree, will shadow any variable in the math world
 /// @param world: math world (contains functions, global constants... etc)
 inline tl::expected<double, Error> evaluate(const ast::Tree& tree,
-                                            const name_map<double>& input_vars,
+                                            std::span<const double> input_vars,
                                             const ast::MathWorld& world,
                                             size_t current_recursion_depth);
 
 /// @brief evaluates a syntax tree using a given math world
 inline tl::expected<double, Error> evaluate(const ast::Tree& tree,
-                                            const name_map<double>& input_vars,
+                                            std::span<const double> input_vars,
                                             const ast::MathWorld& world);
 
 /// @brief evaluates a syntax tree using a given math world

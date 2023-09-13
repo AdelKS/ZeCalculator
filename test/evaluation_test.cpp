@@ -122,9 +122,9 @@ int main()
     MathWorld<type> world;
     world.add("x", GlobalConstant(2.0));
 
-    auto expr = Expression<type>("cos(x) + x");
+    auto fun = Function<type>({"x"}, "cos(x) + x");
 
-    const double res = evaluate(expr.get_parsing().value(), {{"x", 1.0}}, world).value();
+    const double res = fun.evaluate({1.0}, world).value();
 
     const double expected_res = std::cos(1.0) + 1.0;
 

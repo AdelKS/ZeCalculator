@@ -49,6 +49,10 @@ void syntax_node_print_helper(std::ostream& os, const Tree& node, size_t padding
                           for (const Tree &subnode : f.subnodes)
                             syntax_node_print_helper(os, subnode, padding + 2);
                         },
+                        [&](const node::InputVariable &v) {
+                          os << padding_str << "InputVariable " << v << " index: " << v.index
+                             << std::endl;
+                        },
                         [&](const node::Variable &v) {
                           os << padding_str << "Variable " << v
                              << std::endl;

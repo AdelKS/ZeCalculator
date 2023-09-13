@@ -61,11 +61,15 @@ void Function<type>::set_expression(std::string expr)
   }
   else
   {
+    // just a shortcut to have tokens -> make_tree(tokens, vars.value)
+    using namespace std::placeholders;
+    auto bound_make_tree = std::bind(parsing::make_tree, _1, vars.value());
+
     if constexpr (type == parsing::AST)
-      parsed_expr = parsing::tokenize(expression).and_then(parsing::make_tree);
+      parsed_expr = parsing::tokenize(expression).and_then(bound_make_tree);
     else
       parsed_expr
-        = parsing::tokenize(expression).and_then(parsing::make_tree).transform(parsing::make_RPN);
+        = parsing::tokenize(expression).and_then(bound_make_tree).transform(parsing::make_RPN);
   }
 }
 
@@ -136,13 +140,7 @@ tl::expected<double, Error> Function<type>::evaluate(const std::vector<double>& 
       return tl::unexpected(Error::empty_expression());
   }
 
-  // make a keyword argument list out of the positional arguments
-  // note: this overhead will be improved when we bind expressions to math worlds
-  name_map<double> var_vals;
-  for (size_t i = 0 ; i != vars->size() ; i++)
-    var_vals[(*vars)[i]] = args[i];
-
-  return zc::evaluate(*parsed_expr, var_vals, world, current_recursion_depth);
+  return zc::evaluate(*parsed_expr, args, world, current_recursion_depth);
 }
 
 template <parsing::Type type>

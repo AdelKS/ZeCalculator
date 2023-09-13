@@ -36,7 +36,7 @@ inline Function::ReturnType Function::operator()(zc::ast::MathWorld::Unregistere
 inline Function::ReturnType
   Function::operator()(const zc::ast::MathWorld::ConstMathObject<CppUnaryFunction>& function)
 {
-  if (evaluations.size() != 1)
+  if (evaluations.size() != 1) [[unlikely]]
     return tl::unexpected(Error::mismatched_fun_args(node));
   else
     return (*function)(evaluations.front());
@@ -45,7 +45,7 @@ inline Function::ReturnType
 inline Function::ReturnType
   Function::operator()(const zc::ast::MathWorld::ConstMathObject<CppBinaryFunction>& function)
 {
-  if (evaluations.size() != 2)
+  if (evaluations.size() != 2) [[unlikely]]
     return tl::unexpected(Error::mismatched_fun_args(node));
   else
     return (*function)(evaluations.front(), evaluations.back());
@@ -55,9 +55,9 @@ inline Function::ReturnType
   Function::operator()(const zc::ast::MathWorld::ConstMathObject<zc::ast::Function>& function)
 {
   //              std::cout << "Evaluating zc function: " << node.name << std::endl;
-  if (not bool(*function))
+  if (not bool(*function)) [[unlikely]]
     return tl::unexpected(Error::calling_invalid_function(node));
-  else if (evaluations.size() != function->argument_size().value())
+  else if (evaluations.size() != function->argument_size().value()) [[unlikely]]
     return tl::unexpected(Error::mismatched_fun_args(node));
   else
   {

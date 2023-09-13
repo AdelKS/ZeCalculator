@@ -32,14 +32,25 @@ namespace ast {
 namespace node {
 
 struct Function;
+struct InputVariable;
 using Variable = parsing::tokens::Variable;
 using Number = parsing::tokens::Number;
 
 }
 
-using Tree = std::variant<std::monostate, node::Function, node::Variable, node::Number>;
+using Tree = std::variant<std::monostate, node::Function, node::InputVariable, node::Variable, node::Number>;
 
 namespace node {
+
+struct InputVariable: parsing::tokens::Text
+{
+  InputVariable(parsing::tokens::Text text, size_t index)
+    : parsing::tokens::Text(std::move(text)), index(index)
+  {}
+
+  size_t index;
+};
+
 struct Function: parsing::tokens::Text
 {
   Function(const parsing::tokens::Text& text, std::vector<Tree> subnodes)

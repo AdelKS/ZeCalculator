@@ -58,20 +58,23 @@ inline Node::ReturnType Node::operator () (const zc::ast::node::Function& node)
                     math_obj);
 }
 
+inline Node::ReturnType Node::operator () (const zc::ast::node::InputVariable& node)
+{
+  // node.index should never be bigger than input_vars.size()
+  assert(node.index < input_vars.size());
+
+  return input_vars[node.index];
+}
+
 inline Node::ReturnType Node::operator () (const zc::ast::node::Variable& node)
 {
-  auto it = input_vars.find(node.name);
-  if (it != input_vars.end())
-    return it->second;
-  else
-  {
-    auto math_object = world.get(node.name);
+  auto math_object = world.get(node.name);
 
-    return std::visit(Variable{.world = world,
-                                .node = node,
-                                .current_recursion_depth = current_recursion_depth},
-                      math_object);
-  }
+  return std::visit(Variable{.world = world,
+                              .node = node,
+                              .current_recursion_depth = current_recursion_depth},
+                    math_object);
+
 }
 
 inline Node::ReturnType Node::operator () (const zc::ast::node::Number& node)
@@ -87,19 +90,19 @@ inline Node::ReturnType Node::operator () (const zc::ast::node::Number& node)
 /// @param input_vars: variables that are given as input to the tree, will shadow any variable in the math world
 /// @param world: math world (contains functions, global constants... etc)
 inline tl::expected<double, Error> evaluate(const ast::Tree& tree,
-                                            const name_map<double>& input_vars,
+                                            std::span<const double> input_vars,
                                             const ast::MathWorld& world,
                                             size_t current_recursion_depth)
 {
   return std::visit(eval::ast::Node{.world = world,
-                               .input_vars = input_vars,
-                               .current_recursion_depth = current_recursion_depth},
+                                    .input_vars = input_vars,
+                                    .current_recursion_depth = current_recursion_depth},
                     tree);
 }
 
 /// @brief evaluates a syntax tree using a given math world
 inline tl::expected<double, Error> evaluate(const ast::Tree& tree,
-                                            const name_map<double>& input_vars,
+                                            std::span<const double> input_vars,
                                             const ast::MathWorld& world)
 {
   return std::visit(eval::ast::Node{.world = world, .input_vars = input_vars}, tree);
@@ -108,7 +111,7 @@ inline tl::expected<double, Error> evaluate(const ast::Tree& tree,
 /// @brief evaluates a syntax tree using a given math world
 inline tl::expected<double, Error> evaluate(const ast::Tree& tree, const ast::MathWorld& world)
 {
-  return evaluate(tree, {}, world, 0);
+  return evaluate(tree, std::span<const double>(), world, 0);
 }
 
 

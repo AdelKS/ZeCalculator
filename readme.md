@@ -99,9 +99,9 @@ The RPN representation has faster evaluation but is generated from an `ast` repr
 There is for now one benchmark defined in the tests, called "parametric function benchmark" in the file [test/function_test.cpp](test/function_test.cpp), that computes the average evaluation time of the function `f(x) = cos(x) + t + 3`, where t is a global constant, in `ast` vs `rpn` vs `c++`.
 
 The current results are (AMD Ryzen 5950X, `gcc 13.2.1`, `-march=native -O3` compile flags)
-- `ast`: 225ns
-- `rpn`: 191ns
-- `c++`: 29ns
+- `ast`: 175ns
+- `rpn`: 140ns
+- `c++`: 30ns
 
 There is ongoing work to implement the last design goal with evaluating math objects without name lookups on "frozen" math worlds, which should be the fastest.
 
