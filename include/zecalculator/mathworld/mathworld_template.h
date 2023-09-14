@@ -54,82 +54,85 @@ struct NameError
   std::string name;
 };
 
+template <class Object, bool is_const, class MathWorldClass>
+class MathObjectT
+{
+  using math_world_t = std::conditional_t<is_const, const MathWorldClass&, MathWorldClass&>;
+
+public:
+  math_world_t world;
+  size_t id;
+
+  MathObjectT(const MathObjectT& obj) = default;
+  MathObjectT(MathObjectT&& obj) = default;
+
+  MathObjectT<Object, true, MathWorldClass> to_const() const
+    requires (not is_const)
+  {
+    return MathObjectT<Object, true, MathWorldClass>(*this);
+  }
+
+  Object& operator * () requires (not is_const)
+  {
+    return world.template get<Object>(id);
+  }
+
+  Object* operator -> () requires (not is_const)
+  {
+    return &world.template get<Object>(id);
+  }
+
+  const Object& operator * () const
+  {
+    return world.template get<Object>(id);
+  }
+
+  const Object* operator -> () const
+  {
+    return &world.template get<Object>(id);
+  }
+
+  auto operator()(const std::vector<double>& arg) const
+    requires std::is_invocable_v<Object, std::vector<double>, math_world_t>
+  {
+    return (**this)(arg, world);
+  }
+
+  auto operator()(double arg) const
+    requires std::is_invocable_v<Object, double, math_world_t>
+  {
+    return (**this)(arg, world);
+  }
+
+  auto operator()() const
+    requires std::is_invocable_v<Object, math_world_t>
+  {
+    return (**this)(world);
+  }
+
+protected:
+  MathObjectT(const MathObjectT<Object, false, MathWorldClass>& obj) requires (is_const)
+    : world(obj.world), id(obj.id) {}
+
+  MathObjectT(math_world_t world, size_t id)
+    : world(world), id(id) {}
+
+  friend MathWorldClass;
+
+  friend MathObjectT<Object, false, MathWorldClass>;
+  friend MathObjectT<Object, true, MathWorldClass>;
+};
+
 template <class... MathObjectType>
 class MathWorldT
 {
 public:
 
-  template <class Object, bool is_const>
-  class MathObjectT
-  {
-    using math_world_t = std::conditional_t<is_const, const MathWorldT&, MathWorldT&>;
-
-  public:
-    math_world_t world;
-    size_t id;
-
-    MathObjectT(const MathObjectT& obj) = default;
-    MathObjectT(MathObjectT&& obj) = default;
-
-    MathObjectT<Object, true> to_const() const
-      requires (not is_const)
-    {
-      return MathObjectT<Object, true>(*this);
-    }
-
-    Object& operator * () requires (not is_const)
-    {
-      return world.template get<Object>(id);
-    }
-
-    Object* operator -> () requires (not is_const)
-    {
-      return &world.template get<Object>(id);
-    }
-
-    const Object& operator * () const
-    {
-      return world.template get<Object>(id);
-    }
-
-    const Object* operator -> () const
-    {
-      return &world.template get<Object>(id);
-    }
-
-    auto operator()(const std::vector<double>& arg) const
-      requires std::is_invocable_v<Object, std::vector<double>, math_world_t>
-    {
-      return (**this)(arg, world);
-    }
-
-    auto operator()(double arg) const
-      requires std::is_invocable_v<Object, double, math_world_t>
-    {
-      return (**this)(arg, world);
-    }
-
-    auto operator()() const
-      requires std::is_invocable_v<Object, math_world_t>
-    {
-      return (**this)(world);
-    }
-
-  protected:
-    MathObjectT(const MathObjectT<Object, false>& obj) requires (is_const)
-      : world(obj.world), id(obj.id) {}
-
-    MathObjectT(math_world_t world, size_t id)
-      : world(world), id(id) {}
-
-    friend MathWorldT;
-  };
+  template <class Object>
+  using MathObject = MathObjectT<Object, false, MathWorldT>;
 
   template <class Object>
-  using MathObject = MathObjectT<Object, false>;
-
-  template <class Object>
-  using ConstMathObject = MathObjectT<Object, true>;
+  using ConstMathObject = MathObjectT<Object, true, MathWorldT>;
 
   class UnregisteredObject {};
 
