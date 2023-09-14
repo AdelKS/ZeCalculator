@@ -1,6 +1,5 @@
 sources = files(
     'builtin_binary_functions.cpp',
-    'parsing/parser.cpp',
     'utils/token.cpp',
 )
 

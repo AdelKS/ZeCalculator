@@ -1,3 +1,5 @@
+#pragma once
+
 /****************************************************************************
 **  Copyright (c) 2023, Adel Kara Slimane <adel.ks@zegrapher.com>
 **
@@ -18,48 +20,5 @@
 **
 ****************************************************************************/
 
-#pragma once
-
-#include <zecalculator/parsing/data_structures/token.h>
-#include <zecalculator/parsing/data_structures/tree.h>
-#include <zecalculator/parsing/data_structures/rpn.h>
-#include <zecalculator/error.h>
-
-/* TODO: update approach as the following:
-    - Parse: aka cut each atom in a formula
-    - Evaluate type of atom: separator, number
-    - Treat number in a special as to make 1.2E+33 as one atom
-    - Check for validity
-    - Enable setting custom names for functions and variables
-    - Performance improvement: flatten trees
-*/
-
-namespace zc {
-namespace parsing {
-
-enum Type {AST, RPN};
-
-/// @brief interprets "view" as a floating number
-/// @returns if successful, the interpreted double and the number of characters interpreted, otherwise empty
-std::optional<std::pair<double, size_t>> to_double(std::string_view view);
-
-/// @brief parses the expression into a list of tokens
-/// @note the string that is void must remain valid for for the returned instance
-///       to remain valid (for both a successful or unsuccessful  parsing)
-///       as they contain sub-string views of the input view
-tl::expected<std::vector<Token>, Error> tokenize(std::string_view expression);
-
-/// @brief tells if the string_view contains a valid math object name
-bool is_valid_name(std::string_view name);
-
-/// @brief makes a syntax tree from from a sequence of tokens
-/// @param input_vars: variable names that are considered as input (for functions)
-///                    e.g."x" in the function "f" such as "f(x) = cos(x)"
-tl::expected<ast::Tree, Error> make_tree(std::span<const parsing::Token> tokens,
-                                         const std::vector<std::string>& input_vars = {});
-
-/// @brief transforms a syntax tree to a flat Reverse Polish / postfix notation representation
-rpn::RPN make_RPN(const ast::Tree& tree);
-
-}
-}
+#include <zecalculator/parsing/decl/parser.h>
+#include <zecalculator/parsing/impl/parser.h>
