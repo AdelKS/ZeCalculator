@@ -17,11 +17,9 @@ fs = import('fs')
 zecalculator_inc = include_directories('include')
 
 subdir('include/zecalculator')
-subdir('src')
 
 zecalculator_dep = declare_dependency(
     include_directories : zecalculator_inc,
-    link_with : zecalculator_lib
 )
 
 meson.override_dependency('zecalculator', zecalculator_dep)

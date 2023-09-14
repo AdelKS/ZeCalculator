@@ -44,10 +44,25 @@ protected:
   CppBinaryFunctionPtr f_ptr;
 };
 
-double plus(const double a, const double b);
-double minus(const double a, const double b);
-double multiply(const double a, const double b);
-double divide(const double a, const double b);
+inline double plus(const double a, const double b)
+{
+  return a + b;
+}
+
+inline double minus(const double a, const double b)
+{
+  return a - b;
+}
+
+inline double multiply(const double a, const double b)
+{
+  return a * b;
+}
+
+inline double divide(const double a, const double b)
+{
+  return a / b;
+}
 
 
 // we save the names along with the function pointers for convenience
