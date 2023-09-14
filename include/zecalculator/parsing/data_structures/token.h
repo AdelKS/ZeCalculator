@@ -76,7 +76,7 @@ struct Number: Text
 };
 
 struct Variable: Text
-{
+{\
   explicit Variable(const Text& txtTok): Text(txtTok) {}
   using Text::Text;
 };

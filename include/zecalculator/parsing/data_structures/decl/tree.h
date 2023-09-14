@@ -1,5 +1,3 @@
-#pragma once
-
 /****************************************************************************
 **  Copyright (c) 2023, Adel Kara Slimane <adel.ks@zegrapher.com>
 **
@@ -20,5 +18,32 @@
 **
 ****************************************************************************/
 
-#include <zecalculator/parsing/data_structures/decl/tree.h>
-#include <zecalculator/parsing/data_structures/impl/tree.h>
+#pragma once
+
+#include <optional>
+#include <span>
+#include <vector>
+
+#include <zecalculator/parsing/data_structures/token.h>
+#include <zecalculator/utils/utils.h>
+
+namespace zc {
+namespace ast {
+namespace node {
+
+struct Function;
+struct InputVariable;
+using Variable = parsing::tokens::Variable;
+using Number = parsing::tokens::Number;
+
+}
+
+using Tree = std::variant<std::monostate, node::Function, node::InputVariable, node::Variable, node::Number>;
+
+
+parsing::tokens::Text text_token(const ast::Tree& token);
+
+SubstrInfo substr_info(const ast::Tree& token);
+
+} // namespace ast
+} // namespace zc

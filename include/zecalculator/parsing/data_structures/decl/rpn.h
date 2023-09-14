@@ -3,7 +3,7 @@
 /****************************************************************************
 **  Copyright (c) 2023, Adel Kara Slimane <adel.ks@zegrapher.com>
 **
-**  This file is part of ZeCalculator.
+**  This file is part of ZeCalculator's source code.
 **
 **  ZeCalculators is free software: you may copy, redistribute and/or modify it
 **  under the terms of the GNU Affero General Public License as published by the
@@ -20,5 +20,20 @@
 **
 ****************************************************************************/
 
-#include <zecalculator/parsing/data_structures/decl/tree.h>
-#include <zecalculator/parsing/data_structures/impl/tree.h>
+#include <zecalculator/parsing/data_structures/token.h>
+#include <zecalculator/parsing/data_structures/tree.h>
+#include <vector>
+
+namespace zc {
+namespace rpn {
+
+/// @brief represents a mathematical expression in reverse polish / postfix notation
+using Token = std::variant<std::monostate,
+                           parsing::tokens::Function,
+                           ast::node::InputVariable,
+                           parsing::tokens::Variable,
+                           parsing::tokens::Number>;
+using RPN = std::vector<Token>;
+
+}
+}

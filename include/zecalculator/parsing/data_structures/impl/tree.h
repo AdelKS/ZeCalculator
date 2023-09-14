@@ -1,5 +1,3 @@
-#pragma once
-
 /****************************************************************************
 **  Copyright (c) 2023, Adel Kara Slimane <adel.ks@zegrapher.com>
 **
@@ -20,5 +18,49 @@
 **
 ****************************************************************************/
 
+#pragma once
+
 #include <zecalculator/parsing/data_structures/decl/tree.h>
-#include <zecalculator/parsing/data_structures/impl/tree.h>
+
+namespace zc {
+namespace ast {
+namespace node {
+
+struct InputVariable: parsing::tokens::Text
+{
+  InputVariable(parsing::tokens::Text text, size_t index)
+    : parsing::tokens::Text(std::move(text)), index(index)
+  {}
+
+  size_t index;
+};
+
+struct Function: parsing::tokens::Text
+{
+  Function(const parsing::tokens::Text& text, std::vector<Tree> subnodes)
+    : parsing::tokens::Text(text), subnodes(std::move(subnodes))
+  {}
+
+  std::vector<Tree> subnodes;
+
+  bool operator == (const Function& other) const = default;
+};
+
+}
+}
+
+inline parsing::tokens::Text text_token(const ast::Tree& token)
+{
+  return std::visit(overloaded{[](const std::monostate&) -> parsing::tokens::Text
+                               { return parsing::tokens::Text(); },
+                               [](const auto& tk) -> parsing::tokens::Text { return tk; }},
+                    token);
+}
+
+inline SubstrInfo substr_info(const ast::Tree& token)
+{
+  return text_token(token).substr_info;
+
+}
+
+}

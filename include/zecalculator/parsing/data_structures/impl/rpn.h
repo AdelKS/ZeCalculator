@@ -3,7 +3,7 @@
 /****************************************************************************
 **  Copyright (c) 2023, Adel Kara Slimane <adel.ks@zegrapher.com>
 **
-**  This file is part of ZeCalculator.
+**  This file is part of ZeCalculator's source code.
 **
 **  ZeCalculators is free software: you may copy, redistribute and/or modify it
 **  under the terms of the GNU Affero General Public License as published by the
@@ -19,6 +19,3 @@
 **  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **
 ****************************************************************************/
-
-#include <zecalculator/parsing/data_structures/decl/tree.h>
-#include <zecalculator/parsing/data_structures/impl/tree.h>
