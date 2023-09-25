@@ -33,31 +33,32 @@ int main()
 
   "simple test"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::AST : parsing::RPN;
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    expect((*world.template get<CppUnaryFunction>("sqrt").value())(4) == 2);
+    CppUnaryFunction* cppFunc = world.template get<CppUnaryFunction>("sqrt");
+    expect(cppFunc != nullptr and (*cppFunc)(4) == 2);
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
   "Add constant then set value"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::AST : parsing::RPN;
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    auto c1 = world.template add<GlobalConstant>("my_constant1").value();
-    *c1 = 2.0;
-    expect(c1->value == 2.0);
+    GlobalConstant& c1 = world.template add<GlobalConstant>("my_constant1").value();
+    c1.value = 2.0;
+    expect(c1.value == 2.0);
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
   "Add same constant twice"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::AST : parsing::RPN;
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    world.add("my_constant1", GlobalConstant(2.0));
-    expect(not world.add("my_constant1", GlobalConstant(3.0)).has_value());
+    world.template add<GlobalConstant>("my_constant1", 2.0);
+    expect(not world.template add<GlobalConstant>("my_constant1", 3.0).has_value());
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 

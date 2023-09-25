@@ -33,52 +33,53 @@ int main()
 
   "simple function evaluation"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::AST : parsing::RPN;
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
 
     MathWorld<type> world;
 
-    auto expr = Expression<type>("cos(2)");
+    GlobalVariable<type>& expr = world.template add<GlobalVariable<type>>("foo_var", "cos(2)").value();
 
-    expect(expr.evaluate(world).value() == std::cos(2.0));
+    expect(expr().value() == std::cos(2.0));
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
   "simple expression evaluation"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::AST : parsing::RPN;
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
 
     MathWorld<type> world;
 
-    auto expr = Expression<type>("2+2*2");
+    GlobalVariable<type>& expr = world.template add<GlobalVariable<type>>("foo_var", "2+2*2").value();
 
-    expect(expr.evaluate(world).value() == 6);
+    expect(expr().value() == 6);
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
   "complex expression evaluation"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::AST : parsing::RPN;
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST
+                                                                        : parsing::Type::RPN;
 
     MathWorld<type> world;
 
-    auto expr = Expression<type>("2/3+2*2*exp(2)^2.5");
+    GlobalVariable<type>& expr
+      = world.template add<GlobalVariable<type>>("foo_var", "2/3+2*2*exp(2)^2.5").value();
 
-    const double res = expr.evaluate(world).value();
+    const double res = expr().value();
     const double expected_res = 2./3.+2.*2.*std::pow(std::exp(2.), 2.5);
 
     expect(res == expected_res);
-
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
   "global constant expression evaluation"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::AST : parsing::RPN;
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
 
     MathWorld<type> world;
 
-    auto expr = Expression<type>("2*math::π + math::pi/2");
+    GlobalVariable<type>& expr = world.template add<GlobalVariable<type>>("foo_var", "2*math::π + math::pi/2").value();
 
-    const double res = expr.evaluate(world).value();
+    const double res = expr().value();
     const double expected_res = 2.5 * std::numbers::pi;
 
     expect(res == expected_res);
@@ -87,15 +88,15 @@ int main()
 
   "global constant registering and evaluation"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::AST : parsing::RPN;
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    world.add("my_constant1", GlobalConstant(2.0));
-    world.add("my_constant2", GlobalConstant(3.0));
+    world.template add<GlobalConstant>("my_constant1", 2.0);
+    world.template add<GlobalConstant>("my_constant2", 3.0);
 
-    auto expr = Expression<type>("my_constant1 + my_constant2");
+    GlobalVariable<type>& expr = world.template add<GlobalVariable<type>>("foo_var", "my_constant1 + my_constant2").value();
 
-    const double res = expr.evaluate(world).value();
+    const double res = expr().value();
     const double expected_res = 5.0;
 
     expect(res == expected_res);
@@ -103,28 +104,26 @@ int main()
 
   "undefined global constant"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::AST : parsing::RPN;
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
 
     MathWorld<type> world;
 
-    auto expr = Expression<type>("cos(1) + my_constant1");
+    GlobalVariable<type>& expr = world.template add<GlobalVariable<type>>("foo_var", "cos(1) + my_constant1").value();
 
-    const auto res = expr.evaluate(world);
-
-    expect(not bool(res)) << res;
+    expect(std::holds_alternative<Error>(expr.parsing_status()));
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
   "input var evaluation shadowing a global constant"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::AST : parsing::RPN;
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    world.add("x", GlobalConstant(2.0));
+    world.template add<GlobalConstant>("x", 2.0);
 
-    auto fun = Function<type>({"x"}, "cos(x) + x");
+    Function<type>& fun = world.template add<Function<type>>("f", Vars{"x"}, "cos(x) + x").value();
 
-    const double res = fun.evaluate({1.0}, world).value();
+    const double res = fun({1.0}).value();
 
     const double expected_res = std::cos(1.0) + 1.0;
 
@@ -134,32 +133,37 @@ int main()
 
   "wrong object type: function as variable"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::AST : parsing::RPN;
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    auto expr = Expression<type>("2 + cos");
+    GlobalVariable<type>& expr = world.template add<GlobalVariable<type>>("foo_var", "2 + cos").value();
 
-    auto eval = expr.evaluate(world);
+    auto status = expr.parsing_status();
 
-    expect(not bool(eval));
-    expect(eval.error().error_type == Error::WRONG_OBJECT_TYPE);
-    expect(eval.error().token.substr_info == SubstrInfo{.begin = 4, .size = 3});
+    expect(std::holds_alternative<Error>(status));
+
+    auto error = std::get<Error>(status);
+
+    expect(error.error_type == Error::WRONG_OBJECT_TYPE);
+    expect(error.token.substr_info == SubstrInfo{.begin = 4, .size = 3});
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
   "wrong object type: variable as function"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::AST : parsing::RPN;
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    world.add("g", GlobalConstant(3));
-    auto expr = Expression<type>("7 + g(3)");
+    world.template add<GlobalConstant>("g", 3);
+    GlobalVariable<type>& expr = world.template add<GlobalVariable<type>>("foo_var", "7 + g(3)").value();
 
-    auto eval = expr.evaluate(world);
+    auto status = expr.parsing_status();
 
-    expect(not bool(eval));
-    expect(eval.error().error_type == Error::WRONG_OBJECT_TYPE);
-    expect(eval.error().token.substr_info == SubstrInfo{.begin = 4, .size = 1});
+    expect(std::holds_alternative<Error>(status));
+
+    auto error = std::get<Error>(status);
+    expect(error.error_type == Error::WRONG_OBJECT_TYPE);
+    expect(error.token.substr_info == SubstrInfo{.begin = 4, .size = 1});
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 }

@@ -20,39 +20,22 @@
 **
 ****************************************************************************/
 
-#include <zecalculator/evaluation/rpn/decl/variable.h>
-
-#include <zecalculator/math_objects/impl/expression.h>
+#include <zecalculator/math_objects/forward_declares.h>
 
 namespace zc {
-namespace eval {
+
+namespace ast {
+  using Function = zc::Function<parsing::Type::AST>;
+  using Sequence = zc::Sequence<parsing::Type::AST>;
+  using Expression = zc::Expression<parsing::Type::AST>;
+  using GlobalVariable = zc::GlobalVariable<parsing::Type::AST>;
+}
+
 namespace rpn {
-
-inline void Variable::operator()(zc::rpn::MathWorld::UnregisteredObject)
-{
-  expected_eval_stack = tl::unexpected(Error::undefined_variable(var_token));
+  using Function = zc::Function<parsing::Type::RPN>;
+  using Sequence = zc::Sequence<parsing::Type::RPN>;
+  using Expression = zc::Expression<parsing::Type::RPN>;
+  using GlobalVariable = zc::GlobalVariable<parsing::Type::RPN>;
 }
 
-inline void
-  Variable::operator()(const zc::rpn::MathWorld::ConstMathObject<GlobalConstant>& global_constant)
-{
-  expected_eval_stack->push_back(global_constant->value);
-}
-
-inline void Variable::operator()(
-  const zc::rpn::MathWorld::ConstMathObject<zc::rpn::GlobalVariable>& global_variable)
-{
-  auto expected_res = global_variable->evaluate(world, current_recursion_depth + 1);
-  if (expected_res)
-    expected_eval_stack->push_back(*expected_res);
-  else expected_eval_stack = tl::unexpected(expected_res.error());
-}
-
-inline void Variable::operator()(const auto&)
-{
-  expected_eval_stack = tl::unexpected(Error::wrong_object_type(var_token));
-}
-
-}
-}
 }

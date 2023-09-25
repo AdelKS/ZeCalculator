@@ -21,44 +21,85 @@
 ****************************************************************************/
 
 #include <zecalculator/evaluation/ast/decl/evaluation.h>
-
-#include <zecalculator/evaluation/ast/impl/function.h>
-#include <zecalculator/evaluation/ast/impl/variable.h>
+#include <zecalculator/parsing/data_structures/impl/node.h>
 
 namespace zc {
 namespace eval {
 namespace ast {
 
-inline Node::ReturnType Node::operator () (std::monostate)
+inline Evaluator::ReturnType Evaluator::operator () (std::monostate)
 {
   return tl::unexpected(Error::empty_expression());
 }
 
-inline Node::ReturnType Node::operator () (const zc::ast::node::Function& node)
+inline Evaluator::ReturnType
+  Evaluator::operator()(const zc::parsing::node::ast::Function<zc::parsing::Type::AST>& node)
 {
-  if (world.max_recursion_depth < current_recursion_depth)
+  if (node.f.mathworld.max_recursion_depth < current_recursion_depth)
     return tl::unexpected(Error::recursion_depth_overflow());
 
-  auto math_obj = world.get(node.name);
-
   std::vector<double> evaluations;
-  for (const auto& subnode : node.subnodes)
+  for (const auto& operand : node.operands)
   {
-    auto eval = evaluate(subnode, input_vars, world, current_recursion_depth + 1);
+    auto eval = evaluate(operand, input_vars, current_recursion_depth + 1);
     if (eval) [[likely]]
       evaluations.push_back(*eval);
     else [[unlikely]]
       return eval;
   }
 
-  return std::visit(Function{.world = world,
-                              .node = node,
-                              .evaluations = evaluations,
-                              .current_recursion_depth = current_recursion_depth},
-                    math_obj);
+  return node.f.evaluate(evaluations, current_recursion_depth + 1);
 }
 
-inline Node::ReturnType Node::operator () (const zc::ast::node::InputVariable& node)
+inline Evaluator::ReturnType
+  Evaluator::operator()(const zc::parsing::node::ast::Sequence<zc::parsing::Type::AST>& node)
+{
+  if (node.u.mathworld.max_recursion_depth < current_recursion_depth)
+    return tl::unexpected(Error::recursion_depth_overflow());
+
+  auto eval = evaluate(node.operand, input_vars, current_recursion_depth + 1);
+  if (eval) [[likely]]
+    return node.u.evaluate(*eval, current_recursion_depth + 1);
+  else [[unlikely]]
+    return eval;
+}
+
+inline Evaluator::ReturnType Evaluator::operator()(
+  const zc::parsing::node::ast::CppUnaryFunction<zc::parsing::Type::AST>& node)
+{
+  auto operand = evaluate(node.operand, input_vars, current_recursion_depth + 1);
+  if (operand) [[likely]]
+    return node.f(*operand);
+  else [[unlikely]]
+    return operand;
+}
+
+inline Evaluator::ReturnType Evaluator::operator()(
+  const zc::parsing::node::ast::CppBinaryFunction<zc::parsing::Type::AST>& node)
+{
+  auto operand1 = evaluate(node.operand1, input_vars, current_recursion_depth + 1);
+  auto operand2 = evaluate(node.operand2, input_vars, current_recursion_depth + 1);
+  if (operand1 and operand2) [[likely]]
+    return node.f(*operand1, *operand2);
+  else [[unlikely]]
+    return operand1 ? operand2 : operand1;
+}
+
+inline Evaluator::ReturnType
+  Evaluator::operator()(const zc::parsing::node::GlobalVariable<parsing::Type::AST>& node)
+{
+  if (node.var.mathworld.max_recursion_depth < current_recursion_depth)
+    return tl::unexpected(Error::recursion_depth_overflow());
+
+  return node.var.evaluate(current_recursion_depth + 1);
+}
+
+inline Evaluator::ReturnType Evaluator::operator () (const zc::parsing::node::GlobalConstant& node)
+{
+  return node.constant.value;
+}
+
+inline Evaluator::ReturnType Evaluator::operator () (const zc::parsing::node::InputVariable& node)
 {
   // node.index should never be bigger than input_vars.size()
   assert(node.index < input_vars.size());
@@ -66,18 +107,7 @@ inline Node::ReturnType Node::operator () (const zc::ast::node::InputVariable& n
   return input_vars[node.index];
 }
 
-inline Node::ReturnType Node::operator () (const zc::ast::node::Variable& node)
-{
-  auto math_object = world.get(node.name);
-
-  return std::visit(Variable{.world = world,
-                              .node = node,
-                              .current_recursion_depth = current_recursion_depth},
-                    math_object);
-
-}
-
-inline Node::ReturnType Node::operator () (const zc::ast::node::Number& node)
+inline Evaluator::ReturnType Evaluator::operator () (const zc::parsing::node::Number& node)
 {
   return node.value;
 }
@@ -89,29 +119,26 @@ inline Node::ReturnType Node::operator () (const zc::ast::node::Number& node)
 /// @param tree: tree to evaluate
 /// @param input_vars: variables that are given as input to the tree, will shadow any variable in the math world
 /// @param world: math world (contains functions, global constants... etc)
-inline tl::expected<double, Error> evaluate(const ast::Tree& tree,
+inline tl::expected<double, Error> evaluate(const parsing::Tree<parsing::Type::AST>& tree,
                                             std::span<const double> input_vars,
-                                            const ast::MathWorld& world,
                                             size_t current_recursion_depth)
 {
-  return std::visit(eval::ast::Node{.world = world,
-                                    .input_vars = input_vars,
-                                    .current_recursion_depth = current_recursion_depth},
-                    tree);
+  return std::visit(eval::ast::Evaluator{.input_vars = input_vars,
+                                         .current_recursion_depth = current_recursion_depth},
+                    *tree);
 }
 
 /// @brief evaluates a syntax tree using a given math world
-inline tl::expected<double, Error> evaluate(const ast::Tree& tree,
-                                            std::span<const double> input_vars,
-                                            const ast::MathWorld& world)
+inline tl::expected<double, Error> evaluate(const parsing::Tree<parsing::Type::AST>& tree,
+                                            std::span<const double> input_vars)
 {
-  return std::visit(eval::ast::Node{.world = world, .input_vars = input_vars}, tree);
+  return evaluate(tree, input_vars, 0);
 }
 
 /// @brief evaluates a syntax tree using a given math world
-inline tl::expected<double, Error> evaluate(const ast::Tree& tree, const ast::MathWorld& world)
+inline tl::expected<double, Error> evaluate(const parsing::Tree<parsing::Type::AST>& tree)
 {
-  return evaluate(tree, std::span<const double>(), world, 0);
+  return evaluate(tree, std::span<const double>(), 0);
 }
 
 

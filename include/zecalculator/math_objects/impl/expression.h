@@ -21,7 +21,6 @@
 #pragma once
 
 #include <zecalculator/math_objects/decl/expression.h>
-
 #include <zecalculator/math_objects/impl/function.h>
 
 /* TODO: update approach as the following:
@@ -37,27 +36,30 @@ namespace eval {
 }
 
 template <parsing::Type type>
-Expression<type>::Expression(const std::string& expr)
+Expression<type>::Expression(const MathWorld<type>& mathworld) : Function<type>(mathworld)
+{}
+
+template <parsing::Type type>
+Expression<type>::Expression(const std::string& expr, const MathWorld<type>& mathworld)
+  : Function<type>({}, expr, mathworld)
+{}
+
+template <parsing::Type type>
+tl::expected<double, Error> Expression<type>::evaluate() const
 {
-  this->set_expression(expr);
+  return Function<type>::evaluate(std::span<double>());
 }
 
 template <parsing::Type type>
-tl::expected<double, Error> Expression<type>::evaluate(const MathWorld<type>& world) const
+tl::expected<double, Error> Expression<type>::operator ()() const
 {
-  return Function<type>::evaluate(std::span<double>(), world);
+  return Function<type>::evaluate(std::span<double>());
 }
 
 template <parsing::Type type>
-tl::expected<double, Error> Expression<type>::operator ()(const MathWorld<type>& world) const
+tl::expected<double, Error> Expression<type>::evaluate(size_t current_recursion_depth) const
 {
-  return Function<type>::evaluate(std::span<double>(), world);
-}
-
-template <parsing::Type type>
-tl::expected<double, Error> Expression<type>::evaluate(const MathWorld<type>& world, size_t current_recursion_depth) const
-{
-  return Function<type>::evaluate(std::span<double>(), world, current_recursion_depth);
+  return Function<type>::evaluate(std::span<double>(), current_recursion_depth);
 }
 
 }

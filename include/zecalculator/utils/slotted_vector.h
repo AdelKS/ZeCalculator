@@ -20,8 +20,7 @@
 **
 ****************************************************************************/
 
-#include <vector>
-#include <cstdint>
+#include <deque>
 #include <cstddef>
 #include <optional>
 #include <stack>
@@ -31,12 +30,12 @@ namespace zc {
 /// @brief a vector of T, where each element keeps its index
 ///        during its whole lifetime
 template <class T>
-class SlottedVector: protected std::vector<std::optional<T>>
+class SlottedDeque: protected std::deque<std::optional<T>>
 {
-  using Parent = std::vector<std::optional<T>>;
+  using Parent = std::deque<std::optional<T>>;
 
 public:
-  SlottedVector() = default;
+  SlottedDeque() = default;
 
   using Parent::size;
 
@@ -53,7 +52,7 @@ public:
     {
       const size_t slot = free_slots.top();
       free_slots.pop();
-      Parent::operator[](slot) = std::move(val);
+      Parent::operator[](slot).emplace(std::move(val));
       return slot;
     }
   }

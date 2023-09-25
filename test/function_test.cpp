@@ -35,16 +35,16 @@ int main()
 
   "multi-parameter function evaluation"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::AST : parsing::RPN;
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    auto f = Function<type>({"omega", "t"}, "cos(omega * t) + omega * t");
+    Function<type>& f = world.template add<Function<type>>("f", Vars{"omega", "t"}, "cos(omega * t) + omega * t").value();
 
     const double omega = 2;
     const double t = 3;
 
     // note: the order of the arguments is important
-    const double res = f({omega, t}, world).value();
+    const double res = f({omega, t}).value();
     const double expected_res = std::cos(omega * t) + omega * t;
 
     expect(res == expected_res);
@@ -53,13 +53,13 @@ int main()
 
   "function evaluation shadowing a global constant"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::AST : parsing::RPN;
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    world.add("x", GlobalConstant(2.0));
-    auto f = Function<type>({"x"}, "cos(x) + x");
+    world.template add<GlobalConstant>("x", 2.0);
+    Function<type>& f = world.template add<Function<type>>("f", Vars{"x"}, "cos(x) + x").value();
 
-    const double res = f({1.0}, world).value();
+    const double res = f({1.0}).value();
     const double expected_res = std::cos(1.0) + 1.0;
 
     expect(res == expected_res);
@@ -68,17 +68,17 @@ int main()
 
   "function calling another function"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::AST : parsing::RPN;
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    auto f1 = world.add("f1", Function<type>()).value();
-    auto f2 = world.add("f2", Function<type>()).value();
+    Function<type>& f1 = world.template add<Function<type>>("f1").value();
+    Function<type>& f2 = world.template add<Function<type>>("f2").value();
 
-    *f1 = Function<type>({"x"}, "cos(x) + x + f2(2*x)");
-    *f2 = Function<type>({"x"}, "cos(x) + 2*x^2");
+    f2.set(Vars{"x"}, "cos(x) + 2*x^2");
+    f1.set(Vars{"x"}, "cos(x) + x + f2(2*x)");
 
-    expect(bool(*f1));
-    expect(bool(*f2));
+    expect(bool(f1));
+    expect(bool(f2));
 
     auto cpp_f2 = [](double x)
     {
@@ -112,15 +112,12 @@ int main()
 
   "function overwrites"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::AST : parsing::RPN;
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
 
     MathWorld<type> world;
 
-    // add a function named "f", note that the constant "my_constant" is only defined after
-    auto f = world.add("f", Function<type>({"x"}, "x + my_constant + cos(math::pi)")).value();
-
-    // add a global constant called "my_constant" with an initial value of 3.0
-    auto cst = world.add("my_constant", GlobalConstant(3.0)).value();
+    GlobalConstant& cst = world.template add<GlobalConstant>("my_constant", 3.0).value();
+    Function<type>& f = world.template add<Function<type>>("f", Vars{"x"}, "x + my_constant + cos(math::pi)").value();
 
     double cpp_cst = 3.0;
     auto cpp_f_1 = [&](double x)
@@ -130,13 +127,16 @@ int main()
 
     expect(f({1}).value() == cpp_f_1(1.0));
 
-    *cst = 5.0;
+    cst.value = 5.0;
     cpp_cst = 5.0;
 
     expect(f({1}).value() == cpp_f_1(1.0));
 
+    Function<type>& g = world.template add<Function<type>>("g").value();
+    g.set(Vars{"z"}, "2*z + my_constant");
+
     // override expression and variable name of f
-    *f = Function<type>({"y", "z"}, "y + z + my_constant + g(y)");
+    f.set(Vars{"y", "z"}, "y + z + my_constant + g(y)");
 
     auto cpp_g = [&](double z)
     {
@@ -148,31 +148,26 @@ int main()
       return y + z + cpp_cst + cpp_g(y);
     };
 
-    auto g = world.add("g", Function<type>()).value();
-    *g = Function<type>({"z"}, "2*z + my_constant");
-
     expect(f({3, 4}).value() == cpp_f_2(3, 4));
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
   "nested multi-variable functions"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::AST : parsing::RPN;
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
 
     MathWorld<type> world;
 
-    // add a function named "f", note that the constant "my_constant" is only defined after
-    auto f = world.add("f", Function<type>({"x", "y"}, "h(x, g(x, y)) + g(y, h(y, x))")).value();
-    world.add("g", Function<type>({"a", "b"}, "h(a, a*b) + 3*a - b"));
-    world.add("h", Function<type>({"c", "d"}, "c*d + c-d"));
+    world.template add<Function<type>>("h", Vars{"c", "d"}, "c*d + c-d");
+    world.template add<Function<type>>("g", Vars{"a", "b"}, "h(a, a*b) + 3*a - b");
+    Function<type>& f = world.template add<Function<type>>("f", Vars{"x", "y"}, "h(x, g(x, y)) + g(y, h(y, x))").value();
 
     auto cpp_h = [](double c, double d) {
       return c*d + c-d;
     };
 
     auto cpp_g = [&](double a, double b) {
-      return cpp_h(a, a*b) + 3*a - b;
-    };
+      return cpp_h(a, a*b) + 3*a - b;    };
 
     auto cpp_f = [&](double x, double y) {
       return cpp_h(x, cpp_g(x, y)) + cpp_g(y, cpp_h(y, x));
@@ -181,17 +176,18 @@ int main()
     const double x = 5, y = 3;
 
     expect(f({x, y}).value() == cpp_f(x, y));
+
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
   "function with dot in name"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::AST : parsing::RPN;
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
 
     MathWorld<type> world;
 
     // add a function named "f", note that the constant "my_constant" is only defined after
-    auto fx = world.add("f.x", Function<type>({"x"}, "1 + x")).value();
-    auto fy = world.add("f.y", Expression<type>("2.0 + f.x(1)")).value();
+    Function<type>& fx = world.template add<Function<type>>("f.x", Vars{"x"}, "1 + x").value();
+    GlobalVariable<type>& fy = world.template add<GlobalVariable<type>>("f.y", "2.0 + f.x(1)").value();
 
     expect(fx({1}) == 2.0);
     expect(fy() == 4.0);
@@ -200,46 +196,29 @@ int main()
 
   "calling function without arguments"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::AST : parsing::RPN;
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
 
     MathWorld<type> world;
 
     // add a function named "f", note that the constant "my_constant" is only defined after
-    world.add("f", Function<type>({"x", "y"}, "1 + x + y")).value();
-    auto expr = world.add("val", Expression<type>("1 + f(1)")).value();
+    world.template add<Function<type>>("f", Vars{"x", "y"}, "1 + x + y").value();
+    GlobalVariable<type>& expr = world.template add<GlobalVariable<type>>("val", "1 + f(1)").value();
 
-    [[maybe_unused]] const auto& parsing = expr->get_parsing().value();
-
-    if constexpr (type == parsing::AST)
-    {
-      expect(expr()
-             == tl::unexpected(Error::mismatched_fun_args(
-               ast::node::Function(parsing::tokens::Text("f", 4, 1),
-                                   {ast::node::Number(1.0, parsing::tokens::Text("1", 6, 1))}))))
-        << expr();
-    }
-    else
-    {
-      // error message in postfix notation isn't accurate, because the expression is translated to
-      // "1 + f(1)" -> "1, 1, f, +" and 'f' will pick the first two values, then '+' ends up with just one
-      // value
-      expect(expr()
-             == tl::unexpected(Error::mismatched_fun_args(parsing::tokens::Operator('+', 2))))
-        << expr();
-    }
-
+    expect(std::holds_alternative<Error>(expr.parsing_status()));
+    expect(expr.get_parsing().error() == Error::mismatched_fun_args(parsing::tokens::Text("f", 4, 1)))
+      << expr.get_parsing().error();
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
   "parametric function benchmark"_test = []<class StructType>()
   {
     {
-      constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::AST : parsing::RPN;
+      constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
       constexpr std::string_view data_type_str_v = std::is_same_v<StructType, AST_TEST> ? "AST" : "RPN";
 
       MathWorld<type> world;
-      auto f = world.add("f", Function<type> ({"x"}, "cos(x) + t + 3")).value();
-      auto t = world.add("t", GlobalConstant(0)).value();
+      GlobalConstant& t = world.template add<GlobalConstant>("t", 1).value();
+      Function<type>& f = world.template add<Function<type>>("f", Vars{"x"}, "3*cos(t*x) + 2*sin(x/t) + 4").value();
 
       double x = 0;
       auto begin = high_resolution_clock::now();
@@ -250,7 +229,7 @@ int main()
         res += f({x}).value();
         iterations++;
         x++;
-        t->value++;
+        t.value++;
       }
       auto end = high_resolution_clock::now();
       std::cout << "Avg zc::Function<" << data_type_str_v << "> eval time: "
@@ -259,9 +238,9 @@ int main()
       std::cout << "dummy val: " << res << std::endl;
     }
     {
-      double cpp_t = 0;
+      double cpp_t = 1;
       auto cpp_f = [&](double x) {
-        return cos(x) + cpp_t + 3;
+        return 3*cos(cpp_t*x) + 2*sin(x/cpp_t) + 4;
       };
 
       double x = 0;

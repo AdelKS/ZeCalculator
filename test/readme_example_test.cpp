@@ -20,8 +20,6 @@
 
 #include <zecalculator/zecalculator.h>
 
-#include <iostream>
-
 using namespace zc;
 using namespace tl;
 using namespace std;
@@ -32,43 +30,46 @@ int main()
 
   // Notes about adding a math object to a math world:
   // - Each added object exists only within the math world that creates it
-  // - Adding a math object returns a tl::expected that can have an error instead of the
-  //   handle to the function (e.g.: invalid format for the name, or name is already taken)
-
-  // Add a function named "f", note that the constant "my_constant" is only defined after
-  // Note: the .value() call from tl::expected<> throws if it actually hold an error
-  auto f = world.add("f", ast::Function({"x"}, "x + my_constant + cos(math::pi)")).value();
+  // - Adding a math object returns a tl::expected that can have an error instead of a
+  //   ref to the object (e.g.: invalid format for the name, or name is already taken)
 
   // Add a global constant called "my_constant" with an initial value of 3.0
-  // Note: the .value() call from tl::expected<> throws if it actually hold an error
-  auto cst = world.add<GlobalConstant>("my_constant", 3.0).value();
+  // Note: the .value() call from tl::expected<> throws if it actually holds an error
+  GlobalConstant& cst = world.add<GlobalConstant>("my_constant", 3.0).value();
 
-  // Evaluate function and get the value
+  // Add a function named "f"
+  ast::Function& f = world.add<ast::Function>("f", Vars{"x"}, "x + my_constant + cos(math::pi)").value();
+
+  // We know the expression is correct
+  assert(std::holds_alternative<Ok>(f.parsing_status()));
+
+  // Evaluate function, returns an 'expected'
+  expected<double, Error> eval = f({1});
+
   // Notes:
   // - We know the expression is correct, otherwise the call `.value()` will throw
   // - The error can be recovered with '.error()`
   // - To know if the result is correct
   //   - call `.has_value()`
   //   - use the `bool()` operator on the expression
-  std::cout << f({1}).value()  << std::endl; // == 3
+  assert(eval.value() == 3);
 
   // overwrite the value of the global constant
-  *cst = 5.0;
+  cst = 5.0;
 
   // evaluate function again and get the new value
-  std::cout << f({1}).value()  << std::endl; // == 5
-
-  // change 'f': new variable names and count, call a function g
-  *f = ast::Function({"y", "z"}, "y + z + my_constant + g(y)");
+  assert(f({1}).value() == 5);
 
   // define function 'g'
-  auto g = world.add<ast::Function>("g").value();
+  world.add<ast::Function>("g", Vars{"z"}, "2*z + my_constant").value();
 
-  // assign input variables and expression to 'g'
-  *g = ast::Function({"z"}, "2*z + my_constant");
+  // change 'f':
+  // - different number of input variables and different names
+  // - expression calls a function g
+  f.set({"y", "z"}, "y + z + my_constant + g(y)");
 
   // evaluate function again and get the new value
-  std::cout << f({3, 4}).value() << std::endl; // == 23
+  assert(f({3, 4}).value() == 23);
 
   return 0;
 }

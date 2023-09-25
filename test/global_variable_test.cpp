@@ -33,16 +33,16 @@ int main()
 
   "dependent expression"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::AST : parsing::RPN;
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    auto f = world.add("f", Function<type>({"x", "y"}, "cos(math::pi * x) * y + k*g(x) + r")).value();
-    auto r = world.add("r", GlobalConstant()).value();
-    world.add("k", GlobalVariable<type>("3*g(3)"));
-    world.add("g", Function<type>({"x"}, "sin(3 * math::pi * x) + r"));
+    GlobalConstant& r = world.template add<GlobalConstant>("r").value();
+    world.template add<Function<type>>("g", Vars{"x"}, "sin(3 * math::pi * x) + r");
+    world.template add<GlobalVariable<type>>("k", "3*g(3)");
+    Function<type>& f = world.template add<Function<type>>("f", Vars{"x", "y"}, "cos(math::pi * x) * y + k*g(x) + r").value();
 
     double cpp_r = 3;
-    *r = cpp_r;
+    r.value = cpp_r;
 
     auto cpp_g = [&](double x){
       return sin(3 * std::numbers::pi * x) + cpp_r;
@@ -58,11 +58,19 @@ int main()
 
     double x = 7, y = 8;
 
-    expect(f({x, y}).value() == cpp_f(x, y));
+    auto eval = f({x, y});
+    if (not eval)
+    {
+      auto error = eval.error();
+      std::cout << error << std::endl;
+    }
+
+    expect(eval.value() == cpp_f(x, y));
 
     cpp_r = 10;
-    *r = cpp_r;
+    r.value = cpp_r;
 
     expect(f({x, y}).value() == cpp_f(x, y));
+
   } | std::tuple<AST_TEST, RPN_TEST>{};
 }

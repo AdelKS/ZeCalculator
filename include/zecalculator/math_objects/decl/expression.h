@@ -20,8 +20,10 @@
 
 #pragma once
 
-#include "zecalculator/parsing/parser.h"
 #include <zecalculator/math_objects/decl/function.h>
+#include <zecalculator/parsing/data_structures/decl/node.h>
+#include <zecalculator/parsing/decl/parser.h>
+#include <zecalculator/parsing/shared.h>
 
 /* TODO: update approach as the following:
    - Check for validity
@@ -31,55 +33,26 @@
 
 namespace zc {
 
-namespace eval {
-namespace ast {
-  struct Variable;
-}
-namespace rpn {
-  struct Variable;
-}
-}
-
-template <parsing::Type>
-class Expression;
-
-namespace ast {
-  using Expression = zc::Expression<parsing::Type::AST>;
-}
-
-namespace rpn {
-  using Expression = zc::Expression<parsing::Type::RPN>;
-}
-
 /// @brief a class that represents a general expression
 /// @note  an expression is a function that does not have any input
 template <parsing::Type type>
 class Expression: public Function<type>
 {
 public:
-  explicit Expression() = default;
 
-  explicit Expression(const std::string& expr);
+  Expression(const MathWorld<type>& mathworld);
 
-  tl::expected<double, Error> evaluate(const MathWorld<type>& world) const;
+  Expression(const std::string& expr, const MathWorld<type>& mathworld);
 
-  tl::expected<double, Error> operator ()(const MathWorld<type>& world) const;
+  tl::expected<double, Error> evaluate() const;
+
+  tl::expected<double, Error> operator ()() const;
 
 protected:
-  tl::expected<double, Error> evaluate(const MathWorld<type>& world, size_t current_recursion_depth) const;
+  tl::expected<double, Error> evaluate(size_t current_recursion_depth) const;
 
-  friend tl::expected<double, Error> evaluate(const ast::Tree& tree,
-                                              const name_map<double>& input_vars,
-                                              const ast::MathWorld& world,
-                                              size_t current_recursion_depth);
-
-  friend tl::expected<double, Error> evaluate(const rpn::RPN& tree,
-                                              const name_map<double>& input_vars,
-                                              const rpn::MathWorld& world,
-                                              size_t current_recursion_depth);
-
-  friend struct eval::ast::Variable;
-  friend struct eval::rpn::Variable;
+  friend struct eval::rpn::Evaluator;
+  friend struct eval::ast::Evaluator;
 
   // hide functions that are not needed from Function
   using Function<type>::evaluate;

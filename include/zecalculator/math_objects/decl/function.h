@@ -20,21 +20,16 @@
 
 #pragma once
 
-#include <memory>
 #include <string>
-#include <string_view>
-#include <type_traits>
 #include <vector>
 #include <optional>
-#include <iostream>
+#include <span>
 
 #include <zecalculator/error.h>
 #include <zecalculator/external/expected.h>
-#include <zecalculator/math_objects/builtin_binary_functions.h>
-#include <zecalculator/math_objects/builtin_unary_functions.h>
-#include <zecalculator/math_objects/global_constant.h>
+#include <zecalculator/parsing/data_structures/decl/node.h>
 #include <zecalculator/mathworld/decl/mathworld.h>
-#include <zecalculator/parsing/parser.h>
+#include <zecalculator/parsing/shared.h>
 #include <zecalculator/utils/name_map.h>
 
 /* TODO: update approach as the following:
@@ -45,24 +40,18 @@
 
 namespace zc {
 
-namespace eval{
-namespace ast{
-  struct Function;
+namespace eval {
+namespace rpn {
+  struct Evaluator;
 }
-namespace rpn{
-  struct Function;
-}
-}
-
-template <parsing::Type>
-class Function;
 
 namespace ast {
-  using Function = zc::Function<parsing::Type::AST>;
+  struct Evaluator;
+}
 }
 
-namespace rpn {
-  using Function = zc::Function<parsing::Type::RPN>;
+namespace parsing {
+  struct RpnMaker;
 }
 
 struct Ok {};
@@ -73,21 +62,22 @@ struct InvalidInputVar
   std::string var_name;
 };
 
+using Vars = std::vector<std::string>;
+
 template <parsing::Type type>
 class Function
 {
 public:
-  using ParsingType = typename std::conditional_t<type == parsing::AST, ast::Tree, rpn::RPN>;
+  Function(const MathWorld<type>& mathworld)
+    requires(type == parsing::Type::AST);
 
-  explicit Function() = default;
+  Function(const MathWorld<type>& mathworld)
+    requires (type == parsing::Type::RPN);
 
   /// @brief constructor for a function that takes many input variables
-  explicit Function(std::vector<std::string> input_vars, std::string expr);
+  Function(std::vector<std::string> input_vars, std::string expr, const MathWorld<type>& mathworld);
 
-  Function(const Function& f) = default;
   Function(Function&& f) = default;
-
-  Function& operator = (const Function& f) = default;
   Function& operator = (Function&& f) = default;
 
   /// @brief sets the names of the input variables
@@ -98,6 +88,9 @@ public:
   /// \brief set the expression
   void set_expression(std::string expr);
 
+  /// @brief sets both the input_vars and the expression
+  void set(std::vector<std::string> input_vars, std::string expr);
+
   /// @brief returns the number of input variables, if they are valid
   std::optional<size_t> argument_size() const;
 
@@ -106,48 +99,36 @@ public:
 
   std::variant<Ok, Empty, Error> parsing_status() const;
 
-  const tl::expected<ParsingType, Error>& get_parsing() const;
-
-  const tl::expected<ast::Tree, Error>& get_tree() const
-    requires (type == parsing::AST);
-
-  const tl::expected<rpn::RPN, Error>& get_rpn() const
-    requires (type == parsing::RPN);
+  const tl::expected<parsing::Parsing<type>, Error>& get_parsing() const;
 
   /// @brief evaluation on a given math world with the given input
-  tl::expected<double, Error> evaluate(const std::vector<double>& args,
-                                       const MathWorld<type>& world) const;
+  tl::expected<double, Error> evaluate(const std::vector<double>& args) const;
 
   // span version
-  tl::expected<double, Error> evaluate(std::span<const double> args,
-                                       const MathWorld<type>& world) const;
+  tl::expected<double, Error> evaluate(std::span<const double> args) const;
 
   /// @brief evaluation on a given math world with the given input
   /// @note operator style
-  tl::expected<double, Error> operator()(const std::vector<double>& args,
-                                         const MathWorld<type>& world) const;
+  tl::expected<double, Error> operator()(const std::vector<double>& args) const;
 
   // span version
-  tl::expected<double, Error> operator()(std::span<const double> args,
-                                         const MathWorld<type>& world) const;
+  tl::expected<double, Error> operator()(std::span<const double> args) const;
 
 protected:
 
-  /// @brief evaluation on a given math world with the given input
   /// @note version that tracks the current recursion depth
   tl::expected<double, Error> evaluate(std::span<const double> args,
-                                       const MathWorld<type>& world,
                                        size_t current_recursion_depth) const;
-
-  friend struct eval::ast::Function;
-  friend struct eval::rpn::Function;
-
-  friend class Sequence<type>;
 
   std::string expression;
 
-  tl::expected<ParsingType, Error> parsed_expr;
+  friend struct eval::rpn::Evaluator;
+  friend struct eval::ast::Evaluator;
+  friend struct parsing::RpnMaker;
+
+  tl::expected<parsing::Parsing<type>, Error> parsed_expr;
   tl::expected<std::vector<std::string>, InvalidInputVar> vars;
+  const MathWorld<type>& mathworld;
 
 };
 

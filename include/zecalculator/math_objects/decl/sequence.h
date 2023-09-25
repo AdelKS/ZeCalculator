@@ -20,9 +20,8 @@
 **
 ****************************************************************************/
 
-#include "zecalculator/parsing/parser.h"
 #include <zecalculator/math_objects/decl/function.h>
-#include <zecalculator/mathworld/mathworld.h>
+#include <zecalculator/mathworld/decl/mathworld.h>
 
 /* TODO: update approach as the following:
    - Check for validity
@@ -32,36 +31,24 @@
 
 namespace zc {
 
-namespace eval{
-namespace ast{
-  struct Function;
-}
-namespace rpn{
-  struct Function;
-}
-}
-
-template <parsing::Type>
-class Sequence;
-
-namespace ast {
-  using Sequence = zc::Sequence<parsing::Type::AST>;
-}
-
-namespace rpn {
-  using Sequence = zc::Sequence<parsing::Type::RPN>;
-}
+using Vals = std::vector<double>;
 
 /// @brief a class that represents a Sequence of single argument
 template <parsing::Type type>
 class Sequence: public zc::Function<type>
 {
 public:
-  explicit Sequence() = default;
 
-  explicit Sequence(std::string var_name,
-                    const std::string& expr,
-                    std::vector<double> first_vals = {});
+  Sequence(const MathWorld<type>& mathworld);
+
+  Sequence(std::string var_name,
+           const std::string& expr,
+           std::vector<double> first_vals,
+           const MathWorld<type>& mathworld);
+
+  Sequence(std::string var_name,
+           const std::string& expr,
+           const MathWorld<type>& mathworld);
 
   /// \brief set the expression
   void set_expression(const std::string& expr);
@@ -77,30 +64,18 @@ public:
   /// @brief evaluates the sequence at the given index
   /// @note evaluation modifies the state of the sequence, as values get saved within
   ///       the instance, and a locking mechanism is triggered to detect ill-formed seqs
-  tl::expected<double, Error> evaluate(double index, const MathWorld<type>& world) const;
+  tl::expected<double, Error> evaluate(double index) const;
 
   /// @brief operator version of evaluate
-  tl::expected<double, Error> operator () (double index, const MathWorld<type>& world) const;
+  tl::expected<double, Error> operator () (double index) const;
 
 protected:
 
   /// @brief evaluation with recursion depth tracking
-  tl::expected<double, Error> evaluate(double index,
-                                       const MathWorld<type>& world,
-                                       size_t current_recursion_depth) const;
+  tl::expected<double, Error> evaluate(double index, size_t current_recursion_depth) const;
 
-  friend tl::expected<double, Error> evaluate(const ast::Tree& tree,
-                                              const name_map<double>& input_vars,
-                                              const ast::MathWorld& world,
-                                              size_t current_recursion_depth);
-
-  friend tl::expected<double, Error> evaluate(const rpn::RPN& rpn_expr,
-                                              const name_map<double>& input_vars,
-                                              const rpn::MathWorld& world,
-                                              size_t current_recursion_depth);
-
-  friend struct eval::ast::Function;
-  friend struct eval::rpn::Function;
+  friend struct eval::rpn::Evaluator;
+  friend struct eval::ast::Evaluator;
 
   // hide functions that are not needed from Function
   using Function<type>::evaluate;

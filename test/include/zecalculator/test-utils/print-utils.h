@@ -5,10 +5,7 @@
 #include <boost/ut.hpp>
 #include <zecalculator/parsing/data_structures/token.h>
 #include <zecalculator/error.h>
-#include <zecalculator/parsing/data_structures/tree.h>
-
-template <class T, class... U>
-concept is_any_of = (std::is_same_v<T, U> or ...);
+#include <zecalculator/parsing/data_structures/node.h>
 
 namespace std {
 
@@ -44,43 +41,39 @@ std::ostream& operator << (std::ostream& os, const std::variant<T...>& var)
 }
 
 namespace zc {
-namespace parsing {
+  namespace parsing {
 
-std::ostream& operator << (std::ostream& os, const Token& token);
+    std::ostream& operator << (std::ostream& os, const Token& token);
 
-namespace tokens {
+    std::ostream& operator << (std::ostream& os, const node::ast::Node<Type::AST>& node);
 
-std::ostream& operator<<(std::ostream &, const tokens::Text&);
+    std::ostream& operator << (std::ostream& os, const node::ast::Node<Type::RPN>& node);
 
-template <class Tok>
-  requires is_any_of<Tok,
-                     tokens::Unkown,
-                     tokens::Number,
-                     tokens::Variable,
-                     tokens::Function,
-                     tokens::Operator,
-                     tokens::OpeningParenthesis,
-                     tokens::ClosingParenthesis,
-                     tokens::FunctionCallStart,
-                     tokens::FunctionCallEnd,
-                     tokens::FunctionArgumentSeparator,
-                     tokens::EndOfExpression>
-std::ostream& operator<<(std::ostream& os, const Tok& token)
-{
-  os << boost::ut::reflection::type_name<Tok>() << " " << static_cast<const tokens::Text&>(token);
-  return os;
-}
+    namespace tokens {
 
-}
+    std::ostream& operator<<(std::ostream &, const tokens::Text&);
 
-}
+    template <class Tok>
+      requires is_any_of<Tok,
+                        tokens::Unkown,
+                        tokens::Number,
+                        tokens::Variable,
+                        tokens::Function,
+                        tokens::Operator,
+                        tokens::OpeningParenthesis,
+                        tokens::ClosingParenthesis,
+                        tokens::FunctionCallStart,
+                        tokens::FunctionCallEnd,
+                        tokens::FunctionArgumentSeparator,
+                        tokens::EndOfExpression>
+    std::ostream& operator<<(std::ostream& os, const Tok& token)
+    {
+      os << boost::ut::reflection::type_name<Tok>() << " " << static_cast<const tokens::Text&>(token);
+      return os;
+    }
 
-std::ostream& operator << (std::ostream& os, const Error& err);
+    } // namespace tokens
+  } // namespace parsing
 
-namespace ast {
-
-std::ostream& operator << (std::ostream& os, const Tree& node);
-
-}
-
+  std::ostream& operator << (std::ostream& os, const Error& err);
 }

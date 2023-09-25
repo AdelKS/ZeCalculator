@@ -3,7 +3,7 @@
 /****************************************************************************
 **  Copyright (c) 2023, Adel Kara Slimane <adel.ks@zegrapher.com>
 **
-**  This file is part of ZeCalculator's source code.
+**  This file is part of ZeCalculator.
 **
 **  ZeCalculators is free software: you may copy, redistribute and/or modify it
 **  under the terms of the GNU Affero General Public License as published by the
@@ -20,31 +20,5 @@
 **
 ****************************************************************************/
 
-#include <zecalculator/error.h>
-#include <zecalculator/mathworld/mathworld.h>
-#include <zecalculator/math_objects/global_variable.h>
-
-namespace zc {
-namespace eval {
-namespace ast {
-
-struct Variable
-{
-  const zc::ast::MathWorld& world;
-  const zc::ast::node::Variable& node;
-  const size_t current_recursion_depth;
-
-  using ReturnType = tl::expected<double, Error>;
-
-  ReturnType operator () (zc::ast::MathWorld::UnregisteredObject);
-
-  ReturnType operator () (const zc::ast::MathWorld::ConstMathObject<GlobalConstant>& global_constant);
-
-  ReturnType operator () (const zc::ast::MathWorld::ConstMathObject<zc::ast::GlobalVariable>& global_variable);
-
-  ReturnType operator () (const auto&);
-};
-
-}
-}
-}
+#include <zecalculator/parsing/data_structures/decl/node.h>
+#include <zecalculator/parsing/data_structures/impl/node.h>

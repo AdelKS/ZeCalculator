@@ -5,7 +5,6 @@ project('ZeCalculator', 'cpp',
         'buildtype=release',
         'optimization=3',
         'default_library=both',
-        'c_args= -march=native -pipe',
         'cpp_args= -march=native -pipe',
         'warning_level=3',
         'werror=true'

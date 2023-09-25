@@ -20,12 +20,7 @@
 
 #pragma once
 
-#include <string_view>
-#include <string>
-#include <array>
-#include <cassert>
-
-#include <zecalculator/parsing/data_structures/tree.h>
+#include <cstdint>
 #include <zecalculator/parsing/data_structures/token.h>
 
 namespace zc {

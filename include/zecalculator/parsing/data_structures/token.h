@@ -21,16 +21,11 @@
 #pragma once
 
 #include <cmath>
-#include <vector>
-#include <optional>
 #include <variant>
-#include <cstdint>
-#include <optional>
 #include <string_view>
 #include <string>
 #include <cassert>
 #include <algorithm>
-#include <ranges>
 
 #include <zecalculator/external/expected.h>
 #include <zecalculator/utils/substr_info.h>
@@ -76,7 +71,7 @@ struct Number: Text
 };
 
 struct Variable: Text
-{\
+{
   explicit Variable(const Text& txtTok): Text(txtTok) {}
   using Text::Text;
 };

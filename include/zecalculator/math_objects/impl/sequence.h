@@ -5,17 +5,28 @@
 namespace zc {
 
 template <parsing::Type type>
+Sequence<type>::Sequence(const MathWorld<type>& mathworld) : Function<type>(mathworld)
+{}
+
+template <parsing::Type type>
 Sequence<type>::Sequence(std::string var_name,
                          const std::string& expr,
-                         std::vector<double> first_vals)
-  : Function<type>(std::vector{var_name}, expr), values(first_vals)
+                         const MathWorld<type>& mathworld)
+  : Function<type>(std::vector{var_name}, expr, mathworld)
+{}
+
+template <parsing::Type type>
+Sequence<type>::Sequence(std::string var_name,
+                         const std::string& expr,
+                         std::vector<double> first_vals,
+                         const MathWorld<type>& mathworld)
+  : Function<type>(std::vector{var_name}, expr, mathworld), values(first_vals)
 {}
 
 template <parsing::Type type>
 void Sequence<type>::set_expression(const std::string& expr)
 {
   Function<type>::set_expression(expr);
-  values.clear();
 }
 
 template <parsing::Type type>
@@ -42,9 +53,10 @@ constexpr int Sequence<type>::get_first_val_index() const { return first_val_ind
 
 template <parsing::Type type>
 tl::expected<double, Error> Sequence<type>::evaluate(double index,
-                                                     const MathWorld<type>& world,
                                                      size_t current_recursion_depth) const
 {
+  if (this->mathworld.max_recursion_depth < current_recursion_depth) [[unlikely]]
+    return tl::unexpected(Error::recursion_depth_overflow());
   // round double to nearest integer
   int integer_index = std::lround(index);
 
@@ -52,19 +64,19 @@ tl::expected<double, Error> Sequence<type>::evaluate(double index,
     return std::nan("");
   else if (size_t(integer_index - first_val_index) < values.size())
     return values[size_t(integer_index - first_val_index)];
-  else return Function<type>::evaluate(std::vector{double(integer_index)}, world, current_recursion_depth);
+  else return Function<type>::evaluate(std::vector{double(integer_index)}, current_recursion_depth);
 }
 
 template <parsing::Type type>
-tl::expected<double, Error> Sequence<type>::evaluate(double index, const MathWorld<type>& world) const
+tl::expected<double, Error> Sequence<type>::evaluate(double index) const
 {
-  return evaluate(index, world, 0);
+  return evaluate(index, 0);
 }
 
 template <parsing::Type type>
-tl::expected<double, Error> Sequence<type>::operator ()(double index, const MathWorld<type>& world) const
+tl::expected<double, Error> Sequence<type>::operator ()(double index) const
 {
-  return evaluate(index, world);
+  return evaluate(index);
 }
 
 }

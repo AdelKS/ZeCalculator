@@ -20,10 +20,12 @@
 **
 ****************************************************************************/
 
-#include "zecalculator/parsing/parser.h"
-#include <zecalculator/math_objects/decl/expression.h>
+#include <zecalculator/parsing/shared.h>
 
 namespace zc {
+
+template <parsing::Type type>
+class Expression;
 
 /// @brief there's not mathematical difference between a global variable
 ///        and a simple mathematical expression. It just makes more sense
@@ -31,13 +33,5 @@ namespace zc {
 ///        that has a name
 template <parsing::Type type>
 using GlobalVariable = Expression<type>;
-
-namespace ast {
-  using GlobalVariable = zc::Expression<parsing::AST>;
-}
-
-namespace rpn {
-  using GlobalVariable = zc::Expression<parsing::RPN>;
-}
 
 }

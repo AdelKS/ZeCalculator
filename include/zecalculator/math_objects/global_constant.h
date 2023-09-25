@@ -33,7 +33,7 @@ struct GlobalConstant
   double value = 0;
 };
 
-constexpr std::array<std::pair<std::string_view, GlobalConstant>, 5> builtin_global_variables =
+constexpr std::array<std::pair<std::string_view, GlobalConstant>, 5> builtin_global_constants =
 {{
   {"math::pi", std::numbers::pi},
   {"math::π",  std::numbers::pi},

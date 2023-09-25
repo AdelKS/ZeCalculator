@@ -4,9 +4,11 @@ subdir('impl')
 if not meson.is_subproject()
   install_headers(
     files(
+      'aliases.h',
       'builtin_binary_functions.h',
       'builtin_unary_functions.h',
       'expression.h',
+      'forward_declares.h',
       'function.h',
       'global_constant.h',
       'global_variable.h',

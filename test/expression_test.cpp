@@ -33,15 +33,18 @@ int main()
 
   "dependent expression"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::AST : parsing::RPN;
-
-    MathWorld<type> world;
-    auto expr = Expression<type>("cos(math::pi * t) + 2 + f(3, 4)");
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
 
     const double t = 3;
 
-    world.add("f", Function<type>({"x", "y"}, "x + y"));
-    world.add("t", GlobalConstant(t));
+    MathWorld<type> world;
+
+    world.template add<Function<type>>("f", Vars{"x", "y"}, "x + y").value();
+    world.template add<GlobalConstant>("t", t);
+
+    GlobalVariable<type>& expr
+      = world.template add<GlobalVariable<type>>("test_var", "cos(math::pi * t) + 2 + f(3, 4)")
+          .value();
 
     auto cpp_f = [](double x, double y) {
       return x + y;
@@ -51,7 +54,14 @@ int main()
       return std::cos(std::numbers::pi * t) + 2 + cpp_f(3, 4);
     };
 
-    expect(expr(world).value() == cpp_expr());
+    auto expr_eval = expr();
+    if (not expr_eval)
+    {
+      auto error = expr_eval.error();
+      std::cout << error << std::endl;
+    }
+
+    expect(expr().value() == cpp_expr());
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 

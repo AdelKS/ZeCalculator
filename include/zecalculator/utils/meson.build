@@ -3,6 +3,7 @@ if not meson.is_subproject()
     files(
       'name_map.h',
       'optional_ref.h',
+      'refs.h',
       'slotted_vector.h',
       'substr_info.h',
       'utils.h',

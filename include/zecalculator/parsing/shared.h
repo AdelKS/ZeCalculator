@@ -3,7 +3,7 @@
 /****************************************************************************
 **  Copyright (c) 2023, Adel Kara Slimane <adel.ks@zegrapher.com>
 **
-**  This file is part of ZeCalculator's source code.
+**  This file is part of ZeCalculator.
 **
 **  ZeCalculators is free software: you may copy, redistribute and/or modify it
 **  under the terms of the GNU Affero General Public License as published by the
@@ -19,3 +19,11 @@
 **  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **
 ****************************************************************************/
+
+namespace zc {
+namespace parsing {
+
+enum struct Type {AST, RPN};
+
+}
+}

@@ -1,7 +1,7 @@
 #include <boost/ut.hpp>
 #include <zecalculator/test-utils/magic_enum.h>
 #include <zecalculator/test-utils/print-utils.h>
-#include <zecalculator/parsing/data_structures/tree.h>
+#include <zecalculator/parsing/data_structures/node.h>
 #include <zecalculator/utils/utils.h>
 
 namespace zc {
@@ -15,7 +15,7 @@ std::ostream& operator<<(std::ostream& os, const tokens::Text& txt_token)
   return os;
 }
 
-}
+} // namespace tokens
 
 std::ostream &operator<<(std::ostream &os, const Token &token)
 {
@@ -23,38 +23,46 @@ std::ostream &operator<<(std::ostream &os, const Token &token)
   return os;
 }
 
-}
-
-std::ostream& operator << (std::ostream& os, const Error& err)
-{
-  os << magic_enum::enum_name(err.error_type)
-     << " at "
-     << err.token;
-
-  return os;
-}
-
-namespace ast {
-
-void syntax_node_print_helper(std::ostream& os, const Tree& node, size_t padding = 0)
+template <Type world_type>
+void syntax_node_print_helper(std::ostream& os, const node::ast::Node<world_type>& node, size_t padding = 0)
 {
   const std::string padding_str(padding, ' ');
 
   std::visit(overloaded{[&](std::monostate) {
                           os << padding_str << "empty tree " << std::endl;
                         },
-                        [&](const node::Function &f) {
-                          os << padding_str << "Function " << f << " {"
+                        [&](const node::ast::Function<world_type> &f) {
+                          os << padding_str << "Function " << tokens::Text(f) << " {"
                              << std::endl;
-                          for (const Tree &subnode : f.subnodes)
-                            syntax_node_print_helper(os, subnode, padding + 2);
+                          for (const auto &operand : f.operands)
+                            syntax_node_print_helper(os, *operand, padding + 2);
+                        },
+                        [&](const node::ast::Sequence<world_type> &u) {
+                          os << padding_str << "Sequence " << tokens::Text(u) << " {"
+                             << std::endl;
+                          syntax_node_print_helper(os, *u.operand, padding + 2);
+                        },
+                        [&](const node::ast::CppBinaryFunction<world_type> &f) {
+                          os << padding_str << "CppBinaryFunction " << tokens::Text(f) << " {"
+                             << std::endl;
+                          syntax_node_print_helper(os, *f.operand1, padding + 2);
+                          syntax_node_print_helper(os, *f.operand2, padding + 2);
+                        },
+                        [&](const node::ast::CppUnaryFunction<world_type> &f) {
+                          os << padding_str << "CppBinaryFunction " << tokens::Text(f) << " {"
+                             << std::endl;
+                          syntax_node_print_helper(os, *f.operand, padding + 2);
                         },
                         [&](const node::InputVariable &v) {
-                          os << padding_str << "InputVariable " << v << " index: " << v.index
+                          os << padding_str << "InputVariable " << tokens::Text(v) << " index: " << v.index
                              << std::endl;
                         },
-                        [&](const node::Variable &v) {
-                          os << padding_str << "Variable " << v
+                        [&](const node::GlobalConstant &c) {
+                          os << padding_str << "GlobalConstant " << tokens::Text(c) << " value: " << c.constant.value
+                             << std::endl;
+                        },
+                        [&](const node::GlobalVariable<world_type> &v) {
+                          os << padding_str << "GlobalVariable " << tokens::Text(v)
                              << std::endl;
                         },
                         [&](const node::Number &n) {
@@ -64,12 +72,27 @@ void syntax_node_print_helper(std::ostream& os, const Tree& node, size_t padding
              node);
 }
 
-std::ostream &operator<<(std::ostream &os, const Tree &node) {
+std::ostream &operator<<(std::ostream &os, const node::ast::Node<Type::AST> &node) {
   os << std::endl;
   syntax_node_print_helper(os, node);
   return os;
 }
 
+std::ostream &operator<<(std::ostream &os, const node::ast::Node<Type::RPN> &node) {
+  os << std::endl;
+  syntax_node_print_helper(os, node);
+  return os;
+}
+
+} // namespace parsing
+
+std::ostream& operator << (std::ostream& os, const Error& err)
+{
+  os << magic_enum::enum_name(err.error_type)
+     << " at "
+     << err.token;
+
+  return os;
 }
 
 namespace eval {

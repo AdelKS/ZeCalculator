@@ -1,3 +1,5 @@
+#pragma once
+
 /****************************************************************************
 **  Copyright (c) 2023, Adel Kara Slimane <adel.ks@zegrapher.com>
 **
@@ -18,25 +20,24 @@
 **
 ****************************************************************************/
 
-#include <cassert>
-#include <cmath>
 #include <zecalculator/error.h>
+#include <zecalculator/math_objects/aliases.h>
+#include <zecalculator/math_objects/impl/expression.h>
+#include <zecalculator/math_objects/impl/function.h>
+#include <zecalculator/math_objects/impl/sequence.h>
+#include <zecalculator/mathworld/impl/mathworld.h>
+#include <zecalculator/parsing/data_structures/impl/node.h>
 #include <zecalculator/parsing/decl/parser.h>
 
-#include <algorithm>
-#include <array>
-#include <charconv>
+#include <cmath>
 #include <numeric>
 #include <optional>
-#include <ranges>
-#include <sstream>
-#include <stack>
 #include <string_view>
 
 namespace zc {
 namespace parsing {
 
-std::optional<std::pair<double, size_t>> to_double(std::string_view view)
+inline std::optional<std::pair<double, size_t>> to_double(std::string_view view)
 {
   std::optional<std::pair<double, size_t>> result = std::make_pair(0.0, 0);
   char* charAfter = const_cast<char*>(view.data()); // char that comes right after the number
@@ -267,14 +268,98 @@ tl::expected<
   return non_pth_enclosed_tokens;
 }
 
-tl::expected<ast::Tree, Error> make_tree(std::span<const Token> tokens,
-                                         const std::vector<std::string>& input_vars)
+/// @brief functor that maps a MathWorld::ConstDynMathObject to tl::expected<ast::Tree, Error>
+template <parsing::Type world_type>
+struct VariableVisiter
 {
+  using Ret = tl::expected<parsing::Tree<world_type>, Error>;
+
+  const tokens::Text& var_txt_token;
+
+  Ret operator()(cref<GlobalConstant> global_constant)
+  {
+    return std::make_unique<node::ast::Node<world_type>>(
+      node::GlobalConstant(var_txt_token, global_constant));
+  }
+  Ret operator()(cref<zc::GlobalVariable<world_type>> global_variable)
+  {
+    return std::make_unique<node::ast::Node<world_type>>(
+      node::GlobalVariable<world_type>(var_txt_token, global_variable));
+  }
+  Ret operator()(MathWorld<world_type>::UnregisteredObject)
+  {
+    return tl::unexpected(Error::undefined_variable(var_txt_token));
+  }
+  Ret operator()(auto&&)
+  {
+    return tl::unexpected(Error::wrong_object_type(var_txt_token));
+  }
+};
+
+template <parsing::Type world_type>
+struct FunctionVisiter
+{
+  using Ret = tl::expected<Tree<world_type>, Error>;
+
+  const tokens::Text& func_txt_token;
+  std::vector<Tree<world_type>> subnodes;
+
+  Ret operator()(cref<CppUnaryFunction> f)
+  {
+    if (subnodes.size() != 1) [[unlikely]]
+      return tl::unexpected(Error::mismatched_fun_args(func_txt_token));
+
+    return std::make_unique<node::ast::Node<world_type>>(
+      node::ast::CppUnaryFunction<world_type>(func_txt_token, f.get(), std::move(subnodes.back())));
+  }
+  Ret operator()(cref<CppBinaryFunction> f)
+  {
+    if (subnodes.size() != 2) [[unlikely]]
+      return tl::unexpected(Error::mismatched_fun_args(func_txt_token));
+
+    return std::make_unique<node::ast::Node<world_type>>(
+      node::ast::CppBinaryFunction<world_type>(func_txt_token,
+                                               f.get(),
+                                               std::move(subnodes.front()),
+                                               std::move(subnodes.back())));
+  }
+  Ret operator()(cref<zc::Function<world_type>> f)
+  {
+    if (subnodes.size() != f.get().argument_size()) [[unlikely]]
+      return tl::unexpected(Error::mismatched_fun_args(func_txt_token));
+
+    return std::make_unique<node::ast::Node<world_type>>(
+      node::ast::Function<world_type>(func_txt_token, f.get(), std::move(subnodes)));
+  }
+  Ret operator()(cref<zc::Sequence<world_type>> u)
+  {
+    if (subnodes.size() != 1) [[unlikely]]
+      return tl::unexpected(Error::mismatched_fun_args(func_txt_token));
+
+    return std::make_unique<node::ast::Node<world_type>>(
+      node::ast::Sequence<world_type>(func_txt_token, u.get(), std::move(subnodes.front())));
+  }
+  Ret operator()(MathWorld<world_type>::UnregisteredObject)
+  {
+    return tl::unexpected(Error::undefined_function(func_txt_token));
+  }
+  Ret operator()(auto&&)
+  {
+    return tl::unexpected(Error::wrong_object_type(func_txt_token));
+  }
+};
+
+template <Type type>
+tl::expected<Tree<type>, Error> make_tree(std::span<const parsing::Token> tokens,
+                                          const MathWorld<type>& world,
+                                          const std::vector<std::string>& input_vars)
+{
+  using Ret = tl::expected<Tree<type>, Error>;
+
   // when there's only a single token, it can only be number or a variable
   if (tokens.size() == 1)
   {
-    using Ret = tl::expected<ast::Tree, Error>;
-    return std::visit(overloaded{[&](const tokens::Number& num) -> Ret { return num; },
+    return std::visit(overloaded{[&](const tokens::Number& num) -> Ret { return Tree<type>(num); },
                                  [&](const tokens::Variable& var) -> Ret
                                  {
                                    // if variable is in 'input_vars' then treat it as such
@@ -282,9 +367,12 @@ tl::expected<ast::Tree, Error> make_tree(std::span<const Token> tokens,
                                    auto it = std::ranges::find(input_vars, var.name);
                                    if (it != input_vars.end())
                                      // the index is computed with the distance between begin() and 'it'
-                                     return ast::node::InputVariable(var, std::distance(input_vars.begin(), it));
+                                     return Tree<type>(
+                                       node::InputVariable(var,
+                                                           std::distance(input_vars.begin(), it)));
                                    else
-                                     return var;
+                                     return std::visit(VariableVisiter<type>{var},
+                                                       world.get(var.name));
                                  },
                                  [&](const auto& anything_else) -> Ret
                                  { return tl::unexpected(Error::unexpected(anything_else)); }},
@@ -302,7 +390,7 @@ tl::expected<ast::Tree, Error> make_tree(std::span<const Token> tokens,
       std::holds_alternative<tokens::OpeningParenthesis>(tokens.front()) and
       std::holds_alternative<tokens::ClosingParenthesis>(tokens.back()))
   {
-    return make_tree(std::span(tokens.begin()+1, tokens.end()-1), input_vars);
+    return make_tree(std::span(tokens.begin()+1, tokens.end()-1), world, input_vars);
   }
 
   // expression of the type "function(...)"
@@ -322,14 +410,14 @@ tl::expected<ast::Tree, Error> make_tree(std::span<const Token> tokens,
     // add the FunctionCallEnd token so we handle it in the loop
     non_pth_wrapped_args->push_back(tokens.end()-1);
 
-    std::vector<ast::Tree> subnodes;
+    std::vector<Tree<type>> subnodes;
     auto last_non_coma_token_it = tokens.begin()+2;
     for (auto tokenIt: *non_pth_wrapped_args)
     {
       if (std::holds_alternative<tokens::FunctionArgumentSeparator>(*tokenIt) or
           std::holds_alternative<tokens::FunctionCallEnd>(*tokenIt))
       {
-        auto expected_func_argument = make_tree(std::span(last_non_coma_token_it, tokenIt), input_vars);
+        auto expected_func_argument = make_tree(std::span(last_non_coma_token_it, tokenIt), world, input_vars);
         if (not expected_func_argument.has_value())
           return expected_func_argument;
         else subnodes.push_back(std::move(expected_func_argument.value()));
@@ -337,7 +425,11 @@ tl::expected<ast::Tree, Error> make_tree(std::span<const Token> tokens,
       }
     }
 
-    return ast::node::Function(text_token(tokens.front()), std::move(subnodes));
+    const auto func_txt_token = text_token(tokens.front());
+    return std::visit(FunctionVisiter<type>{func_txt_token, std::move(subnodes)},
+                      world.get(func_txt_token.name));
+
+    // return ast::node::Function(text_token(tokens.front()), std::move(subnodes));
   }
 
   // there are tokens that are not within parentheses
@@ -357,17 +449,18 @@ tl::expected<ast::Tree, Error> make_tree(std::span<const Token> tokens,
           if (tokenIt == tokens.begin() or tokenIt+1 == tokens.end())
             return tl::unexpected(Error::unexpected(text_token(*tokenIt)));
 
-          auto left_hand_side = make_tree(std::span(tokens.begin(), tokenIt), input_vars);
+          auto left_hand_side = make_tree(std::span(tokens.begin(), tokenIt), world, input_vars);
           if (not left_hand_side.has_value())
             return left_hand_side;
 
-          auto right_hand_side = make_tree(std::span(tokenIt+1, tokens.end()), input_vars);
+          auto right_hand_side = make_tree(std::span(tokenIt+1, tokens.end()), world, input_vars);
           if (not right_hand_side.has_value())
             return right_hand_side;
 
-          return ast::node::Function(text_token(*tokenIt),
-                                     {std::move(left_hand_side.value()),
-                                      std::move(right_hand_side.value())});
+          return node::ast::CppBinaryFunction<type>(text_token(*tokenIt),
+                                                    binary_func_from_op(op),
+                                                    std::move(left_hand_side.value()),
+                                                    std::move(right_hand_side.value()));
         }
       }
     }
@@ -384,55 +477,98 @@ tl::expected<ast::Tree, Error> make_tree(std::span<const Token> tokens,
   return tl::unexpected(Error::unexpected(tokens::Unkown("", substrinfo)));
 }
 
-
 struct RpnMaker
 {
-  rpn::RPN operator () (std::monostate)
+  RPN operator () (std::monostate)
   {
-    return rpn::RPN{std::monostate()};
+    return RPN{std::monostate()};
   }
 
-  rpn::RPN operator () (const ast::node::Function& func)
+  static bool check_for_monostate(const RPN& rpn)
   {
-    rpn::RPN res;
-    for (const ast::Tree& sub_node: func.subnodes)
-    {
-      rpn::RPN tmp = std::visit(*this, sub_node);
-      if (std::ranges::any_of(tmp,
-                              [](const rpn::Token& token) {
-                                return std::holds_alternative<std::monostate>(token);
-                              })) [[unlikely]]
-        return rpn::RPN{std::monostate()};
-      else [[likely]]
-        std::ranges::move(tmp, std::back_inserter(res));
-    }
-    res.push_back(parsing::tokens::Function(func));
+    return std::ranges::any_of(rpn,
+                               [](const node::rpn::Node& node)
+                               { return std::holds_alternative<std::monostate>(node); });
+  }
+
+  RPN operator()(const node::ast::CppUnaryFunction<Type::RPN>& func)
+  {
+    RPN res = std::visit(*this, *func.operand);
+
+    if (check_for_monostate(res)) [[unlikely]]
+      return RPN{std::monostate()};
+
+    res.push_back(func);
     return res;
   }
 
-  rpn::RPN operator () (const ast::node::InputVariable& in_var)
+  RPN operator()(const node::ast::Sequence<Type::RPN>& seq)
   {
-    return rpn::RPN(1, in_var);
+    RPN res = std::visit(*this, *seq.operand);
+
+    if (check_for_monostate(res)) [[unlikely]]
+      return RPN{std::monostate()};
+
+    res.push_back(node::rpn::Sequence(seq, seq.u));
+    return res;
   }
 
-  rpn::RPN operator () (const ast::node::Variable& var)
+  RPN operator()(const node::ast::CppBinaryFunction<Type::RPN>& func)
   {
-    return rpn::RPN(1, var);
+    RPN res = std::visit(*this, *func.operand1);
+    RPN tmp = std::visit(*this, *func.operand2);
+
+    std::ranges::move(tmp, std::back_inserter(res));
+
+    if (check_for_monostate(res)) [[unlikely]]
+      return RPN{std::monostate()};
+
+    res.push_back(func);
+    return res;
   }
 
-  rpn::RPN operator () (const ast::node::Number& number)
+  RPN operator () (const node::ast::Function<Type::RPN>& func)
   {
-    return rpn::RPN(1, number);
+    RPN res;
+    for (const Tree<Type::RPN>& sub_node : func.operands)
+    {
+      RPN tmp = std::visit(*this, *sub_node);
+      if (check_for_monostate(tmp)) [[unlikely]]
+        return RPN{std::monostate()};
+      else [[likely]]
+        std::ranges::move(tmp, std::back_inserter(res));
+    }
+
+    res.push_back(node::rpn::Function(func, func.f));
+    return res;
+  }
+
+  RPN operator () (const node::InputVariable& in_var)
+  {
+    return RPN(1, in_var);
+  }
+
+  RPN operator () (const node::GlobalConstant& var)
+  {
+    return RPN(1, var);
+  }
+
+  RPN operator () (const node::GlobalVariable<Type::RPN>& var)
+  {
+    return RPN(1, node::rpn::GlobalVariable(var, var.var));
+  }
+
+  RPN operator () (const node::Number& number)
+  {
+    return RPN(1, number);
   }
 
 };
 
-rpn::RPN make_RPN(const ast::Tree& tree)
+RPN make_RPN(const Tree<Type::RPN>& tree)
 {
-  return std::visit(RpnMaker{}, tree);
+  return std::visit(RpnMaker{}, *tree);
 }
 
-
-
-}
-}
+} // namespace parsing
+} // namespace zc

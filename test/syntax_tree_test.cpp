@@ -23,61 +23,82 @@
 // testing specific headers
 #include <boost/ut.hpp>
 #include <zecalculator/test-utils/print-utils.h>
+#include <zecalculator/test-utils/structs.h>
 
 using namespace zc;
-using namespace zc::ast;
 using namespace zc::parsing;
 
 int main()
 {
   using namespace boost::ut;
 
-  "simple expression"_test = []()
+  "simple expression"_test = []<class StructType>()
   {
-    auto parsing = tokenize("2+2*2");
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
+
+    MathWorld<type> world;
+
+    auto parsing = parsing::tokenize("2+2*2");
 
     expect(bool(parsing)) << parsing;
 
-    auto expect_node = make_tree(parsing.value());
+    auto expect_node = make_tree(parsing.value(), world);
 
     expect(bool(expect_node));
 
-    Tree expected_node = node::Function(tokens::Operator('+', 1),
-                                        {node::Number(2.0, tokens::Text{"2", 0, 1}),
-                                         node::Function(tokens::Operator('*', 3),
-                                                        {
-                                                          node::Number(2.0, tokens::Text{"2", 2, 1}),
-                                                          node::Number(2.0, tokens::Text{"2", 4, 1}),
-                                                        })});
+    Tree<type> expected_node = node::ast::CppBinaryFunction<type>(
+      tokens::Operator('+', 1),
+      binary_func_from_op('+'),
+      node::Number(2.0, tokens::Text{"2", 0, 1}),
+      node::ast::CppBinaryFunction<type>(tokens::Operator('*', 3),
+                                         binary_func_from_op('*'),
+                                         node::Number(2.0, tokens::Text{"2", 2, 1}),
+                                         node::Number(2.0, tokens::Text{"2", 4, 1})));
 
-    expect(*expect_node == expected_node) << *expect_node;
-  };
+    expect(*expect_node == expected_node);
 
-  "function expression"_test = []()
+    if (*expect_node != expected_node )
+      std::cout << **expect_node << std::endl;
+
+  } | std::tuple<AST_TEST, RPN_TEST>{};
+
+  "function expression"_test = []<class StructType>()
   {
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
+    MathWorld<type> world;
+
     auto parsing = tokenize("(cos(sin(x)+1))+1");
 
     expect(bool(parsing)) << parsing;
 
-    auto expect_node = make_tree(parsing.value());
+    auto expect_node = make_tree(parsing.value(), world, Vars{"x"});
 
     expect(bool(expect_node));
 
-    Tree expected_node = node::Function(
-      tokens::Operator('+', 15),
-      {
-        node::Function(tokens::Text("cos", 1, 3),
-                       {node::Function(tokens::Operator('+', 11),
-                                       {
-                                         node::Function(tokens::Text("sin", 5, 3),
-                                                        {
-                                                          node::Variable("x", 9, 1),
-                                                        }),
-                                         node::Number(1.0, tokens::Text("1", 12, 1)),
-                                       })}),
-        node::Number(1.0, tokens::Text("1", 16, 1)),
-      });
+    Tree<type> expected_node =
+      node::ast::CppBinaryFunction<type>(
+        tokens::Operator('+', 15),
+        binary_func_from_op('+'),
+        node::ast::CppUnaryFunction<type>(
+          tokens::Text("cos", 1, 3),
+          unary_func_from_name("cos"),
+          node::ast::CppBinaryFunction<type>(
+            tokens::Operator('+', 11),
+            binary_func_from_op('+'),
+            node::ast::CppUnaryFunction<type>(
+              tokens::Text("sin", 5, 3),
+              unary_func_from_name("sin"),
+              node::InputVariable(
+                tokens::Text("x", 9, 1),
+                0)),
+            node::Number(1.0, tokens::Text("1", 12, 1)))),
+        node::Number(1.0, tokens::Text("1", 16, 1)));
 
-    expect(*expect_node == expected_node) << expect_node;
-  };
+
+    if (*expect_node != expected_node)
+      std::cout << *expect_node;
+
+    expect(*expect_node == expected_node);
+
+  } | std::tuple<AST_TEST, RPN_TEST>{};
 }

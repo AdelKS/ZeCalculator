@@ -1,5 +1,7 @@
 #pragma once
 
+#include <zecalculator/parsing/shared.h>
+
 /****************************************************************************
 **  Copyright (c) 2023, Adel Kara Slimane <adel.ks@zegrapher.com>
 **
@@ -20,5 +22,20 @@
 **
 ****************************************************************************/
 
-#include <zecalculator/evaluation/ast/decl/function.h>
-#include <zecalculator/evaluation/ast/impl/function.h>
+namespace zc {
+
+template <parsing::Type type>
+class Function;
+
+template <parsing::Type type>
+class Sequence;
+
+template <parsing::Type type>
+class Expression;
+
+template <parsing::Type type>
+using GlobalVariable = Expression<type>;
+
+struct GlobalConstant;
+
+}

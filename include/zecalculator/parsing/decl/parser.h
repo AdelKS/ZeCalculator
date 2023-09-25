@@ -21,9 +21,11 @@
 #pragma once
 
 #include <zecalculator/parsing/data_structures/token.h>
-#include <zecalculator/parsing/data_structures/tree.h>
-#include <zecalculator/parsing/data_structures/rpn.h>
+#include <zecalculator/parsing/data_structures/decl/node.h>
+#include <zecalculator/mathworld/decl/mathworld.h>
 #include <zecalculator/error.h>
+
+#include <span>
 
 /* TODO: update approach as the following:
     - Parse: aka cut each atom in a formula
@@ -36,8 +38,6 @@
 
 namespace zc {
 namespace parsing {
-
-enum Type {AST, RPN};
 
 /// @brief interprets "view" as a floating number
 /// @returns if successful, the interpreted double and the number of characters interpreted, otherwise empty
@@ -55,11 +55,13 @@ bool is_valid_name(std::string_view name);
 /// @brief makes a syntax tree from from a sequence of tokens
 /// @param input_vars: variable names that are considered as input (for functions)
 ///                    e.g."x" in the function "f" such as "f(x) = cos(x)"
-tl::expected<ast::Tree, Error> make_tree(std::span<const parsing::Token> tokens,
-                                         const std::vector<std::string>& input_vars = {});
+template <Type type>
+tl::expected<Tree<type>, Error> make_tree(std::span<const parsing::Token> tokens,
+                                          const MathWorld<type>& math_world,
+                                          const std::vector<std::string>& input_vars = {});
 
 /// @brief transforms a syntax tree to a flat Reverse Polish / postfix notation representation
-rpn::RPN make_RPN(const ast::Tree& tree);
+RPN make_RPN(const Tree<Type::RPN>& tree);
 
 }
 }

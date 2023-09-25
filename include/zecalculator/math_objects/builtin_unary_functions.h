@@ -85,4 +85,14 @@ constexpr std::array<std::pair<std::string_view, CppUnaryFunction>, 30> builtin_
   {"Γ",     CppUnaryFunction(std::tgamma)},
 }};
 
+constexpr CppUnaryFunction unary_func_from_name(std::string_view name)
+{
+  for(auto&& [f_name, f]: builtin_unary_functions)
+  {
+    if (f_name == name)
+      return f;
+  };
+  return nullptr;
+}
+
 }

@@ -21,6 +21,7 @@
 ****************************************************************************/
 
 #include <zecalculator/error.h>
+#include <zecalculator/parsing/data_structures/decl/node.h>
 #include <zecalculator/math_objects/builtin_binary_functions.h>
 #include <zecalculator/math_objects/builtin_unary_functions.h>
 #include <zecalculator/math_objects/decl/function.h>
@@ -32,12 +33,10 @@ namespace zc {
 namespace eval {
 namespace ast {
 
-struct Node
+struct Evaluator
 {
-  const zc::ast::MathWorld& world;
   const std::span<const double> input_vars;
   const size_t current_recursion_depth = 0;
-
 
   using ReturnType = tl::expected<double, Error>;
 
@@ -45,13 +44,21 @@ struct Node
 
   ReturnType operator () (std::monostate);
 
-  ReturnType operator () (const zc::ast::node::Function& node);
+  ReturnType operator () (const zc::parsing::node::ast::Function<zc::parsing::Type::AST>&);
 
-  ReturnType operator () (const zc::ast::node::InputVariable& node);
+  ReturnType operator () (const zc::parsing::node::ast::Sequence<zc::parsing::Type::AST>&);
 
-  ReturnType operator () (const zc::ast::node::Variable& node);
+  ReturnType operator () (const zc::parsing::node::InputVariable&);
 
-  ReturnType operator () (const zc::ast::node::Number& node);
+  ReturnType operator () (const zc::parsing::node::Number&);
+
+  ReturnType operator () (const zc::parsing::node::ast::CppUnaryFunction<zc::parsing::Type::AST>&);
+
+  ReturnType operator () (const zc::parsing::node::ast::CppBinaryFunction<zc::parsing::Type::AST>&);
+
+  ReturnType operator () (const zc::parsing::node::GlobalConstant&);
+
+  ReturnType operator () (const zc::parsing::node::GlobalVariable<parsing::Type::AST>&);
 
 };
 
@@ -62,18 +69,15 @@ struct Node
 /// @param tree: tree to evaluate
 /// @param input_vars: variables that are given as input to the tree, will shadow any variable in the math world
 /// @param world: math world (contains functions, global constants... etc)
-inline tl::expected<double, Error> evaluate(const ast::Tree& tree,
+inline tl::expected<double, Error> evaluate(const parsing::Tree<parsing::Type::AST>& tree,
                                             std::span<const double> input_vars,
-                                            const ast::MathWorld& world,
                                             size_t current_recursion_depth);
 
 /// @brief evaluates a syntax tree using a given math world
-inline tl::expected<double, Error> evaluate(const ast::Tree& tree,
-                                            std::span<const double> input_vars,
-                                            const ast::MathWorld& world);
+inline tl::expected<double, Error> evaluate(const parsing::Tree<parsing::Type::AST>& tree,
+                                            std::span<const double> input_vars);
 
 /// @brief evaluates a syntax tree using a given math world
-inline tl::expected<double, Error> evaluate(const ast::Tree& tree, const ast::MathWorld& world);
+inline tl::expected<double, Error> evaluate(const parsing::Tree<parsing::Type::AST>& tree);
 
-
-}
+} // namespace zc

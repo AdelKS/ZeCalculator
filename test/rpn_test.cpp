@@ -23,10 +23,7 @@
 // testing specific headers
 #include <zecalculator/test-utils/print-utils.h>
 #include <boost/ut.hpp>
-#include <chrono>
-#include <zecalculator/parsing/data_structures/rpn.h>
-
-using namespace std::chrono;
+#include <zecalculator/parsing/data_structures/node.h>
 
 using namespace zc;
 using namespace zc::parsing;
@@ -37,22 +34,24 @@ int main()
 
   "simple rpn expression"_test = []()
   {
-   auto parsing = tokenize("2 - 3 + 2");
+    auto parsing = tokenize("2 - 3 + 2");
 
     expect(bool(parsing)) << parsing;
 
-    auto expect_tree = make_tree(parsing.value());
+    MathWorld<parsing::Type::RPN> world;
+
+    auto expect_tree = make_tree(parsing.value(), world);
 
     expect(bool(expect_tree));
 
     auto rpn_expr = parsing::make_RPN(expect_tree.value());
 
-    rpn::RPN expected_rpn;
-    expected_rpn.push_back(tokens::Number(2.0, tokens::Text{"2", 0, 1}));
-    expected_rpn.push_back(tokens::Number(3.0, tokens::Text{"3", 4, 1}));
-    expected_rpn.push_back(tokens::Operator('-', 2));
+    RPN expected_rpn;
+    expected_rpn.push_back(node::Number(2.0, tokens::Text{"2", 0, 1}));
+    expected_rpn.push_back(node::Number(3.0, tokens::Text{"3", 4, 1}));
+    expected_rpn.push_back(node::rpn::CppBinaryFunction(tokens::Operator('-', 2), binary_func_from_op('-')));
     expected_rpn.push_back(tokens::Number(2.0, tokens::Text{"2", 8, 1}));
-    expected_rpn.push_back(tokens::Operator('+', 6));
+    expected_rpn.push_back(node::rpn::CppBinaryFunction(tokens::Operator('+', 6), binary_func_from_op('+')));
 
     expect(bool(rpn_expr == expected_rpn)) << "Expected: " << expected_rpn << "Answer: " << rpn_expr;
   };

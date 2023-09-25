@@ -40,6 +40,8 @@ public:
     return f_ptr(a ,b);
   }
 
+  bool operator == (const CppBinaryFunction&) const = default;
+
 protected:
   CppBinaryFunctionPtr f_ptr;
 };
@@ -74,5 +76,24 @@ constexpr std::array<std::pair<std::string_view, CppBinaryFunction>, 5> builtin_
   {parsing::tokens::Operator::name_of('/'), divide},
   {parsing::tokens::Operator::name_of('^'), CppBinaryFunction(std::pow)},
 }};
+
+constexpr CppBinaryFunction binary_func_from_op(char op)
+{
+  switch (op)
+  {
+    case '+':
+      return plus;
+    case '-':
+      return minus;
+    case '*':
+      return multiply;
+    case '/':
+      return divide;
+    case '^':
+      return CppBinaryFunction(std::pow);
+    default:
+      return nullptr;
+  }
+}
 
 }

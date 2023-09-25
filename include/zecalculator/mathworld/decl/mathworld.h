@@ -20,11 +20,10 @@
 **
 ****************************************************************************/
 
-#include "zecalculator/parsing/parser.h"
 #include <zecalculator/math_objects/builtin_binary_functions.h>
 #include <zecalculator/math_objects/builtin_unary_functions.h>
-#include <zecalculator/mathworld/mathworld_template.h>
-
+#include <zecalculator/mathworld/decl/mathworld_template.h>
+#include <zecalculator/parsing/shared.h>
 namespace zc {
 
 template <parsing::Type>
@@ -51,23 +50,13 @@ using MathWorld = MathWorldT<CppUnaryFunction,
 
 namespace ast {
 
-using MathWorld = MathWorldT<CppUnaryFunction,
-                             CppBinaryFunction,
-                             GlobalConstant,
-                             Function<parsing::AST>,
-                             GlobalVariable<parsing::AST>,
-                             Sequence<parsing::AST>>;
+using MathWorld = zc::MathWorld<parsing::Type::AST>;
 
 }
 
 namespace rpn {
 
-using MathWorld = MathWorldT<CppUnaryFunction,
-                             CppBinaryFunction,
-                             GlobalConstant,
-                             Function<parsing::RPN>,
-                             GlobalVariable<parsing::RPN>,
-                             Sequence<parsing::RPN>>;
+using MathWorld = zc::MathWorld<parsing::Type::RPN>;
 
 }
 
