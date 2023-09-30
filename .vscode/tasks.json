@@ -110,12 +110,12 @@
         {
             "label": "setup-clang",
             "type": "shell",
-            "command": "[ -d \"${cwd}/build-zc-debug-clang\" ] || CC=clang CXX=clang++ C_LD=lld CXX_LD=lld meson setup build-zc-debug-clang -D optimization=0 -D debug=true -D test=true -D b_sanitize=address,undefined -D b_lundef=false",
+            "command": "[ -d \"${cwd}/build-zc-debug-clang\" ] || CXX=clang++ CXX_LD=lld meson setup build-zc-debug-clang -D optimization=0 -D debug=true -D test=true -D b_sanitize=address,undefined -D b_lundef=false -D cpp_args='-march=native -pipe -stdlib=libc++' -D cpp_link_args='-stdlib=libc++'",
         },
         {
             "label": "resetup-clang",
             "type": "shell",
-            "command": "rm -rf ${cwd}/build-zc-debug-clang && CC=clang CXX=clang++ C_LD=lld CXX_LD=lld  meson setup build-zc-debug-clang -D optimization=0 -D debug=true -D test=true -D b_sanitize=address,undefined -D b_lundef=false",
+            "command": "rm -rf ${cwd}/build-zc-debug-clang && CXX=clang++ CXX_LD=lld  meson setup build-zc-debug-clang -D optimization=0 -D debug=true -D test=true -D b_sanitize=address,undefined -D b_lundef=false -D cpp_args='-march=native -pipe -stdlib=libc++' -D cpp_link_args='-stdlib=libc++'",
         },
         {
             "label": "build-clang",
@@ -162,12 +162,12 @@
         {
             "label": "setup-release-clang",
             "type": "shell",
-            "command": "[ -d \"${cwd}/build-zc-release-clang\" ] || CC=clang CXX=clang++ C_LD=lld CXX_LD=lld meson setup build-zc-release-clang -D optimization=3 -D debug=false -D test=true",
+            "command": "[ -d \"${cwd}/build-zc-release-clang\" ] || CXX=clang++ CXX_LD=lld meson setup build-zc-release-clang -D optimization=3 -D debug=false -D test=true -D cpp_args='-march=native -pipe -stdlib=libc++' -D cpp_link_args='-stdlib=libc++'",
         },
         {
             "label": "resetup-release-clang",
             "type": "shell",
-            "command": "rm -rf ${cwd}/build-zc-release-clang && CC=clang CXX=clang++ C_LD=lld CXX_LD=lld meson setup build-zc-release-clang -D optimization=3 -D debug=false -D test=true",
+            "command": "rm -rf ${cwd}/build-zc-release-clang && CXX=clang++ CXX_LD=lld meson setup build-zc-release-clang -D optimization=3 -D debug=false -D test=true -D cpp_args='-march=native -pipe -stdlib=libc++' -D cpp_link_args='-stdlib=libc++'",
         },
         {
             "label": "build-release-clang",
