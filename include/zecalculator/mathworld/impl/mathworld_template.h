@@ -61,12 +61,30 @@ tl::expected<ref<ObjectType>, NameError> MathWorldT<MathObjectType...>::add(std:
   size_t id;
   // compile time check if objects needs MathWorld cref
   if constexpr (std::is_constructible_v<ObjectType, Args..., const MathWorldT<MathObjectType...>*>)
-    id = object_container.push(ObjectType(std::forward<Args>(args)..., this)); // TODO: define emplace_back in SlottedVector
-  else id = object_container.push(ObjectType(std::forward<Args>(args)...));
+  {
+    // 1. build a default object first
+    id = object_container.push(ObjectType(this));
 
-  ObjectType& world_object = object_container[id];
-  inventory[std::string(name)] = std::ref(world_object);
-  return world_object;
+    ObjectType& world_object = object_container[id];
+
+    // 2. register it in the inventory
+    inventory[std::string(name)] = std::ref(world_object);
+
+    // 3. overwrite it with the correct object, so the correct
+    //    object can self reference itself (available in the inventory
+    //    under the correct address)
+    world_object = ObjectType(std::forward<Args>(args)..., this);
+
+    return world_object;
+  }
+  else
+  {
+    id = object_container.push(ObjectType(std::forward<Args>(args)...));
+
+    ObjectType& world_object = object_container[id];
+    inventory[std::string(name)] = std::ref(world_object);
+    return world_object;
+  }
 }
 
 }
