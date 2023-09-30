@@ -39,16 +39,16 @@ class Sequence: public zc::Function<type>
 {
 public:
 
-  Sequence(const MathWorld<type>& mathworld);
+  Sequence(const MathWorld<type>* mathworld);
 
   Sequence(std::string var_name,
            const std::string& expr,
            std::vector<double> first_vals,
-           const MathWorld<type>& mathworld);
+           const MathWorld<type>* mathworld);
 
   Sequence(std::string var_name,
            const std::string& expr,
-           const MathWorld<type>& mathworld);
+           const MathWorld<type>* mathworld);
 
   /// \brief set the expression
   void set_expression(const std::string& expr);

@@ -35,7 +35,7 @@ inline Evaluator::ReturnType Evaluator::operator () (std::monostate)
 inline Evaluator::ReturnType
   Evaluator::operator()(const zc::parsing::node::ast::Function<zc::parsing::Type::AST>& node)
 {
-  if (node.f.mathworld.max_recursion_depth < current_recursion_depth)
+  if (node.f.mathworld->max_recursion_depth < current_recursion_depth)
     return tl::unexpected(Error::recursion_depth_overflow());
 
   std::vector<double> evaluations;
@@ -54,7 +54,7 @@ inline Evaluator::ReturnType
 inline Evaluator::ReturnType
   Evaluator::operator()(const zc::parsing::node::ast::Sequence<zc::parsing::Type::AST>& node)
 {
-  if (node.u.mathworld.max_recursion_depth < current_recursion_depth)
+  if (node.u.mathworld->max_recursion_depth < current_recursion_depth)
     return tl::unexpected(Error::recursion_depth_overflow());
 
   auto eval = evaluate(node.operand, input_vars, current_recursion_depth + 1);
@@ -88,7 +88,7 @@ inline Evaluator::ReturnType Evaluator::operator()(
 inline Evaluator::ReturnType
   Evaluator::operator()(const zc::parsing::node::GlobalVariable<parsing::Type::AST>& node)
 {
-  if (node.var.mathworld.max_recursion_depth < current_recursion_depth)
+  if (node.var.mathworld->max_recursion_depth < current_recursion_depth)
     return tl::unexpected(Error::recursion_depth_overflow());
 
   return node.var.evaluate(current_recursion_depth + 1);

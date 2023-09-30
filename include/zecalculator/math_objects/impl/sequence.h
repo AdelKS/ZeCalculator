@@ -5,13 +5,13 @@
 namespace zc {
 
 template <parsing::Type type>
-Sequence<type>::Sequence(const MathWorld<type>& mathworld) : Function<type>(mathworld)
+Sequence<type>::Sequence(const MathWorld<type>* mathworld) : Function<type>(mathworld)
 {}
 
 template <parsing::Type type>
 Sequence<type>::Sequence(std::string var_name,
                          const std::string& expr,
-                         const MathWorld<type>& mathworld)
+                         const MathWorld<type>* mathworld)
   : Function<type>(std::vector{var_name}, expr, mathworld)
 {}
 
@@ -19,7 +19,7 @@ template <parsing::Type type>
 Sequence<type>::Sequence(std::string var_name,
                          const std::string& expr,
                          std::vector<double> first_vals,
-                         const MathWorld<type>& mathworld)
+                         const MathWorld<type>* mathworld)
   : Function<type>(std::vector{var_name}, expr, mathworld), values(first_vals)
 {}
 
@@ -55,7 +55,7 @@ template <parsing::Type type>
 tl::expected<double, Error> Sequence<type>::evaluate(double index,
                                                      size_t current_recursion_depth) const
 {
-  if (this->mathworld.max_recursion_depth < current_recursion_depth) [[unlikely]]
+  if (this->mathworld->max_recursion_depth < current_recursion_depth) [[unlikely]]
     return tl::unexpected(Error::recursion_depth_overflow());
   // round double to nearest integer
   int integer_index = std::lround(index);

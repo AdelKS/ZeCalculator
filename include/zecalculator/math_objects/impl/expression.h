@@ -36,11 +36,11 @@ namespace eval {
 }
 
 template <parsing::Type type>
-Expression<type>::Expression(const MathWorld<type>& mathworld) : Function<type>(mathworld)
+Expression<type>::Expression(const MathWorld<type>* mathworld) : Function<type>(mathworld)
 {}
 
 template <parsing::Type type>
-Expression<type>::Expression(const std::string& expr, const MathWorld<type>& mathworld)
+Expression<type>::Expression(const std::string& expr, const MathWorld<type>* mathworld)
   : Function<type>({}, expr, mathworld)
 {}
 

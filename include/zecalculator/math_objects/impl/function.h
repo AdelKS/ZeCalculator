@@ -28,13 +28,13 @@
 namespace zc {
 
 template <parsing::Type type>
-Function<type>::Function(const MathWorld<type>& mathworld)
+Function<type>::Function(const MathWorld<type>* mathworld)
   requires(type == parsing::Type::AST)
   : mathworld(mathworld)
 {}
 
 template <parsing::Type type>
-Function<type>::Function(const MathWorld<type>& mathworld)
+Function<type>::Function(const MathWorld<type>* mathworld)
   requires(type == parsing::Type::RPN)
   : parsed_expr({std::monostate()}), mathworld(mathworld)
 {}
@@ -42,7 +42,7 @@ Function<type>::Function(const MathWorld<type>& mathworld)
 template <parsing::Type type>
 Function<type>::Function(std::vector<std::string> input_vars,
                          std::string expr,
-                         const MathWorld<type>& mathworld)
+                         const MathWorld<type>* mathworld)
   : Function<type>::Function(mathworld)
 {
   set_input_vars(std::move(input_vars));
@@ -79,7 +79,7 @@ void Function<type>::set_expression(std::string expr)
     using namespace std::placeholders;
     auto bound_make_tree = [&](const std::vector<parsing::Token>& vec)
     {
-      return parsing::make_tree<type>(vec, mathworld, vars.value());
+      return parsing::make_tree<type>(vec, *mathworld, vars.value());
     };
 
     if constexpr (type == parsing::Type::AST)
@@ -145,7 +145,7 @@ template <parsing::Type type>
 tl::expected<double, Error> Function<type>::evaluate(std::span<const double> args,
                                                      size_t current_recursion_depth) const
 {
-  if (mathworld.max_recursion_depth < current_recursion_depth) [[unlikely]]
+  if (mathworld->max_recursion_depth < current_recursion_depth) [[unlikely]]
     return tl::unexpected(Error::recursion_depth_overflow());
   else if (not bool(*this)) [[unlikely]]
     return tl::unexpected(Error::invalid_function());

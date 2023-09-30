@@ -40,9 +40,9 @@ class Expression: public Function<type>
 {
 public:
 
-  Expression(const MathWorld<type>& mathworld);
+  Expression(const MathWorld<type>* mathworld);
 
-  Expression(const std::string& expr, const MathWorld<type>& mathworld);
+  Expression(const std::string& expr, const MathWorld<type>* mathworld);
 
   tl::expected<double, Error> evaluate() const;
 

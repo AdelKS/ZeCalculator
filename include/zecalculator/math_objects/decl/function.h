@@ -68,14 +68,14 @@ template <parsing::Type type>
 class Function
 {
 public:
-  Function(const MathWorld<type>& mathworld)
+  Function(const MathWorld<type>* mathworld)
     requires(type == parsing::Type::AST);
 
-  Function(const MathWorld<type>& mathworld)
+  Function(const MathWorld<type>* mathworld)
     requires (type == parsing::Type::RPN);
 
   /// @brief constructor for a function that takes many input variables
-  Function(std::vector<std::string> input_vars, std::string expr, const MathWorld<type>& mathworld);
+  Function(std::vector<std::string> input_vars, std::string expr, const MathWorld<type>* mathworld);
 
   Function(Function&& f) = default;
   Function& operator = (Function&& f) = default;
@@ -128,8 +128,9 @@ protected:
 
   tl::expected<parsing::Parsing<type>, Error> parsed_expr;
   tl::expected<std::vector<std::string>, InvalidInputVar> vars;
-  const MathWorld<type>& mathworld;
 
+  // non-owning pointer to the mathworld that contains this object
+  const MathWorld<type>* mathworld;
 };
 
 }

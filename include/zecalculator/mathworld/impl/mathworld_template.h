@@ -37,9 +37,9 @@ tl::expected<ref<ObjectType>, NameError> MathWorldT<MathObjectType...>::add(std:
   SlottedDeque<ObjectType> &object_container = std::get<SlottedDeque<ObjectType>>(math_objects);
 
   size_t id;
-  // compile time check if objects needs MathWorld cref
-  if constexpr (std::is_constructible_v<ObjectType, const MathWorldT<MathObjectType...>&>)
-    id = object_container.push(ObjectType(*this)); // TODO: define emplace_back in SlottedVector
+  // compile time check if objects needs MathWorld pointer
+  if constexpr (std::is_constructible_v<ObjectType, const MathWorldT<MathObjectType...>*>)
+    id = object_container.push(ObjectType(this)); // TODO: define emplace_back in SlottedVector
   else id = object_container.push(ObjectType());
 
   ObjectType& world_object = object_container[id];
@@ -60,8 +60,8 @@ tl::expected<ref<ObjectType>, NameError> MathWorldT<MathObjectType...>::add(std:
 
   size_t id;
   // compile time check if objects needs MathWorld cref
-  if constexpr (std::is_constructible_v<ObjectType, Args..., const MathWorldT<MathObjectType...>&>)
-    id = object_container.push(ObjectType(std::forward<Args>(args)..., *this)); // TODO: define emplace_back in SlottedVector
+  if constexpr (std::is_constructible_v<ObjectType, Args..., const MathWorldT<MathObjectType...>*>)
+    id = object_container.push(ObjectType(std::forward<Args>(args)..., this)); // TODO: define emplace_back in SlottedVector
   else id = object_container.push(ObjectType(std::forward<Args>(args)...));
 
   ObjectType& world_object = object_container[id];
