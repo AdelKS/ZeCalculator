@@ -20,6 +20,21 @@
             ],
         },
         {
+          "name": "evaluation_test",
+          "cwd": "${workspaceRoot}/build-zc-debug/",
+          "type": "cppdbg",
+          "request": "launch",
+          "program": "${workspaceRoot}/build-zc-debug/test/evaluation_test",
+          "preLaunchTask": "${defaultBuildTask}",
+          "setupCommands": [
+              {
+                "description": "Enable pretty-printing for gdb",
+                "text": "-enable-pretty-printing",
+                "ignoreFailures": true
+              }
+          ],
+        },
+        {
             "name": "syntax_tree_test",
             "cwd": "${workspaceRoot}/build-zc-debug/",
             "type": "cppdbg",
@@ -70,6 +85,21 @@
           "type": "cppdbg",
           "request": "launch",
           "program": "${workspaceRoot}/build-zc-debug/test/global_variable_test",
+          "preLaunchTask": "${defaultBuildTask}",
+          "setupCommands": [
+              {
+                "description": "Enable pretty-printing for gdb",
+                "text": "-enable-pretty-printing",
+                "ignoreFailures": true
+              }
+          ],
+        },
+        {
+          "name": "expression_test",
+          "cwd": "${workspaceRoot}/build-zc-debug/",
+          "type": "cppdbg",
+          "request": "launch",
+          "program": "${workspaceRoot}/build-zc-debug/test/expression_test",
           "preLaunchTask": "${defaultBuildTask}",
           "setupCommands": [
               {
