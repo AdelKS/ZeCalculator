@@ -39,8 +39,6 @@ class Sequence: public zc::Function<type>
 {
 public:
 
-  Sequence(const MathWorld<type>* mathworld);
-
   void set(std::string var_name,
            const std::string& expr,
            std::vector<double> first_vals = {});
@@ -66,6 +64,9 @@ public:
 
 protected:
 
+  // constructor reserved for MathWorld when using add() function
+  Sequence(const MathWorld<type>* mathworld);
+
   /// @brief evaluation with recursion depth tracking
   tl::expected<double, Error> evaluate(double index, size_t current_recursion_depth) const;
 
@@ -81,6 +82,9 @@ protected:
 
   // first values of the sequence
   std::vector<double> values;
+
+  template <class... MathObjectType>
+  friend class MathWorldT;
 
 };
 

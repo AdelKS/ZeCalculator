@@ -40,8 +40,6 @@ class Expression: public Function<type>
 {
 public:
 
-  Expression(const MathWorld<type>* mathworld);
-
   void set(std::string expression);
 
   tl::expected<double, Error> evaluate() const;
@@ -49,6 +47,10 @@ public:
   tl::expected<double, Error> operator ()() const;
 
 protected:
+
+  // constructor reserved for MathWorld when using add() function
+  Expression(const MathWorld<type>* mathworld);
+
   tl::expected<double, Error> evaluate(size_t current_recursion_depth) const;
 
   friend struct eval::rpn::Evaluator;
@@ -57,6 +59,9 @@ protected:
   // hide functions that are not needed from Function
   using Function<type>::evaluate;
   using Function<type>::set_input_vars;
+
+  template <class... MathObjectType>
+  friend class MathWorldT;
 
 };
 

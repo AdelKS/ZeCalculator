@@ -68,11 +68,6 @@ template <parsing::Type type>
 class Function
 {
 public:
-  Function(const MathWorld<type>* mathworld)
-    requires(type == parsing::Type::AST);
-
-  Function(const MathWorld<type>* mathworld)
-    requires (type == parsing::Type::RPN);
 
   Function(Function&& f) = default;
   Function& operator = (Function&& f) = default;
@@ -113,6 +108,14 @@ public:
 
 protected:
 
+  // constructor reserved for MathWorld when using add() function
+  Function(const MathWorld<type>* mathworld)
+    requires(type == parsing::Type::AST);
+
+  // constructor reserved for MathWorld when using add() function
+  Function(const MathWorld<type>* mathworld)
+    requires (type == parsing::Type::RPN);
+
   /// @note version that tracks the current recursion depth
   tl::expected<double, Error> evaluate(std::span<const double> args,
                                        size_t current_recursion_depth) const;
@@ -128,6 +131,9 @@ protected:
 
   // non-owning pointer to the mathworld that contains this object
   const MathWorld<type>* mathworld;
+
+  template <class... MathObjectType>
+  friend class MathWorldT;
 };
 
 }

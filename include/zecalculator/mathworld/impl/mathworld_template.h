@@ -39,7 +39,7 @@ tl::expected<ref<ObjectType>, NameError> MathWorldT<MathObjectType...>::add(std:
 
   size_t id;
   // compile time check if objects needs MathWorld pointer
-  if constexpr (std::is_constructible_v<ObjectType, const MathWorldT<MathObjectType...>*>)
+  if constexpr (requires { ObjectType(this); })
     id = object_container.push(ObjectType(this));
   else id = object_container.push(ObjectType());
 
