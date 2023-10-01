@@ -138,15 +138,12 @@ public:
   }
 
   /// @brief default constructs an ObjectType in the world, under the name 'name'
+  ///        then, if there are extra args, forwards them the member function .set() of the newly added object
+  /// @param arg...: arguments passed to the set() member function of the object
   /// @note returns a NameError if the name is already taken or has the wrong format, leaves the world unchanged.
-  template <class ObjectType>
-  tl::expected<ref<ObjectType>, NameError> add(std::string_view name);
-
-  /// @brief default constructs an ObjectType in the world, under the name 'name'
-  /// @tparam Args...: arguments passed to the ObjectType's constructor
-  /// @note returns a NameError if the name is already taken or has the wrong format, leaves the world unchanged.
-  template <class ObjectType, class... Args>
-  tl::expected<ref<ObjectType>, NameError> add(std::string_view name, Args&&... args);
+  template <class ObjectType, class... Arg>
+    requires (sizeof...(Arg) == 0 or requires (ObjectType o) { o.set(std::declval<Arg>()...); })
+  tl::expected<ref<ObjectType>, NameError> add(std::string_view name, Arg&&... arg);
 
   /// @brief says if an object with the given name exists within the world
   bool contains(std::string_view name) const

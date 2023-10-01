@@ -26,8 +26,9 @@
 namespace zc {
 
 template <class... MathObjectType>
-template <class ObjectType>
-tl::expected<ref<ObjectType>, NameError> MathWorldT<MathObjectType...>::add(std::string_view name)
+template <class ObjectType, class... Arg>
+  requires (sizeof...(Arg) == 0 or requires (ObjectType o) { o.set(std::declval<Arg>()...); })
+tl::expected<ref<ObjectType>, NameError> MathWorldT<MathObjectType...>::add(std::string_view name, Arg&&... arg)
 {
   if (not parsing::is_valid_name(name))
     return tl::unexpected(NameError::invalid_format(name));
@@ -39,52 +40,17 @@ tl::expected<ref<ObjectType>, NameError> MathWorldT<MathObjectType...>::add(std:
   size_t id;
   // compile time check if objects needs MathWorld pointer
   if constexpr (std::is_constructible_v<ObjectType, const MathWorldT<MathObjectType...>*>)
-    id = object_container.push(ObjectType(this)); // TODO: define emplace_back in SlottedVector
+    id = object_container.push(ObjectType(this));
   else id = object_container.push(ObjectType());
 
   ObjectType& world_object = object_container[id];
+
   inventory[std::string(name)] = std::ref(world_object);
+
+  if constexpr (sizeof...(Arg) > 0)
+    world_object.set(std::forward<Arg>(arg)...);
+
   return world_object;
-}
-
-template <class... MathObjectType>
-template <class ObjectType, class... Args>
-tl::expected<ref<ObjectType>, NameError> MathWorldT<MathObjectType...>::add(std::string_view name, Args&&... args)
-{
-  if (not parsing::is_valid_name(name))
-    return tl::unexpected(NameError::invalid_format(name));
-  else if (contains(name))
-    return tl::unexpected(NameError::already_taken(name));
-
-  SlottedDeque<ObjectType> &object_container = std::get<SlottedDeque<ObjectType>>(math_objects);
-
-  size_t id;
-  // compile time check if objects needs MathWorld cref
-  if constexpr (std::is_constructible_v<ObjectType, Args..., const MathWorldT<MathObjectType...>*>)
-  {
-    // 1. build a default object first
-    id = object_container.push(ObjectType(this));
-
-    ObjectType& world_object = object_container[id];
-
-    // 2. register it in the inventory
-    inventory[std::string(name)] = std::ref(world_object);
-
-    // 3. overwrite it with the correct object, so the correct
-    //    object can self reference itself (available in the inventory
-    //    under the correct address)
-    world_object = ObjectType(std::forward<Args>(args)..., this);
-
-    return world_object;
-  }
-  else
-  {
-    id = object_container.push(ObjectType(std::forward<Args>(args)...));
-
-    ObjectType& world_object = object_container[id];
-    inventory[std::string(name)] = std::ref(world_object);
-    return world_object;
-  }
 }
 
 }

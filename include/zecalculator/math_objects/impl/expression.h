@@ -40,9 +40,10 @@ Expression<type>::Expression(const MathWorld<type>* mathworld) : Function<type>(
 {}
 
 template <parsing::Type type>
-Expression<type>::Expression(const std::string& expr, const MathWorld<type>* mathworld)
-  : Function<type>({}, expr, mathworld)
-{}
+void Expression<type>::set(std::string expression)
+{
+  Function<type>::set_expression(std::move(expression));
+}
 
 template <parsing::Type type>
 tl::expected<double, Error> Expression<type>::evaluate() const

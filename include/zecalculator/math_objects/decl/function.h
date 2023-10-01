@@ -74,9 +74,6 @@ public:
   Function(const MathWorld<type>* mathworld)
     requires (type == parsing::Type::RPN);
 
-  /// @brief constructor for a function that takes many input variables
-  Function(std::vector<std::string> input_vars, std::string expr, const MathWorld<type>* mathworld);
-
   Function(Function&& f) = default;
   Function& operator = (Function&& f) = default;
 

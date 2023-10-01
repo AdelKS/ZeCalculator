@@ -40,16 +40,6 @@ Function<type>::Function(const MathWorld<type>* mathworld)
 {}
 
 template <parsing::Type type>
-Function<type>::Function(std::vector<std::string> input_vars,
-                         std::string expr,
-                         const MathWorld<type>* mathworld)
-  : Function<type>::Function(mathworld)
-{
-  set_input_vars(std::move(input_vars));
-  set_expression(std::move(expr));
-}
-
-template <parsing::Type type>
 void Function<type>::set_input_vars(std::vector<std::string> input_vars)
 {
   auto it = std::ranges::find_if_not(input_vars, parsing::is_valid_name);

@@ -35,6 +35,8 @@ int main()
   // - Each added object exists only within the math world that creates it
   // - Adding a math object returns a tl::expected that can have an error instead of a
   //   ref to the object (e.g.: invalid format for the name, or name is already taken)
+  // - if extra arguments are given other than the object's name, they are forwarded to
+  //   the object after its construction through the set() member method.
 
   // Add a global constant called "my_constant" with an initial value of 3.0
   // Note: the .value() call from tl::expected<> throws if it actually holds an error

@@ -35,6 +35,8 @@ public:
 
   constexpr CppUnaryFunction(CppUnaryFunctionPtr f_ptr) : f_ptr(f_ptr) {};
 
+  constexpr void set(CppUnaryFunction f) {f_ptr = f.f_ptr; }
+
   double operator()(double a) const
   {
     return f_ptr(a);

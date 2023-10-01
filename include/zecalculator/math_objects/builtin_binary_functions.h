@@ -33,7 +33,11 @@ using CppBinaryFunctionPtr = double (*) (double, double);
 class CppBinaryFunction
 {
 public:
+  constexpr CppBinaryFunction() = default;
+
   constexpr CppBinaryFunction(CppBinaryFunctionPtr f_ptr) : f_ptr(f_ptr) {};
+
+  constexpr void set(CppBinaryFunction f) {f_ptr = f.f_ptr; }
 
   double operator()(double a, double b) const
   {
@@ -43,7 +47,7 @@ public:
   bool operator == (const CppBinaryFunction&) const = default;
 
 protected:
-  CppBinaryFunctionPtr f_ptr;
+  CppBinaryFunctionPtr f_ptr = nullptr;
 };
 
 inline double plus(const double a, const double b)

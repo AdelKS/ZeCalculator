@@ -42,7 +42,7 @@ public:
 
   Expression(const MathWorld<type>* mathworld);
 
-  Expression(const std::string& expr, const MathWorld<type>* mathworld);
+  void set(std::string expression);
 
   tl::expected<double, Error> evaluate() const;
 

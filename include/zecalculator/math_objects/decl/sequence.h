@@ -41,14 +41,9 @@ public:
 
   Sequence(const MathWorld<type>* mathworld);
 
-  Sequence(std::string var_name,
+  void set(std::string var_name,
            const std::string& expr,
-           std::vector<double> first_vals,
-           const MathWorld<type>* mathworld);
-
-  Sequence(std::string var_name,
-           const std::string& expr,
-           const MathWorld<type>* mathworld);
+           std::vector<double> first_vals = {});
 
   /// \brief set the expression
   void set_expression(const std::string& expr);

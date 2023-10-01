@@ -9,19 +9,13 @@ Sequence<type>::Sequence(const MathWorld<type>* mathworld) : Function<type>(math
 {}
 
 template <parsing::Type type>
-Sequence<type>::Sequence(std::string var_name,
+void Sequence<type>::set(std::string var_name,
                          const std::string& expr,
-                         const MathWorld<type>* mathworld)
-  : Function<type>(std::vector{var_name}, expr, mathworld)
-{}
-
-template <parsing::Type type>
-Sequence<type>::Sequence(std::string var_name,
-                         const std::string& expr,
-                         std::vector<double> first_vals,
-                         const MathWorld<type>* mathworld)
-  : Function<type>(std::vector{var_name}, expr, mathworld), values(first_vals)
-{}
+                         std::vector<double> first_vals)
+{
+  values = std::move(first_vals);
+  Function<type>::set(std::vector{var_name}, expr);
+}
 
 template <parsing::Type type>
 void Sequence<type>::set_expression(const std::string& expr)

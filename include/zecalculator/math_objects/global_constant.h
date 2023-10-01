@@ -29,7 +29,11 @@ namespace zc {
 struct GlobalConstant
 {
   constexpr GlobalConstant() = default;
+
   constexpr GlobalConstant(double val): value(val) {}
+
+  constexpr void set(GlobalConstant cst) {value = cst.value;}
+
   double value = 0;
 };
 
