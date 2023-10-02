@@ -22,7 +22,7 @@
 
 #include <zecalculator/utils/name_map.h>
 #include <zecalculator/utils/refs.h>
-#include <zecalculator/utils/slotted_vector.h>
+#include <zecalculator/utils/slotted_deque.h>
 #include <zecalculator/utils/utils.h>
 #include <zecalculator/math_objects/builtin_binary_functions.h>
 #include <zecalculator/math_objects/builtin_unary_functions.h>

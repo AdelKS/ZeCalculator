@@ -4,7 +4,7 @@ if not meson.is_subproject()
       'name_map.h',
       'optional_ref.h',
       'refs.h',
-      'slotted_vector.h',
+      'slotted_deque.h',
       'substr_info.h',
       'utils.h',
     ),
