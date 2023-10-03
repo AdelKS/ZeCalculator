@@ -72,6 +72,8 @@ public:
   Function(Function&& f) = default;
   Function& operator = (Function&& f) = default;
 
+  const std::string& get_name() const;
+
   /// @brief sets the names of the input variables
   /// @note the order of the input variables is important when calling the function
   ///       with positional arguments
@@ -120,6 +122,9 @@ protected:
   tl::expected<double, Error> evaluate(std::span<const double> args,
                                        size_t current_recursion_depth) const;
 
+  void set_name(std::string name);
+
+  std::string name;
   std::string expression;
 
   friend struct eval::rpn::Evaluator;

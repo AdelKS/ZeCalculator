@@ -40,6 +40,18 @@ Function<type>::Function(const MathWorld<type>* mathworld)
 {}
 
 template <parsing::Type type>
+void Function<type>::set_name(std::string name)
+{
+  this->name = std::move(name);
+}
+
+template <parsing::Type type>
+const std::string& Function<type>::get_name() const
+{
+  return name;
+}
+
+template <parsing::Type type>
 void Function<type>::set_input_vars(std::vector<std::string> input_vars)
 {
   auto it = std::ranges::find_if_not(input_vars, parsing::is_valid_name);

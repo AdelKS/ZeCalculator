@@ -44,6 +44,7 @@ tl::expected<ref<ObjectType>, NameError> MathWorldT<MathObjectType...>::add(std:
   else id = object_container.push(ObjectType());
 
   ObjectType& world_object = object_container[id];
+  world_object.set_name(std::string(name));
 
   inventory[std::string(name)] = std::ref(world_object);
 

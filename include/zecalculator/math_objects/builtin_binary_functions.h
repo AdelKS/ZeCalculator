@@ -23,6 +23,7 @@
 #include <string_view>
 #include <array>
 #include <cmath>
+#include <string>
 
 #include <zecalculator/parsing/data_structures/token.h>
 
@@ -37,6 +38,10 @@ public:
 
   constexpr CppBinaryFunction(CppBinaryFunctionPtr f_ptr) : f_ptr(f_ptr) {};
 
+  void set_name(std::string name) { this->name = std::move(name); }
+
+  const std::string& get_name() const { return name; }
+
   constexpr void set(CppBinaryFunction f) {f_ptr = f.f_ptr; }
 
   double operator()(double a, double b) const
@@ -48,6 +53,7 @@ public:
 
 protected:
   CppBinaryFunctionPtr f_ptr = nullptr;
+  std::string name;
 };
 
 inline double plus(const double a, const double b)
@@ -73,7 +79,7 @@ inline double divide(const double a, const double b)
 
 // we save the names along with the function pointers for convenience
 // we could save only the function pointers, and the names only in the inventory
-constexpr std::array<std::pair<std::string_view, CppBinaryFunction>, 5> builtin_binary_functions = {{
+inline std::array<std::pair<std::string_view, CppBinaryFunction>, 5> builtin_binary_functions = {{
   {parsing::tokens::Operator::name_of('+'), plus},
   {parsing::tokens::Operator::name_of('-'), minus},
   {parsing::tokens::Operator::name_of('*'), multiply},
@@ -81,7 +87,7 @@ constexpr std::array<std::pair<std::string_view, CppBinaryFunction>, 5> builtin_
   {parsing::tokens::Operator::name_of('^'), CppBinaryFunction(std::pow)},
 }};
 
-constexpr CppBinaryFunction binary_func_from_op(char op)
+inline CppBinaryFunction binary_func_from_op(char op)
 {
   switch (op)
   {

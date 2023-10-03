@@ -23,21 +23,27 @@
 #include <string_view>
 #include <array>
 #include <numbers>
+#include <string>
 
 namespace zc {
 
 struct GlobalConstant
 {
-  constexpr GlobalConstant() = default;
+  GlobalConstant() = default;
 
-  constexpr GlobalConstant(double val): value(val) {}
+  GlobalConstant(double val): value(val) {}
 
-  constexpr void set(GlobalConstant cst) {value = cst.value;}
+  void set(GlobalConstant cst) {value = cst.value;}
+
+  void set_name(std::string name) { this->name = std::move(name); }
+
+  const std::string& get_name() const { return name; }
 
   double value = 0;
+  std::string name;
 };
 
-constexpr std::array<std::pair<std::string_view, GlobalConstant>, 5> builtin_global_constants =
+inline std::array<std::pair<std::string_view, GlobalConstant>, 5> builtin_global_constants =
 {{
   {"math::pi", std::numbers::pi},
   {"math::π",  std::numbers::pi},

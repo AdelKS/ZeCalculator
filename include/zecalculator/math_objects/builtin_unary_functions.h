@@ -23,6 +23,7 @@
 #include <string_view>
 #include <array>
 #include <cmath>
+#include <string>
 
 namespace zc {
 
@@ -37,6 +38,10 @@ public:
 
   constexpr void set(CppUnaryFunction f) {f_ptr = f.f_ptr; }
 
+  void set_name(std::string name) { this->name = std::move(name); }
+
+  const std::string& get_name() const { return name; }
+
   double operator()(double a) const
   {
     return f_ptr(a);
@@ -44,11 +49,12 @@ public:
 
 protected:
   CppUnaryFunctionPtr f_ptr = nullptr;
+  std::string name;
 };
 
 // we save the names along with the function pointers for convenience
 // we could save only the function pointers, and the names only in the inventory
-constexpr std::array<std::pair<std::string_view, CppUnaryFunction>, 30> builtin_unary_functions = {{
+inline std::array<std::pair<std::string_view, CppUnaryFunction>, 30> builtin_unary_functions = {{
   {"cos",   CppUnaryFunction(std::cos)},
   {"sin",   CppUnaryFunction(std::sin)},
   {"tan",   CppUnaryFunction(std::tan)},
@@ -87,7 +93,7 @@ constexpr std::array<std::pair<std::string_view, CppUnaryFunction>, 30> builtin_
   {"Γ",     CppUnaryFunction(std::tgamma)},
 }};
 
-constexpr CppUnaryFunction unary_func_from_name(std::string_view name)
+inline CppUnaryFunction unary_func_from_name(std::string_view name)
 {
   for(auto&& [f_name, f]: builtin_unary_functions)
   {
