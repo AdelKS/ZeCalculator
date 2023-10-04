@@ -81,18 +81,18 @@ namespace zc {
 
         struct CppBinaryFunction: Text
         {
-          CppBinaryFunction(const Text& txt, zc::CppBinaryFunction f)
+          CppBinaryFunction(const Text& txt, const zc::CppBinaryFunction& f)
             : Text(txt),  f(f) {}
 
-          zc::CppBinaryFunction f;
+          const zc::CppBinaryFunction& f;
         };
 
         struct CppUnaryFunction: Text
         {
-          CppUnaryFunction(const Text& txt, zc::CppUnaryFunction f)
+          CppUnaryFunction(const Text& txt, const zc::CppUnaryFunction& f)
             : Text(txt),  f(f) {}
 
-          zc::CppUnaryFunction f;
+          const zc::CppUnaryFunction& f;
         };
 
       } // namespace rpn
@@ -152,7 +152,7 @@ namespace zc {
         struct CppBinaryFunction: rpn::CppBinaryFunction
         {
           CppBinaryFunction(const Text& txt,
-                            zc::CppBinaryFunction f,
+                            const zc::CppBinaryFunction& f,
                             NodePtr<world_type> operand1,
                             NodePtr<world_type> operand2)
             : rpn::CppBinaryFunction(txt, f), operand1(std::move(operand1)),
@@ -165,7 +165,9 @@ namespace zc {
         template <parsing::Type world_type>
         struct CppUnaryFunction: rpn::CppUnaryFunction
         {
-          CppUnaryFunction(const Text& txt, zc::CppUnaryFunction f, NodePtr<world_type> operand)
+          CppUnaryFunction(const Text& txt,
+                           const zc::CppUnaryFunction& f,
+                           NodePtr<world_type> operand)
             : rpn::CppUnaryFunction(txt, f), operand(std::move(operand))
           {}
 

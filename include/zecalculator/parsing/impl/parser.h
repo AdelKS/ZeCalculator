@@ -457,8 +457,12 @@ tl::expected<Tree<type>, Error> make_tree(std::span<const parsing::Token> tokens
           if (not right_hand_side.has_value())
             return right_hand_side;
 
+          const zc::CppBinaryFunction* cpp_bin_f = world.template get<zc::CppBinaryFunction>(op_str);
+
+          assert(cpp_bin_f);
+
           return node::ast::CppBinaryFunction<type>(text_token(*tokenIt),
-                                                    binary_func_from_op(op),
+                                                    *cpp_bin_f,
                                                     std::move(left_hand_side.value()),
                                                     std::move(right_hand_side.value()));
         }
