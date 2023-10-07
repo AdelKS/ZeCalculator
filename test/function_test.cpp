@@ -262,4 +262,20 @@ int main()
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
+  "direct dependencies"_test = []<class StructType>()
+  {
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
+
+    MathWorld<type> world;
+
+    // add a function named "f", note that the constant "my_constant" is only defined after
+    world.template add<Function<type>>("f", Vars{"x", "y"}, "1 + x + y").value();
+    Sequence<type>& seq = world.template add<Sequence<type>>("u", "n", "1 + f(1, 1) + f(2, 2) + u(n-1) + 3*u(n-1)", Vals{0}).value();
+
+    auto deps = seq.direct_dependencies();
+
+    expect(deps.size() == 5_u); // "+", "-", "*", "u" and "f"
+
+  } | std::tuple<AST_TEST, RPN_TEST>{};
+
 }

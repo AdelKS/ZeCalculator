@@ -88,6 +88,9 @@ public:
   /// @brief returns the number of input variables, if they are valid
   std::optional<size_t> argument_size() const;
 
+  /// @brief gives the math objects that are present in this function's expression
+  auto direct_dependencies() const;
+
   /// @brief tests if the function is valid, i.e. has a valid expression and input vars
   operator bool () const;
 

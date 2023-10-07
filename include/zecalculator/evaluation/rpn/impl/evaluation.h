@@ -23,7 +23,7 @@
 #include <variant>
 #include <zecalculator/error.h>
 #include <zecalculator/evaluation/rpn/decl/evaluation.h>
-#include <zecalculator/parsing/data_structures/impl/node.h>
+#include <zecalculator/math_objects/impl/function.h>
 
 namespace zc {
 namespace eval {

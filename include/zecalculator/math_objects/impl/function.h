@@ -144,6 +144,107 @@ const tl::expected<parsing::Parsing<type>, Error>& Function<type>::get_parsing()
 }
 
 template <parsing::Type type>
+struct DepVisitor
+{
+  using ObjectType = typename MathWorld<type>::ConstDynMathObject;
+  std::vector<ObjectType> deps;
+
+  template <class T>
+  void insert(const T& obj)
+  {
+    // tests for same alternative then same address
+    auto test = [&](auto&& val)
+    {
+      cref<T>* ptr = std::get_if<cref<T>>(&val);
+      return ptr and &ptr->get() == &obj;
+    };
+
+    if (not std::ranges::any_of(deps, test))
+      deps.push_back(std::cref(obj));
+  }
+
+
+  template <class T>
+  void operator()(const T& alt)
+  {
+    // AST
+
+    if constexpr (std::is_same_v<T, parsing::node::ast::CppUnaryFunction<type>>)
+    {
+      insert(alt.f);
+      std::visit(*this, *alt.operand);
+    }
+    else if constexpr (std::is_same_v<T, parsing::node::ast::CppBinaryFunction<type>>)
+    {
+      insert(alt.f);
+      std::visit(*this, *alt.operand1);
+      std::visit(*this, *alt.operand2);
+    }
+    else if constexpr (std::is_same_v<T, parsing::node::ast::Function<type>>)
+    {
+      insert(alt.f);
+      std::ranges::for_each(alt.operands, [this](auto&& v){ std::visit(*this, *v); });
+    }
+    else if constexpr (std::is_same_v<T, parsing::node::ast::Sequence<type>>)
+    {
+      insert(alt.u);
+      std::visit(*this, *alt.operand);
+    }
+
+    // RPN
+
+    else if constexpr (std::is_same_v<T, parsing::node::rpn::CppUnaryFunction>)
+    {
+      insert(alt.f);
+    }
+    else if constexpr (std::is_same_v<T, parsing::node::rpn::CppBinaryFunction>)
+    {
+      insert(alt.f);
+    }
+    else if constexpr (std::is_same_v<T, parsing::node::rpn::Function>)
+    {
+      insert(alt.f);
+    }
+    else if constexpr (std::is_same_v<T, parsing::node::rpn::Sequence>)
+    {
+      insert(alt.u);
+    }
+
+    // shared / templated
+
+    else if constexpr (std::is_same_v<T, parsing::node::GlobalVariable<type>>)
+    {
+      insert(alt.var);
+    }
+    else if constexpr (std::is_same_v<T, parsing::node::GlobalConstant>)
+    {
+      insert(alt.constant);
+    }
+
+    // we do nothing with every other possibility
+  }
+};
+
+template <parsing::Type type>
+auto Function<type>::direct_dependencies() const
+{
+  DepVisitor<type> visitor;
+
+  if (not bool(*this))
+    return visitor.deps;
+
+  if constexpr (type == parsing::Type::RPN)
+    std::ranges::for_each(parsed_expr.value(), [&](auto&& v){ std::visit(visitor, v); });
+  else
+  {
+    auto& val = *parsed_expr.value();
+    std::visit(visitor, val);
+  }
+
+  return visitor.deps;
+}
+
+template <parsing::Type type>
 tl::expected<double, Error> Function<type>::evaluate(std::span<const double> args,
                                                      size_t current_recursion_depth) const
 {
