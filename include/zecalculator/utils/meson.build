@@ -2,7 +2,6 @@ if not meson.is_subproject()
   install_headers(
     files(
       'name_map.h',
-      'optional_ref.h',
       'refs.h',
       'slotted_deque.h',
       'substr_info.h',
