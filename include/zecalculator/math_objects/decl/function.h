@@ -28,7 +28,6 @@
 #include <zecalculator/error.h>
 #include <zecalculator/external/expected.h>
 #include <zecalculator/parsing/data_structures/decl/node.h>
-#include <zecalculator/mathworld/decl/mathworld.h>
 #include <zecalculator/parsing/shared.h>
 #include <zecalculator/utils/name_map.h>
 
@@ -39,6 +38,9 @@
 */
 
 namespace zc {
+
+template <parsing::Type type>
+class MathWorld;
 
 namespace eval {
 namespace rpn {
@@ -140,8 +142,8 @@ protected:
   // non-owning pointer to the mathworld that contains this object
   const MathWorld<type>* mathworld;
 
-  template <class... MathObjectType>
-  friend class MathWorldT;
+  template <parsing::Type>
+  friend class MathWorld;
 };
 
 }

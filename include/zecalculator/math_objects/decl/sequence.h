@@ -21,7 +21,6 @@
 ****************************************************************************/
 
 #include <zecalculator/math_objects/decl/function.h>
-#include <zecalculator/mathworld/decl/mathworld.h>
 
 /* TODO: update approach as the following:
    - Check for validity
@@ -30,6 +29,9 @@
 */
 
 namespace zc {
+
+template <parsing::Type type>
+class MathWorld;
 
 using Vals = std::vector<double>;
 
@@ -83,8 +85,8 @@ protected:
   // first values of the sequence
   std::vector<double> values;
 
-  template <class... MathObjectType>
-  friend class MathWorldT;
+  template <parsing::Type>
+  friend class MathWorld;
 
 };
 

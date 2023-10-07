@@ -33,6 +33,9 @@
 
 namespace zc {
 
+template <parsing::Type type>
+class MathWorld;
+
 /// @brief a class that represents a general expression
 /// @note  an expression is a function that does not have any input
 template <parsing::Type type>
@@ -60,8 +63,8 @@ protected:
   using Function<type>::evaluate;
   using Function<type>::set_input_vars;
 
-  template <class... MathObjectType>
-  friend class MathWorldT;
+  template <parsing::Type>
+  friend class MathWorld;
 
 };
 

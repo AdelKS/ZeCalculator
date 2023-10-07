@@ -20,15 +20,39 @@
 **
 ****************************************************************************/
 
-#include <zecalculator/math_objects/builtin_binary_functions.h>
-#include <zecalculator/math_objects/builtin_unary_functions.h>
-#include <zecalculator/math_objects/global_variable.h>
-#include <zecalculator/math_objects/impl/expression.h>
-#include <zecalculator/math_objects/impl/function.h>
-#include <zecalculator/math_objects/impl/sequence.h>
 #include <zecalculator/mathworld/decl/mathworld.h>
-#include <zecalculator/mathworld/impl/mathworld_template.h>
+#include <zecalculator/parsing/parser.h>
 
 namespace zc {
+
+template <parsing::Type type>
+template <class ObjectType, class... Arg>
+  requires(tuple_contains_v<MathObjects<type>, ObjectType>
+           and (sizeof...(Arg) == 0 or requires(ObjectType o) { o.set(std::declval<Arg>()...); }))
+tl::expected<ref<ObjectType>, NameError> MathWorld<type>::add(std::string_view name, Arg &&...arg)
+{
+  if (not parsing::is_valid_name(name))
+    return tl::unexpected(NameError::invalid_format(name));
+  else if (contains(name))
+    return tl::unexpected(NameError::already_taken(name));
+
+  SlottedDeque<ObjectType> &object_container = std::get<SlottedDeque<ObjectType>>(math_objects);
+
+  size_t id;
+  // compile time check if objects needs MathWorld pointer
+  if constexpr (requires { ObjectType(this); })
+    id = object_container.push(ObjectType(this));
+  else id = object_container.push(ObjectType());
+
+  ObjectType& world_object = object_container[id];
+  world_object.set_name(std::string(name));
+
+  inventory[std::string(name)] = std::ref(world_object);
+
+  if constexpr (sizeof...(Arg) > 0)
+    world_object.set(std::forward<Arg>(arg)...);
+
+  return world_object;
+}
 
 }
