@@ -12,6 +12,7 @@ if not meson.is_subproject()
       'function.h',
       'global_constant.h',
       'global_variable.h',
+      'object_list.h',
       'sequence.h',
     ),
     subdir: 'zecalculator',
