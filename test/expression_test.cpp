@@ -39,7 +39,7 @@ int main()
 
     MathWorld<type> world;
 
-    world.template add<Function<type>>("f", Vars{"x", "y"}, "x + y").value();
+    world.template add<Function<type, 2>>("f", Vars<2>{"x", "y"}, "x + y").value();
     world.template add<GlobalConstant>("t", t);
 
     GlobalVariable<type>& expr

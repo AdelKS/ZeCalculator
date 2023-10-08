@@ -37,16 +37,14 @@ using Vals = std::vector<double>;
 
 /// @brief a class that represents a Sequence of single argument
 template <parsing::Type type>
-class Sequence: public zc::Function<type>
+class Sequence: public zc::Function<type, 1>
 {
+  using Parent = Function<type, 1>;
 public:
 
   void set(std::string var_name,
            const std::string& expr,
            std::vector<double> first_vals = {});
-
-  /// \brief set the expression
-  void set_expression(const std::string& expr);
 
   void set_input_var(std::string var_name);
 
@@ -72,12 +70,15 @@ protected:
   /// @brief evaluation with recursion depth tracking
   tl::expected<double, Error> evaluate(double index, size_t current_recursion_depth) const;
 
+  template <size_t>
   friend struct eval::rpn::Evaluator;
+
+  template <size_t>
   friend struct eval::ast::Evaluator;
 
   // hide functions that are not needed from Function
-  using Function<type>::evaluate;
-  using Function<type>::set_input_vars;
+  using Parent::evaluate;
+  using Parent::operator();
 
   // index of the first value
   int first_val_index = 0;

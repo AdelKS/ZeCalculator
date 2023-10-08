@@ -44,10 +44,12 @@ class MathWorld;
 
 namespace eval {
 namespace rpn {
+  template <size_t>
   struct Evaluator;
 }
 
 namespace ast {
+  template <size_t>
   struct Evaluator;
 }
 }
@@ -64,9 +66,10 @@ struct InvalidInputVar
   std::string var_name;
 };
 
-using Vars = std::vector<std::string>;
+template <size_t args_num>
+using Vars = std::array<std::string, args_num>;
 
-template <parsing::Type type>
+template <parsing::Type type, size_t args_num>
 class Function
 {
 public:
@@ -79,16 +82,24 @@ public:
   /// @brief sets the names of the input variables
   /// @note the order of the input variables is important when calling the function
   ///       with positional arguments
-  void set_input_vars(std::vector<std::string> input_vars);
+  void set_input_vars(Vars<args_num> input_vars)
+    requires (args_num > 0);
+
+  void set_input_var(std::string input_var)
+    requires (args_num == 1);
 
   /// \brief set the expression
   void set_expression(std::string expr);
 
   /// @brief sets both the input_vars and the expression
-  void set(std::vector<std::string> input_vars, std::string expr);
+  void set(Vars<args_num> input_vars, std::string expr)
+    requires (args_num >= 1);
+
+  void set(std::string expr)
+    requires (args_num == 0);
 
   /// @brief returns the number of input variables, if they are valid
-  std::optional<size_t> argument_size() const;
+  static constexpr size_t argument_size() { return args_num; };
 
   /// @brief gives the math objects that are present in this function's expression
   auto direct_dependencies() const;
@@ -101,17 +112,28 @@ public:
   const tl::expected<parsing::Parsing<type>, Error>& get_parsing() const;
 
   /// @brief evaluation on a given math world with the given input
-  tl::expected<double, Error> evaluate(const std::vector<double>& args) const;
-
-  // span version
-  tl::expected<double, Error> evaluate(std::span<const double> args) const;
+  tl::expected<double, Error> evaluate(const std::array<double, args_num>& args) const
+    requires (args_num >= 1);
 
   /// @brief evaluation on a given math world with the given input
   /// @note operator style
-  tl::expected<double, Error> operator()(const std::vector<double>& args) const;
+  tl::expected<double, Error> operator()(const std::array<double, args_num>& args) const
+    requires (args_num >= 1);
 
   // span version
-  tl::expected<double, Error> operator()(std::span<const double> args) const;
+  tl::expected<double, Error> evaluate(std::span<const double, args_num> args) const
+    requires (args_num >= 1);
+
+  tl::expected<double, Error> operator()(std::span<const double, args_num> args) const
+    requires (args_num >= 1);
+
+  /// @brief evaluation on a given math world with the given input
+  tl::expected<double, Error> evaluate() const
+    requires (args_num == 0);
+
+  tl::expected<double, Error> operator()() const
+    requires (args_num == 0);
+
 
 protected:
 
@@ -124,7 +146,7 @@ protected:
     requires (type == parsing::Type::RPN);
 
   /// @note version that tracks the current recursion depth
-  tl::expected<double, Error> evaluate(std::span<const double> args,
+  tl::expected<double, Error> evaluate(std::span<const double, args_num> args,
                                        size_t current_recursion_depth) const;
 
   void set_name(std::string name);
@@ -132,12 +154,16 @@ protected:
   std::string name;
   std::string expression;
 
+  template <size_t>
   friend struct eval::rpn::Evaluator;
+
+  template <size_t>
   friend struct eval::ast::Evaluator;
+
   friend struct parsing::RpnMaker;
 
   tl::expected<parsing::Parsing<type>, Error> parsed_expr;
-  tl::expected<std::vector<std::string>, InvalidInputVar> vars;
+  tl::expected<Vars<args_num>, InvalidInputVar> vars;
 
   // non-owning pointer to the mathworld that contains this object
   const MathWorld<type>* mathworld;

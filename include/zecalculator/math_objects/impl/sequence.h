@@ -5,7 +5,7 @@
 namespace zc {
 
 template <parsing::Type type>
-Sequence<type>::Sequence(const MathWorld<type>* mathworld) : Function<type>(mathworld)
+Sequence<type>::Sequence(const MathWorld<type>* mathworld) : Parent(mathworld)
 {}
 
 template <parsing::Type type>
@@ -14,19 +14,7 @@ void Sequence<type>::set(std::string var_name,
                          std::vector<double> first_vals)
 {
   values = std::move(first_vals);
-  Function<type>::set(std::vector{var_name}, expr);
-}
-
-template <parsing::Type type>
-void Sequence<type>::set_expression(const std::string& expr)
-{
-  Function<type>::set_expression(expr);
-}
-
-template <parsing::Type type>
-void Sequence<type>::set_input_var(std::string var_name)
-{
-  this->set_input_vars(std::vector {var_name});
+  Parent::set(std::array{var_name}, expr);
 }
 
 template <parsing::Type type>
@@ -58,7 +46,7 @@ tl::expected<double, Error> Sequence<type>::evaluate(double index,
     return std::nan("");
   else if (size_t(integer_index - first_val_index) < values.size())
     return values[size_t(integer_index - first_val_index)];
-  else return Function<type>::evaluate(std::vector{double(integer_index)}, current_recursion_depth);
+  else return Parent::evaluate(std::array{double(integer_index)}, current_recursion_depth);
 }
 
 template <parsing::Type type>

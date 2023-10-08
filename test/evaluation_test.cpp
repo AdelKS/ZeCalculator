@@ -121,7 +121,7 @@ int main()
     MathWorld<type> world;
     world.template add<GlobalConstant>("x", 2.0);
 
-    Function<type>& fun = world.template add<Function<type>>("f", Vars{"x"}, "cos(x) + x").value();
+    Function<type, 1>& fun = world.template add<Function<type, 1>>("f", Vars<1>{"x"}, "cos(x) + x").value();
 
     const double res = fun({1.0}).value();
 

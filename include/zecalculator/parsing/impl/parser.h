@@ -22,7 +22,6 @@
 
 #include <zecalculator/error.h>
 #include <zecalculator/math_objects/aliases.h>
-#include <zecalculator/math_objects/impl/expression.h>
 #include <zecalculator/math_objects/impl/function.h>
 #include <zecalculator/math_objects/impl/sequence.h>
 #include <zecalculator/mathworld/impl/mathworld.h>
@@ -286,7 +285,7 @@ struct VariableVisiter
     return std::make_unique<node::ast::Node<world_type>>(
       node::GlobalVariable<world_type>(var_txt_token, global_variable));
   }
-  Ret operator()(MathWorld<world_type>::UnregisteredObject)
+  Ret operator()(UnregisteredObject)
   {
     return tl::unexpected(Error::undefined_variable(var_txt_token));
   }
@@ -323,13 +322,17 @@ struct FunctionVisiter
                                                std::move(subnodes.front()),
                                                std::move(subnodes.back())));
   }
-  Ret operator()(cref<zc::Function<world_type>> f)
+  template <size_t args_num>
+  Ret operator()(cref<zc::Function<world_type, args_num>> f)
   {
-    if (subnodes.size() != f.get().argument_size()) [[unlikely]]
+    if (subnodes.size() != args_num) [[unlikely]]
       return tl::unexpected(Error::mismatched_fun_args(func_txt_token));
 
+    std::array<Tree<world_type>, args_num> subnode_arr;
+    std::ranges::move(subnodes, subnode_arr.begin());
+
     return std::make_unique<node::ast::Node<world_type>>(
-      node::ast::Function<world_type>(func_txt_token, f.get(), std::move(subnodes)));
+      node::ast::Function<world_type, args_num>(func_txt_token, f.get(), std::move(subnode_arr)));
   }
   Ret operator()(cref<zc::Sequence<world_type>> u)
   {
@@ -339,7 +342,7 @@ struct FunctionVisiter
     return std::make_unique<node::ast::Node<world_type>>(
       node::ast::Sequence<world_type>(func_txt_token, u.get(), std::move(subnodes.front())));
   }
-  Ret operator()(MathWorld<world_type>::UnregisteredObject)
+  Ret operator()(UnregisteredObject)
   {
     return tl::unexpected(Error::undefined_function(func_txt_token));
   }
@@ -352,7 +355,7 @@ struct FunctionVisiter
 template <Type type>
 tl::expected<Tree<type>, Error> make_tree(std::span<const parsing::Token> tokens,
                                           const MathWorld<type>& world,
-                                          const std::vector<std::string>& input_vars)
+                                          std::span<const std::string> input_vars)
 {
   using Ret = tl::expected<Tree<type>, Error>;
 
@@ -531,7 +534,8 @@ struct RpnMaker
     return res;
   }
 
-  RPN operator () (const node::ast::Function<Type::RPN>& func)
+  template <size_t args_num>
+  RPN operator () (const node::ast::Function<Type::RPN, args_num>& func)
   {
     RPN res;
     for (const Tree<Type::RPN>& sub_node : func.operands)
@@ -543,7 +547,7 @@ struct RpnMaker
         std::ranges::move(tmp, std::back_inserter(res));
     }
 
-    res.push_back(node::rpn::Function(func, func.f));
+    res.push_back(node::rpn::Function<args_num>(func, func.f));
     return res;
   }
 

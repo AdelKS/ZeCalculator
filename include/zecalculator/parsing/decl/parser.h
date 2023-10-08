@@ -58,7 +58,7 @@ bool is_valid_name(std::string_view name);
 template <Type type>
 tl::expected<Tree<type>, Error> make_tree(std::span<const parsing::Token> tokens,
                                           const MathWorld<type>& math_world,
-                                          const std::vector<std::string>& input_vars = {});
+                                          std::span<const std::string> input_vars = {});
 
 /// @brief transforms a syntax tree to a flat Reverse Polish / postfix notation representation
 RPN make_RPN(const Tree<Type::RPN>& tree);

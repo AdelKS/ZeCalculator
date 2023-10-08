@@ -20,11 +20,12 @@
 
 #pragma once
 
-#include <zecalculator/math_objects/decl/expression.h>
+#include <zecalculator/math_objects/aliases.h>
 #include <zecalculator/math_objects/decl/function.h>
 #include <zecalculator/math_objects/decl/sequence.h>
 #include <zecalculator/math_objects/global_constant.h>
-#include <zecalculator/math_objects/global_variable.h>
+#include <zecalculator/math_objects/builtin_unary_functions.h>
+#include <zecalculator/math_objects/builtin_binary_functions.h>
 #include <zecalculator/parsing/data_structures/decl/node.h>
 #include <zecalculator/parsing/data_structures/token.h>
 
@@ -63,12 +64,13 @@ namespace zc {
 
         using parsing::Type::RPN;
 
+        template <size_t args_num>
         struct Function: Text
         {
-          Function(const Text& txt, const zc::Function<RPN>& f)
+          Function(const Text& txt, const zc::Function<RPN, args_num>& f)
             : Text(txt),  f(f) {}
 
-          const zc::Function<RPN>& f;
+          const zc::Function<RPN, args_num>& f;
         };
 
         struct Sequence: Text
@@ -128,14 +130,16 @@ namespace zc {
           }
         };
 
-        template <parsing::Type world_type>
+        template <parsing::Type world_type, size_t args_num>
         struct Function: Text
         {
-          Function(const Text& txt, const zc::Function<world_type>& f, std::vector<NodePtr<world_type>> operands)
+          using Operands = std::array<NodePtr<world_type>, args_num>;
+
+          Function(const Text& txt, const zc::Function<world_type, args_num>& f, Operands operands)
             : Text(txt), f(f), operands(std::move(operands)) {}
 
-          const zc::Function<world_type>& f;
-          std::vector<NodePtr<world_type>> operands;
+          const zc::Function<world_type, args_num>& f;
+          Operands operands;
         };
 
         template <parsing::Type world_type>

@@ -51,7 +51,9 @@ namespace parsing {
 
     namespace rpn {
 
+      template <size_t>
       struct Function;
+
       struct Sequence;
       struct CppBinaryFunction;
       struct CppUnaryFunction;
@@ -64,7 +66,9 @@ namespace parsing {
                                 CppUnaryFunction,
                                 CppBinaryFunction,
                                 GlobalConstant,
-                                Function,
+                                Function<0>,
+                                Function<1>,
+                                Function<2>,
                                 GlobalVariable,
                                 Sequence>;
 
@@ -72,16 +76,16 @@ namespace parsing {
 
     namespace ast {
 
-      template <parsing::Type world_type>
+      template <parsing::Type, size_t>
       struct Function;
 
-      template <parsing::Type world_type>
+      template <parsing::Type>
       struct Sequence;
 
-      template <parsing::Type world_type>
+      template <parsing::Type>
       struct CppBinaryFunction;
 
-      template <parsing::Type world_type>
+      template <parsing::Type>
       struct CppUnaryFunction;
 
       template <parsing::Type world_type>
@@ -91,11 +95,13 @@ namespace parsing {
                                 CppUnaryFunction<world_type>,
                                 CppBinaryFunction<world_type>,
                                 GlobalConstant,
-                                Function<world_type>,
+                                Function<world_type, 0>,
+                                Function<world_type, 1>,
+                                Function<world_type, 2>,
                                 GlobalVariable<world_type>,
                                 Sequence<world_type>>;
 
-      template <parsing::Type world_type>
+      template <parsing::Type>
       struct NodePtr;
 
     } // namespace ast

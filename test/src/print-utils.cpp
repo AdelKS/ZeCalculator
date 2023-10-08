@@ -28,44 +28,53 @@ void syntax_node_print_helper(std::ostream& os, const node::ast::Node<world_type
 {
   const std::string padding_str(padding, ' ');
 
-  std::visit(overloaded{[&](std::monostate) {
+  std::visit(overloaded{[&](std::monostate)
+                        {
                           os << padding_str << "empty tree " << std::endl;
                         },
-                        [&](const node::ast::Function<world_type> &f) {
-                          os << padding_str << "Function " << tokens::Text(f) << " {"
-                             << std::endl;
+                        [&]<size_t args_num>(const node::ast::Function<world_type, args_num> &f)
+                        {
+                          os << padding_str << "Function<" << args_num << "> " << tokens::Text(f)
+                             << " {" << std::endl;
                           for (const auto &operand : f.operands)
                             syntax_node_print_helper(os, *operand, padding + 2);
                         },
-                        [&](const node::ast::Sequence<world_type> &u) {
+                        [&](const node::ast::Sequence<world_type> &u)
+                        {
                           os << padding_str << "Sequence " << tokens::Text(u) << " {"
                              << std::endl;
                           syntax_node_print_helper(os, *u.operand, padding + 2);
                         },
-                        [&](const node::ast::CppBinaryFunction<world_type> &f) {
+                        [&](const node::ast::CppBinaryFunction<world_type> &f)
+                        {
                           os << padding_str << "CppBinaryFunction " << tokens::Text(f) << " {"
                              << std::endl;
                           syntax_node_print_helper(os, *f.operand1, padding + 2);
                           syntax_node_print_helper(os, *f.operand2, padding + 2);
                         },
-                        [&](const node::ast::CppUnaryFunction<world_type> &f) {
+                        [&](const node::ast::CppUnaryFunction<world_type> &f)
+                        {
                           os << padding_str << "CppBinaryFunction " << tokens::Text(f) << " {"
                              << std::endl;
                           syntax_node_print_helper(os, *f.operand, padding + 2);
                         },
-                        [&](const node::InputVariable &v) {
+                        [&](const node::InputVariable &v)
+                        {
                           os << padding_str << "InputVariable " << tokens::Text(v) << " index: " << v.index
                              << std::endl;
                         },
-                        [&](const node::GlobalConstant &c) {
+                        [&](const node::GlobalConstant &c)
+                        {
                           os << padding_str << "GlobalConstant " << tokens::Text(c) << " value: " << c.constant.value
                              << std::endl;
                         },
-                        [&](const node::GlobalVariable<world_type> &v) {
+                        [&](const node::GlobalVariable<world_type> &v)
+                        {
                           os << padding_str << "GlobalVariable " << tokens::Text(v)
                              << std::endl;
                         },
-                        [&](const node::Number &n) {
+                        [&](const node::Number &n)
+                        {
                           os << padding_str << "Number " << n
                              << std::endl;
                         }},

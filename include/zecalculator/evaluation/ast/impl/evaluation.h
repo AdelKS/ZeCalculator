@@ -27,32 +27,38 @@ namespace zc {
 namespace eval {
 namespace ast {
 
-inline Evaluator::ReturnType Evaluator::operator () (std::monostate)
+template <size_t input_size>
+inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator () (std::monostate)
 {
   return tl::unexpected(Error::empty_expression());
 }
 
-inline Evaluator::ReturnType
-  Evaluator::operator()(const zc::parsing::node::ast::Function<zc::parsing::Type::AST>& node)
+template <size_t input_size>
+template <size_t args_num>
+inline Evaluator<input_size>::ReturnType
+  Evaluator<input_size>::operator()(const zc::parsing::node::ast::Function<zc::parsing::Type::AST, args_num>& node)
 {
   if (node.f.mathworld->max_recursion_depth < current_recursion_depth)
     return tl::unexpected(Error::recursion_depth_overflow());
 
-  std::vector<double> evaluations;
+  std::array<double, args_num> evaluations;
+  size_t i = 0;
   for (const auto& operand : node.operands)
   {
     auto eval = evaluate(operand, input_vars, current_recursion_depth + 1);
     if (eval) [[likely]]
-      evaluations.push_back(*eval);
+      evaluations[i] = *eval;
     else [[unlikely]]
       return eval;
+    i++;
   }
 
   return node.f.evaluate(evaluations, current_recursion_depth + 1);
 }
 
-inline Evaluator::ReturnType
-  Evaluator::operator()(const zc::parsing::node::ast::Sequence<zc::parsing::Type::AST>& node)
+template <size_t input_size>
+inline Evaluator<input_size>::ReturnType
+  Evaluator<input_size>::operator()(const zc::parsing::node::ast::Sequence<zc::parsing::Type::AST>& node)
 {
   if (node.u.mathworld->max_recursion_depth < current_recursion_depth)
     return tl::unexpected(Error::recursion_depth_overflow());
@@ -64,7 +70,8 @@ inline Evaluator::ReturnType
     return eval;
 }
 
-inline Evaluator::ReturnType Evaluator::operator()(
+template <size_t input_size>
+inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator()(
   const zc::parsing::node::ast::CppUnaryFunction<zc::parsing::Type::AST>& node)
 {
   auto operand = evaluate(node.operand, input_vars, current_recursion_depth + 1);
@@ -74,7 +81,8 @@ inline Evaluator::ReturnType Evaluator::operator()(
     return operand;
 }
 
-inline Evaluator::ReturnType Evaluator::operator()(
+template <size_t input_size>
+inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator()(
   const zc::parsing::node::ast::CppBinaryFunction<zc::parsing::Type::AST>& node)
 {
   auto operand1 = evaluate(node.operand1, input_vars, current_recursion_depth + 1);
@@ -85,21 +93,24 @@ inline Evaluator::ReturnType Evaluator::operator()(
     return operand1 ? operand2 : operand1;
 }
 
-inline Evaluator::ReturnType
-  Evaluator::operator()(const zc::parsing::node::GlobalVariable<parsing::Type::AST>& node)
+template <size_t input_size>
+inline Evaluator<input_size>::ReturnType
+  Evaluator<input_size>::operator()(const zc::parsing::node::GlobalVariable<parsing::Type::AST>& node)
 {
   if (node.var.mathworld->max_recursion_depth < current_recursion_depth)
     return tl::unexpected(Error::recursion_depth_overflow());
 
-  return node.var.evaluate(current_recursion_depth + 1);
+  return node.var.evaluate({}, current_recursion_depth + 1);
 }
 
-inline Evaluator::ReturnType Evaluator::operator () (const zc::parsing::node::GlobalConstant& node)
+template <size_t input_size>
+inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator () (const zc::parsing::node::GlobalConstant& node)
 {
   return node.constant.value;
 }
 
-inline Evaluator::ReturnType Evaluator::operator () (const zc::parsing::node::InputVariable& node)
+template <size_t input_size>
+inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator () (const zc::parsing::node::InputVariable& node)
 {
   // node.index should never be bigger than input_vars.size()
   assert(node.index < input_vars.size());
@@ -107,7 +118,8 @@ inline Evaluator::ReturnType Evaluator::operator () (const zc::parsing::node::In
   return input_vars[node.index];
 }
 
-inline Evaluator::ReturnType Evaluator::operator () (const zc::parsing::node::Number& node)
+template <size_t input_size>
+inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator () (const zc::parsing::node::Number& node)
 {
   return node.value;
 }
@@ -119,18 +131,21 @@ inline Evaluator::ReturnType Evaluator::operator () (const zc::parsing::node::Nu
 /// @param tree: tree to evaluate
 /// @param input_vars: variables that are given as input to the tree, will shadow any variable in the math world
 /// @param world: math world (contains functions, global constants... etc)
+template <size_t input_size>
 inline tl::expected<double, Error> evaluate(const parsing::Tree<parsing::Type::AST>& tree,
-                                            std::span<const double> input_vars,
+                                            std::span<const double, input_size> input_vars,
                                             size_t current_recursion_depth)
 {
-  return std::visit(eval::ast::Evaluator{.input_vars = input_vars,
-                                         .current_recursion_depth = current_recursion_depth},
+  return std::visit(eval::ast::Evaluator<input_size>{.input_vars = input_vars,
+                                                     .current_recursion_depth
+                                                     = current_recursion_depth},
                     *tree);
 }
 
 /// @brief evaluates a syntax tree using a given math world
+template <size_t input_size>
 inline tl::expected<double, Error> evaluate(const parsing::Tree<parsing::Type::AST>& tree,
-                                            std::span<const double> input_vars)
+                                            std::span<const double, input_size> input_vars)
 {
   return evaluate(tree, input_vars, 0);
 }

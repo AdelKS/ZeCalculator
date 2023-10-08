@@ -37,9 +37,9 @@ int main()
 
     MathWorld<type> world;
     GlobalConstant& r = world.template add<GlobalConstant>("r").value();
-    world.template add<Function<type>>("g", Vars{"x"}, "sin(3 * math::pi * x) + r");
+    world.template add<Function<type, 1>>("g", Vars<1>{"x"}, "sin(3 * math::pi * x) + r");
     world.template add<GlobalVariable<type>>("k", "3*g(3)");
-    Function<type>& f = world.template add<Function<type>>("f", Vars{"x", "y"}, "cos(math::pi * x) * y + k*g(x) + r").value();
+    Function<type, 2>& f = world.template add<Function<type, 2>>("f", Vars<2>{"x", "y"}, "cos(math::pi * x) * y + k*g(x) + r").value();
 
     double cpp_r = 3;
     r.value = cpp_r;

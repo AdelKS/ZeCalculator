@@ -1,7 +1,6 @@
 if not meson.is_subproject()
   install_headers(
     files(
-      'expression.h',
       'function.h',
       'sequence.h',
     ),

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <zecalculator/parsing/shared.h>
 
 /****************************************************************************
@@ -24,17 +25,23 @@
 
 namespace zc {
 
-template <parsing::Type type>
+template <parsing::Type, size_t>
 class Function;
 
-template <parsing::Type type>
+template <parsing::Type>
 class Sequence;
 
+/// @brief a class that represents a general expression
+/// @note  an expression is a function that does not have any input
 template <parsing::Type type>
-class Expression;
+using Expression = Function<type, 0>;
 
+/// @brief there's not mathematical difference between a global variable
+///        and a simple mathematical expression. It just makes more sense
+///        when we add one to a math world: a global variable is an expression
+///        that has a name
 template <parsing::Type type>
-using GlobalVariable = Expression<type>;
+using GlobalVariable = Function<type, 0>;
 
 struct GlobalConstant;
 

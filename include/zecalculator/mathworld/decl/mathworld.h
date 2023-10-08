@@ -66,12 +66,13 @@ struct NameError
   std::string name;
 };
 
+
+class UnregisteredObject {};
+
 template <parsing::Type type>
 class MathWorld
 {
 public:
-
-  class UnregisteredObject {};
 
   /// @brief type used when looking up a match object with a name at runtime
   using DynMathObject = to_variant_t<tuple_type_cat_t<std::tuple<UnregisteredObject>, tuple_transform_t<ref, MathObjects<type>>>>;

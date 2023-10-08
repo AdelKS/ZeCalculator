@@ -29,27 +29,30 @@ namespace zc {
 namespace eval {
 namespace rpn {
 
-inline void Evaluator::operator () (std::monostate)
+template <size_t input_size>
+inline void Evaluator<input_size>::operator () (std::monostate)
 {
   expected_eval_stack = tl::unexpected(Error::empty_expression());
 }
 
-inline void Evaluator::operator () (const zc::parsing::node::Number& val)
+template <size_t input_size>
+inline void Evaluator<input_size>::operator () (const zc::parsing::node::Number& val)
 {
   expected_eval_stack->push_back(val.value);
 }
 
-inline void Evaluator::operator()(const zc::parsing::node::rpn::Function& node)
+template <size_t input_size>
+template <size_t args_num>
+inline void Evaluator<input_size>::operator()(const zc::parsing::node::rpn::Function<args_num>& node)
 {
-  const size_t args_num = node.f.argument_size().value();
   if (max_recursion_depth < current_recursion_depth) [[unlikely]]
     expected_eval_stack = tl::unexpected(Error::recursion_depth_overflow());
   if (not bool(node.f)) [[unlikely]]
     expected_eval_stack = tl::unexpected(Error::calling_invalid_function(node));
   else
   {
-    const auto evaluations = std::span<const double>(expected_eval_stack->end() - args_num,
-                                                     expected_eval_stack->end());
+    const auto evaluations = std::span<const double, args_num>(expected_eval_stack->end() - args_num,
+                                                               args_num);
 
     auto expected_res = node.f.evaluate(evaluations, current_recursion_depth + 1);
 
@@ -66,7 +69,8 @@ inline void Evaluator::operator()(const zc::parsing::node::rpn::Function& node)
   }
 }
 
-inline void Evaluator::operator()(const zc::parsing::node::rpn::CppUnaryFunction& node)
+template <size_t input_size>
+inline void Evaluator<input_size>::operator()(const zc::parsing::node::rpn::CppUnaryFunction& node)
 {
   if (expected_eval_stack->empty())
     expected_eval_stack = tl::unexpected(Error::mismatched_fun_args(node));
@@ -79,7 +83,8 @@ inline void Evaluator::operator()(const zc::parsing::node::rpn::CppUnaryFunction
   }
 }
 
-inline void Evaluator::operator()(const zc::parsing::node::rpn::CppBinaryFunction& node)
+template <size_t input_size>
+inline void Evaluator<input_size>::operator()(const zc::parsing::node::rpn::CppBinaryFunction& node)
 {
   if (expected_eval_stack->size() < 2) [[unlikely]]
     expected_eval_stack = tl::unexpected(Error::mismatched_fun_args(node));
@@ -97,7 +102,8 @@ inline void Evaluator::operator()(const zc::parsing::node::rpn::CppBinaryFunctio
   }
 }
 
-inline void Evaluator::operator()(const zc::parsing::node::rpn::Sequence& node)
+template <size_t input_size>
+inline void Evaluator<input_size>::operator()(const zc::parsing::node::rpn::Sequence& node)
 {
   //              std::cout << "Evaluating zc function: " << node.name << std::endl;
   if (not bool(node.u))
@@ -120,7 +126,8 @@ inline void Evaluator::operator()(const zc::parsing::node::rpn::Sequence& node)
   }
 }
 
-inline void Evaluator::operator () (const zc::parsing::node::InputVariable& in_var)
+template <size_t input_size>
+inline void Evaluator<input_size>::operator () (const zc::parsing::node::InputVariable& in_var)
 {
   // node.index should never be bigger than input_vars.size()
   assert(in_var.index < input_vars.size());
@@ -128,14 +135,16 @@ inline void Evaluator::operator () (const zc::parsing::node::InputVariable& in_v
   expected_eval_stack->push_back(input_vars[in_var.index]);
 }
 
-inline void Evaluator::operator()(const zc::parsing::node::GlobalConstant& node)
+template <size_t input_size>
+inline void Evaluator<input_size>::operator()(const zc::parsing::node::GlobalConstant& node)
 {
   expected_eval_stack->push_back(node.constant.value);
 }
 
-inline void Evaluator::operator()(const zc::parsing::node::GlobalVariable<parsing::Type::RPN>& node)
+template <size_t input_size>
+inline void Evaluator<input_size>::operator()(const zc::parsing::node::GlobalVariable<parsing::Type::RPN>& node)
 {
-  auto expected_res = node.var.evaluate(current_recursion_depth + 1);
+  auto expected_res = node.var.evaluate({}, current_recursion_depth + 1);
   if (expected_res)
     expected_eval_stack->push_back(*expected_res);
   else expected_eval_stack = tl::unexpected(expected_res.error());
@@ -148,12 +157,14 @@ inline void Evaluator::operator()(const zc::parsing::node::GlobalVariable<parsin
 /// @param expr: expr to evaluate
 /// @param input_vars: variables that are given as input to the expr, will shadow any variable in the math world
 /// @param world: math world (contains functions, global constants... etc)
+template <size_t input_size>
 inline tl::expected<double, Error> evaluate(const parsing::RPN& expr,
-                                            std::span<const double> input_vars,
+                                            std::span<const double, input_size> input_vars,
                                             size_t current_recursion_depth)
 {
-  eval::rpn::Evaluator stateful_evaluator{.input_vars = input_vars,
-                                          .current_recursion_depth = current_recursion_depth};
+  eval::rpn::Evaluator<input_size> stateful_evaluator{.input_vars = input_vars,
+                                                      .current_recursion_depth
+                                                      = current_recursion_depth};
 
   for (const parsing::node::rpn::Node& tok: expr)
   {

@@ -71,7 +71,7 @@ int main()
 
     expect(bool(parsing)) << parsing;
 
-    auto expect_node = make_tree(parsing.value(), world, Vars{"x"});
+    auto expect_node = make_tree(parsing.value(), world, Vars<1>{"x"});
 
     expect(bool(expect_node));
 

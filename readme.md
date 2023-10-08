@@ -35,15 +35,13 @@ int main()
   // - Each added object exists only within the math world that creates it
   // - Adding a math object returns a tl::expected that can have an error instead of a
   //   ref to the object (e.g.: invalid format for the name, or name is already taken)
-  // - if extra arguments are given other than the object's name, they are forwarded to
-  //   the object after its construction through the set() member method.
 
   // Add a global constant called "my_constant" with an initial value of 3.0
   // Note: the .value() call from tl::expected<> throws if it actually holds an error
-  GlobalConstant& cst = world.add<GlobalConstant>("my_constant", 3.0).value();
+  GlobalConstant& my_constant = world.add<GlobalConstant>("my_constant", 3.0).value();
 
-  // Add a function named "f"
-  ast::Function& f = world.add<ast::Function>("f", Vars{"x"}, "x + my_constant + cos(math::pi)").value();
+  // Add a one parameter function named "f"
+  ast::Function<1>& f = world.add<ast::Function<1>>("f", Vars<1>{"x"}, "x + my_constant + cos(math::pi)").value();
 
   // We know the expression is correct
   assert(std::holds_alternative<Ok>(f.parsing_status()));
@@ -60,21 +58,21 @@ int main()
   assert(eval.value() == 3);
 
   // overwrite the value of the global constant
-  cst = 5.0;
+  my_constant = 5.0;
 
   // evaluate function again and get the new value
   assert(f({1}).value() == 5);
 
-  // define function 'g'
-  world.add<ast::Function>("g", Vars{"z"}, "2*z + my_constant").value();
+  // define one parameter function 'g'
+  world.add<ast::Function<1>>("g", Vars<1>{"z"}, "2*z + my_constant").value();
 
   // change 'f':
   // - different number of input variables and different names
   // - expression calls a function g
-  f.set({"y", "z"}, "y + z + my_constant + g(y)");
+  f.set(Vars<1>{"y"}, "y + my_constant + g(y)");
 
   // evaluate function again and get the new value
-  assert(f({3, 4}).value() == 23);
+  assert(f({3}).value() == 19);
 
   return 0;
 }
@@ -121,8 +119,8 @@ The current results are (AMD Ryzen 5950X, `-march=native -O3` compile flags)
     constexpr std::string_view data_type_str_v = std::is_same_v<StructType, AST_TEST> ? "AST" : "RPN";
 
     MathWorld<type> world;
-    GlobalConstant& t = world.add<GlobalConstant>("t", 1).value();
-    Function<type>& f = world.add<Function<type>>("f", Vars{"x"}, "3*cos(t*x) + 2*sin(x/t) + 4").value();
+    GlobalConstant& t = world.template add<GlobalConstant>("t", 1).value();
+    Function<type, 1>& f = world.template add<Function<type, 1>>("f", Vars<1>{"x"}, "3*cos(t*x) + 2*sin(x/t) + 4").value();
 
     double x = 0;
     auto begin = high_resolution_clock::now();

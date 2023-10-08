@@ -27,32 +27,33 @@
 
 namespace zc {
 
-template <parsing::Type type>
-Function<type>::Function(const MathWorld<type>* mathworld)
+template <parsing::Type type, size_t args_num>
+Function<type, args_num>::Function(const MathWorld<type>* mathworld)
   requires(type == parsing::Type::AST)
   : mathworld(mathworld)
 {}
 
-template <parsing::Type type>
-Function<type>::Function(const MathWorld<type>* mathworld)
+template <parsing::Type type, size_t args_num>
+Function<type, args_num>::Function(const MathWorld<type>* mathworld)
   requires(type == parsing::Type::RPN)
   : parsed_expr({std::monostate()}), mathworld(mathworld)
 {}
 
-template <parsing::Type type>
-void Function<type>::set_name(std::string name)
+template <parsing::Type type, size_t args_num>
+void Function<type, args_num>::set_name(std::string name)
 {
   this->name = std::move(name);
 }
 
-template <parsing::Type type>
-const std::string& Function<type>::get_name() const
+template <parsing::Type type, size_t args_num>
+const std::string& Function<type, args_num>::get_name() const
 {
   return name;
 }
 
-template <parsing::Type type>
-void Function<type>::set_input_vars(std::vector<std::string> input_vars)
+template <parsing::Type type, size_t args_num>
+void Function<type, args_num>::set_input_vars(Vars<args_num> input_vars)
+  requires (args_num > 0 )
 {
   auto it = std::ranges::find_if_not(input_vars, parsing::is_valid_name);
   if (it != input_vars.end())
@@ -60,8 +61,17 @@ void Function<type>::set_input_vars(std::vector<std::string> input_vars)
   else vars = std::move(input_vars);
 }
 
-template <parsing::Type type>
-void Function<type>::set_expression(std::string expr)
+template <parsing::Type type, size_t args_num>
+void Function<type, args_num>::set_input_var(std::string input_var)
+  requires (args_num == 1)
+{
+  if (parsing::is_valid_name(input_var)) [[unlikely]]
+    vars = tl::unexpected(InvalidInputVar{std::move(input_var)});
+  else vars = std::array{std::move(input_var)};
+}
+
+template <parsing::Type type, size_t args_num>
+void Function<type, args_num>::set_expression(std::string expr)
 {
   // do nothing if it's the same expression
   if (expression == expr)
@@ -92,31 +102,31 @@ void Function<type>::set_expression(std::string expr)
   }
 }
 
-template <parsing::Type type>
-void Function<type>::set(std::vector<std::string> input_vars, std::string expr)
+template <parsing::Type type, size_t args_num>
+void Function<type, args_num>::set(Vars<args_num> input_vars, std::string expr)
+  requires (args_num >= 1)
 {
   set_input_vars(std::move(input_vars));
   set_expression(std::move(expr));
 }
 
-template <parsing::Type type>
-std::optional<size_t> Function<type>::argument_size() const
+template <parsing::Type type, size_t args_num>
+void Function<type, args_num>::set(std::string expr)
+  requires (args_num == 0)
 {
-  if (vars)
-    return vars->size();
-  else return {};
+  set_expression(std::move(expr));
 }
 
-template <parsing::Type type>
-Function<type>::operator bool () const
+template <parsing::Type type, size_t args_num>
+Function<type, args_num>::operator bool () const
 {
   if constexpr (type == parsing::Type::AST)
     return bool(parsed_expr) and (not std::holds_alternative<std::monostate>(**parsed_expr)) and bool(vars);
   else return bool(parsed_expr) and (not std::holds_alternative<std::monostate>(parsed_expr.value().front())) and bool(vars);
 }
 
-template <parsing::Type type>
-std::variant<Ok, Empty, Error> Function<type>::parsing_status() const
+template <parsing::Type type, size_t args_num>
+std::variant<Ok, Empty, Error> Function<type, args_num>::parsing_status() const
 {
   if constexpr (type == parsing::Type::AST)
   {
@@ -137,8 +147,8 @@ std::variant<Ok, Empty, Error> Function<type>::parsing_status() const
 
 }
 
-template <parsing::Type type>
-const tl::expected<parsing::Parsing<type>, Error>& Function<type>::get_parsing() const
+template <parsing::Type type, size_t args_num>
+const tl::expected<parsing::Parsing<type>, Error>& Function<type, args_num>::get_parsing() const
 {
   return parsed_expr;
 }
@@ -180,7 +190,10 @@ struct DepVisitor
       std::visit(*this, *alt.operand1);
       std::visit(*this, *alt.operand2);
     }
-    else if constexpr (std::is_same_v<T, parsing::node::ast::Function<type>>)
+    else if constexpr (is_any_of<T,
+                                 parsing::node::ast::Function<type, 0>,
+                                 parsing::node::ast::Function<type, 1>,
+                                 parsing::node::ast::Function<type, 2>>)
     {
       insert(alt.f);
       std::ranges::for_each(alt.operands, [this](auto&& v){ std::visit(*this, *v); });
@@ -201,7 +214,10 @@ struct DepVisitor
     {
       insert(alt.f);
     }
-    else if constexpr (std::is_same_v<T, parsing::node::rpn::Function>)
+    else if constexpr (is_any_of<T,
+                                 parsing::node::rpn::Function<0>,
+                                 parsing::node::rpn::Function<1>,
+                                 parsing::node::rpn::Function<2>>)
     {
       insert(alt.f);
     }
@@ -225,8 +241,8 @@ struct DepVisitor
   }
 };
 
-template <parsing::Type type>
-auto Function<type>::direct_dependencies() const
+template <parsing::Type type, size_t args_num>
+auto Function<type, args_num>::direct_dependencies() const
 {
   DepVisitor<type> visitor;
 
@@ -244,16 +260,14 @@ auto Function<type>::direct_dependencies() const
   return visitor.deps;
 }
 
-template <parsing::Type type>
-tl::expected<double, Error> Function<type>::evaluate(std::span<const double> args,
-                                                     size_t current_recursion_depth) const
+template <parsing::Type type, size_t args_num>
+tl::expected<double, Error> Function<type, args_num>::evaluate(
+  std::span<const double, args_num> args, size_t current_recursion_depth) const
 {
   if (mathworld->max_recursion_depth < current_recursion_depth) [[unlikely]]
     return tl::unexpected(Error::recursion_depth_overflow());
   else if (not bool(*this)) [[unlikely]]
     return tl::unexpected(Error::invalid_function());
-  else if (args.size() != vars->size()) [[unlikely]]
-    return tl::unexpected(Error::mismatched_fun_args());
 
   if constexpr (type == parsing::Type::AST)
   {
@@ -269,30 +283,48 @@ tl::expected<double, Error> Function<type>::evaluate(std::span<const double> arg
   return zc::evaluate(*parsed_expr, args, current_recursion_depth);
 }
 
-template <parsing::Type type>
-tl::expected<double, Error> Function<type>::evaluate(const std::vector<double>& args) const
+template <parsing::Type type, size_t args_num>
+tl::expected<double, Error> Function<type, args_num>::evaluate(const std::array<double, args_num>& args) const
+  requires (args_num >= 1)
 {
   // this function is user called, so the recursion depth is zero
   return evaluate(args, 0);
 }
 
-template <parsing::Type type>
-tl::expected<double, Error> Function<type>::evaluate(std::span<const double> args) const
+template <parsing::Type type, size_t args_num>
+tl::expected<double, Error> Function<type, args_num>::evaluate(std::span<const double, args_num> args) const
+  requires (args_num >= 1)
 {
   // this function is user called, so the recursion depth is zero
   return evaluate(args, 0);
 }
 
-template <parsing::Type type>
-tl::expected<double, Error> Function<type>::operator()(const std::vector<double>& args) const
+template <parsing::Type type, size_t args_num>
+tl::expected<double, Error> Function<type, args_num>::operator()(const std::array<double, args_num>& args) const
+  requires (args_num >= 1)
 {
   return evaluate(args, 0);
 }
 
-template <parsing::Type type>
-tl::expected<double, Error> Function<type>::operator()(std::span<const double> args) const
+template <parsing::Type type, size_t args_num>
+tl::expected<double, Error> Function<type, args_num>::operator()(std::span<const double, args_num> args) const
+  requires (args_num >= 1)
 {
   return evaluate(args, 0);
+}
+
+template <parsing::Type type, size_t args_num>
+tl::expected<double, Error> Function<type, args_num>::evaluate() const
+  requires (args_num == 0)
+{
+  return evaluate({}, 0);
+}
+
+template <parsing::Type type, size_t args_num>
+tl::expected<double, Error> Function<type, args_num>::operator()() const
+  requires (args_num == 0)
+{
+  return evaluate({}, 0);
 }
 
 } // namespace zc
