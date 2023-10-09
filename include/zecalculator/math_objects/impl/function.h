@@ -179,21 +179,13 @@ struct DepVisitor
   {
     // AST
 
-    if constexpr (std::is_same_v<T, parsing::node::ast::CppUnaryFunction<type>>)
-    {
-      insert(alt.f);
-      std::visit(*this, *alt.operand);
-    }
-    else if constexpr (std::is_same_v<T, parsing::node::ast::CppBinaryFunction<type>>)
-    {
-      insert(alt.f);
-      std::visit(*this, *alt.operand1);
-      std::visit(*this, *alt.operand2);
-    }
-    else if constexpr (is_any_of<T,
-                                 parsing::node::ast::Function<type, 0>,
-                                 parsing::node::ast::Function<type, 1>,
-                                 parsing::node::ast::Function<type, 2>>)
+    if constexpr (is_any_of<T,
+                            parsing::node::ast::CppFunction<type, 0>,
+                            parsing::node::ast::CppFunction<type, 1>,
+                            parsing::node::ast::CppFunction<type, 2>,
+                            parsing::node::ast::Function<type, 0>,
+                            parsing::node::ast::Function<type, 1>,
+                            parsing::node::ast::Function<type, 2>>)
     {
       insert(alt.f);
       std::ranges::for_each(alt.operands, [this](auto&& v){ std::visit(*this, *v); });
@@ -206,18 +198,12 @@ struct DepVisitor
 
     // RPN
 
-    else if constexpr (std::is_same_v<T, parsing::node::rpn::CppUnaryFunction>)
-    {
-      insert(alt.f);
-    }
-    else if constexpr (std::is_same_v<T, parsing::node::rpn::CppBinaryFunction>)
-    {
-      insert(alt.f);
-    }
     else if constexpr (is_any_of<T,
                                  parsing::node::rpn::Function<0>,
                                  parsing::node::rpn::Function<1>,
-                                 parsing::node::rpn::Function<2>>)
+                                 parsing::node::rpn::Function<2>,
+                                 parsing::node::rpn::CppFunction<1>,
+                                 parsing::node::rpn::CppFunction<2>>)
     {
       insert(alt.f);
     }

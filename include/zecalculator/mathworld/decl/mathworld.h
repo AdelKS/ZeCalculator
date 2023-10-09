@@ -24,8 +24,8 @@
 #include <zecalculator/utils/refs.h>
 #include <zecalculator/utils/slotted_deque.h>
 #include <zecalculator/utils/utils.h>
-#include <zecalculator/math_objects/builtin_binary_functions.h>
-#include <zecalculator/math_objects/builtin_unary_functions.h>
+#include <zecalculator/math_objects/cpp_binary_functions.h>
+#include <zecalculator/math_objects/cpp_unary_functions.h>
 #include <zecalculator/math_objects/global_constant.h>
 #include <zecalculator/utils/tuple.h>
 #include <zecalculator/math_objects/object_list.h>

@@ -45,18 +45,12 @@ void syntax_node_print_helper(std::ostream& os, const node::ast::Node<world_type
                              << std::endl;
                           syntax_node_print_helper(os, *u.operand, padding + 2);
                         },
-                        [&](const node::ast::CppBinaryFunction<world_type> &f)
+                        [&]<size_t args_num>(const node::ast::CppFunction<world_type, args_num> &f)
                         {
-                          os << padding_str << "CppBinaryFunction " << tokens::Text(f) << " {"
+                          os << padding_str << "CppFunction<" << args_num << "> " << tokens::Text(f) << " {"
                              << std::endl;
-                          syntax_node_print_helper(os, *f.operand1, padding + 2);
-                          syntax_node_print_helper(os, *f.operand2, padding + 2);
-                        },
-                        [&](const node::ast::CppUnaryFunction<world_type> &f)
-                        {
-                          os << padding_str << "CppBinaryFunction " << tokens::Text(f) << " {"
-                             << std::endl;
-                          syntax_node_print_helper(os, *f.operand, padding + 2);
+                          for (auto&& operand: f.operands)
+                            syntax_node_print_helper(os, *operand, padding + 2);
                         },
                         [&](const node::InputVariable &v)
                         {

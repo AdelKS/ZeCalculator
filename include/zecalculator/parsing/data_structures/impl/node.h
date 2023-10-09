@@ -24,8 +24,7 @@
 #include <zecalculator/math_objects/decl/function.h>
 #include <zecalculator/math_objects/decl/sequence.h>
 #include <zecalculator/math_objects/global_constant.h>
-#include <zecalculator/math_objects/builtin_unary_functions.h>
-#include <zecalculator/math_objects/builtin_binary_functions.h>
+#include <zecalculator/math_objects/cpp_function.h>
 #include <zecalculator/parsing/data_structures/decl/node.h>
 #include <zecalculator/parsing/data_structures/token.h>
 
@@ -81,20 +80,13 @@ namespace zc {
           const zc::Sequence<RPN>& u;
         };
 
-        struct CppBinaryFunction: Text
+        template <size_t args_num>
+        struct CppFunction: Text
         {
-          CppBinaryFunction(const Text& txt, const zc::CppBinaryFunction& f)
+          CppFunction(const Text& txt, const zc::CppFunction<args_num>& f)
             : Text(txt),  f(f) {}
 
-          const zc::CppBinaryFunction& f;
-        };
-
-        struct CppUnaryFunction: Text
-        {
-          CppUnaryFunction(const Text& txt, const zc::CppUnaryFunction& f)
-            : Text(txt),  f(f) {}
-
-          const zc::CppUnaryFunction& f;
+          const zc::CppFunction<args_num>& f;
         };
 
       } // namespace rpn
@@ -152,30 +144,16 @@ namespace zc {
           NodePtr<world_type> operand;
         };
 
-        template <parsing::Type world_type>
-        struct CppBinaryFunction: rpn::CppBinaryFunction
+        template <parsing::Type world_type, size_t args_num>
+        struct CppFunction: rpn::CppFunction<args_num>
         {
-          CppBinaryFunction(const Text& txt,
-                            const zc::CppBinaryFunction& f,
-                            NodePtr<world_type> operand1,
-                            NodePtr<world_type> operand2)
-            : rpn::CppBinaryFunction(txt, f), operand1(std::move(operand1)),
-              operand2(std::move(operand2))
+          CppFunction(const Text& txt,
+                            const zc::CppFunction<args_num>& f,
+                            std::array<NodePtr<world_type>, args_num> operands)
+            : rpn::CppFunction<args_num>(txt, f), operands(std::move(operands))
           {}
 
-          NodePtr<world_type> operand1, operand2;
-        };
-
-        template <parsing::Type world_type>
-        struct CppUnaryFunction: rpn::CppUnaryFunction
-        {
-          CppUnaryFunction(const Text& txt,
-                           const zc::CppUnaryFunction& f,
-                           NodePtr<world_type> operand)
-            : rpn::CppUnaryFunction(txt, f), operand(std::move(operand))
-          {}
-
-          NodePtr<world_type> operand;
+          std::array<NodePtr<world_type>, args_num> operands;
         };
 
       } // namespace rpn

@@ -55,16 +55,17 @@ namespace parsing {
       struct Function;
 
       struct Sequence;
-      struct CppBinaryFunction;
-      struct CppUnaryFunction;
+
+      template <size_t>
+      struct CppFunction;
 
       using GlobalVariable = node::GlobalVariable<parsing::Type::RPN>;
 
       using Node = std::variant<std::monostate,
                                 InputVariable,
                                 Number,
-                                CppUnaryFunction,
-                                CppBinaryFunction,
+                                CppFunction<1>,
+                                CppFunction<2>,
                                 GlobalConstant,
                                 Function<0>,
                                 Function<1>,
@@ -82,18 +83,15 @@ namespace parsing {
       template <parsing::Type>
       struct Sequence;
 
-      template <parsing::Type>
-      struct CppBinaryFunction;
-
-      template <parsing::Type>
-      struct CppUnaryFunction;
+      template <parsing::Type, size_t args_num>
+      struct CppFunction;
 
       template <parsing::Type world_type>
       using Node = std::variant<std::monostate,
                                 InputVariable,
                                 Number,
-                                CppUnaryFunction<world_type>,
-                                CppBinaryFunction<world_type>,
+                                CppFunction<world_type, 1>,
+                                CppFunction<world_type, 2>,
                                 GlobalConstant,
                                 Function<world_type, 0>,
                                 Function<world_type, 1>,

@@ -49,9 +49,9 @@ int main()
     RPN expected_rpn;
     expected_rpn.push_back(node::Number(2.0, tokens::Text{"2", 0, 1}));
     expected_rpn.push_back(node::Number(3.0, tokens::Text{"3", 4, 1}));
-    expected_rpn.push_back(node::rpn::CppBinaryFunction(tokens::Operator('-', 2), binary_func_from_op('-')));
+    expected_rpn.push_back(node::rpn::CppFunction<2>(tokens::Operator('-', 2), binary_func_from_op('-')));
     expected_rpn.push_back(tokens::Number(2.0, tokens::Text{"2", 8, 1}));
-    expected_rpn.push_back(node::rpn::CppBinaryFunction(tokens::Operator('+', 6), binary_func_from_op('+')));
+    expected_rpn.push_back(node::rpn::CppFunction<2>(tokens::Operator('+', 6), binary_func_from_op('+')));
 
     expect(bool(rpn_expr == expected_rpn)) << "Expected: " << expected_rpn << "Answer: " << rpn_expr;
   };

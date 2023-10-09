@@ -20,41 +20,14 @@
 **
 ****************************************************************************/
 
-#include <string_view>
-#include <array>
 #include <cmath>
-#include <string>
 
+#include <zecalculator/math_objects/cpp_function.h>
 #include <zecalculator/parsing/data_structures/token.h>
 
 namespace zc {
 
-using CppBinaryFunctionPtr = double (*) (double, double);
-
-class CppBinaryFunction
-{
-public:
-  constexpr CppBinaryFunction() = default;
-
-  constexpr CppBinaryFunction(CppBinaryFunctionPtr f_ptr) : f_ptr(f_ptr) {};
-
-  void set_name(std::string name) { this->name = std::move(name); }
-
-  const std::string& get_name() const { return name; }
-
-  constexpr void set(CppBinaryFunction f) {f_ptr = f.f_ptr; }
-
-  double operator()(double a, double b) const
-  {
-    return f_ptr(a ,b);
-  }
-
-  bool operator == (const CppBinaryFunction&) const = default;
-
-protected:
-  CppBinaryFunctionPtr f_ptr = nullptr;
-  std::string name;
-};
+using CppBinaryFunction = CppFunction<2>;
 
 inline double plus(const double a, const double b)
 {
@@ -75,7 +48,6 @@ inline double divide(const double a, const double b)
 {
   return a / b;
 }
-
 
 // we save the names along with the function pointers for convenience
 // we could save only the function pointers, and the names only in the inventory

@@ -46,14 +46,14 @@ int main()
 
     expect(bool(expect_node));
 
-    Tree<type> expected_node = node::ast::CppBinaryFunction<type>(
+    Tree<type> expected_node = node::ast::CppFunction<type, 2>(
       tokens::Operator('+', 1),
       binary_func_from_op('+'),
-      node::Number(2.0, tokens::Text{"2", 0, 1}),
-      node::ast::CppBinaryFunction<type>(tokens::Operator('*', 3),
-                                         binary_func_from_op('*'),
-                                         node::Number(2.0, tokens::Text{"2", 2, 1}),
-                                         node::Number(2.0, tokens::Text{"2", 4, 1})));
+      {node::Number(2.0, tokens::Text{"2", 0, 1}),
+       node::ast::CppFunction<type, 2>(tokens::Operator('*', 3),
+                                       binary_func_from_op('*'),
+                                       {node::Number(2.0, tokens::Text{"2", 2, 1}),
+                                        node::Number(2.0, tokens::Text{"2", 4, 1})})});
 
     expect(*expect_node == expected_node);
 
@@ -75,25 +75,20 @@ int main()
 
     expect(bool(expect_node));
 
-    Tree<type> expected_node =
-      node::ast::CppBinaryFunction<type>(
-        tokens::Operator('+', 15),
-        binary_func_from_op('+'),
-        node::ast::CppUnaryFunction<type>(
-          tokens::Text("cos", 1, 3),
-          unary_func_from_name("cos"),
-          node::ast::CppBinaryFunction<type>(
-            tokens::Operator('+', 11),
-            binary_func_from_op('+'),
-            node::ast::CppUnaryFunction<type>(
-              tokens::Text("sin", 5, 3),
-              unary_func_from_name("sin"),
-              node::InputVariable(
-                tokens::Text("x", 9, 1),
-                0)),
-            node::Number(1.0, tokens::Text("1", 12, 1)))),
-        node::Number(1.0, tokens::Text("1", 16, 1)));
-
+    Tree<type> expected_node = node::ast::CppFunction<type, 2>(
+      tokens::Operator('+', 15),
+      binary_func_from_op('+'),
+      {node::ast::CppFunction<type, 1>(
+         tokens::Text("cos", 1, 3),
+         unary_func_from_name("cos"),
+         {node::ast::CppFunction<type, 2>(
+           tokens::Operator('+', 11),
+           binary_func_from_op('+'),
+           {node::ast::CppFunction<type, 1>(tokens::Text("sin", 5, 3),
+                                            unary_func_from_name("sin"),
+                                            {node::InputVariable(tokens::Text("x", 9, 1), 0)}),
+            node::Number(1.0, tokens::Text("1", 12, 1))})}),
+       node::Number(1.0, tokens::Text("1", 16, 1))});
 
     if (*expect_node != expected_node)
       std::cout << *expect_node;

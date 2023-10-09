@@ -71,26 +71,25 @@ inline Evaluator<input_size>::ReturnType
 }
 
 template <size_t input_size>
+template <size_t args_num>
 inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator()(
-  const zc::parsing::node::ast::CppUnaryFunction<zc::parsing::Type::AST>& node)
+  const zc::parsing::node::ast::CppFunction<zc::parsing::Type::AST, args_num>& node)
 {
-  auto operand = evaluate(node.operand, input_vars, current_recursion_depth + 1);
-  if (operand) [[likely]]
-    return node.f(*operand);
-  else [[unlikely]]
-    return operand;
-}
+  std::array<double, args_num> evals;
+  for (size_t i = 0 ; i != args_num ; i++)
+  {
+    auto res = evaluate(node.operands[i], input_vars, current_recursion_depth + 1);
+    if (not res) [[unlikely]]
+      return res;
+    else evals[i] = *res;
+  }
 
-template <size_t input_size>
-inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator()(
-  const zc::parsing::node::ast::CppBinaryFunction<zc::parsing::Type::AST>& node)
-{
-  auto operand1 = evaluate(node.operand1, input_vars, current_recursion_depth + 1);
-  auto operand2 = evaluate(node.operand2, input_vars, current_recursion_depth + 1);
-  if (operand1 and operand2) [[likely]]
-    return node.f(*operand1, *operand2);
-  else [[unlikely]]
-    return operand1 ? operand2 : operand1;
+  auto unpack_compute = [&]<size_t... i>(std::integer_sequence<size_t, i...>)
+  {
+    return node.f(evals[i]...);
+  };
+  return unpack_compute(std::make_index_sequence<args_num>());
+
 }
 
 template <size_t input_size>

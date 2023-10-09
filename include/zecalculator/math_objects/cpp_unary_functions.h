@@ -21,36 +21,12 @@
 ****************************************************************************/
 
 #include <string_view>
-#include <array>
-#include <cmath>
-#include <string>
+
+#include <zecalculator/math_objects/cpp_function.h>
 
 namespace zc {
 
-using CppUnaryFunctionPtr = double (*) (double);
-
-class CppUnaryFunction
-{
-public:
-  constexpr CppUnaryFunction() = default;
-
-  constexpr CppUnaryFunction(CppUnaryFunctionPtr f_ptr) : f_ptr(f_ptr) {};
-
-  constexpr void set(CppUnaryFunction f) {f_ptr = f.f_ptr; }
-
-  void set_name(std::string name) { this->name = std::move(name); }
-
-  const std::string& get_name() const { return name; }
-
-  double operator()(double a) const
-  {
-    return f_ptr(a);
-  }
-
-protected:
-  CppUnaryFunctionPtr f_ptr = nullptr;
-  std::string name;
-};
+using CppUnaryFunction = CppFunction<1>;
 
 // we save the names along with the function pointers for convenience
 // we could save only the function pointers, and the names only in the inventory

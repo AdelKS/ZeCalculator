@@ -22,8 +22,6 @@
 
 #include <zecalculator/error.h>
 #include <zecalculator/parsing/data_structures/decl/node.h>
-#include <zecalculator/math_objects/builtin_binary_functions.h>
-#include <zecalculator/math_objects/builtin_unary_functions.h>
 #include <zecalculator/math_objects/decl/function.h>
 #include <zecalculator/math_objects/global_constant.h>
 #include <zecalculator/mathworld/decl/mathworld.h>
@@ -54,9 +52,8 @@ struct Evaluator
 
   ReturnType operator () (const zc::parsing::node::Number&);
 
-  ReturnType operator () (const zc::parsing::node::ast::CppUnaryFunction<zc::parsing::Type::AST>&);
-
-  ReturnType operator () (const zc::parsing::node::ast::CppBinaryFunction<zc::parsing::Type::AST>&);
+  template <size_t args_num>
+  ReturnType operator () (const zc::parsing::node::ast::CppFunction<zc::parsing::Type::AST, args_num>&);
 
   ReturnType operator () (const zc::parsing::node::GlobalConstant&);
 

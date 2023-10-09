@@ -23,8 +23,7 @@
 #include "zecalculator/external/expected.h"
 #include "zecalculator/parsing/data_structures/decl/node.h"
 #include <zecalculator/error.h>
-#include <zecalculator/math_objects/builtin_binary_functions.h>
-#include <zecalculator/math_objects/builtin_unary_functions.h>
+#include <zecalculator/math_objects/cpp_function.h>
 #include <zecalculator/math_objects/aliases.h>
 #include <zecalculator/math_objects/decl/function.h>
 #include <zecalculator/math_objects/global_constant.h>
@@ -57,9 +56,8 @@ struct Evaluator
 
   void operator () (const zc::parsing::node::rpn::Sequence&);
 
-  void operator () (const zc::parsing::node::rpn::CppUnaryFunction&);
-
-  void operator () (const zc::parsing::node::rpn::CppBinaryFunction&);
+  template <size_t args_num>
+  void operator () (const zc::parsing::node::rpn::CppFunction<args_num>&);
 
   void operator () (const zc::parsing::node::GlobalConstant&);
 

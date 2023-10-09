@@ -70,35 +70,28 @@ inline void Evaluator<input_size>::operator()(const zc::parsing::node::rpn::Func
 }
 
 template <size_t input_size>
-inline void Evaluator<input_size>::operator()(const zc::parsing::node::rpn::CppUnaryFunction& node)
+template <size_t args_num>
+inline void Evaluator<input_size>::operator()(const zc::parsing::node::rpn::CppFunction<args_num>& node)
 {
-  if (expected_eval_stack->empty())
-    expected_eval_stack = tl::unexpected(Error::mismatched_fun_args(node));
-  else
-  {
-    double& back_val = expected_eval_stack->back();
-
-    // overwrite the last value with the function evaluation on it
-    back_val = node.f(back_val);
-  }
-}
-
-template <size_t input_size>
-inline void Evaluator<input_size>::operator()(const zc::parsing::node::rpn::CppBinaryFunction& node)
-{
-  if (expected_eval_stack->size() < 2) [[unlikely]]
+  if (expected_eval_stack->size() < args_num) [[unlikely]]
     expected_eval_stack = tl::unexpected(Error::mismatched_fun_args(node));
   else
   {
     // points on the before last value on the stack
-    const auto it = expected_eval_stack->end() - 2;
+    const auto it = expected_eval_stack->end() - args_num;
 
-    // since the function pops two elements, then pushes back one
-    // we can overwrite directly the value that will get replaced
-    *it = node.f(*it, *(it+1));
+    auto compute_overwrite_val = [&]<size_t... i>(std::integer_sequence<size_t, i...>)
+    {
+      // since the function pops two elements, then pushes back one
+      // we can overwrite directly the value that will get replaced
+      *it = node.f(*(it+i)...);
+    };
+    compute_overwrite_val(std::make_index_sequence<args_num>());
 
-    // remove the last value, i.e. at it+1, as it got consumed
-    expected_eval_stack->pop_back();
+    // remove args_num-1 values from the stack,
+    // why the minus one: one value got overwritten with the computation result, as an optim
+    if constexpr (args_num >= 2)
+      expected_eval_stack->resize(expected_eval_stack->size() - (args_num - 1));
   }
 }
 

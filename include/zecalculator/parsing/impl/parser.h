@@ -303,24 +303,17 @@ struct FunctionVisiter
   const tokens::Text& func_txt_token;
   std::vector<Tree<world_type>> subnodes;
 
-  Ret operator()(cref<CppUnaryFunction> f)
+  template <size_t args_num>
+  Ret operator()(cref<CppFunction<args_num>> f)
   {
-    if (subnodes.size() != 1) [[unlikely]]
+    if (subnodes.size() != args_num) [[unlikely]]
       return tl::unexpected(Error::mismatched_fun_args(func_txt_token));
 
-    return std::make_unique<node::ast::Node<world_type>>(
-      node::ast::CppUnaryFunction<world_type>(func_txt_token, f.get(), std::move(subnodes.back())));
-  }
-  Ret operator()(cref<CppBinaryFunction> f)
-  {
-    if (subnodes.size() != 2) [[unlikely]]
-      return tl::unexpected(Error::mismatched_fun_args(func_txt_token));
+    std::array<Tree<world_type>, args_num> subnode_arr;
+    std::ranges::move(subnodes, subnode_arr.begin());
 
     return std::make_unique<node::ast::Node<world_type>>(
-      node::ast::CppBinaryFunction<world_type>(func_txt_token,
-                                               f.get(),
-                                               std::move(subnodes.front()),
-                                               std::move(subnodes.back())));
+      node::ast::CppFunction<world_type, args_num>(func_txt_token, f.get(), std::move(subnode_arr)));
   }
   template <size_t args_num>
   Ret operator()(cref<zc::Function<world_type, args_num>> f)
@@ -429,8 +422,9 @@ tl::expected<Tree<type>, Error> make_tree(std::span<const parsing::Token> tokens
     }
 
     const auto func_txt_token = text_token(tokens.front());
+    auto func = world.get(func_txt_token.name);
     return std::visit(FunctionVisiter<type>{func_txt_token, std::move(subnodes)},
-                      world.get(func_txt_token.name));
+                      func);
 
     // return ast::node::Function(text_token(tokens.front()), std::move(subnodes));
   }
@@ -464,10 +458,10 @@ tl::expected<Tree<type>, Error> make_tree(std::span<const parsing::Token> tokens
 
           assert(cpp_bin_f);
 
-          return node::ast::CppBinaryFunction<type>(text_token(*tokenIt),
-                                                    *cpp_bin_f,
-                                                    std::move(left_hand_side.value()),
-                                                    std::move(right_hand_side.value()));
+          return node::ast::CppFunction<type, 2>(text_token(*tokenIt),
+                                                 *cpp_bin_f,
+                                                 std::array{std::move(left_hand_side.value()),
+                                                            std::move(right_hand_side.value())});
         }
       }
     }
@@ -498,17 +492,6 @@ struct RpnMaker
                                { return std::holds_alternative<std::monostate>(node); });
   }
 
-  RPN operator()(const node::ast::CppUnaryFunction<Type::RPN>& func)
-  {
-    RPN res = std::visit(*this, *func.operand);
-
-    if (check_for_monostate(res)) [[unlikely]]
-      return RPN{std::monostate()};
-
-    res.push_back(func);
-    return res;
-  }
-
   RPN operator()(const node::ast::Sequence<Type::RPN>& seq)
   {
     RPN res = std::visit(*this, *seq.operand);
@@ -520,17 +503,20 @@ struct RpnMaker
     return res;
   }
 
-  RPN operator()(const node::ast::CppBinaryFunction<Type::RPN>& func)
+  template <size_t args_num>
+  RPN operator()(const node::ast::CppFunction<Type::RPN, args_num>& func)
   {
-    RPN res = std::visit(*this, *func.operand1);
-    RPN tmp = std::visit(*this, *func.operand2);
+    RPN res;
+    for (const Tree<Type::RPN>& sub_node : func.operands)
+    {
+      RPN tmp = std::visit(*this, *sub_node);
+      if (check_for_monostate(tmp)) [[unlikely]]
+        return RPN{std::monostate()};
+      else [[likely]]
+        std::ranges::move(tmp, std::back_inserter(res));
+    }
 
-    std::ranges::move(tmp, std::back_inserter(res));
-
-    if (check_for_monostate(res)) [[unlikely]]
-      return RPN{std::monostate()};
-
-    res.push_back(func);
+    res.push_back(node::rpn::CppFunction<args_num>(func, func.f));
     return res;
   }
 
