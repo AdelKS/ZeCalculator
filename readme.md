@@ -99,12 +99,12 @@ There is for now one benchmark defined in the tests, called "parametric function
 
 The current results are (AMD Ryzen 5950X, `-march=native -O3` compile flags)
 - `g++ 13.2.1` + `libstdc++` + `ld.bfd 2.41.0`
-  - `ast`: 150ns ± 5ns
-  - `rpn`: 155ns ± 5ns
+  - `ast`: 165ns ± 5ns
+  - `rpn`: 145ns ± 5ns
   - `c++`: 75ns ± 5ns
 - `clang++ 17.0.1` + `libc++` + `ld.lld 17.0.1`
-  - `ast`: 145ns ± 5ns
-  - `rpn`: 155ns ± 5ns
+  - `ast`: 140ns ± 5ns
+  - `rpn`: 150ns ± 5ns
   - `c++`: 75ns ± 5ns
 
 <details>
