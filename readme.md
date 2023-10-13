@@ -43,8 +43,8 @@ int main()
   // Add a one parameter function named "f"
   ast::Function<1>& f = world.add<ast::Function<1>>("f", Vars<1>{"x"}, "x + my_constant + cos(math::pi)").value();
 
-  // We know the expression is correct
-  assert(std::holds_alternative<Ok>(f.parsing_status()));
+  // We know the expression is correct, returns an std::optional<zc::Error>
+  assert(not f.error());
 
   // Evaluate function, returns an 'expected'
   expected<double, Error> eval = f({1});

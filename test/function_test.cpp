@@ -204,9 +204,9 @@ int main()
     world.template add<Function<type, 2>>("f", Vars<2>{"x", "y"}, "1 + x + y").value();
     GlobalVariable<type>& expr = world.template add<GlobalVariable<type>>("val", "1 + f(1)").value();
 
-    expect(std::holds_alternative<Error>(expr.parsing_status()));
-    expect(expr.get_parsing().error() == Error::mismatched_fun_args(parsing::tokens::Text("f", 4, 1)))
-      << expr.get_parsing().error();
+    expect(bool(expr.error()));
+    expect(expr.error().value() == Error::mismatched_fun_args(parsing::tokens::Text("f", 4, 1)))
+      << expr.error().value();
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 

@@ -58,9 +58,6 @@ namespace parsing {
   struct RpnMaker;
 }
 
-struct Ok {};
-struct Empty {};
-
 namespace deps {
   /// @brief used to know the type of the dependency when querying deps
   enum ObjectType {VARIABLE, FUNCTION};
@@ -115,7 +112,8 @@ public:
   /// @brief tests if the function is valid, i.e. has a valid expression and input vars
   operator bool () const;
 
-  std::variant<Ok, Empty, Error> parsing_status() const;
+  /// @brief returns the parsing error, if there is any
+  std::optional<Error> error() const;
 
   const tl::expected<parsing::Parsing<type>, Error>& get_parsing() const;
 
@@ -146,12 +144,7 @@ public:
 protected:
 
   // constructor reserved for MathWorld when using add() function
-  Function(const MathWorld<type>* mathworld)
-    requires(type == parsing::Type::AST);
-
-  // constructor reserved for MathWorld when using add() function
-  Function(const MathWorld<type>* mathworld)
-    requires (type == parsing::Type::RPN);
+  Function(const MathWorld<type>*);
 
   /// @note version that tracks the current recursion depth
   tl::expected<double, Error> evaluate(std::span<const double, args_num> args,

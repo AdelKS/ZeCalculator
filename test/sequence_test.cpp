@@ -39,7 +39,7 @@ int main()
     Sequence<type>& fib = world.template add<Sequence<type>>("fib", "n", "fib(n-1) + fib(n-2)", Vals{0, 1}).value();
     // TODO: make function be able to call itself at instantiation within a math world
 
-    expect(std::holds_alternative<Ok>(fib.parsing_status()));
+    expect(not fib.error());
     expect(fib(0).value() == 0.0_d);
     expect(fib(1).value() == 1.0_d);
     expect(fib(2).value() == 1.0_d);

@@ -31,6 +31,7 @@ struct Error
   enum Type : uint8_t
   {
     UNKNOWN = 0,
+    EMPTY,
     WRONG_FORMAT,
     UNEXPECTED,
     MISSING,
@@ -44,6 +45,11 @@ struct Error
     RECURSION_DEPTH_OVERFLOW, // maximum recursion depth has been reached
     WRONG_OBJECT_TYPE, // object has been used as a different type as it actually is, example "2+cos" (where cos is a function used here as variable)
   };
+
+  static Error empty()
+  {
+    return Error {EMPTY};
+  }
 
   static Error unexpected(parsing::tokens::Text  token)
   {

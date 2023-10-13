@@ -9,6 +9,15 @@
 
 namespace std {
 
+template <class T>
+std::ostream& operator << (std::ostream& os, const std::optional<T>& val)
+{
+  if (val)
+    os << val.value();
+
+  return os;
+}
+
 template <class T, class U>
 std::ostream& operator << (std::ostream& os, const std::pair<T, U>& val)
 {

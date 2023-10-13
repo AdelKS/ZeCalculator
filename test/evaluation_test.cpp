@@ -110,7 +110,7 @@ int main()
 
     GlobalVariable<type>& expr = world.template add<GlobalVariable<type>>("foo_var", "cos(1) + my_constant1").value();
 
-    expect(std::holds_alternative<Error>(expr.parsing_status()));
+    expect(bool(expr.error()));
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
@@ -138,11 +138,11 @@ int main()
     MathWorld<type> world;
     GlobalVariable<type>& expr = world.template add<GlobalVariable<type>>("foo_var", "2 + cos").value();
 
-    auto status = expr.parsing_status();
+    auto has_error = expr.error();
 
-    expect(std::holds_alternative<Error>(status));
+    expect(bool(has_error));
 
-    auto error = std::get<Error>(status);
+    auto error = has_error.value();
 
     expect(error.error_type == Error::WRONG_OBJECT_TYPE);
     expect(error.token.substr_info == SubstrInfo{.begin = 4, .size = 3});
@@ -157,11 +157,11 @@ int main()
     world.template add<GlobalConstant>("g", 3);
     GlobalVariable<type>& expr = world.template add<GlobalVariable<type>>("foo_var", "7 + g(3)").value();
 
-    auto status = expr.parsing_status();
+    auto has_error = expr.error();
 
-    expect(std::holds_alternative<Error>(status));
+    expect(bool(has_error));
 
-    auto error = std::get<Error>(status);
+    auto error = has_error.value();
     expect(error.error_type == Error::WRONG_OBJECT_TYPE);
     expect(error.token.substr_info == SubstrInfo{.begin = 4, .size = 1});
 

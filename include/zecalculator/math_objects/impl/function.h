@@ -29,14 +29,8 @@ namespace zc {
 
 template <parsing::Type type, size_t args_num>
 Function<type, args_num>::Function(const MathWorld<type>* mathworld)
-  requires(type == parsing::Type::AST)
-  : mathworld(mathworld)
-{}
-
-template <parsing::Type type, size_t args_num>
-Function<type, args_num>::Function(const MathWorld<type>* mathworld)
-  requires(type == parsing::Type::RPN)
-  : parsed_expr({std::monostate()}), mathworld(mathworld)
+  : tokenized_expr(tl::unexpected(Error::empty_expression())),
+    parsed_expr(tl::unexpected(Error::empty_expression())), mathworld(mathworld)
 {}
 
 template <parsing::Type type, size_t args_num>
@@ -81,10 +75,8 @@ void Function<type, args_num>::set_expression(std::string expr)
 
   if (expression.empty())
   {
-    tokenized_expr = std::vector<parsing::Token>();
-    if constexpr (type == parsing::Type::AST)
-      parsed_expr = parsing::Tree<parsing::Type::AST>(std::monostate());
-    else parsed_expr = {std::monostate()};
+    tokenized_expr = tl::unexpected(Error::empty());
+    parsed_expr = tl::unexpected(Error::empty());
   }
   else
   {
@@ -124,30 +116,14 @@ template <parsing::Type type, size_t args_num>
 Function<type, args_num>::operator bool () const
 {
   if constexpr (type == parsing::Type::AST)
-    return bool(parsed_expr) and (not std::holds_alternative<std::monostate>(**parsed_expr)) and bool(vars);
-  else return bool(parsed_expr) and (not std::holds_alternative<std::monostate>(parsed_expr.value().front())) and bool(vars);
+    return bool(parsed_expr) and bool(vars);
+  else return bool(parsed_expr) and bool(vars);
 }
 
 template <parsing::Type type, size_t args_num>
-std::variant<Ok, Empty, Error> Function<type, args_num>::parsing_status() const
+std::optional<Error> Function<type, args_num>::error() const
 {
-  if constexpr (type == parsing::Type::AST)
-  {
-    if (not parsed_expr.has_value())
-      return parsed_expr.error();
-    else if (std::holds_alternative<std::monostate>(*(parsed_expr.value())))
-      return Empty();
-    else return Ok();
-  }
-  else
-  {
-    if (not parsed_expr.has_value())
-      return parsed_expr.error();
-    else if (std::holds_alternative<std::monostate>(parsed_expr.value().front()))
-      return Empty();
-    else return Ok();
-  }
-
+  return parsed_expr.has_value() ? std::optional<Error>() : parsed_expr.error();
 }
 
 template <parsing::Type type, size_t args_num>
