@@ -47,7 +47,7 @@ tl::expected<ref<ObjectType>, NameError> MathWorld<type>::add(std::string_view n
   ObjectType& world_object = object_container[id];
   world_object.set_name(std::string(name));
 
-  inventory[std::string(name)] = std::ref(world_object);
+  inventory[std::string(name)] = &world_object;
 
   if constexpr (sizeof...(Arg) > 0)
     world_object.set(std::forward<Arg>(arg)...);

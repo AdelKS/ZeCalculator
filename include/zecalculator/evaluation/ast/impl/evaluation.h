@@ -38,7 +38,7 @@ template <size_t args_num>
 inline Evaluator<input_size>::ReturnType
   Evaluator<input_size>::operator()(const zc::parsing::node::ast::Function<zc::parsing::Type::AST, args_num>& node)
 {
-  if (node.f.mathworld->max_recursion_depth < current_recursion_depth)
+  if (node.f->mathworld->max_recursion_depth < current_recursion_depth)
     return tl::unexpected(Error::recursion_depth_overflow());
 
   std::array<double, args_num> evaluations;
@@ -53,19 +53,19 @@ inline Evaluator<input_size>::ReturnType
     i++;
   }
 
-  return node.f.evaluate(evaluations, current_recursion_depth + 1);
+  return node.f->evaluate(evaluations, current_recursion_depth + 1);
 }
 
 template <size_t input_size>
 inline Evaluator<input_size>::ReturnType
   Evaluator<input_size>::operator()(const zc::parsing::node::ast::Sequence<zc::parsing::Type::AST>& node)
 {
-  if (node.u.mathworld->max_recursion_depth < current_recursion_depth)
+  if (node.u->mathworld->max_recursion_depth < current_recursion_depth)
     return tl::unexpected(Error::recursion_depth_overflow());
 
   auto eval = evaluate(node.operand, input_vars, current_recursion_depth + 1);
   if (eval) [[likely]]
-    return node.u.evaluate(*eval, current_recursion_depth + 1);
+    return node.u->evaluate(*eval, current_recursion_depth + 1);
   else [[unlikely]]
     return eval;
 }
@@ -86,7 +86,7 @@ inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator()(
 
   auto unpack_compute = [&]<size_t... i>(std::integer_sequence<size_t, i...>)
   {
-    return node.f(evals[i]...);
+    return (*node.f)(evals[i]...);
   };
   return unpack_compute(std::make_index_sequence<args_num>());
 
@@ -96,16 +96,16 @@ template <size_t input_size>
 inline Evaluator<input_size>::ReturnType
   Evaluator<input_size>::operator()(const zc::parsing::node::GlobalVariable<parsing::Type::AST>& node)
 {
-  if (node.var.mathworld->max_recursion_depth < current_recursion_depth)
+  if (node.var->mathworld->max_recursion_depth < current_recursion_depth)
     return tl::unexpected(Error::recursion_depth_overflow());
 
-  return node.var.evaluate({}, current_recursion_depth + 1);
+  return node.var->evaluate({}, current_recursion_depth + 1);
 }
 
 template <size_t input_size>
 inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator () (const zc::parsing::node::GlobalConstant& node)
 {
-  return node.constant.value;
+  return node.constant->value;
 }
 
 template <size_t input_size>

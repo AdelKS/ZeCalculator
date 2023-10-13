@@ -44,19 +44,19 @@ namespace zc {
 
       struct GlobalConstant: Text
       {
-        GlobalConstant(const Text& txt, const zc::GlobalConstant& constant)
+        GlobalConstant(const Text& txt, const zc::GlobalConstant* constant)
           : Text(txt), constant(constant) {}
 
-        const zc::GlobalConstant& constant;
+        const zc::GlobalConstant* constant;
       };
 
       template <parsing::Type world_type>
       struct GlobalVariable: Text
       {
-        GlobalVariable(const Text& txt, const zc::GlobalVariable<world_type>& var)
+        GlobalVariable(const Text& txt, const zc::GlobalVariable<world_type>* var)
           : Text(txt), var(var) {}
 
-        const zc::GlobalVariable<world_type>& var;
+        const zc::GlobalVariable<world_type>* var;
       };
 
       namespace rpn {
@@ -66,27 +66,27 @@ namespace zc {
         template <size_t args_num>
         struct Function: Text
         {
-          Function(const Text& txt, const zc::Function<RPN, args_num>& f)
+          Function(const Text& txt, const zc::Function<RPN, args_num>* f)
             : Text(txt),  f(f) {}
 
-          const zc::Function<RPN, args_num>& f;
+          const zc::Function<RPN, args_num>* f;
         };
 
         struct Sequence: Text
         {
-          Sequence(const Text& txt, const zc::Sequence<RPN>& u)
+          Sequence(const Text& txt, const zc::Sequence<RPN>* u)
             : Text(txt),  u(u) {}
 
-          const zc::Sequence<RPN>& u;
+          const zc::Sequence<RPN>* u;
         };
 
         template <size_t args_num>
         struct CppFunction: Text
         {
-          CppFunction(const Text& txt, const zc::CppFunction<args_num>& f)
+          CppFunction(const Text& txt, const zc::CppFunction<args_num>* f)
             : Text(txt),  f(f) {}
 
-          const zc::CppFunction<args_num>& f;
+          const zc::CppFunction<args_num>* f;
         };
 
       } // namespace rpn
@@ -127,20 +127,20 @@ namespace zc {
         {
           using Operands = std::array<NodePtr<world_type>, args_num>;
 
-          Function(const Text& txt, const zc::Function<world_type, args_num>& f, Operands operands)
+          Function(const Text& txt, const zc::Function<world_type, args_num>* f, Operands operands)
             : Text(txt), f(f), operands(std::move(operands)) {}
 
-          const zc::Function<world_type, args_num>& f;
+          const zc::Function<world_type, args_num>* f;
           Operands operands;
         };
 
         template <parsing::Type world_type>
         struct Sequence: Text
         {
-          Sequence(const Text& txt, const zc::Sequence<world_type>& u, NodePtr<world_type> operand)
+          Sequence(const Text& txt, const zc::Sequence<world_type>* u, NodePtr<world_type> operand)
             : Text(txt), u(u), operand(std::move(operand)) {}
 
-          const zc::Sequence<world_type>& u;
+          const zc::Sequence<world_type>* u;
           NodePtr<world_type> operand;
         };
 
@@ -148,7 +148,7 @@ namespace zc {
         struct CppFunction: rpn::CppFunction<args_num>
         {
           CppFunction(const Text& txt,
-                            const zc::CppFunction<args_num>& f,
+                            const zc::CppFunction<args_num>* f,
                             std::array<NodePtr<world_type>, args_num> operands)
             : rpn::CppFunction<args_num>(txt, f), operands(std::move(operands))
           {}

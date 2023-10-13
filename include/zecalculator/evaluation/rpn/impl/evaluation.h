@@ -52,7 +52,7 @@ inline void Evaluator<input_size>::operator()(const zc::parsing::node::rpn::Func
     const auto evaluations = std::span<const double, args_num>(expected_eval_stack->end() - args_num,
                                                                args_num);
 
-    auto expected_res = node.f.evaluate(evaluations, current_recursion_depth + 1);
+    auto expected_res = node.f->evaluate(evaluations, current_recursion_depth + 1);
 
     // when done, remove args_num from the back of the evaluation stack
     // note: the resize needs to be done before pushing in the new result
@@ -78,7 +78,7 @@ inline void Evaluator<input_size>::operator()(const zc::parsing::node::rpn::CppF
   {
     // since the function pops two elements, then pushes back one
     // we can overwrite directly the value that will get replaced
-    *it = node.f(*(it+i)...);
+    *it = (*node.f)(*(it+i)...);
   };
   compute_overwrite_val(std::make_index_sequence<args_num>());
 
@@ -99,7 +99,7 @@ inline void Evaluator<input_size>::operator()(const zc::parsing::node::rpn::Sequ
     // sequence handles only one argument
     double& back_val = expected_eval_stack->back();
 
-    auto expected_res = node.u.evaluate(back_val, current_recursion_depth + 1);
+    auto expected_res = node.u->evaluate(back_val, current_recursion_depth + 1);
 
     if (expected_res)
       // overwrite the top of the stack on computation success
@@ -122,13 +122,13 @@ inline void Evaluator<input_size>::operator () (const zc::parsing::node::InputVa
 template <size_t input_size>
 inline void Evaluator<input_size>::operator()(const zc::parsing::node::GlobalConstant& node)
 {
-  expected_eval_stack->push_back(node.constant.value);
+  expected_eval_stack->push_back(node.constant->value);
 }
 
 template <size_t input_size>
 inline void Evaluator<input_size>::operator()(const zc::parsing::node::GlobalVariable<parsing::Type::RPN>& node)
 {
-  auto expected_res = node.var.evaluate({}, current_recursion_depth + 1);
+  auto expected_res = node.var->evaluate({}, current_recursion_depth + 1);
   if (expected_res)
     expected_eval_stack->push_back(*expected_res);
   else expected_eval_stack = tl::unexpected(expected_res.error());

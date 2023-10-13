@@ -275,12 +275,12 @@ struct VariableVisiter
 
   const tokens::Text& var_txt_token;
 
-  Ret operator()(cref<GlobalConstant> global_constant)
+  Ret operator()(const GlobalConstant* global_constant)
   {
     return std::make_unique<node::ast::Node<world_type>>(
       node::GlobalConstant(var_txt_token, global_constant));
   }
-  Ret operator()(cref<zc::GlobalVariable<world_type>> global_variable)
+  Ret operator()(const zc::GlobalVariable<world_type>* global_variable)
   {
     return std::make_unique<node::ast::Node<world_type>>(
       node::GlobalVariable<world_type>(var_txt_token, global_variable));
@@ -304,7 +304,7 @@ struct FunctionVisiter
   std::vector<Tree<world_type>> subnodes;
 
   template <size_t args_num>
-  Ret operator()(cref<CppFunction<args_num>> f)
+  Ret operator()(const CppFunction<args_num>* f)
   {
     if (subnodes.size() != args_num) [[unlikely]]
       return tl::unexpected(Error::mismatched_fun_args(func_txt_token));
@@ -313,10 +313,10 @@ struct FunctionVisiter
     std::ranges::move(subnodes, subnode_arr.begin());
 
     return std::make_unique<node::ast::Node<world_type>>(
-      node::ast::CppFunction<world_type, args_num>(func_txt_token, f.get(), std::move(subnode_arr)));
+      node::ast::CppFunction<world_type, args_num>(func_txt_token, f, std::move(subnode_arr)));
   }
   template <size_t args_num>
-  Ret operator()(cref<zc::Function<world_type, args_num>> f)
+  Ret operator()(const zc::Function<world_type, args_num>* f)
   {
     if (subnodes.size() != args_num) [[unlikely]]
       return tl::unexpected(Error::mismatched_fun_args(func_txt_token));
@@ -325,15 +325,15 @@ struct FunctionVisiter
     std::ranges::move(subnodes, subnode_arr.begin());
 
     return std::make_unique<node::ast::Node<world_type>>(
-      node::ast::Function<world_type, args_num>(func_txt_token, f.get(), std::move(subnode_arr)));
+      node::ast::Function<world_type, args_num>(func_txt_token, f, std::move(subnode_arr)));
   }
-  Ret operator()(cref<zc::Sequence<world_type>> u)
+  Ret operator()(const zc::Sequence<world_type>* u)
   {
     if (subnodes.size() != 1) [[unlikely]]
       return tl::unexpected(Error::mismatched_fun_args(func_txt_token));
 
     return std::make_unique<node::ast::Node<world_type>>(
-      node::ast::Sequence<world_type>(func_txt_token, u.get(), std::move(subnodes.front())));
+      node::ast::Sequence<world_type>(func_txt_token, u, std::move(subnodes.front())));
   }
   Ret operator()(UnregisteredObject)
   {
@@ -459,7 +459,7 @@ tl::expected<Tree<type>, Error> make_tree(std::span<const parsing::Token> tokens
           assert(cpp_bin_f);
 
           return node::ast::CppFunction<type, 2>(text_token(*tokenIt),
-                                                 *cpp_bin_f,
+                                                 cpp_bin_f,
                                                  std::array{std::move(left_hand_side.value()),
                                                             std::move(right_hand_side.value())});
         }

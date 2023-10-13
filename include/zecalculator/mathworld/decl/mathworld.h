@@ -75,10 +75,10 @@ class MathWorld
 public:
 
   /// @brief type used when looking up a match object with a name at runtime
-  using DynMathObject = to_variant_t<tuple_type_cat_t<std::tuple<UnregisteredObject>, tuple_transform_t<ref, MathObjects<type>>>>;
+  using DynMathObject = to_variant_t<tuple_type_cat_t<std::tuple<UnregisteredObject>, tuple_transform_t<ptr, MathObjects<type>>>>;
 
   /// @brief const version of the one above
-  using ConstDynMathObject = to_variant_t<tuple_type_cat_t<std::tuple<UnregisteredObject>, tuple_transform_t<cref, MathObjects<type>>>>;
+  using ConstDynMathObject = to_variant_t<tuple_type_cat_t<std::tuple<UnregisteredObject>, tuple_transform_t<cst_ptr, MathObjects<type>>>>;
 
   /// @brief default constructor that defines the usual functions and global constants
   MathWorld()
@@ -121,8 +121,8 @@ public:
   ObjectType* get(std::string_view name)
   {
     DynMathObject dyn_obj = get(name);
-    if (std::holds_alternative<ref<ObjectType>>(dyn_obj))
-      return &std::get<ref<ObjectType>>(dyn_obj).get();
+    if (std::holds_alternative<ObjectType*>(dyn_obj))
+      return std::get<ObjectType*>(dyn_obj);
     else return nullptr;
   }
 
@@ -133,8 +133,8 @@ public:
   const ObjectType* get(std::string_view name) const
   {
     ConstDynMathObject dyn_obj = get(name);
-    if (std::holds_alternative<cref<ObjectType>>(dyn_obj))
-      return &std::get<cref<ObjectType>>(dyn_obj).get();
+    if (std::holds_alternative<const ObjectType*>(dyn_obj))
+      return std::get<const ObjectType*>(dyn_obj);
     else return nullptr;
   }
 
@@ -183,7 +183,7 @@ protected:
     return std::visit(
       overloaded{
         [](UnregisteredObject) -> ConstDynMathObject { return UnregisteredObject(); },
-        [](auto&& val) -> ConstDynMathObject { return std::cref(val.get()); }
+        [](auto* val) -> ConstDynMathObject { return val; }
       },
       obj);
   }
