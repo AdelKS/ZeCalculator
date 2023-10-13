@@ -37,7 +37,6 @@ struct Error
     UNDEFINED_VARIABLE,
     UNDEFINED_FUNCTION,
     CALLING_FUN_ARG_COUNT_MISMATCH,
-    CALLED_FUN_ARG_COUNT_MISMATCH,
     NOT_IMPLEMENTED,
     EMPTY_EXPRESSION,
     INVALID_FUNCTION,
@@ -79,11 +78,6 @@ struct Error
   static Error mismatched_fun_args(parsing::tokens::Text tokenTxt)
   {
     return Error {CALLING_FUN_ARG_COUNT_MISMATCH, tokenTxt};
-  }
-
-  static Error mismatched_fun_args()
-  {
-    return Error {CALLED_FUN_ARG_COUNT_MISMATCH};
   }
 
   static Error not_implemented(parsing::tokens::Text tokenTxt)
