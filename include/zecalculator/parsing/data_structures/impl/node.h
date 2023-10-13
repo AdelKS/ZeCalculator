@@ -50,15 +50,6 @@ namespace zc {
         const zc::GlobalConstant* constant;
       };
 
-      template <parsing::Type world_type>
-      struct GlobalVariable: Text
-      {
-        GlobalVariable(const Text& txt, const zc::GlobalVariable<world_type>* var)
-          : Text(txt), var(var) {}
-
-        const zc::GlobalVariable<world_type>* var;
-      };
-
       namespace rpn {
 
         using parsing::Type::RPN;
@@ -129,6 +120,10 @@ namespace zc {
 
           Function(const Text& txt, const zc::Function<world_type, args_num>* f, Operands operands)
             : Text(txt), f(f), operands(std::move(operands)) {}
+
+          Function(const Text& txt, const zc::Function<world_type, args_num>* f)
+            requires (args_num == 0)
+            : Text(txt), f(f) {}
 
           const zc::Function<world_type, args_num>* f;
           Operands operands;

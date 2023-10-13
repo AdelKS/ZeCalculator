@@ -283,7 +283,7 @@ struct VariableVisiter
   Ret operator()(const zc::GlobalVariable<world_type>* global_variable)
   {
     return std::make_unique<node::ast::Node<world_type>>(
-      node::GlobalVariable<world_type>(var_txt_token, global_variable));
+      node::ast::GlobalVariable<world_type>(var_txt_token, global_variable));
   }
   Ret operator()(UnregisteredObject)
   {
@@ -545,11 +545,6 @@ struct RpnMaker
   RPN operator () (const node::GlobalConstant& var)
   {
     return RPN(1, var);
-  }
-
-  RPN operator () (const node::GlobalVariable<Type::RPN>& var)
-  {
-    return RPN(1, node::rpn::GlobalVariable(var, var.var));
   }
 
   RPN operator () (const node::Number& number)

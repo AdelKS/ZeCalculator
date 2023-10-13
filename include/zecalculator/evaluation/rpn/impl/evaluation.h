@@ -125,15 +125,6 @@ inline void Evaluator<input_size>::operator()(const zc::parsing::node::GlobalCon
   expected_eval_stack->push_back(node.constant->value);
 }
 
-template <size_t input_size>
-inline void Evaluator<input_size>::operator()(const zc::parsing::node::GlobalVariable<parsing::Type::RPN>& node)
-{
-  auto expected_res = node.var->evaluate({}, current_recursion_depth + 1);
-  if (expected_res)
-    expected_eval_stack->push_back(*expected_res);
-  else expected_eval_stack = tl::unexpected(expected_res.error());
-}
-
 }
 }
 

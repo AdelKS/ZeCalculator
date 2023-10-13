@@ -44,9 +44,6 @@ namespace parsing {
     struct InputVariable;
     struct GlobalConstant;
 
-    template <zc::parsing::Type>
-    struct GlobalVariable;
-
     using Number = zc::parsing::tokens::Number;
 
     namespace rpn {
@@ -59,8 +56,6 @@ namespace parsing {
       template <size_t>
       struct CppFunction;
 
-      using GlobalVariable = node::GlobalVariable<parsing::Type::RPN>;
-
       using Node = std::variant<std::monostate,
                                 InputVariable,
                                 Number,
@@ -70,7 +65,6 @@ namespace parsing {
                                 Function<0>,
                                 Function<1>,
                                 Function<2>,
-                                GlobalVariable,
                                 Sequence>;
 
     } // namespace rpn
@@ -79,6 +73,9 @@ namespace parsing {
 
       template <parsing::Type, size_t>
       struct Function;
+
+      template <parsing::Type world_type>
+      using GlobalVariable = Function<world_type, 0>;
 
       template <parsing::Type>
       struct Sequence;
@@ -96,7 +93,6 @@ namespace parsing {
                                 Function<world_type, 0>,
                                 Function<world_type, 1>,
                                 Function<world_type, 2>,
-                                GlobalVariable<world_type>,
                                 Sequence<world_type>>;
 
       template <parsing::Type>

@@ -93,16 +93,6 @@ inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator()(
 }
 
 template <size_t input_size>
-inline Evaluator<input_size>::ReturnType
-  Evaluator<input_size>::operator()(const zc::parsing::node::GlobalVariable<parsing::Type::AST>& node)
-{
-  if (node.var->mathworld->max_recursion_depth < current_recursion_depth)
-    return tl::unexpected(Error::recursion_depth_overflow());
-
-  return node.var->evaluate({}, current_recursion_depth + 1);
-}
-
-template <size_t input_size>
 inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator () (const zc::parsing::node::GlobalConstant& node)
 {
   return node.constant->value;

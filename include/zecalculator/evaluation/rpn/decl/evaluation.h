@@ -61,8 +61,6 @@ struct Evaluator
 
   void operator () (const zc::parsing::node::GlobalConstant&);
 
-  void operator () (const zc::parsing::node::GlobalVariable<parsing::Type::RPN>&);
-
 };
 
 }

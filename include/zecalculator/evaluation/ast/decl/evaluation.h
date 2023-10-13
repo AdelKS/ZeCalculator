@@ -57,8 +57,6 @@ struct Evaluator
 
   ReturnType operator () (const zc::parsing::node::GlobalConstant&);
 
-  ReturnType operator () (const zc::parsing::node::GlobalVariable<parsing::Type::AST>&);
-
 };
 
 }
