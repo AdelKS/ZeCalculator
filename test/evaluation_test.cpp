@@ -37,9 +37,7 @@ int main()
 
     MathWorld<type> world;
 
-    GlobalVariable<type>& expr = world.template add<GlobalVariable<type>>("foo_var", "cos(2)").value();
-
-    expect(expr().value() == std::cos(2.0));
+    expect(world.evaluate("cos(2)").value() == std::cos(2.0));
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
@@ -49,9 +47,7 @@ int main()
 
     MathWorld<type> world;
 
-    GlobalVariable<type>& expr = world.template add<GlobalVariable<type>>("foo_var", "2+2*2").value();
-
-    expect(expr().value() == 6);
+    expect(world.evaluate("2+2*2").value() == 6._d);
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
@@ -62,13 +58,8 @@ int main()
 
     MathWorld<type> world;
 
-    GlobalVariable<type>& expr
-      = world.template add<GlobalVariable<type>>("foo_var", "2/3+2*2*exp(2)^2.5").value();
+    expect(world.evaluate("2/3+2*2*exp(2)^2.5").value() == 2./3.+2.*2.*std::pow(std::exp(2.), 2.5));
 
-    const double res = expr().value();
-    const double expected_res = 2./3.+2.*2.*std::pow(std::exp(2.), 2.5);
-
-    expect(res == expected_res);
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
   "global constant expression evaluation"_test = []<class StructType>()
@@ -77,12 +68,7 @@ int main()
 
     MathWorld<type> world;
 
-    GlobalVariable<type>& expr = world.template add<GlobalVariable<type>>("foo_var", "2*math::π + math::pi/2").value();
-
-    const double res = expr().value();
-    const double expected_res = 2.5 * std::numbers::pi;
-
-    expect(res == expected_res);
+    expect(world.evaluate("2*math::π + math::pi/2").value() == 2.5 * std::numbers::pi);
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
@@ -94,12 +80,7 @@ int main()
     world.template add<GlobalConstant>("my_constant1", 2.0);
     world.template add<GlobalConstant>("my_constant2", 3.0);
 
-    GlobalVariable<type>& expr = world.template add<GlobalVariable<type>>("foo_var", "my_constant1 + my_constant2").value();
-
-    const double res = expr().value();
-    const double expected_res = 5.0;
-
-    expect(res == expected_res);
+    expect(world.evaluate("my_constant1 + my_constant2").value() == 5.0_d);
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
   "undefined global constant"_test = []<class StructType>()
@@ -108,9 +89,9 @@ int main()
 
     MathWorld<type> world;
 
-    GlobalVariable<type>& expr = world.template add<GlobalVariable<type>>("foo_var", "cos(1) + my_constant1").value();
+    auto error = world.evaluate("cos(1) + my_constant1").error();
 
-    expect(bool(expr.error()));
+    expect(error == zc::Error::undefined_variable(parsing::tokens::Variable("my_constant1", 9, 12))) << error;
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
@@ -136,13 +117,8 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    GlobalVariable<type>& expr = world.template add<GlobalVariable<type>>("foo_var", "2 + cos").value();
 
-    auto has_error = expr.error();
-
-    expect(bool(has_error));
-
-    auto error = has_error.value();
+    auto error = world.evaluate("2 + cos").error();
 
     expect(error.error_type == Error::WRONG_OBJECT_TYPE);
     expect(error.token.substr_info == SubstrInfo{.begin = 4, .size = 3});
@@ -155,13 +131,8 @@ int main()
 
     MathWorld<type> world;
     world.template add<GlobalConstant>("g", 3);
-    GlobalVariable<type>& expr = world.template add<GlobalVariable<type>>("foo_var", "7 + g(3)").value();
 
-    auto has_error = expr.error();
-
-    expect(bool(has_error));
-
-    auto error = has_error.value();
+    auto error = world.evaluate("7 + g(3)").error();
     expect(error.error_type == Error::WRONG_OBJECT_TYPE);
     expect(error.token.substr_info == SubstrInfo{.begin = 4, .size = 1});
 

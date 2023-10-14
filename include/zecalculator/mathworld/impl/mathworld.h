@@ -55,4 +55,12 @@ tl::expected<ref<ObjectType>, NameError> MathWorld<type>::add(std::string_view n
   return world_object;
 }
 
+template <parsing::Type type>
+tl::expected<double, Error> MathWorld<type>::evaluate(std::string expr) const
+{
+  Function<type, 0> f(this);
+  f.set_expression(std::move(expr));
+  return f();
 }
+
+} // namespace zc

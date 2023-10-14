@@ -20,15 +20,16 @@
 **
 ****************************************************************************/
 
-#include <zecalculator/utils/name_map.h>
-#include <zecalculator/utils/refs.h>
-#include <zecalculator/utils/slotted_deque.h>
-#include <zecalculator/utils/utils.h>
+#include <zecalculator/error.h>
 #include <zecalculator/math_objects/cpp_binary_functions.h>
 #include <zecalculator/math_objects/cpp_unary_functions.h>
 #include <zecalculator/math_objects/global_constant.h>
-#include <zecalculator/utils/tuple.h>
 #include <zecalculator/math_objects/object_list.h>
+#include <zecalculator/utils/name_map.h>
+#include <zecalculator/utils/refs.h>
+#include <zecalculator/utils/slotted_deque.h>
+#include <zecalculator/utils/tuple.h>
+#include <zecalculator/utils/utils.h>
 
 #include <string>
 #include <variant>
@@ -170,6 +171,9 @@ public:
   {
     return inventory.find(name) != inventory.end();
   }
+
+  /// @brief evaluates a given expression within this world
+  tl::expected<double, Error> evaluate(std::string expr) const;
 
   /// @brief maximum recursion depth to reach before returning an error
   size_t max_recursion_depth = 20;
