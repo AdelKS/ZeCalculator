@@ -205,7 +205,7 @@ int main()
     GlobalVariable<type>& expr = world.template add<GlobalVariable<type>>("val", "1 + f(1)").value();
 
     expect(bool(expr.error()));
-    expect(expr.error().value() == Error::mismatched_fun_args(parsing::tokens::Text("f", 4, 1)))
+    expect(expr.error().value() == Error::mismatched_fun_args(parsing::tokens::Text("f", 4)))
       << expr.error().value();
 
   } | std::tuple<AST_TEST, RPN_TEST>{};

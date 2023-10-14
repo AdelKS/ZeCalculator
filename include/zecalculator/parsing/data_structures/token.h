@@ -43,6 +43,8 @@ struct Text
     : name(std::string(substr)), substr_info(SubstrInfo::from_views(substr, original_expr))
   {}
 
+  Text(std::string_view name, size_t begin) : name(std::string(name)), substr_info{begin, name.size()} {}
+
   Text(std::string_view name, size_t begin, size_t size) : name(std::string(name)), substr_info{begin, size} {}
 
   Text(std::string_view name, SubstrInfo substr_info) : name(std::string(name)), substr_info(substr_info) {}

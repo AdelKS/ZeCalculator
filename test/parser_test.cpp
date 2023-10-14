@@ -47,11 +47,11 @@ int main()
     expect(bool(parsing)) << parsing;
 
     auto expected_parsing = std::vector<Token>({
-        tokens::Number(2., tokens::Text{"2", 0, 1}),
+        tokens::Number(2., tokens::Text{"2", 0}),
         tokens::Operator('+', 1),
-        tokens::Number(2., tokens::Text{"2", 2, 1}),
+        tokens::Number(2., tokens::Text{"2", 2}),
         tokens::Operator('*', 3),
-        tokens::Number(2., tokens::Text{"2", 4, 1}),
+        tokens::Number(2., tokens::Text{"2", 4}),
     });
 
     expect(*parsing == expected_parsing);
@@ -64,11 +64,11 @@ int main()
     expect(bool(parsing)) << parsing;
 
     auto expected_parsing = std::vector<Token>({
-        tokens::Number(2., tokens::Text{"2", 3, 1}),
+        tokens::Number(2., tokens::Text{"2", 3}),
         tokens::Operator('+', 5),
-        tokens::Number(2., tokens::Text{"2", 8, 1}),
+        tokens::Number(2., tokens::Text{"2", 8}),
         tokens::Operator('*', 11),
-        tokens::Number(2., tokens::Text{"2", 12, 1}),
+        tokens::Number(2., tokens::Text{"2", 12}),
     });
 
     expect(*parsing == expected_parsing);
@@ -81,19 +81,19 @@ int main()
     expect(bool(parsing)) << parsing;
 
     auto expected_parsing = std::vector<Token>({
-        tokens::OpeningParenthesis("(", 0, 1),
-        tokens::Function("cos", 1, 3),
-        tokens::FunctionCallStart("(", 4, 1),
-        tokens::Function("sin", 5, 3),
-        tokens::FunctionCallStart("(", 8, 1),
-        tokens::Variable("x", 9, 1),
-        tokens::FunctionCallEnd(")", 10, 1),
+        tokens::OpeningParenthesis("(", 0),
+        tokens::Function("cos", 1),
+        tokens::FunctionCallStart("(", 4),
+        tokens::Function("sin", 5),
+        tokens::FunctionCallStart("(", 8),
+        tokens::Variable("x", 9),
+        tokens::FunctionCallEnd(")", 10),
         tokens::Operator('+', 11),
-        tokens::Number(1., tokens::Text{"1", 12, 1}),
-        tokens::FunctionCallEnd(")", 13, 1),
-        tokens::ClosingParenthesis(")", 14, 1),
+        tokens::Number(1., tokens::Text{"1", 12}),
+        tokens::FunctionCallEnd(")", 13),
+        tokens::ClosingParenthesis(")", 14),
         tokens::Operator('+', 15),
-        tokens::Number(1., tokens::Text{"1", 16, 1}),
+        tokens::Number(1., tokens::Text{"1", 16}),
     });
 
     expect(*parsing == expected_parsing);
@@ -123,9 +123,9 @@ int main()
     expect(bool(parsing)) << parsing;
 
     auto expected_parsing = std::vector<Token>({
-        tokens::Number(223.231E+13, tokens::Text{"223.231E+13", 0, 11}),
+        tokens::Number(223.231E+13, tokens::Text{"223.231E+13", 0}),
         tokens::Operator('+', 11),
-        tokens::Number(183.283E-132, tokens::Text{"183.283E-132", 12, 12}),
+        tokens::Number(183.283E-132, tokens::Text{"183.283E-132", 12}),
     });
 
     expect(*parsing == expected_parsing);
@@ -138,25 +138,25 @@ int main()
     expect(bool(parsing)) << parsing;
 
     auto expected_parsing = std::vector<Token>({
-        tokens::Function("f", 0, 1),
-        tokens::FunctionCallStart("(", 1, 1),
-        tokens::Number(1, tokens::Text{"1", 2, 1}),
+        tokens::Function("f", 0),
+        tokens::FunctionCallStart("(", 1),
+        tokens::Number(1, tokens::Text{"1", 2}),
         tokens::Operator('+', 3),
-        tokens::Function("g", 4, 1),
-        tokens::FunctionCallStart("(", 5, 1),
-        tokens::Variable("x", 6, 1),
-        tokens::FunctionArgumentSeparator(",", 7, 1),
-        tokens::Function("r", 9, 1),
-        tokens::FunctionCallStart("(", 10, 1),
-        tokens::Function("h", 11, 1),
-        tokens::FunctionCallStart("(", 12, 1),
-        tokens::Variable("x", 13, 1),
-        tokens::FunctionCallEnd(")", 14, 1),
-        tokens::FunctionCallEnd(")", 15, 1),
-        tokens::FunctionCallEnd(")", 16, 1),
-        tokens::FunctionArgumentSeparator(",", 17, 1),
-        tokens::Variable("x", 19, 1),
-        tokens::FunctionCallEnd(")", 20, 1)
+        tokens::Function("g", 4),
+        tokens::FunctionCallStart("(", 5),
+        tokens::Variable("x", 6),
+        tokens::FunctionArgumentSeparator(",", 7),
+        tokens::Function("r", 9),
+        tokens::FunctionCallStart("(", 10),
+        tokens::Function("h", 11),
+        tokens::FunctionCallStart("(", 12),
+        tokens::Variable("x", 13),
+        tokens::FunctionCallEnd(")", 14),
+        tokens::FunctionCallEnd(")", 15),
+        tokens::FunctionCallEnd(")", 16),
+        tokens::FunctionArgumentSeparator(",", 17),
+        tokens::Variable("x", 19),
+        tokens::FunctionCallEnd(")", 20)
     });
 
     if(parsing)
@@ -184,7 +184,7 @@ int main()
 
     expect(not bool(parsing)) << parsing;
 
-    expect(parsing.error() == Error::missing(tokens::FunctionCallEnd("", SubstrInfo{7, 0}))) << parsing.error();
+    expect(parsing.error() == Error::missing(tokens::FunctionCallEnd("", 7))) << parsing.error();
   };
 
   "missing normal closing pth"_test = []()
@@ -194,7 +194,7 @@ int main()
 
     expect(not bool(parsing)) << parsing;
 
-    expect(parsing.error() == Error::missing(tokens::ClosingParenthesis("", SubstrInfo{9, 0}))) << parsing.error();
+    expect(parsing.error() == Error::missing(tokens::ClosingParenthesis("", 9))) << parsing.error();
   };
 
   "unexpected end of expression"_test = []()
@@ -204,7 +204,7 @@ int main()
 
     expect(not bool(parsing)) << parsing;
 
-    expect(parsing.error() == Error::unexpected(tokens::EndOfExpression("", SubstrInfo{2, 0})))
+    expect(parsing.error() == Error::unexpected(tokens::EndOfExpression("", 2)))
       << parsing.error();
   };
 

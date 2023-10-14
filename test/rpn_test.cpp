@@ -47,10 +47,10 @@ int main()
     auto rpn_expr = parsing::make_RPN(expect_tree.value());
 
     RPN expected_rpn;
-    expected_rpn.push_back(node::Number(2.0, tokens::Text{"2", 0, 1}));
-    expected_rpn.push_back(node::Number(3.0, tokens::Text{"3", 4, 1}));
+    expected_rpn.push_back(node::Number(2.0, tokens::Text{"2", 0}));
+    expected_rpn.push_back(node::Number(3.0, tokens::Text{"3", 4}));
     expected_rpn.push_back(node::rpn::CppFunction<2>(tokens::Operator('-', 2), world.get<CppFunction<2>>(tokens::Operator::name_of('-'))));
-    expected_rpn.push_back(tokens::Number(2.0, tokens::Text{"2", 8, 1}));
+    expected_rpn.push_back(tokens::Number(2.0, tokens::Text{"2", 8}));
     expected_rpn.push_back(node::rpn::CppFunction<2>(tokens::Operator('+', 6), world.get<CppFunction<2>>(tokens::Operator::name_of('+'))));
 
     expect(bool(rpn_expr == expected_rpn)) << "Expected: " << expected_rpn << "Answer: " << rpn_expr;
