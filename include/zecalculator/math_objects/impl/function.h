@@ -193,7 +193,7 @@ tl::expected<double, Error> Function<type, args_num>::evaluate(
   if (mathworld->max_recursion_depth < current_recursion_depth) [[unlikely]]
     return tl::unexpected(Error::recursion_depth_overflow());
   else if (not bool(*this)) [[unlikely]]
-    return tl::unexpected(Error::invalid_function());
+    return tl::unexpected(*error());
 
   if constexpr (type == parsing::Type::AST)
   {
