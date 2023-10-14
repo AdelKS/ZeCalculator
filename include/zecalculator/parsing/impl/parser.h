@@ -49,7 +49,7 @@ inline std::optional<std::pair<double, size_t>> to_double(std::string_view view)
   return result;
 }
 
-tl::expected<std::vector<Token>, Error> tokenize(std::string_view expression)
+inline tl::expected<std::vector<Token>, Error> tokenize(std::string_view expression)
 {
   const std::string_view orig_expr = expression;
   std::vector<Token> parsing;
@@ -219,17 +219,15 @@ tl::expected<std::vector<Token>, Error> tokenize(std::string_view expression)
 }
 
 
-bool is_valid_name(std::string_view name)
+inline bool is_valid_name(std::string_view name)
 {
   auto parsing = tokenize(name);
   return parsing and parsing->size() == 1
          and std::holds_alternative<tokens::Variable>(parsing->front());
 }
 
-tl::expected<
-  std::vector<std::span<const Token>::iterator>,
-  Error
-> get_non_pth_enclosed_tokens(std::span<const Token> tokens)
+inline tl::expected<std::vector<std::span<const Token>::iterator>, Error>
+  get_non_pth_enclosed_tokens(std::span<const Token> tokens)
 {
   std::vector<std::span<const Token>::iterator> non_pth_enclosed_tokens;
 
@@ -557,7 +555,7 @@ struct RpnMaker
 
 };
 
-RPN make_RPN(const Tree<Type::RPN>& tree)
+inline RPN make_RPN(const Tree<Type::RPN>& tree)
 {
   return std::visit(RpnMaker{}, *tree);
 }
