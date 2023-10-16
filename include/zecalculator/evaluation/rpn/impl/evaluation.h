@@ -89,6 +89,35 @@ inline void Evaluator<input_size>::operator()(const zc::parsing::node::rpn::CppF
 }
 
 template <size_t input_size>
+template <char op, size_t args_num>
+inline void Evaluator<input_size>::operator()(const zc::parsing::node::rpn::Operator<op, args_num>&)
+{
+  // points on the before last value on the stack
+  const auto it = expected_eval_stack->end() - args_num;
+
+  if constexpr (args_num == 2)
+  {
+    if constexpr (op == '+')
+      *it = *(it) + *(it+1);
+    else if constexpr (op == '-')
+      *it = *(it) - *(it+1);
+    else if constexpr (op == '*')
+      *it = *(it) * *(it+1);
+    else if constexpr (op == '/')
+      *it = *(it) / *(it+1);
+    else if constexpr (op == '^')
+      *it = std::pow(*(it), *(it+1));
+    else static_assert(dependent_false_num_v<op>, "case not handled");
+  }
+  else static_assert(dependent_false_num_v<args_num>, "case not handled");
+
+  // remove args_num-1 values from the stack,
+  // why the minus one: one value got overwritten with the computation result, as an optim
+  if constexpr (args_num >= 2)
+    expected_eval_stack->resize(expected_eval_stack->size() - (args_num - 1));
+}
+
+template <size_t input_size>
 inline void Evaluator<input_size>::operator()(const zc::parsing::node::rpn::Sequence& node)
 {
   //              std::cout << "Evaluating zc function: " << node.name << std::endl;

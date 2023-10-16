@@ -57,6 +57,40 @@ inline Evaluator<input_size>::ReturnType
 }
 
 template <size_t input_size>
+template <char op, size_t args_num>
+inline Evaluator<input_size>::ReturnType
+  Evaluator<input_size>::operator()(const zc::parsing::node::ast::Operator<zc::parsing::Type::AST, op, args_num>& node)
+{
+  std::array<double, args_num> evaluations;
+  size_t i = 0;
+  for (const auto& operand : node.operands)
+  {
+    auto eval = evaluate(operand, input_vars, current_recursion_depth + 1);
+    if (eval) [[likely]]
+      evaluations[i] = *eval;
+    else [[unlikely]]
+      return eval;
+    i++;
+  }
+
+  if constexpr (args_num == 2)
+  {
+    if constexpr (op == '+')
+      return evaluations[0] + evaluations[1];
+    else if constexpr (op == '-')
+      return evaluations[0] - evaluations[1];
+    else if constexpr (op == '*')
+      return evaluations[0] * evaluations[1];
+    else if constexpr (op == '/')
+      return evaluations[0] / evaluations[1];
+    else if constexpr (op == '^')
+      return std::pow(evaluations[0], evaluations[1]);
+    else static_assert(dependent_false_num_v<op>, "case not handled");
+  }
+  else static_assert(dependent_false_num_v<args_num>, "case not handled");
+}
+
+template <size_t input_size>
 inline Evaluator<input_size>::ReturnType
   Evaluator<input_size>::operator()(const zc::parsing::node::ast::Sequence<zc::parsing::Type::AST>& node)
 {

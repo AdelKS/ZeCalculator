@@ -83,7 +83,7 @@ public:
 
   /// @brief default constructor that defines the usual functions and global constants
   MathWorld()
-    : MathWorld(builtin_unary_functions, builtin_binary_functions, builtin_global_constants){};
+    : MathWorld(builtin_unary_functions, builtin_global_constants){};
 
   template <class ObjectType1, size_t size1, class... ObjectTypeN, size_t... sizeN>
   MathWorld(const std::array<std::pair<std::string_view, ObjectType1>, size1>& objects1,

@@ -46,14 +46,12 @@ int main()
 
     expect(bool(expect_node));
 
-    Tree<type> expected_node = node::ast::CppFunction<type, 2>(
-      tokens::Operator('+', 1),
-      world.template get<CppFunction<2>>(tokens::Operator::name_of('+')),
+    Tree<type> expected_node = node::ast::BinaryOperator<type, '+'>(
+      1,
       {node::Number(2.0, tokens::Text{"2", 0}),
-       node::ast::CppFunction<type, 2>(tokens::Operator('*', 3),
-                                       world.template get<CppFunction<2>>(tokens::Operator::name_of('*')),
-                                       {node::Number(2.0, tokens::Text{"2", 2}),
-                                        node::Number(2.0, tokens::Text{"2", 4})})});
+       node::ast::BinaryOperator<type, '*'>(3,
+                                            {node::Number(2.0, tokens::Text{"2", 2}),
+                                             node::Number(2.0, tokens::Text{"2", 4})})});
 
     expect(*expect_node == expected_node);
 
@@ -75,15 +73,13 @@ int main()
 
     expect(bool(expect_node));
 
-    Tree<type> expected_node = node::ast::CppFunction<type, 2>(
-      tokens::Operator('+', 15),
-      world.template get<CppFunction<2>>(tokens::Operator::name_of('+')),
+    Tree<type> expected_node = node::ast::BinaryOperator<type, '+'>(
+      15,
       {node::ast::CppFunction<type, 1>(
          tokens::Text("cos", 1),
          world.template get<CppFunction<1>>("cos"),
-         {node::ast::CppFunction<type, 2>(
-           tokens::Operator('+', 11),
-           world.template get<CppFunction<2>>(tokens::Operator::name_of('+')),
+         {node::ast::BinaryOperator<type, '+'>(
+           11,
            {node::ast::CppFunction<type, 1>(tokens::Text("sin", 5),
                                             world.template get<CppFunction<1>>("sin"),
                                             {node::InputVariable(tokens::Text("x", 9), 0)}),

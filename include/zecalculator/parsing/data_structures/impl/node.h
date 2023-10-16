@@ -80,6 +80,17 @@ namespace zc {
           const zc::CppFunction<args_num>* f;
         };
 
+        template <char op, size_t args_num>
+        struct Operator: zc::parsing::tokens::Operator<op, args_num>
+        {
+          using Parent = zc::parsing::tokens::Operator<op, args_num>;
+
+          Operator(const Parent& op_token): Parent(op_token) {}
+          Operator(size_t begin) : zc::parsing::tokens::Operator<op, args_num>(begin){};
+
+          Operator(const Operator&) = default;
+        };
+
       } // namespace rpn
 
       namespace ast {
@@ -143,10 +154,21 @@ namespace zc {
         struct CppFunction: rpn::CppFunction<args_num>
         {
           CppFunction(const Text& txt,
-                            const zc::CppFunction<args_num>* f,
-                            std::array<NodePtr<world_type>, args_num> operands)
+                      const zc::CppFunction<args_num>* f,
+                      std::array<NodePtr<world_type>, args_num> operands)
             : rpn::CppFunction<args_num>(txt, f), operands(std::move(operands))
           {}
+
+          std::array<NodePtr<world_type>, args_num> operands;
+        };
+
+        template <parsing::Type world_type, char op, size_t args_num>
+        struct Operator: rpn::Operator<op, args_num>
+        {
+          using Parent = rpn::Operator<op, args_num>;
+
+          Operator(const Parent& parent, std::array<NodePtr<world_type>, args_num> operands)
+            : Parent(parent), operands(std::move(operands)){};
 
           std::array<NodePtr<world_type>, args_num> operands;
         };

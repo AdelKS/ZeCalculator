@@ -56,9 +56,20 @@ namespace parsing {
       template <size_t>
       struct CppFunction;
 
+      template <char op, size_t args_num>
+      struct Operator;
+
+      template <char op>
+      using BinaryOperator = Operator<op, 2>;
+
       using Node = std::variant<std::monostate,
                                 InputVariable,
                                 Number,
+                                Operator<'+', 2>,
+                                Operator<'-', 2>,
+                                Operator<'*', 2>,
+                                Operator<'/', 2>,
+                                Operator<'^', 2>,
                                 CppFunction<1>,
                                 CppFunction<2>,
                                 GlobalConstant,
@@ -83,10 +94,21 @@ namespace parsing {
       template <parsing::Type, size_t args_num>
       struct CppFunction;
 
+      template <parsing::Type, char op, size_t args_num>
+      struct Operator;
+
+      template <parsing::Type type, char op>
+      using BinaryOperator = Operator<type, op, 2>;
+
       template <parsing::Type world_type>
       using Node = std::variant<std::monostate,
                                 InputVariable,
                                 Number,
+                                Operator<world_type, '+', 2>,
+                                Operator<world_type, '-', 2>,
+                                Operator<world_type, '*', 2>,
+                                Operator<world_type, '/', 2>,
+                                Operator<world_type, '^', 2>,
                                 CppFunction<world_type, 1>,
                                 CppFunction<world_type, 2>,
                                 GlobalConstant,

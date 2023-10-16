@@ -52,6 +52,13 @@ void syntax_node_print_helper(std::ostream& os, const node::ast::Node<world_type
                           for (auto&& operand: f.operands)
                             syntax_node_print_helper(os, *operand, padding + 2);
                         },
+                        [&]<char op, size_t args_num>(const node::ast::Operator<world_type, op, args_num> &f)
+                        {
+                          os << padding_str << "Operator<" << op << ", " << args_num << "> " << tokens::Text(f) << " {"
+                             << std::endl;
+                          for (auto&& operand: f.operands)
+                            syntax_node_print_helper(os, *operand, padding + 2);
+                        },
                         [&](const node::InputVariable &v)
                         {
                           os << padding_str << "InputVariable " << tokens::Text(v) << " index: " << v.index

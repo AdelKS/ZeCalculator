@@ -54,6 +54,9 @@ struct Evaluator
   template <size_t args_num>
   void operator () (const zc::parsing::node::rpn::Function<args_num>&);
 
+  template <char op, size_t args_num>
+  void operator () (const zc::parsing::node::rpn::Operator<op, args_num>&);
+
   void operator () (const zc::parsing::node::rpn::Sequence&);
 
   template <size_t args_num>

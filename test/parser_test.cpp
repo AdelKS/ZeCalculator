@@ -48,9 +48,9 @@ int main()
 
     auto expected_parsing = std::vector<Token>({
         tokens::Number(2., tokens::Text{"2", 0}),
-        tokens::Operator('+', 1),
+        tokens::BinaryOperator<'+'>(1),
         tokens::Number(2., tokens::Text{"2", 2}),
-        tokens::Operator('*', 3),
+        tokens::BinaryOperator<'*'>(3),
         tokens::Number(2., tokens::Text{"2", 4}),
     });
 
@@ -65,9 +65,9 @@ int main()
 
     auto expected_parsing = std::vector<Token>({
         tokens::Number(2., tokens::Text{"2", 3}),
-        tokens::Operator('+', 5),
+        tokens::BinaryOperator<'+'>(5),
         tokens::Number(2., tokens::Text{"2", 8}),
-        tokens::Operator('*', 11),
+        tokens::BinaryOperator<'*'>(11),
         tokens::Number(2., tokens::Text{"2", 12}),
     });
 
@@ -88,11 +88,11 @@ int main()
         tokens::FunctionCallStart("(", 8),
         tokens::Variable("x", 9),
         tokens::FunctionCallEnd(")", 10),
-        tokens::Operator('+', 11),
+        tokens::BinaryOperator<'+'>(11),
         tokens::Number(1., tokens::Text{"1", 12}),
         tokens::FunctionCallEnd(")", 13),
         tokens::ClosingParenthesis(")", 14),
-        tokens::Operator('+', 15),
+        tokens::BinaryOperator<'+'>(15),
         tokens::Number(1., tokens::Text{"1", 16}),
     });
 
@@ -104,7 +104,7 @@ int main()
     auto parsing = tokenize("2*-1");
 
     expect(not parsing and
-           parsing.error() == Error::unexpected(tokens::Operator('-', 2)))
+           parsing.error() == Error::unexpected(tokens::BinaryOperator<'-'>(2)))
         << parsing;
   };
 
@@ -124,7 +124,7 @@ int main()
 
     auto expected_parsing = std::vector<Token>({
         tokens::Number(223.231E+13, tokens::Text{"223.231E+13", 0}),
-        tokens::Operator('+', 11),
+        tokens::BinaryOperator<'+'>(11),
         tokens::Number(183.283E-132, tokens::Text{"183.283E-132", 12}),
     });
 
@@ -141,7 +141,7 @@ int main()
         tokens::Function("f", 0),
         tokens::FunctionCallStart("(", 1),
         tokens::Number(1, tokens::Text{"1", 2}),
-        tokens::Operator('+', 3),
+        tokens::BinaryOperator<'+'>(3),
         tokens::Function("g", 4),
         tokens::FunctionCallStart("(", 5),
         tokens::Variable("x", 6),

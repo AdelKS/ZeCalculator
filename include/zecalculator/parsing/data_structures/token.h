@@ -84,34 +84,29 @@ struct Function: Text
   using Text::Text;
 };
 
+// operators ordered in increasing order of priority
+inline constexpr std::array operators = {'+', '-', '*', '/', '^'};
+
+using OperatorSequence = std::integer_sequence<char, '+', '-', '*', '/', '^'>;
+
+inline constexpr bool is_operator(const char ch)
+{
+  return std::ranges::count(operators, ch);
+}
+
+template <char op, size_t args_num>
+  requires (is_operator(op) and args_num >= 1)
 struct Operator: Function
 {
-  using pair_type = std::pair<char, std::string_view>;
-  // operators ordered in increasing order of priority
-  static constexpr std::array<pair_type, 5> operators = {{{'+', "internal::plus"},
-                                                          {'-', "internal::minus"},
-                                                          {'*', "internal::multiply"},
-                                                          {'/', "internal::divide"},
-                                                          {'^', "internal::power"}}};
-
-  constexpr static std::string_view name_of(char op)
-  {
-    assert(std::ranges::count(operators, op, &pair_type::first) == 1);
-    return std::ranges::find(operators, op, &pair_type::first)->second;
-  }
-
-  constexpr static bool is_operator(const char ch)
-  {
-    return std::ranges::any_of(
-      operators, [&ch](const char op) { return op == ch; }, &pair_type::first);
-  }
-
-  Operator(char op, size_t begin): Function(name_of(op), begin, 1) {}
+  Operator(size_t begin): Function(std::string(1, op), begin) {}
 
   Operator(std::string_view op_v, std::string_view original_expr)
-    : Function(name_of(op_v.front()), SubstrInfo::from_views(op_v, original_expr))
+    : Function(std::string(op_v), SubstrInfo::from_views(op_v, original_expr))
   {}
 };
+
+template <char op>
+using BinaryOperator = Operator<op, 2>;
 
 struct OpeningParenthesis: Text
 {
@@ -147,12 +142,21 @@ struct EndOfExpression: Text // will be used only to signal errors
 
 /// @brief represents a  in a parsed expression
 /// @example an operatr '+', a function name 'cos', a variable 'x', a number '-3.14E+2'
-using TokenType =
-    std::variant<tokens::Unkown, tokens::Number, tokens::Variable,
-                 tokens::Function, tokens::Operator, tokens::OpeningParenthesis,
-                 tokens::ClosingParenthesis, tokens::FunctionCallStart,
-                 tokens::FunctionCallEnd, tokens::FunctionArgumentSeparator,
-                 tokens::EndOfExpression>;
+using TokenType = std::variant<tokens::Unkown,
+                               tokens::Number,
+                               tokens::Variable,
+                               tokens::Function,
+                               tokens::Operator<'+', 2>,
+                               tokens::Operator<'-', 2>,
+                               tokens::Operator<'*', 2>,
+                               tokens::Operator<'/', 2>,
+                               tokens::Operator<'^', 2>,
+                               tokens::OpeningParenthesis,
+                               tokens::ClosingParenthesis,
+                               tokens::FunctionCallStart,
+                               tokens::FunctionCallEnd,
+                               tokens::FunctionArgumentSeparator,
+                               tokens::EndOfExpression>;
 
 struct Token: TokenType
 {

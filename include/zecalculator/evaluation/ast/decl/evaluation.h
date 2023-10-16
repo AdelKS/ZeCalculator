@@ -43,6 +43,9 @@ struct Evaluator
 
   ReturnType operator () (std::monostate);
 
+  template <char op, size_t args_num>
+  ReturnType operator () (const zc::parsing::node::ast::Operator<zc::parsing::Type::AST, op, args_num>&);
+
   template <size_t args_num>
   ReturnType operator () (const zc::parsing::node::ast::Function<zc::parsing::Type::AST, args_num>&);
 

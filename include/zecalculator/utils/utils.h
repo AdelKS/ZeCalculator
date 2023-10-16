@@ -21,6 +21,7 @@
 ****************************************************************************/
 
 #include <type_traits>
+#include <utility>
 
 // useful for visiting std::variant
 // taken from https://en.cppreference.com/w/cpp/utility/variant/visit
@@ -29,3 +30,12 @@ template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
 template <class T, class... U>
 concept is_any_of = (std::is_same_v<T, U> or ...);
+
+template <int>
+inline constexpr bool dependent_false_num_v = false;
+
+template <class Fn, class Int, Int... v>
+constexpr void for_int_seq(Fn&& f, std::integer_sequence<Int, v...>)
+{
+  (f(std::integral_constant<Int, v>()), ...);
+}

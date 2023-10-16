@@ -102,17 +102,22 @@ inline tl::expected<std::vector<Token>, Error> tokenize(std::string_view express
         return tl::unexpected(Error::wrong_format(
           tokens::Number(std::nan(""), tokens::Text(char_v, orig_expr))));
     }
-    else if (tokens::Operator::is_operator(*it))
+    else if (tokens::is_operator(*it))
     {
       if (ope)
       {
-        parsing.push_back(tokens::Operator(char_v, orig_expr));
+        auto push_op = [&]<char op>(std::integral_constant<char, op>)
+        {
+          if (*it == op)
+            parsing.push_back(tokens::Operator<op, 2>(char_v, orig_expr));
+        };
+        for_int_seq(push_op, tokens::OperatorSequence());
 
         openingParenthesis = value = true;
         ope = numberSign = closingParenthesis = canEnd = false;
         it++;
       }
-      else return tl::unexpected(Error::unexpected(tokens::Operator(char_v, orig_expr)));
+      else return tl::unexpected(Error::unexpected(tokens::Text(char_v, orig_expr)));
     }
     else if (*it == '(')
     {
@@ -436,36 +441,53 @@ tl::expected<Tree<type>, Error> make_tree(std::span<const parsing::Token> tokens
     // we check for operations
     // loop through the expression by increasing operator priority
     // -> because the deepest parts of the syntax tree are to be calculated first
-    for (const auto& [op, op_str]: tokens::Operator::operators)
+    auto get_node = [&]<char op>(std::integral_constant<char, op>,
+                                 auto&& tokenIt) -> tl::expected<Tree<type>, Error>
     {
-      for (auto tokenIt: non_pth_enclosed_tokens)
+      // we are not within parentheses, and we are at the right operator priority
+      if (tokenIt == tokens.begin() or tokenIt + 1 == tokens.end())
+        return tl::unexpected(Error::unexpected(text_token(*tokenIt)));
+
+      auto left_hand_side = make_tree(std::span(tokens.begin(), tokenIt), world, input_vars);
+      if (not left_hand_side.has_value())
+        return left_hand_side;
+
+      auto right_hand_side = make_tree(std::span(tokenIt + 1, tokens.end()), world, input_vars);
+      if (not right_hand_side.has_value())
+        return right_hand_side;
+
+      return node::ast::Operator<type, op, 2>(text_token(*tokenIt).substr_info.begin,
+                                              std::array{std::move(left_hand_side.value()),
+                                                         std::move(right_hand_side.value())});
+    };
+    auto get_op_token = [&]<char op>(std::integral_constant<char, op>)
+    {
+      return std::ranges::find_if(non_pth_enclosed_tokens,
+                                  [](auto&& tokenIt)
+                                  {
+                                    return std::holds_alternative<tokens::Operator<op, 2>>(*tokenIt);
+                                  });
+    };
+    auto try_op = [&]<char op>(std::integral_constant<char, op>) -> std::optional<tl::expected<Tree<type>, Error>>
+    {
+      const auto tokenItIt = get_op_token(std::integral_constant<char, op>());
+      if (tokenItIt != non_pth_enclosed_tokens.end())
+        return get_node(std::integral_constant<char, op>(), *tokenItIt);
+      else return {};
+    };
+    auto constexpr_loop = [&]<size_t... i>(std::integer_sequence<size_t, i...>) -> std::optional<tl::expected<Tree<type>, Error>>
+    {
+      auto res_arr = std::array {try_op(std::integral_constant<char, tokens::operators[i]>())...};
+      for (auto&& val: res_arr)
       {
-        if (std::holds_alternative<tokens::Operator>(*tokenIt) and
-            std::get<tokens::Operator>(*tokenIt).name == op_str)
-        {
-          // we are not within parentheses, and we are at the right operator priority
-          if (tokenIt == tokens.begin() or tokenIt+1 == tokens.end())
-            return tl::unexpected(Error::unexpected(text_token(*tokenIt)));
-
-          auto left_hand_side = make_tree(std::span(tokens.begin(), tokenIt), world, input_vars);
-          if (not left_hand_side.has_value())
-            return left_hand_side;
-
-          auto right_hand_side = make_tree(std::span(tokenIt+1, tokens.end()), world, input_vars);
-          if (not right_hand_side.has_value())
-            return right_hand_side;
-
-          const zc::CppBinaryFunction* cpp_bin_f = world.template get<zc::CppBinaryFunction>(op_str);
-
-          assert(cpp_bin_f);
-
-          return node::ast::CppFunction<type, 2>(text_token(*tokenIt),
-                                                 cpp_bin_f,
-                                                 std::array{std::move(left_hand_side.value()),
-                                                            std::move(right_hand_side.value())});
-        }
+        if (val)
+          return std::move(val);
       }
-    }
+      return {};
+    };
+    auto res = constexpr_loop(std::make_index_sequence<tokens::operators.size()>());
+    if (res)
+      return std::move(*res);
   }
 
   // if we reach the end of this function, something is not right
@@ -535,6 +557,23 @@ struct RpnMaker
     }
 
     res.push_back(node::rpn::Function<args_num>(func, func.f));
+    return res;
+  }
+
+  template <char op, size_t args_num>
+  RPN operator () (const node::ast::Operator<Type::RPN, op, args_num>& func)
+  {
+    RPN res;
+    for (const Tree<Type::RPN>& sub_node : func.operands)
+    {
+      RPN tmp = std::visit(*this, *sub_node);
+      if (check_for_monostate(tmp)) [[unlikely]]
+        return RPN{std::monostate()};
+      else [[likely]]
+        std::ranges::move(tmp, std::back_inserter(res));
+    }
+
+    res.push_back(node::rpn::Operator<op, args_num>(func));
     return res;
   }
 
