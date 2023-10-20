@@ -82,80 +82,44 @@ public:
   using ConstDynMathObject = to_variant_t<tuple_type_cat_t<std::tuple<UnregisteredObject>, tuple_transform_t<cst_ptr, MathObjects<type>>>>;
 
   /// @brief default constructor that defines the usual functions and global constants
-  MathWorld()
-    : MathWorld(builtin_unary_functions, builtin_global_constants){};
+  MathWorld();
 
   template <class ObjectType1, size_t size1, class... ObjectTypeN, size_t... sizeN>
   MathWorld(const std::array<std::pair<std::string_view, ObjectType1>, size1>& objects1,
-             const std::array<std::pair<std::string_view, ObjectTypeN>, sizeN>&... objectsN)
-    : MathWorld(objectsN...)
-  {
-    for(auto [name, obj]: objects1)
-      add<ObjectType1>(name, obj);
-  }
+             const std::array<std::pair<std::string_view, ObjectTypeN>, sizeN>&... objectsN);
 
   template <class ObjectType, size_t size>
-  MathWorld(const std::array<std::pair<std::string_view, ObjectType>, size>& objects)
-  {
-    for(auto [name, obj]: objects)
-      add<ObjectType>(name, obj);
-  }
+  MathWorld(const std::array<std::pair<std::string_view, ObjectType>, size>& objects);
 
   /// @brief get object from name, the underlying type is to be dynamically resolved at runtime
   /// @note const version
-  ConstDynMathObject get(std::string_view name) const
-  {
-    auto it = inventory.find(name);
-    return it != inventory.end() ? to_const(it->second) : ConstDynMathObject();
-  }
+  ConstDynMathObject get(std::string_view name) const;
 
   /// @brief get object from name, the underlying type is to be dynamically resolved at runtime
-  DynMathObject get(std::string_view name)
-  {
-    auto it = inventory.find(name);
-    return it != inventory.end() ? it->second : DynMathObject();
-  }
+  DynMathObject get(std::string_view name);
 
   /// @brief get object 'ObjectType' from name, if it exists, nullptr otherwise
   template <class ObjectType>
     requires tuple_contains_v<MathObjects<type>, ObjectType>
-  ObjectType* get(std::string_view name)
-  {
-    DynMathObject dyn_obj = get(name);
-    if (std::holds_alternative<ObjectType*>(dyn_obj))
-      return std::get<ObjectType*>(dyn_obj);
-    else return nullptr;
-  }
+  ObjectType* get(std::string_view name);
 
   /// @brief get object 'ObjectType' from name, if it exists, nullptr otherwise
   /// @note const version
   template <class ObjectType>
     requires tuple_contains_v<MathObjects<type>, ObjectType>
-  const ObjectType* get(std::string_view name) const
-  {
-    ConstDynMathObject dyn_obj = get(name);
-    if (std::holds_alternative<const ObjectType*>(dyn_obj))
-      return std::get<const ObjectType*>(dyn_obj);
-    else return nullptr;
-  }
+  const ObjectType* get(std::string_view name) const;
 
   /// @brief get object 'ObjectType' from id
   /// @note ids are not unique, they live in different sets between ObjectTypes
   template <class ObjectType>
     requires tuple_contains_v<MathObjects<type>, ObjectType>
-  ObjectType& get(size_t id)
-  {
-    return std::get<SlottedDeque<ObjectType>>(math_objects).at(id);
-  }
+  ObjectType& get(size_t id);
 
   /// @brief get object 'ObjectType' from id
   /// @note const version
   template <class ObjectType>
     requires tuple_contains_v<MathObjects<type>, ObjectType>
-  const ObjectType& get(size_t id) const
-  {
-    return std::get<SlottedDeque<ObjectType>>(math_objects).at(id);
-  }
+  const ObjectType& get(size_t id) const;
 
   /// @brief default constructs an ObjectType in the world, under the name 'name'
   ///        then, if there are extra args, forwards them the member function .set() of the newly added object
@@ -167,10 +131,7 @@ public:
   tl::expected<ref<ObjectType>, NameError> add(std::string_view name, Arg&&... arg);
 
   /// @brief says if an object with the given name exists within the world
-  bool contains(std::string_view name) const
-  {
-    return inventory.find(name) != inventory.end();
-  }
+  bool contains(std::string_view name) const;
 
   /// @brief evaluates a given expression within this world
   tl::expected<double, Error> evaluate(std::string expr) const;
@@ -182,15 +143,7 @@ public:
 protected:
 
   /// @brief converts a DynMathObject to a ConstDynMathObject
-  ConstDynMathObject to_const(DynMathObject obj) const
-  {
-    return std::visit(
-      overloaded{
-        [](UnregisteredObject) -> ConstDynMathObject { return UnregisteredObject(); },
-        [](auto* val) -> ConstDynMathObject { return val; }
-      },
-      obj);
-  }
+  ConstDynMathObject to_const(DynMathObject obj) const;
 
   /// @brief maps an object name to its type and ID (index within the container that holds it)
   name_map<DynMathObject> inventory;

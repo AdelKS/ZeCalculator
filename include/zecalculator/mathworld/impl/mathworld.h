@@ -26,6 +26,103 @@
 namespace zc {
 
 template <parsing::Type type>
+MathWorld<type>::MathWorld()
+  : MathWorld<type>::MathWorld(builtin_unary_functions, builtin_global_constants){};
+
+
+template <parsing::Type type>
+template <class ObjectType1, size_t size1, class... ObjectTypeN, size_t... sizeN>
+MathWorld<type>::MathWorld(const std::array<std::pair<std::string_view, ObjectType1>, size1>& objects1,
+            const std::array<std::pair<std::string_view, ObjectTypeN>, sizeN>&... objectsN)
+  : MathWorld(objectsN...)
+{
+  for(auto [name, obj]: objects1)
+    add<ObjectType1>(name, obj);
+}
+
+template <parsing::Type type>
+template <class ObjectType, size_t size>
+MathWorld<type>::MathWorld(const std::array<std::pair<std::string_view, ObjectType>, size>& objects)
+{
+  for(auto [name, obj]: objects)
+    add<ObjectType>(name, obj);
+}
+
+template <parsing::Type type>
+MathWorld<type>::ConstDynMathObject MathWorld<type>::get(std::string_view name) const
+{
+  auto it = inventory.find(name);
+  return it != inventory.end() ? to_const(it->second) : ConstDynMathObject();
+}
+
+template <parsing::Type type>
+MathWorld<type>::DynMathObject MathWorld<type>::get(std::string_view name)
+{
+  auto it = inventory.find(name);
+  return it != inventory.end() ? it->second : DynMathObject();
+}
+
+template <parsing::Type type>
+template <class ObjectType>
+  requires tuple_contains_v<MathObjects<type>, ObjectType>
+ObjectType* MathWorld<type>::get(std::string_view name)
+{
+  DynMathObject dyn_obj = get(name);
+  if (std::holds_alternative<ObjectType*>(dyn_obj))
+    return std::get<ObjectType*>(dyn_obj);
+  else return nullptr;
+}
+
+template <parsing::Type type>
+template <class ObjectType>
+  requires tuple_contains_v<MathObjects<type>, ObjectType>
+const ObjectType* MathWorld<type>::get(std::string_view name) const
+{
+  ConstDynMathObject dyn_obj = get(name);
+  if (std::holds_alternative<const ObjectType*>(dyn_obj))
+    return std::get<const ObjectType*>(dyn_obj);
+  else return nullptr;
+}
+
+
+template <parsing::Type type>
+template <class ObjectType>
+  requires tuple_contains_v<MathObjects<type>, ObjectType>
+ObjectType& MathWorld<type>::get(size_t id)
+{
+  return std::get<SlottedDeque<ObjectType>>(math_objects).at(id);
+}
+
+
+template <parsing::Type type>
+template <class ObjectType>
+  requires tuple_contains_v<MathObjects<type>, ObjectType>
+const ObjectType& MathWorld<type>::get(size_t id) const
+{
+  return std::get<SlottedDeque<ObjectType>>(math_objects).at(id);
+}
+
+
+template <parsing::Type type>
+bool MathWorld<type>::contains(std::string_view name) const
+{
+  return inventory.find(name) != inventory.end();
+}
+
+
+template <parsing::Type type>
+MathWorld<type>::ConstDynMathObject MathWorld<type>::to_const(DynMathObject obj) const
+{
+  return std::visit(
+    overloaded{
+      [](UnregisteredObject) -> ConstDynMathObject { return UnregisteredObject(); },
+      [](auto* val) -> ConstDynMathObject { return val; }
+    },
+    obj);
+}
+
+
+template <parsing::Type type>
 template <class ObjectType, class... Arg>
   requires(tuple_contains_v<MathObjects<type>, ObjectType>
            and (sizeof...(Arg) == 0 or requires(ObjectType o) { o.set(std::declval<Arg>()...); }))
@@ -54,6 +151,7 @@ tl::expected<ref<ObjectType>, NameError> MathWorld<type>::add(std::string_view n
 
   return world_object;
 }
+
 
 template <parsing::Type type>
 tl::expected<double, Error> MathWorld<type>::evaluate(std::string expr) const
