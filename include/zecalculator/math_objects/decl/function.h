@@ -115,6 +115,12 @@ public:
   /// @note  undefined functions & variables in the math world will still be listed
   std::unordered_map<std::string, deps::ObjectType> direct_dependencies() const;
 
+  /// @brief gives all the Functions and Variables this function (recursively) depends on
+  /// @note  uses only the function's expression (no name lookup is done in
+  ///        the MathWorld the function belongs to)
+  /// @note  undefined functions & variables in the math world will still be listed
+  std::unordered_map<std::string, deps::ObjectType> dependencies() const;
+
   /// @brief tests if the function is valid, i.e. has a valid expression and input vars
   operator bool () const;
 

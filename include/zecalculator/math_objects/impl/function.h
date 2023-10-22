@@ -25,6 +25,8 @@
 #include <zecalculator/math_objects/decl/function.h>
 #include <zecalculator/parsing/impl/parser.h>
 
+#include <unordered_set>
+
 namespace zc {
 
 template <parsing::Type type, size_t args_num>
@@ -183,6 +185,52 @@ std::unordered_map<std::string, deps::ObjectType> Function<type, args_num>::dire
         [](auto&&){ /* no op */ },
       }, tok);
 
+  return deps;
+}
+
+template <parsing::Type type, size_t args_num>
+std::unordered_map<std::string, deps::ObjectType> Function<type, args_num>::dependencies() const
+{
+  std::unordered_map<std::string, deps::ObjectType> deps = direct_dependencies();
+  std::unordered_set<std::string> explored_deps = {this->name};
+
+  std::unordered_set<std::string> to_explore;
+
+  auto add_dep_to_explore = [&](const std::pair<std::string,  deps::ObjectType>& dep) {
+    if (dep.second == deps::ObjectType::FUNCTION and not explored_deps.contains(dep.first))
+      to_explore.insert(dep.first);
+  };
+
+  for (auto&& dep: deps)
+    add_dep_to_explore(dep);
+
+  while (not to_explore.empty())
+  {
+    // pop a node out and only keep the name
+    std::string name = to_explore.extract(to_explore.begin()).value();
+    explored_deps.insert(name);
+
+    std::visit(
+      [&]<class T>(T&& val) {
+        if constexpr (requires { val->get_name(); })
+        {
+          using Type = std::remove_pointer_t<std::remove_cvref_t<T>>;
+          if constexpr (is_any_of<Type, GlobalConstant, GlobalVariable<type>>)
+            deps.insert({val->get_name(), deps::ObjectType::VARIABLE});
+          else deps.insert({val->get_name(), deps::ObjectType::FUNCTION});
+        }
+        if constexpr (requires { val->direct_dependencies(); })
+        {
+          const auto new_deps = val->direct_dependencies();
+          for (auto&& dep: new_deps)
+          {
+            deps.insert(dep);
+            add_dep_to_explore(dep);
+          }
+        }
+      },
+      this->mathworld->get(name));
+  }
   return deps;
 }
 
