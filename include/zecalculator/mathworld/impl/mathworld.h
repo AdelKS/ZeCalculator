@@ -27,25 +27,12 @@ namespace zc {
 
 template <parsing::Type type>
 MathWorld<type>::MathWorld()
-  : MathWorld<type>::MathWorld(builtin_unary_functions, builtin_global_constants){};
-
-
-template <parsing::Type type>
-template <class ObjectType1, size_t size1, class... ObjectTypeN, size_t... sizeN>
-MathWorld<type>::MathWorld(const std::array<std::pair<std::string_view, ObjectType1>, size1>& objects1,
-            const std::array<std::pair<std::string_view, ObjectTypeN>, sizeN>&... objectsN)
-  : MathWorld(objectsN...)
 {
-  for(auto [name, obj]: objects1)
-    add<ObjectType1>(name, obj);
-}
+  for (auto&& [name, f_ptr]: builtin_unary_functions)
+    add<CppUnaryFunction>(name, f_ptr);
 
-template <parsing::Type type>
-template <class ObjectType, size_t size>
-MathWorld<type>::MathWorld(const std::array<std::pair<std::string_view, ObjectType>, size>& objects)
-{
-  for(auto [name, obj]: objects)
-    add<ObjectType>(name, obj);
+  for (auto&& [name, cst]: builtin_global_constants)
+    add<GlobalConstant>(name, cst);
 }
 
 template <parsing::Type type>

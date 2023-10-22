@@ -30,46 +30,46 @@ using CppUnaryFunction = CppFunction<1>;
 
 // we save the names along with the function pointers for convenience
 // we could save only the function pointers, and the names only in the inventory
-inline std::array<std::pair<std::string_view, CppUnaryFunction>, 30> builtin_unary_functions = {{
-  {"cos",   CppUnaryFunction(std::cos)},
-  {"sin",   CppUnaryFunction(std::sin)},
-  {"tan",   CppUnaryFunction(std::tan)},
+inline constexpr std::array<std::pair<std::string_view, CppMathFunctionPtr<1>>, 30> builtin_unary_functions = {{
+  {"cos",   CppMathFunctionPtr<1>(std::cos)},
+  {"sin",   CppMathFunctionPtr<1>(std::sin)},
+  {"tan",   CppMathFunctionPtr<1>(std::tan)},
 
-  {"acos",  CppUnaryFunction(std::acos)},
-  {"asin",  CppUnaryFunction(std::asin)},
-  {"atan",  CppUnaryFunction(std::atan)},
+  {"acos",  CppMathFunctionPtr<1>(std::acos)},
+  {"asin",  CppMathFunctionPtr<1>(std::asin)},
+  {"atan",  CppMathFunctionPtr<1>(std::atan)},
 
-  {"cosh",  CppUnaryFunction(std::cosh)},
-  {"sinh",  CppUnaryFunction(std::sinh)},
-  {"tanh",  CppUnaryFunction(std::tanh)},
+  {"cosh",  CppMathFunctionPtr<1>(std::cosh)},
+  {"sinh",  CppMathFunctionPtr<1>(std::sinh)},
+  {"tanh",  CppMathFunctionPtr<1>(std::tanh)},
 
-  {"ch",    CppUnaryFunction(std::cosh)},
-  {"sh",    CppUnaryFunction(std::sinh)},
-  {"th",    CppUnaryFunction(std::tanh)},
+  {"ch",    CppMathFunctionPtr<1>(std::cosh)},
+  {"sh",    CppMathFunctionPtr<1>(std::sinh)},
+  {"th",    CppMathFunctionPtr<1>(std::tanh)},
 
-  {"acosh", CppUnaryFunction(std::acosh)},
-  {"asinh", CppUnaryFunction(std::asinh)},
-  {"atanh", CppUnaryFunction(std::atanh)},
+  {"acosh", CppMathFunctionPtr<1>(std::acosh)},
+  {"asinh", CppMathFunctionPtr<1>(std::asinh)},
+  {"atanh", CppMathFunctionPtr<1>(std::atanh)},
 
-  {"ach",   CppUnaryFunction(std::acosh)},
-  {"ash",   CppUnaryFunction(std::asinh)},
-  {"ath",   CppUnaryFunction(std::atanh)},
+  {"ach",   CppMathFunctionPtr<1>(std::acosh)},
+  {"ash",   CppMathFunctionPtr<1>(std::asinh)},
+  {"ath",   CppMathFunctionPtr<1>(std::atanh)},
 
-  {"sqrt",  CppUnaryFunction(std::sqrt)},
-  {"log",   CppUnaryFunction(std::log10)},
-  {"lg",    CppUnaryFunction(std::log2)},
-  {"ln",    CppUnaryFunction(std::log)},
-  {"abs",   CppUnaryFunction(std::abs)},
-  {"exp",   CppUnaryFunction(std::exp)},
-  {"floor", CppUnaryFunction(std::floor)},
-  {"ceil",  CppUnaryFunction(std::ceil)},
-  {"erf",   CppUnaryFunction(std::erf)},
-  {"erfc",  CppUnaryFunction(std::erfc)},
-  {"gamma", CppUnaryFunction(std::tgamma)},
-  {"Γ",     CppUnaryFunction(std::tgamma)},
+  {"sqrt",  CppMathFunctionPtr<1>(std::sqrt)},
+  {"log",   CppMathFunctionPtr<1>(std::log10)},
+  {"lg",    CppMathFunctionPtr<1>(std::log2)},
+  {"ln",    CppMathFunctionPtr<1>(std::log)},
+  {"abs",   CppMathFunctionPtr<1>(std::abs)},
+  {"exp",   CppMathFunctionPtr<1>(std::exp)},
+  {"floor", CppMathFunctionPtr<1>(std::floor)},
+  {"ceil",  CppMathFunctionPtr<1>(std::ceil)},
+  {"erf",   CppMathFunctionPtr<1>(std::erf)},
+  {"erfc",  CppMathFunctionPtr<1>(std::erfc)},
+  {"gamma", CppMathFunctionPtr<1>(std::tgamma)},
+  {"Γ",     CppMathFunctionPtr<1>(std::tgamma)},
 }};
 
-inline CppUnaryFunction unary_func_from_name(std::string_view name)
+inline CppMathFunctionPtr<1> unary_func_from_name(std::string_view name)
 {
   for(auto&& [f_name, f]: builtin_unary_functions)
   {

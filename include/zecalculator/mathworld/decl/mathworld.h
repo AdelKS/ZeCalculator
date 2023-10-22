@@ -84,13 +84,6 @@ public:
   /// @brief default constructor that defines the usual functions and global constants
   MathWorld();
 
-  template <class ObjectType1, size_t size1, class... ObjectTypeN, size_t... sizeN>
-  MathWorld(const std::array<std::pair<std::string_view, ObjectType1>, size1>& objects1,
-             const std::array<std::pair<std::string_view, ObjectTypeN>, sizeN>&... objectsN);
-
-  template <class ObjectType, size_t size>
-  MathWorld(const std::array<std::pair<std::string_view, ObjectType>, size>& objects);
-
   /// @brief get object from name, the underlying type is to be dynamically resolved at runtime
   /// @note const version
   ConstDynMathObject get(std::string_view name) const;

@@ -64,7 +64,7 @@ public:
 
   const std::string& get_name() const { return name; }
 
-  constexpr void set(const CppFunction& f) {f_ptr = f.f_ptr; }
+  constexpr void set(CppMathFunctionPtr<args_num> ptr) {f_ptr = ptr; }
 
   template <class... DBL>
     requires((std::is_convertible_v<DBL, double> and ...) and sizeof...(DBL) == args_num)
