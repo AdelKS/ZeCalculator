@@ -10,7 +10,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceRoot}/build-zc-debug/test/parser_test",
-            "preLaunchTask": "${defaultBuildTask}",
+            "preLaunchTask": "build",
             "setupCommands": [
                 {
                   "description": "Enable pretty-printing for gdb",
@@ -25,7 +25,7 @@
           "type": "cppdbg",
           "request": "launch",
           "program": "${workspaceRoot}/build-zc-debug/test/evaluation_test",
-          "preLaunchTask": "${defaultBuildTask}",
+          "preLaunchTask": "build",
           "setupCommands": [
               {
                 "description": "Enable pretty-printing for gdb",
@@ -40,7 +40,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceRoot}/build-zc-debug/test/syntax_tree_test",
-            "preLaunchTask": "${defaultBuildTask}",
+            "preLaunchTask": "build",
             "setupCommands": [
                 {
                   "description": "Enable pretty-printing for gdb",
@@ -55,7 +55,7 @@
           "type": "cppdbg",
           "request": "launch",
           "program": "${workspaceRoot}/build-zc-debug/test/sequence_test",
-          "preLaunchTask": "${defaultBuildTask}",
+          "preLaunchTask": "build",
           "setupCommands": [
               {
                 "description": "Enable pretty-printing for gdb",
@@ -70,7 +70,7 @@
           "type": "cppdbg",
           "request": "launch",
           "program": "${workspaceRoot}/build-zc-debug/test/function_test",
-          "preLaunchTask": "${defaultBuildTask}",
+          "preLaunchTask": "build",
           "setupCommands": [
               {
                 "description": "Enable pretty-printing for gdb",
@@ -85,7 +85,7 @@
           "type": "cppdbg",
           "request": "launch",
           "program": "${workspaceRoot}/build-zc-debug/test/global_variable_test",
-          "preLaunchTask": "${defaultBuildTask}",
+          "preLaunchTask": "build",
           "setupCommands": [
               {
                 "description": "Enable pretty-printing for gdb",
@@ -100,7 +100,22 @@
           "type": "cppdbg",
           "request": "launch",
           "program": "${workspaceRoot}/build-zc-debug/test/expression_test",
-          "preLaunchTask": "${defaultBuildTask}",
+          "preLaunchTask": "build",
+          "setupCommands": [
+              {
+                "description": "Enable pretty-printing for gdb",
+                "text": "-enable-pretty-printing",
+                "ignoreFailures": true
+              }
+          ],
+        },
+        {
+          "name": "rpn_test",
+          "cwd": "${workspaceRoot}/build-zc-debug/",
+          "type": "cppdbg",
+          "request": "launch",
+          "program": "${workspaceRoot}/build-zc-debug/test/rpn_test",
+          "preLaunchTask": "build",
           "setupCommands": [
               {
                 "description": "Enable pretty-printing for gdb",
