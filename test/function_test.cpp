@@ -277,4 +277,22 @@ int main()
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
+  "dependencies"_test = []<class StructType>()
+  {
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
+
+    MathWorld<type> world;
+
+    // add a function named "f", note that the constant "my_constant" is only defined after
+    world.template add<Function<type, 2>>("f", Vars<2>{"x", "y"}, "1 + x + y + cos(x)").value();
+    world.template add<Function<type, 1>>("g", Vars<1>{"x"}, "1 + x + sin(x)*f(x, x)").value();
+    world.template add<Function<type, 1>>("h", Vars<1>{"x"}, "1 + x + 2*g(x)").value();
+    Sequence<type>& seq = world.template add<Sequence<type>>("u", "n", "1 + h(n) + u(n-1) + 3*u(n-1)", Vals{0}).value();
+
+    auto t = deps::ObjectType::FUNCTION;
+
+    expect(seq.dependencies() == std::unordered_map{std::pair{std::string("u"), t}, {"f", t}, {"h", t}, {"g", t}, {"sin", t}, {"cos", t}});
+
+  } | std::tuple<AST_TEST, RPN_TEST>{};
+
 }
