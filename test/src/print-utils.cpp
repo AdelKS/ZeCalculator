@@ -28,53 +28,53 @@ void syntax_node_print_helper(std::ostream& os, const node::ast::Node<world_type
 {
   const std::string padding_str(padding, ' ');
 
-  std::visit(overloaded{[&](std::monostate)
-                        {
-                          os << padding_str << "empty tree " << std::endl;
-                        },
-                        [&]<size_t args_num>(const node::ast::Function<world_type, args_num> &f)
-                        {
-                          os << padding_str << "Function<" << args_num << "> " << tokens::Text(f)
-                             << " {" << std::endl;
-                          for (const auto &operand : f.operands)
-                            syntax_node_print_helper(os, *operand, padding + 2);
-                        },
-                        [&](const node::ast::Sequence<world_type> &u)
-                        {
-                          os << padding_str << "Sequence " << tokens::Text(u) << " {"
-                             << std::endl;
-                          syntax_node_print_helper(os, *u.operand, padding + 2);
-                        },
-                        [&]<size_t args_num>(const node::ast::CppFunction<world_type, args_num> &f)
-                        {
-                          os << padding_str << "CppFunction<" << args_num << "> " << tokens::Text(f) << " {"
-                             << std::endl;
-                          for (auto&& operand: f.operands)
-                            syntax_node_print_helper(os, *operand, padding + 2);
-                        },
-                        [&]<char op, size_t args_num>(const node::ast::Operator<world_type, op, args_num> &f)
-                        {
-                          os << padding_str << "Operator<" << op << ", " << args_num << "> " << tokens::Text(f) << " {"
-                             << std::endl;
-                          for (auto&& operand: f.operands)
-                            syntax_node_print_helper(os, *operand, padding + 2);
-                        },
-                        [&](const node::InputVariable &v)
-                        {
-                          os << padding_str << "InputVariable " << tokens::Text(v) << " index: " << v.index
-                             << std::endl;
-                        },
-                        [&](const node::GlobalConstant &c)
-                        {
-                          os << padding_str << "GlobalConstant " << tokens::Text(c) << " value: " << c.constant->value
-                             << std::endl;
-                        },
-                        [&](const node::Number &n)
-                        {
-                          os << padding_str << "Number " << n
-                             << std::endl;
-                        }},
-             node);
+  std::visit(
+    zc::utils::overloaded{
+      [&](std::monostate) {
+        os << padding_str << "empty tree " << std::endl;
+      },
+      [&]<size_t args_num>(const node::ast::Function<world_type, args_num> &f)
+      {
+        os << padding_str << "Function<" << args_num << "> "
+          << tokens::Text(f) << " {" << std::endl;
+        for (const auto &operand : f.operands)
+          syntax_node_print_helper(os, *operand, padding + 2);
+      },
+      [&](const node::ast::Sequence<world_type> &u)
+      {
+        os << padding_str << "Sequence " << tokens::Text(u) << " {"
+          << std::endl;
+        syntax_node_print_helper(os, *u.operand, padding + 2);
+      },
+      [&]<size_t args_num>(const node::ast::CppFunction<world_type, args_num> &f)
+      {
+        os << padding_str << "CppFunction<" << args_num << "> "
+          << tokens::Text(f) << " {" << std::endl;
+        for (auto &&operand : f.operands)
+          syntax_node_print_helper(os, *operand, padding + 2);
+      },
+      [&]<char op, size_t args_num>(const node::ast::Operator<world_type, op, args_num> &f)
+      {
+        os << padding_str << "Operator<" << op << ", " << args_num
+          << "> " << tokens::Text(f) << " {" << std::endl;
+        for (auto &&operand : f.operands)
+          syntax_node_print_helper(os, *operand, padding + 2);
+      },
+      [&](const node::InputVariable &v)
+      {
+        os << padding_str << "InputVariable " << tokens::Text(v)
+          << " index: " << v.index << std::endl;
+      },
+      [&](const node::GlobalConstant &c)
+      {
+        os << padding_str << "GlobalConstant " << tokens::Text(c)
+          << " value: " << c.constant->value << std::endl;
+      },
+      [&](const node::Number &n)
+      {
+        os << padding_str << "Number " << n << std::endl;
+      }},
+    node);
 }
 
 std::ostream &operator<<(std::ostream &os, const node::ast::Node<Type::AST> &node) {

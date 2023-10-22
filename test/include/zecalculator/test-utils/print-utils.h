@@ -48,9 +48,11 @@ std::ostream& operator << (std::ostream& os, const std::vector<T>& vec)
 template <class... T> requires (sizeof...(T) > 0)
 std::ostream& operator << (std::ostream& os, const std::variant<T...>& var)
 {
-  std::visit(overloaded{[&](std::monostate) { os << "std::monostate"; },
-                        [&](auto&& alt) { os << alt; }},
-             var);
+  std::visit(
+    zc::utils::overloaded{
+      [&](std::monostate) { os << "std::monostate"; },
+      [&](auto&& alt) { os << alt; }},
+    var);
   return os;
 }
 
@@ -70,22 +72,22 @@ namespace zc {
     std::ostream& operator<<(std::ostream &, const tokens::Text&);
 
     template <class Tok>
-      requires is_any_of<Tok,
-                        tokens::Unkown,
-                        tokens::Number,
-                        tokens::Variable,
-                        tokens::Function,
-                        tokens::Operator<'-', 2>,
-                        tokens::Operator<'+', 2>,
-                        tokens::Operator<'*', 2>,
-                        tokens::Operator<'/', 2>,
-                        tokens::Operator<'^', 2>,
-                        tokens::OpeningParenthesis,
-                        tokens::ClosingParenthesis,
-                        tokens::FunctionCallStart,
-                        tokens::FunctionCallEnd,
-                        tokens::FunctionArgumentSeparator,
-                        tokens::EndOfExpression>
+      requires zc::utils::is_any_of<Tok,
+                                    tokens::Unkown,
+                                    tokens::Number,
+                                    tokens::Variable,
+                                    tokens::Function,
+                                    tokens::Operator<'-', 2>,
+                                    tokens::Operator<'+', 2>,
+                                    tokens::Operator<'*', 2>,
+                                    tokens::Operator<'/', 2>,
+                                    tokens::Operator<'^', 2>,
+                                    tokens::OpeningParenthesis,
+                                    tokens::ClosingParenthesis,
+                                    tokens::FunctionCallStart,
+                                    tokens::FunctionCallEnd,
+                                    tokens::FunctionArgumentSeparator,
+                                    tokens::EndOfExpression>
     std::ostream& operator<<(std::ostream& os, const Tok& token)
     {
       os << boost::ut::reflection::type_name<Tok>() << " " << static_cast<const tokens::Text&>(token);

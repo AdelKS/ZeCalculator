@@ -177,23 +177,28 @@ namespace zc {
     } // namespace node
 
     template <class NodeType>
-      requires(is_any_of<NodeType,
-                        node::ast::Node<parsing::Type::AST>,
-                        node::ast::Node<parsing::Type::RPN>,
-                        node::rpn::Node>)
+      requires(utils::is_any_of<NodeType,
+                                node::ast::Node<parsing::Type::AST>,
+                                node::ast::Node<parsing::Type::RPN>,
+                                node::rpn::Node>)
     inline parsing::tokens::Text text_token(const NodeType& token)
     {
-      return std::visit(overloaded{[](const std::monostate&) -> parsing::tokens::Text
-                                  { return parsing::tokens::Text(); },
-                                  [](const auto& tk) -> parsing::tokens::Text { return tk; }},
-                        token);
+      return std::visit(
+        utils::overloaded {
+          [](const std::monostate&) -> parsing::tokens::Text {
+            return parsing::tokens::Text();
+          },
+          [](const auto& tk) -> parsing::tokens::Text {
+            return tk;
+          }},
+        token);
     }
 
     template <class NodeType>
-      requires(is_any_of<NodeType,
-                        node::ast::Node<parsing::Type::AST>,
-                        node::ast::Node<parsing::Type::RPN>,
-                        node::rpn::Node>)
+      requires(utils::is_any_of<NodeType,
+                                node::ast::Node<parsing::Type::AST>,
+                                node::ast::Node<parsing::Type::RPN>,
+                                node::rpn::Node>)
     inline SubstrInfo substr_info(const NodeType& token)
     {
       return text_token(token).substr_info;

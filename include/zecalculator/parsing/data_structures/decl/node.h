@@ -136,17 +136,17 @@ namespace parsing {
   using Parsing = std::conditional_t<type == parsing::Type::AST, Tree<parsing::Type::AST>, RPN>;
 
   template <class NodeType>
-    requires(is_any_of<NodeType,
-                       node::ast::Node<parsing::Type::AST>,
-                       node::ast::Node<parsing::Type::RPN>,
-                       node::rpn::Node>)
+    requires(utils::is_any_of<NodeType,
+                              node::ast::Node<parsing::Type::AST>,
+                              node::ast::Node<parsing::Type::RPN>,
+                              node::rpn::Node>)
   parsing::tokens::Text text_token(const NodeType& token);
 
   template <class NodeType>
-    requires(is_any_of<NodeType,
-                       node::ast::Node<parsing::Type::AST>,
-                       node::ast::Node<parsing::Type::RPN>,
-                       node::rpn::Node>)
+    requires(utils::is_any_of<NodeType,
+                              node::ast::Node<parsing::Type::AST>,
+                              node::ast::Node<parsing::Type::RPN>,
+                              node::rpn::Node>)
   SubstrInfo substr_info(const NodeType& token);
 
   } // namespace parsing

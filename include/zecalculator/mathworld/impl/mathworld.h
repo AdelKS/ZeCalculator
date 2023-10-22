@@ -101,7 +101,7 @@ template <parsing::Type type>
 MathWorld<type>::ConstDynMathObject MathWorld<type>::to_const(DynMathObject obj) const
 {
   return std::visit(
-    overloaded{
+    utils::overloaded{
       [](UnregisteredObject) -> ConstDynMathObject { return UnregisteredObject(); },
       [](auto* val) -> ConstDynMathObject { return val; }
     },

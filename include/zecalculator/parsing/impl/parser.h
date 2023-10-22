@@ -111,7 +111,7 @@ inline tl::expected<std::vector<Token>, Error> tokenize(std::string_view express
           if (*it == op)
             parsing.push_back(tokens::Operator<op, 2>(char_v, orig_expr));
         };
-        for_int_seq(push_op, tokens::OperatorSequence());
+        utils::for_int_seq(push_op, tokens::OperatorSequence());
 
         openingParenthesis = value = true;
         ope = numberSign = closingParenthesis = canEnd = false;
@@ -361,24 +361,28 @@ tl::expected<Tree<type>, Error> make_tree(std::span<const parsing::Token> tokens
   // when there's only a single token, it can only be number or a variable
   if (tokens.size() == 1)
   {
-    return std::visit(overloaded{[&](const tokens::Number& num) -> Ret { return Tree<type>(num); },
-                                 [&](const tokens::Variable& var) -> Ret
-                                 {
-                                   // if variable is in 'input_vars' then treat it as such
-                                   // this will avoid name lookup when we evaluate
-                                   auto it = std::ranges::find(input_vars, var.name);
-                                   if (it != input_vars.end())
-                                     // the index is computed with the distance between begin() and 'it'
-                                     return Tree<type>(
-                                       node::InputVariable(var,
-                                                           std::distance(input_vars.begin(), it)));
-                                   else
-                                     return std::visit(VariableVisiter<type>{var},
-                                                       world.get(var.name));
-                                 },
-                                 [&](const auto& anything_else) -> Ret
-                                 { return tl::unexpected(Error::unexpected(anything_else)); }},
-                      tokens.back());
+    return std::visit(
+      utils::overloaded{
+        [&](const tokens::Number& num) -> Ret
+        {
+          return Tree<type>(num);
+        },
+        [&](const tokens::Variable& var) -> Ret
+        {
+          // if variable is in 'input_vars' then treat it as such
+          // this will avoid name lookup when we evaluate
+          auto it = std::ranges::find(input_vars, var.name);
+          if (it != input_vars.end())
+            // the index is computed with the distance between begin() and 'it'
+            return Tree<type>(node::InputVariable(var, std::distance(input_vars.begin(), it)));
+          else
+            return std::visit(VariableVisiter<type>{var}, world.get(var.name));
+        },
+        [&](const auto& anything_else) -> Ret
+        {
+          return tl::unexpected(Error::unexpected(anything_else));
+        }},
+      tokens.back());
   }
 
   auto expected_non_pth_wrapped_tokens = get_non_pth_enclosed_tokens(tokens);

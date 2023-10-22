@@ -23,25 +23,25 @@
 #include <type_traits>
 #include <utility>
 
-// useful for visiting std::variant
-// taken from https://en.cppreference.com/w/cpp/utility/variant/visit
-template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
-template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
-
-template <class T, class... U>
-concept is_any_of = (std::is_same_v<T, U> or ...);
-
-template <int>
-inline constexpr bool dependent_false_num_v = false;
-
-template <class Fn, class Int, Int... v>
-constexpr void for_int_seq(Fn&& f, std::integer_sequence<Int, v...>)
-{
-  (f(std::integral_constant<Int, v>()), ...);
-}
-
 namespace zc {
 namespace utils {
+
+  // useful for visiting std::variant
+  // taken from https://en.cppreference.com/w/cpp/utility/variant/visit
+  template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+  template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+
+  template <class T, class... U>
+  concept is_any_of = (std::is_same_v<T, U> or ...);
+
+  template <int>
+  inline constexpr bool dependent_false_num_v = false;
+
+  template <class Fn, class Int, Int... v>
+  constexpr void for_int_seq(Fn&& f, std::integer_sequence<Int, v...>)
+  {
+    (f(std::integral_constant<Int, v>()), ...);
+  }
 
   // trick taken from https://stackoverflow.com/questions/48818462/is-there-any-way-for-a-c-template-function-to-take-exactly-n-arguments
   template <size_t i, class T>

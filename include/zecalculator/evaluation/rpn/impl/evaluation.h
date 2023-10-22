@@ -107,9 +107,9 @@ inline void Evaluator<input_size>::operator()(const zc::parsing::node::rpn::Oper
       *it = *(it) / *(it+1);
     else if constexpr (op == '^')
       *it = std::pow(*(it), *(it+1));
-    else static_assert(dependent_false_num_v<op>, "case not handled");
+    else static_assert(utils::dependent_false_num_v<op>, "case not handled");
   }
-  else static_assert(dependent_false_num_v<args_num>, "case not handled");
+  else static_assert(utils::dependent_false_num_v<args_num>, "case not handled");
 
   // remove args_num-1 values from the stack,
   // why the minus one: one value got overwritten with the computation result, as an optim
