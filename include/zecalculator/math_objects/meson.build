@@ -6,7 +6,7 @@ if not meson.is_subproject()
     files(
       'aliases.h',
       'cpp_function.h',
-      'cpp_unary_functions.h',
+      'builtin.h',
       'forward_declares.h',
       'function.h',
       'global_constant.h',
