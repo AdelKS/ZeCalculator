@@ -26,50 +26,58 @@
 
 namespace zc {
 
-template <class T>
-class CppFunctionImpl;
+namespace internal {
 
-// trick taken from https://stackoverflow.com/questions/48818462/is-there-any-way-for-a-c-template-function-to-take-exactly-n-arguments
-template <size_t i, class T>
-using alwaysT = T;
+  // trick taken from https://stackoverflow.com/questions/48818462/is-there-any-way-for-a-c-template-function-to-take-exactly-n-arguments
+  template <size_t i, class T>
+  using alwaysT = T;
 
-template <size_t... i>
-  requires (sizeof...(i) > 0)
-class CppFunctionImpl<std::integer_sequence<size_t, i...>>
+  template <class T>
+  struct math_func_signature;
+
+  template <size_t... i>
+    requires (sizeof...(i) > 0)
+  struct math_func_signature<std::index_sequence<i...>>
+  {
+    using type = double (*) (alwaysT<i, double>...);
+  };
+
+  template <size_t args_num>
+  using math_func_signature_t = typename math_func_signature<std::make_index_sequence<args_num>>::type;
+} // namespace internal
+
+/// @brief function signature of the type double (*) (double, double, ...) [args_num doubles as input]
+template <size_t args_num>
+using CppMathFunctionPtr = typename internal::math_func_signature_t<args_num>;
+
+template <size_t args_num>
+  requires (args_num > 0)
+struct CppFunction
 {
 public:
-  using CppFunctionPtr = double (*) (alwaysT<i, double>...);
-  static constexpr size_t args_num = sizeof...(i);
 
-  constexpr CppFunctionImpl() = default;
+  constexpr CppFunction() = default;
 
-  constexpr CppFunctionImpl(CppFunctionPtr f_ptr) : f_ptr(f_ptr) {};
+  constexpr CppFunction(CppMathFunctionPtr<args_num> f_ptr) : f_ptr(f_ptr) {};
 
   void set_name(std::string name) { this->name = std::move(name); }
 
   const std::string& get_name() const { return name; }
 
-  constexpr void set(CppFunctionImpl f) {f_ptr = f.f_ptr; }
+  constexpr void set(const CppFunction& f) {f_ptr = f.f_ptr; }
 
-  double operator()(alwaysT<i, double>... val) const
+  template <class... DBL>
+    requires((std::is_convertible_v<DBL, double> and ...) and sizeof...(DBL) == args_num)
+  double operator()(DBL... val) const
   {
     return f_ptr(val...);
   }
 
-  bool operator == (const CppFunctionImpl&) const = default;
+  bool operator == (const CppFunction&) const = default;
 
 protected:
-  CppFunctionPtr f_ptr = nullptr;
+  CppMathFunctionPtr<args_num> f_ptr = nullptr;
   std::string name;
-};
-
-template <size_t args_num>
-  requires (args_num > 0)
-struct CppFunction: CppFunctionImpl<std::make_integer_sequence<size_t, args_num>>
-{
-  using Parent = CppFunctionImpl<std::make_integer_sequence<size_t, args_num>>;
-  using Parent::Parent;
-
 };
 
 } // namespace zc
