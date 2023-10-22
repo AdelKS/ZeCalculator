@@ -1,0 +1,16 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/include/**"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/lib/llvm/17/bin/clang",
+            "cppStandard": "c++20",
+            "intelliSenseMode": "linux-clang-x64",
+            "compileCommands": "${workspaceFolder}/build-zc-debug-clang/compile_commands.json"
+        }
+    ],
+    "version": 4
+}
