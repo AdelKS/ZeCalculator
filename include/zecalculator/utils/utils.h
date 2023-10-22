@@ -39,3 +39,26 @@ constexpr void for_int_seq(Fn&& f, std::integer_sequence<Int, v...>)
 {
   (f(std::integral_constant<Int, v>()), ...);
 }
+
+namespace zc {
+namespace utils {
+
+  // trick taken from https://stackoverflow.com/questions/48818462/is-there-any-way-for-a-c-template-function-to-take-exactly-n-arguments
+  template <size_t i, class T>
+  using alwaysT = T;
+
+  template <class T>
+  struct math_func_signature;
+
+  template <size_t... i>
+    requires (sizeof...(i) > 0)
+  struct math_func_signature<std::index_sequence<i...>>
+  {
+    using type = double (*) (alwaysT<i, double>...);
+  };
+
+  template <size_t args_num>
+  using math_func_signature_t = typename math_func_signature<std::make_index_sequence<args_num>>::type;
+
+} // namespace internal
+} // namespace zc
