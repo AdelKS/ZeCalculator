@@ -59,9 +59,9 @@ inline tl::expected<std::vector<Token>, Error> tokenize(std::string_view express
     return std::ranges::any_of(separators, [&ch](const char op){ return op == ch; });
   };
 
-  auto is_digit = [](const char ch)
+  auto is_digit = [](unsigned char ch)
   {
-    return std::isdigit(static_cast<unsigned char>(ch));
+    return std::isdigit(ch);
   };
 
   auto is_argument_separator = [](const char ch)
@@ -78,12 +78,12 @@ inline tl::expected<std::vector<Token>, Error> tokenize(std::string_view express
   auto it = expression.cbegin();
   while (it != expression.cend())
   {
-    const std::optional<char> next_char = it+1 != expression.cend() ? *(it+1) : std::optional<char>();
+    const std::optional<char> next_char = (it+1 != expression.cend()) ? *(it+1) : std::optional<char>();
 
     // view on the single character pointed to by 'it'
     const std::string_view char_v = std::string_view(it, 1);
 
-    if (is_digit(*it) or (numberSign and *it == '-' and next_char and is_digit(next_char.value())))
+    if (is_digit(*it) or (numberSign and *it == '-' and next_char and is_digit(*next_char)))
     {
       auto double_val = to_double(std::string_view(it, expression.cend()));
 
