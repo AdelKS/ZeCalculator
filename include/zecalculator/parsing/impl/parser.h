@@ -306,17 +306,29 @@ struct FunctionVisiter
   const tokens::Text& func_txt_token;
   std::vector<Tree<world_type>> subnodes;
 
+  /// @brief moves the elements of 'subnodes' into an array
+  template <size_t args_num>
+  std::array<Tree<world_type>, args_num> get_subnode_arr()
+  {
+    assert(subnodes.size() == args_num);
+
+    auto helper = [&]<size_t...i>(std::index_sequence<i...>)
+    {
+      return std::array<Tree<world_type>, args_num>{std::move(subnodes[i])...};
+    };
+    return helper(std::make_index_sequence<args_num>());
+  }
+
+
   template <size_t args_num>
   Ret operator()(const CppFunction<world_type, args_num>* f)
   {
     if (subnodes.size() != args_num) [[unlikely]]
       return tl::unexpected(Error::mismatched_fun_args(func_txt_token));
 
-    std::array<Tree<world_type>, args_num> subnode_arr;
-    std::ranges::move(subnodes, subnode_arr.begin());
-
     return std::make_unique<node::ast::Node<world_type>>(
-      node::ast::CppFunction<world_type, args_num>(func_txt_token, f, std::move(subnode_arr)));
+      node::ast::CppFunction<world_type, args_num>(
+        func_txt_token, f, get_subnode_arr<args_num>()));
   }
   template <size_t args_num>
   Ret operator()(const zc::Function<world_type, args_num>* f)
@@ -324,11 +336,8 @@ struct FunctionVisiter
     if (subnodes.size() != args_num) [[unlikely]]
       return tl::unexpected(Error::mismatched_fun_args(func_txt_token));
 
-    std::array<Tree<world_type>, args_num> subnode_arr;
-    std::ranges::move(subnodes, subnode_arr.begin());
-
     return std::make_unique<node::ast::Node<world_type>>(
-      node::ast::Function<world_type, args_num>(func_txt_token, f, std::move(subnode_arr)));
+      node::ast::Function<world_type, args_num>(func_txt_token, f, get_subnode_arr<args_num>()));
   }
   Ret operator()(const zc::Sequence<world_type>* u)
   {
@@ -507,24 +516,9 @@ tl::expected<Tree<type>, Error> make_tree(std::span<const parsing::Token> tokens
 
 struct RpnMaker
 {
-  RPN operator () (std::monostate)
-  {
-    return RPN{std::monostate()};
-  }
-
-  static bool check_for_monostate(const RPN& rpn)
-  {
-    return std::ranges::any_of(rpn,
-                               [](const node::rpn::Node& node)
-                               { return std::holds_alternative<std::monostate>(node); });
-  }
-
   RPN operator()(const node::ast::Sequence<Type::RPN>& seq)
   {
     RPN res = std::visit(*this, *seq.operand);
-
-    if (check_for_monostate(res)) [[unlikely]]
-      return RPN{std::monostate()};
 
     res.push_back(node::rpn::Sequence(seq, seq.u));
     return res;
@@ -537,10 +531,7 @@ struct RpnMaker
     for (const Tree<Type::RPN>& sub_node : func.operands)
     {
       RPN tmp = std::visit(*this, *sub_node);
-      if (check_for_monostate(tmp)) [[unlikely]]
-        return RPN{std::monostate()};
-      else [[likely]]
-        std::ranges::move(tmp, std::back_inserter(res));
+      std::ranges::move(tmp, std::back_inserter(res));
     }
 
     res.push_back(node::rpn::CppFunction<args_num>(func, func.f));
@@ -554,10 +545,7 @@ struct RpnMaker
     for (const Tree<Type::RPN>& sub_node : func.operands)
     {
       RPN tmp = std::visit(*this, *sub_node);
-      if (check_for_monostate(tmp)) [[unlikely]]
-        return RPN{std::monostate()};
-      else [[likely]]
-        std::ranges::move(tmp, std::back_inserter(res));
+      std::ranges::move(tmp, std::back_inserter(res));
     }
 
     res.push_back(node::rpn::Function<args_num>(func, func.f));
@@ -571,10 +559,7 @@ struct RpnMaker
     for (const Tree<Type::RPN>& sub_node : func.operands)
     {
       RPN tmp = std::visit(*this, *sub_node);
-      if (check_for_monostate(tmp)) [[unlikely]]
-        return RPN{std::monostate()};
-      else [[likely]]
-        std::ranges::move(tmp, std::back_inserter(res));
+      std::ranges::move(tmp, std::back_inserter(res));
     }
 
     res.push_back(node::rpn::Operator<op, args_num>(func));

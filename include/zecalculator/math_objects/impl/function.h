@@ -232,17 +232,6 @@ tl::expected<double, Error> Function<type, args_num>::evaluate(
   else if (not bool(*this)) [[unlikely]]
     return tl::unexpected(*error());
 
-  if constexpr (type == parsing::Type::AST)
-  {
-    if (std::holds_alternative<std::monostate>(*parsed_expr.value())) [[unlikely]]
-      return tl::unexpected(Error::empty_expression());
-  }
-  else
-  {
-    if (std::holds_alternative<std::monostate>(parsed_expr.value().front())) [[unlikely]]
-      return tl::unexpected(Error::empty_expression());
-  }
-
   return zc::evaluate(*parsed_expr, args, current_recursion_depth);
 }
 

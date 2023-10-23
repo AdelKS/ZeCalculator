@@ -103,8 +103,6 @@ namespace zc {
         {
           using Parent = std::unique_ptr<Node<world_type>>;
 
-          NodePtr() : Parent(std::make_unique<Node<world_type>>()) {}
-
           template <class T>
             requires(not std::is_same_v<std::remove_cvref_t<T>, NodePtr>
                      and std::is_convertible_v<T, Node<world_type>>)

@@ -66,8 +66,7 @@ namespace parsing {
 
       using GlobalConstant = node::GlobalConstant<parsing::Type::RPN>;
 
-      using Node = std::variant<std::monostate,
-                                InputVariable,
+      using Node = std::variant<InputVariable,
                                 Number,
                                 Operator<'+', 2>,
                                 Operator<'-', 2>,
@@ -105,8 +104,7 @@ namespace parsing {
       using BinaryOperator = Operator<type, op, 2>;
 
       template <parsing::Type world_type>
-      using Node = std::variant<std::monostate,
-                                InputVariable,
+      using Node = std::variant<InputVariable,
                                 Number,
                                 Operator<world_type, '+', 2>,
                                 Operator<world_type, '-', 2>,
