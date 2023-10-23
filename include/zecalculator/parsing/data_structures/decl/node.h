@@ -42,6 +42,8 @@ namespace parsing {
   namespace node {
 
     struct InputVariable;
+
+    template <parsing::Type>
     struct GlobalConstant;
 
     using Number = zc::parsing::tokens::Number;
@@ -61,6 +63,8 @@ namespace parsing {
 
       template <char op>
       using BinaryOperator = Operator<op, 2>;
+
+      using GlobalConstant = node::GlobalConstant<parsing::Type::RPN>;
 
       using Node = std::variant<std::monostate,
                                 InputVariable,
@@ -111,7 +115,7 @@ namespace parsing {
                                 Operator<world_type, '^', 2>,
                                 CppFunction<world_type, 1>,
                                 CppFunction<world_type, 2>,
-                                GlobalConstant,
+                                GlobalConstant<world_type>,
                                 Function<world_type, 0>,
                                 Function<world_type, 1>,
                                 Function<world_type, 2>,

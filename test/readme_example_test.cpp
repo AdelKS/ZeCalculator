@@ -35,7 +35,7 @@ int main()
 
   // Add a global constant called "my_constant" with an initial value of 3.0
   // Note: the .value() call from tl::expected<> throws if it actually holds an error
-  GlobalConstant& my_constant = world.add<GlobalConstant>("my_constant", 3.0).value();
+  ast::GlobalConstant& my_constant = world.add<ast::GlobalConstant>("my_constant", 3.0).value();
 
   // Add a one parameter function named "f"
   ast::Function<1>& f = world.add<ast::Function<1>>("f", Vars<1>{"x"}, "x + my_constant + cos(math::pi)").value();

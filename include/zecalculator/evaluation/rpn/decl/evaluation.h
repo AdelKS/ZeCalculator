@@ -62,7 +62,7 @@ struct Evaluator
   template <size_t args_num>
   void operator () (const zc::parsing::node::rpn::CppFunction<args_num>&);
 
-  void operator () (const zc::parsing::node::GlobalConstant&);
+  void operator () (const zc::parsing::node::rpn::GlobalConstant&);
 
 };
 

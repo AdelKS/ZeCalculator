@@ -58,7 +58,7 @@ struct Evaluator
   template <size_t args_num>
   ReturnType operator () (const zc::parsing::node::ast::CppFunction<zc::parsing::Type::AST, args_num>&);
 
-  ReturnType operator () (const zc::parsing::node::GlobalConstant&);
+  ReturnType operator () (const zc::parsing::node::GlobalConstant<zc::parsing::Type::AST>&);
 
 };
 

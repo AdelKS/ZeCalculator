@@ -20,5 +20,29 @@
 **
 ****************************************************************************/
 
-#include <zecalculator/math_objects/decl/global_constant.h>
-#include <zecalculator/math_objects/impl/global_constant.h>
+#include <zecalculator/math_objects/decl/math_object.h>
+
+namespace zc {
+
+template <parsing::Type type>
+class MathWorld;
+
+template <parsing::Type type>
+class GlobalConstant: public MathObject<type>
+{
+public:
+
+  void set(double val);
+
+  GlobalConstant& operator = (double val);
+
+  double value = 0;
+
+protected:
+  GlobalConstant(class MathWorld<type>* mathworld);
+
+  template <parsing::Type>
+  friend class MathWorld;
+};
+
+}

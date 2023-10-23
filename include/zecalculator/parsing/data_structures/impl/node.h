@@ -42,12 +42,13 @@ namespace zc {
         size_t index;
       };
 
+      template <parsing::Type world_type>
       struct GlobalConstant: Text
       {
-        GlobalConstant(const Text& txt, const zc::GlobalConstant* constant)
+        GlobalConstant(const Text& txt, const zc::GlobalConstant<world_type>* constant)
           : Text(txt), constant(constant) {}
 
-        const zc::GlobalConstant* constant;
+        const zc::GlobalConstant<world_type>* constant;
       };
 
       namespace rpn {

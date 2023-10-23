@@ -10,7 +10,7 @@ namespace zc {
 template <parsing::Type type>
 using MathObjects = std::tuple<CppFunction<type, 1>,
                                CppFunction<type, 2>,
-                               GlobalConstant,
+                               GlobalConstant<type>,
                                Function<type, 0>,
                                Function<type, 1>,
                                Function<type, 2>,

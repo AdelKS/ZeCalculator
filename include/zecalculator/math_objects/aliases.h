@@ -45,6 +45,8 @@ namespace ast {
   using CppUnaryFunction = CppFunction<1>;
   using CppBinaryFunction = CppFunction<2>;
 
+  using GlobalConstant = zc::GlobalConstant<parsing::Type::AST>;
+
 } // namespace ast
 
 namespace rpn {
@@ -61,6 +63,8 @@ namespace rpn {
 
   using CppUnaryFunction = CppFunction<1>;
   using CppBinaryFunction = CppFunction<2>;
+
+  using GlobalConstant = zc::GlobalConstant<parsing::Type::RPN>;
 
 } // namespace rpn
 

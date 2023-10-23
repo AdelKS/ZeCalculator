@@ -43,7 +43,8 @@ using Expression = Function<type, 0>;
 template <parsing::Type type>
 using GlobalVariable = Function<type, 0>;
 
-struct GlobalConstant;
+template <parsing::Type type>
+class GlobalConstant;
 
 template <parsing::Type, size_t args_num>
   requires (args_num > 0)

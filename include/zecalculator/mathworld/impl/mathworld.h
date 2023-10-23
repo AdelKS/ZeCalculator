@@ -32,7 +32,7 @@ MathWorld<type>::MathWorld()
     add<CppUnaryFunction<type>>(name, f_ptr);
 
   for (auto&& [name, cst]: builtin_global_constants)
-    add<GlobalConstant>(name, cst);
+    add<GlobalConstant<type>>(name, cst);
 }
 
 template <parsing::Type type>

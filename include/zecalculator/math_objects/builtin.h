@@ -21,13 +21,14 @@
 ****************************************************************************/
 
 #include <string_view>
+#include <numbers>
 
 #include <zecalculator/math_objects/decl/cpp_function.h>
 #include <zecalculator/math_objects/global_constant.h>
 
 namespace zc {
 
-inline std::array<std::pair<std::string_view, GlobalConstant>, 5> builtin_global_constants =
+inline constexpr std::array<std::pair<std::string_view, double>, 5> builtin_global_constants =
 {{
   {"math::pi", std::numbers::pi},
   {"math::π",  std::numbers::pi},

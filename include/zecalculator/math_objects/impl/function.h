@@ -204,7 +204,7 @@ std::unordered_map<std::string, deps::ObjectType> Function<type, args_num>::depe
         if constexpr (requires { val->get_name(); })
         {
           using Type = std::remove_pointer_t<std::remove_cvref_t<T>>;
-          if constexpr (utils::is_any_of<Type, GlobalConstant, GlobalVariable<type>>)
+          if constexpr (utils::is_any_of<Type, GlobalConstant<type>, GlobalVariable<type>>)
             deps.insert({val->get_name(), deps::ObjectType::VARIABLE});
           else deps.insert({val->get_name(), deps::ObjectType::FUNCTION});
         }

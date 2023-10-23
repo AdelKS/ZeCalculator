@@ -278,10 +278,10 @@ struct VariableVisiter
 
   const tokens::Text& var_txt_token;
 
-  Ret operator()(const GlobalConstant* global_constant)
+  Ret operator()(const GlobalConstant<world_type>* global_constant)
   {
     return std::make_unique<node::ast::Node<world_type>>(
-      node::GlobalConstant(var_txt_token, global_constant));
+      node::GlobalConstant<world_type>(var_txt_token, global_constant));
   }
   Ret operator()(const zc::GlobalVariable<world_type>* global_variable)
   {
@@ -586,7 +586,7 @@ struct RpnMaker
     return RPN(1, in_var);
   }
 
-  RPN operator () (const node::GlobalConstant& var)
+  RPN operator () (const node::GlobalConstant<Type::RPN>& var)
   {
     return RPN(1, var);
   }

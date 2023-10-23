@@ -56,7 +56,7 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    world.template add<GlobalConstant>("x", 2.0);
+    world.template add<GlobalConstant<type>>("x", 2.0);
     Function<type, 1>& f = world.template add<Function<type, 1>>("f", Vars<1>{"x"}, "cos(x) + x").value();
 
     const double res = f({1.0}).value();
@@ -116,7 +116,7 @@ int main()
 
     MathWorld<type> world;
 
-    GlobalConstant& cst = world.template add<GlobalConstant>("my_constant", 3.0).value();
+    GlobalConstant<type>& cst = world.template add<GlobalConstant<type>>("my_constant", 3.0).value();
     Function<type, 1>& f = world.template add<Function<type, 1>>("f", Vars<1>{"x"}, "x + my_constant + cos(math::pi)").value();
 
     double cpp_cst = 3.0;
@@ -217,7 +217,7 @@ int main()
       constexpr std::string_view data_type_str_v = std::is_same_v<StructType, AST_TEST> ? "AST" : "RPN";
 
       MathWorld<type> world;
-      GlobalConstant& t = world.template add<GlobalConstant>("t", 1).value();
+      GlobalConstant<type>& t = world.template add<GlobalConstant<type>>("t", 1).value();
       Function<type, 1>& f = world.template add<Function<type, 1>>("f", Vars<1>{"x"}, "3*cos(t*x) + 2*sin(x/t) + 4").value();
 
       double x = 0;

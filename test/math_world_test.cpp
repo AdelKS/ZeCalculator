@@ -46,7 +46,7 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    GlobalConstant& c1 = world.template add<GlobalConstant>("my_constant1").value();
+    GlobalConstant<type>& c1 = world.template add<GlobalConstant<type>>("my_constant1").value();
     c1.value = 2.0;
     expect(c1.value == 2.0);
 
@@ -57,8 +57,8 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    world.template add<GlobalConstant>("my_constant1", 2.0);
-    expect(not world.template add<GlobalConstant>("my_constant1", 3.0).has_value());
+    world.template add<GlobalConstant<type>>("my_constant1", 2.0);
+    expect(not world.template add<GlobalConstant<type>>("my_constant1", 3.0).has_value());
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 

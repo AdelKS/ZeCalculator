@@ -36,7 +36,7 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    GlobalConstant& r = world.template add<GlobalConstant>("r").value();
+    GlobalConstant<type>& r = world.template add<GlobalConstant<type>>("r").value();
     world.template add<Function<type, 1>>("g", Vars<1>{"x"}, "sin(3 * math::pi * x) + r");
     world.template add<GlobalVariable<type>>("k", "3*g(3)");
     Function<type, 2>& f = world.template add<Function<type, 2>>("f", Vars<2>{"x", "y"}, "cos(math::pi * x) * y + k*g(x) + r").value();
