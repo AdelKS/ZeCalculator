@@ -23,8 +23,18 @@
 #include <string_view>
 
 #include <zecalculator/math_objects/decl/cpp_function.h>
+#include <zecalculator/math_objects/global_constant.h>
 
 namespace zc {
+
+inline std::array<std::pair<std::string_view, GlobalConstant>, 5> builtin_global_constants =
+{{
+  {"math::pi", std::numbers::pi},
+  {"math::π",  std::numbers::pi},
+  {"physics::kB", 1.380649e-23},   // Blotzmann constant, SI units
+  {"physics::h",  6.62607015e-34}, // Plank constant, SI units
+  {"physics::c",  299792458},      // Speed of light in vacuum, SI units
+}};
 
 // we save the names along with the function pointers for convenience
 // we could save only the function pointers, and the names only in the inventory
