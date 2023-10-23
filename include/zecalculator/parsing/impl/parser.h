@@ -460,7 +460,7 @@ tl::expected<Tree<type>, Error> make_tree(std::span<const parsing::Token> tokens
       if (not right_hand_side.has_value())
         return right_hand_side;
 
-      return node::ast::Operator<type, op, 2>(text_token(*tokenIt).substr_info.begin,
+      return node::ast::Operator<type, op, 2>(text_token(*tokenIt).substr_info.value().begin,
                                               std::array{std::move(left_hand_side.value()),
                                                          std::move(right_hand_side.value())});
     };
@@ -495,12 +495,12 @@ tl::expected<Tree<type>, Error> make_tree(std::span<const parsing::Token> tokens
   }
 
   // if we reach the end of this function, something is not right
-  const SubstrInfo substrinfo
+  const std::optional<SubstrInfo> substrinfo
     = std::accumulate(tokens.begin(),
                       tokens.end(),
                       substr_info(tokens.front()),
-                      [](const SubstrInfo& info, const Token& t1)
-                      { return substr_info(t1) + info; });
+                      [](const std::optional<SubstrInfo>& info, const Token& t1) -> std::optional<SubstrInfo>
+                      { return info and substr_info(t1) ? *info + *substr_info(t1) : std::optional<SubstrInfo>{}; });
 
   return tl::unexpected(Error::unexpected(tokens::Unkown("", substrinfo)));
 }

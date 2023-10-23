@@ -172,9 +172,9 @@ int main()
 
     const auto substrinfo = substr_info(parsing.value()[2]);
 
-    expect(substrinfo.substr(str) == "cos");
-    expect(substrinfo.substr_before(str) == "2+");
-    expect(substrinfo.substr_after(str) == "(3)");
+    expect(substrinfo.value().substr(str) == "cos");
+    expect(substrinfo.value().substr_before(str) == "2+");
+    expect(substrinfo.value().substr_after(str) == "(3)");
   };
 
   "missing function closing pth"_test = []()

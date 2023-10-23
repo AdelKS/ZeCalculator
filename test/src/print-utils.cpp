@@ -11,7 +11,9 @@ namespace tokens {
 
 std::ostream& operator<<(std::ostream& os, const tokens::Text& txt_token)
 {
-  os << txt_token.name << " at (" << txt_token.substr_info.begin  << ", " << txt_token.substr_info.size << ") ";
+  os << txt_token.name;
+  if (txt_token.substr_info)
+    os << " at (" << txt_token.substr_info->begin  << ", " << txt_token.substr_info->size << ") ";
   return os;
 }
 

@@ -20,12 +20,13 @@
 
 #pragma once
 
-#include <cmath>
-#include <variant>
-#include <string_view>
-#include <string>
-#include <cassert>
 #include <algorithm>
+#include <cassert>
+#include <cmath>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <variant>
 
 #include <zecalculator/external/expected.h>
 #include <zecalculator/utils/substr_info.h>
@@ -43,19 +44,26 @@ struct Text
     : name(std::string(substr)), substr_info(SubstrInfo::from_views(substr, original_expr))
   {}
 
-  Text(std::string_view name, size_t begin) : name(std::string(name)), substr_info{begin, name.size()} {}
+  Text(std::string_view name, size_t begin)
+    : name(std::string(name)), substr_info(SubstrInfo{begin, name.size()})
+  {}
 
-  Text(std::string_view name, size_t begin, size_t size) : name(std::string(name)), substr_info{begin, size} {}
+  Text(std::string_view name, size_t begin, size_t size)
+    : name(std::string(name)), substr_info(SubstrInfo{begin, size})
+  {}
 
-  Text(std::string_view name, SubstrInfo substr_info) : name(std::string(name)), substr_info(substr_info) {}
+  Text(std::string_view name, std::optional<SubstrInfo> substr_info)
+    : name(std::string(name)), substr_info(substr_info)
+  {}
 
   /// @brief name of the token, can different from what appears in the expressions
   /// @example '+' is replaced with 'internal::plus' (a valid function name)
   std::string name = {};
 
-  /// @brief information about the location of the original token with the original expression
+  /// @brief information about the location of the token within the original expression
   /// @example token '+' in '2+2*2' will have: begin=1, size=1
-  SubstrInfo substr_info = {};
+  /// @note the SubstrInfo cannot be known sometimes
+  std::optional<SubstrInfo> substr_info = {};
 
   bool operator == (const Text& other) const = default;
 };
@@ -168,7 +176,7 @@ inline tokens::Text text_token(const Token& token)
   return std::visit([](const auto& tk) -> tokens::Text { return tk; }, token);
 }
 
-inline SubstrInfo substr_info(const Token& token)
+inline std::optional<SubstrInfo> substr_info(const Token& token)
 {
   return text_token(token).substr_info;
 }
