@@ -15,7 +15,7 @@ jobs:
 
       # Need clang 16 to work with libstdc++ std::ranges
       - name: Setup meson build folder
-        run: meson setup build -D test=true
+        run: meson setup build -D test=true -D b_sanitize=address,undefined
         env:
           CC: "gcc"
           CXX: "g++"
