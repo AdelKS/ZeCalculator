@@ -35,6 +35,12 @@ class MathWorld;
 
 using Vals = std::vector<double>;
 
+template <class T>
+struct is_sequence: std::false_type {};
+
+template <class T>
+inline constexpr bool is_sequence_v = is_sequence<T>::value;
+
 /// @brief a class that represents a Sequence of single argument
 template <parsing::Type type>
 class Sequence: public zc::Function<type, 1>
@@ -90,5 +96,11 @@ protected:
   friend class MathWorld;
 
 };
+
+template <parsing::Type type>
+struct is_sequence<Sequence<type>>: std::true_type {};
+
+template <parsing::Type type>
+struct is_function<Sequence<type>>: std::true_type {};
 
 }

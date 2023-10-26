@@ -78,6 +78,12 @@ template <>
 struct InputVars<0>
 {};
 
+template <class T>
+struct is_function: std::false_type {};
+
+template <class T>
+inline constexpr bool is_function_v = is_function<T>::value;
+
 template <parsing::Type type, size_t args_num>
 class Function: public MathObject<type>, public InputVars<args_num>
 {
@@ -181,5 +187,8 @@ protected:
   template <parsing::Type>
   friend class MathWorld;
 };
+
+template <parsing::Type type, size_t args_num>
+struct is_function<Function<type, args_num>>: std::true_type {};
 
 }
