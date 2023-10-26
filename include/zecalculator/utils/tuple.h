@@ -124,4 +124,20 @@ concept TupleType = is_tuple_v<T>;
 
 // ===============================
 
+/// @brief call Fn on each element of the tuple
+template <class Fn, TupleType Tuple>
+constexpr void tuple_for(Fn&& f, Tuple&& tup)
+{
+  auto invoke_function = [&]<size_t i>()
+  {
+    std::invoke(f, std::get<i>(tup));
+  };
+  auto for_integer_seq = [&]<std::size_t... i>(std::integer_sequence<size_t, i...>)
+  {
+    (invoke_function.template operator()<i>(), ...);
+  };
+
+  for_integer_seq.template operator()(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<Tuple>>>{});
+}
+
 }
