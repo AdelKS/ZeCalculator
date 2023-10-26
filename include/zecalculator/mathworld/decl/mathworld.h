@@ -48,9 +48,9 @@ namespace rpn {
 }
 
 
-struct NameError
+struct  NameError
 {
-  enum Type {ALREADY_TAKEN, INVALID_FORMAT};
+  enum Type {ALREADY_TAKEN, INVALID_FORMAT, NOT_IN_WORLD};
 
   static NameError already_taken(std::string_view name)
   {
@@ -60,6 +60,11 @@ struct NameError
   static NameError invalid_format(std::string_view name)
   {
     return NameError{.type = INVALID_FORMAT, .name = std::string(name)};
+  }
+
+  static NameError not_in_world(std::string_view name)
+  {
+    return NameError{.type = NOT_IN_WORLD, .name = std::string(name)};
   }
 
   Type type;
