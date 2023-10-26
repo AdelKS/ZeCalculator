@@ -99,4 +99,29 @@ using tuple_type_cat_t = tuple_type_cat<T...>::type;
 
 // ================== tuple_type_cat
 
+// ================== is_tuple
+
+template <class T>
+struct is_tuple: std::false_type {};
+
+template <class... U>
+struct is_tuple<std::tuple<U...>>: std::true_type {};
+
+template <class... U>
+struct is_tuple<const std::tuple<U...>>: std::true_type {};
+
+template <class... U>
+struct is_tuple<std::tuple<U...>&>: std::true_type {};
+
+template <class... U>
+struct is_tuple<const std::tuple<U...>&>: std::true_type {};
+
+template <class T>
+inline constexpr bool is_tuple_v = is_tuple<T>::value;
+
+template <class T>
+concept TupleType = is_tuple_v<T>;
+
+// ===============================
+
 }
