@@ -124,5 +124,20 @@
               }
           ],
         },
+        {
+          "name": "mathworld_test",
+          "cwd": "${workspaceRoot}/build-zc-debug/",
+          "type": "cppdbg",
+          "request": "launch",
+          "program": "${workspaceRoot}/build-zc-debug/test/math_world_test",
+          "preLaunchTask": "build",
+          "setupCommands": [
+              {
+                "description": "Enable pretty-printing for gdb",
+                "text": "-enable-pretty-printing",
+                "ignoreFailures": true
+              }
+          ],
+        },
     ],
 }
