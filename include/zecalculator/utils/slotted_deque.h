@@ -37,6 +37,8 @@ class SlottedDeque: protected std::deque<std::optional<T>>
 public:
   SlottedDeque() = default;
 
+  using iterator = Parent::iterator;
+  using const_iterator = Parent::const_iterator;
   using Parent::size;
 
   /// @brief finds the a free slot, puts 'val' in it, then returns the slot index
@@ -87,6 +89,11 @@ public:
   {
     return *Parent::operator [] (slot);
   }
+
+  using Parent::begin;
+  using Parent::end;
+  using Parent::cbegin;
+  using Parent::cend;
 
 protected:
   std::stack<size_t> free_slots;
