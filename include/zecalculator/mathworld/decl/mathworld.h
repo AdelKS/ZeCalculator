@@ -71,7 +71,7 @@ struct  NameError
   std::string name;
 };
 
-
+class Ok {};
 class UnregisteredObject {};
 
 template <parsing::Type type>

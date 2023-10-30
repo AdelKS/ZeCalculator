@@ -3,9 +3,10 @@
 #include <ostream>
 
 #include <boost/ut.hpp>
-#include <zecalculator/parsing/data_structures/token.h>
 #include <zecalculator/error.h>
+#include <zecalculator/math_objects/function.h>
 #include <zecalculator/parsing/data_structures/node.h>
+#include <zecalculator/parsing/data_structures/token.h>
 
 namespace std {
 
@@ -102,4 +103,6 @@ namespace zc {
   }
 
   std::ostream& operator << (std::ostream& os, const Error& err);
+  std::ostream& operator << (std::ostream& os, Ok);
+  std::ostream& operator << (std::ostream& os, const NameError&);
 }
