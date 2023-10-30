@@ -140,6 +140,37 @@ tl::expected<ref<ObjectType>, NameError> MathWorld<type>::add(std::string_view n
 }
 
 template <parsing::Type type>
+tl::expected<Ok, NameError> MathWorld<type>::rename(const std::string& old_name,
+                                                    const std::string& new_name)
+{
+  if (not parsing::is_valid_name(new_name)) [[unlikely]]
+    return tl::unexpected(NameError::invalid_format(new_name));
+
+  auto node = inventory.extract(old_name);
+  if (node) [[likely]]
+  {
+    node.key() = new_name;
+    std::visit(
+      [&]<class T>(T& obj)
+      {
+        if constexpr (not std::is_same_v<T, UnregisteredObject>)
+          obj->set_name(new_name);
+      },
+      node.mapped());
+
+    // put back in the inventory
+    inventory.insert(std::move(node));
+
+    // direct dependencies of function objects are update at each parse
+    // so functions that depend on "old_name" need to be re-parsed.
+    parse_direct_revdeps_of(old_name);
+
+    return Ok{};
+  }
+  else return tl::unexpected(NameError::not_in_world(old_name));
+}
+
+template <parsing::Type type>
 void MathWorld<type>::parse_direct_revdeps_of(const std::string& name)
 {
   auto parse_functions = [&]<class T>(SlottedDeque<T>& container)

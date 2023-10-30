@@ -62,5 +62,30 @@ int main()
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
+  "Rename inexistent object"_test = []<class StructType>()
+  {
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
+
+    MathWorld<type> world;
+    auto res = world.rename("foo", "bar");
+    expect(not res and res.error().type == NameError::NOT_IN_WORLD);
+
+  } | std::tuple<AST_TEST, RPN_TEST>{};
+
+  "Rename object with deps"_test = []<class StructType>()
+  {
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
+
+    MathWorld<type> world;
+    world.template add<Function<type, 1>>("f", Vars<1>{"x"}, "cos(x)");
+
+    expect(bool(world.rename("cos", "couscous")));
+
+    auto res = world.evaluate("f(1)");
+    expect(not res and res.error().error_type == Error::UNDEFINED_FUNCTION
+           and res.error().token.name == "cos") << res;
+
+  } | std::tuple<AST_TEST, RPN_TEST>{};
+
   return 0;
 }

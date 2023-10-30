@@ -133,6 +133,9 @@ public:
   /// @brief evaluates a given expression within this world
   tl::expected<double, Error> evaluate(std::string expr) const;
 
+  /// @brief renames object to new name
+  tl::expected<Ok, NameError> rename(const std::string& old_name, const std::string& new_name);
+
   /// @brief maximum recursion depth to reach before returning an error
   size_t max_recursion_depth = 20;
 
