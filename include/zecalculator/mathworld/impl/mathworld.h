@@ -139,6 +139,23 @@ tl::expected<ref<ObjectType>, NameError> MathWorld<type>::add(std::string_view n
   return world_object;
 }
 
+template <parsing::Type type>
+void MathWorld<type>::parse_direct_revdeps_of(const std::string& name)
+{
+  auto parse_functions = [&]<class T>(SlottedDeque<T>& container)
+  {
+    if constexpr (is_function_v<T>)
+    {
+      for (std::optional<T>& obj: container)
+      {
+        if (obj and obj->direct_dependencies().contains(name))
+          obj->parse();
+      }
+    }
+  };
+  tuple_for(parse_functions, math_objects);
+
+}
 
 template <parsing::Type type>
 tl::expected<double, Error> MathWorld<type>::evaluate(std::string expr) const

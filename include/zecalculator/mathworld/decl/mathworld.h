@@ -139,6 +139,9 @@ public:
 
 protected:
 
+  /// @brief parse all Function-based object that directly depends on obj_name
+  void parse_direct_revdeps_of(const std::string& obj_name);
+
   /// @brief converts a DynMathObject to a ConstDynMathObject
   ConstDynMathObject to_const(DynMathObject obj) const;
 
