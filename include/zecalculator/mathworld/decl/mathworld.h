@@ -141,6 +141,11 @@ public:
   /// @brief renames object to new name
   tl::expected<Ok, NameError> rename(const std::string& old_name, const std::string& new_name);
 
+  /// @brief sets/renames object to given name
+  template <class ObjectType>
+    requires(tuple_contains_v<MathObjects<type>, ObjectType>)
+  tl::expected<Ok, NameError> set_name(ObjectType* obj, const std::string& name);
+
   /// @brief maximum recursion depth to reach before returning an error
   size_t max_recursion_depth = 20;
 

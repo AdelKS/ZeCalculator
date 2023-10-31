@@ -87,5 +87,66 @@ int main()
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
+  "set name"_test = []<class StructType>()
+  {
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
+
+    MathWorld<type> world;
+    Function<type, 1>& f = world.template add<Function<type, 1>>("f", Vars<1>{"x"}, "cos(x)").value();
+
+    expect(bool(world.set_name(&f, "g")));
+
+  } | std::tuple<AST_TEST, RPN_TEST>{};
+
+  "set name affects deps"_test = []<class StructType>()
+  {
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
+
+    MathWorld<type> world;
+    Function<type, 1>& f = world.template add<Function<type, 1>>("f", Vars<1>{"x"}, "cos(x)").value();
+    Function<type, 1>& g = world.template add<Function<type, 1>>("g", Vars<1>{"x"}, "f(x)+1").value();
+
+    expect(bool(world.set_name(&f, "h")));
+    expect(g.error()->error_type == Error::UNDEFINED_FUNCTION and g.error()->token.name == "f") << g.error();
+
+  } | std::tuple<AST_TEST, RPN_TEST>{};
+
+  "set name already taken"_test = []<class StructType>()
+  {
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
+
+    MathWorld<type> world;
+    Function<type, 1>& f = world.template add<Function<type, 1>>("f", Vars<1>{"x"}, "cos(x)").value();
+
+    auto res = world.set_name(&f, "cos");
+    expect(not res and res.error().type == NameError::ALREADY_TAKEN);
+
+  } | std::tuple<AST_TEST, RPN_TEST>{};
+
+  "set name invalid format"_test = []<class StructType>()
+  {
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
+
+    MathWorld<type> world;
+    Function<type, 1>& f = world.template add<Function<type, 1>>("f", Vars<1>{"x"}, "cos(x)").value();
+
+    auto res = world.set_name(&f, "1+1");
+    expect(not res and res.error().type == NameError::INVALID_FORMAT);
+
+  } | std::tuple<AST_TEST, RPN_TEST>{};
+
+  "set name not in world"_test = []<class StructType>()
+  {
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
+
+    MathWorld<type> world1, world2;
+    Function<type, 1>& f = world1.template add<Function<type, 1>>("f", Vars<1>{"x"}, "cos(x)").value();
+
+    // try to change the name of object in the wrong world
+    auto res = world2.set_name(&f, "g");
+    expect(not res and res.error().type == NameError::NOT_IN_WORLD);
+
+  } | std::tuple<AST_TEST, RPN_TEST>{};
+
   return 0;
 }

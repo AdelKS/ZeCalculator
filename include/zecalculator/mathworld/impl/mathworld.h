@@ -176,6 +176,52 @@ tl::expected<Ok, NameError> MathWorld<type>::rename(const std::string& old_name,
 }
 
 template <parsing::Type type>
+template <class ObjectType>
+  requires(tuple_contains_v<MathObjects<type>, ObjectType>)
+tl::expected<Ok, NameError> MathWorld<type>::set_name(ObjectType* obj, const std::string& name)
+{
+  const auto it = object_names.find(obj);
+  if (it == object_names.end()) [[unlikely]]
+    return tl::unexpected(NameError::not_in_world());
+  else if (not parsing::is_valid_name(name)) [[unlikely]]
+    return tl::unexpected(NameError::invalid_format(name));
+  else if (inventory.contains(name))
+    return tl::unexpected(NameError::already_taken(name));
+
+  // save old name first
+  const std::string old_name = it->second;
+
+  // overwrite with new name
+  it->second = name;
+
+  if (not old_name.empty())
+  {
+    // change the name in the inventory to the new one
+    auto node = inventory.extract(old_name);
+    assert(bool(node));
+    node.key() = name;
+    inventory.insert(std::move(node));
+  }
+  else
+  {
+    // object didn't have a name before and a name just got assigned to it
+    // inventory will
+    inventory[name] = obj;
+  }
+
+  if (not old_name.empty())
+    // if old_name wasn't empty, functions could have been depending on it
+    parse_direct_revdeps_of(old_name);
+
+  // functions could be depending on the new name already
+  parse_direct_revdeps_of(name);
+
+  obj->set_name(name);
+
+  return Ok{};
+}
+
+template <parsing::Type type>
 void MathWorld<type>::parse_direct_revdeps_of(const std::string& name)
 {
   auto parse_functions = [&]<class T>(SlottedDeque<T>& container)
@@ -190,7 +236,6 @@ void MathWorld<type>::parse_direct_revdeps_of(const std::string& name)
     }
   };
   tuple_for(parse_functions, math_objects);
-
 }
 
 template <parsing::Type type>
