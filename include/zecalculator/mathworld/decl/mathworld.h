@@ -151,6 +151,9 @@ protected:
   /// @brief maps an object name to its type and ID (index within the container that holds it)
   name_map<DynMathObject> inventory;
 
+  /// @brief two uses: tracks 1. all objects handled by this world, 2. their name if they have one (empty otherwise)
+  std::unordered_map<to_variant_t<tuple_transform_t<ptr, MathObjects<type>>>, std::string> object_names;
+
   tuple_transform_t<SlottedDeque, MathObjects<type>> math_objects;
 
 };

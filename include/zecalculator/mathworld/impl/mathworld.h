@@ -130,6 +130,7 @@ tl::expected<ref<ObjectType>, NameError> MathWorld<type>::add(std::string_view n
 
   ObjectType& world_object = object_container[id];
   world_object.set_name(std::string(name));
+  object_names[&world_object] = name;
 
   inventory[std::string(name)] = &world_object;
 
@@ -154,7 +155,11 @@ tl::expected<Ok, NameError> MathWorld<type>::rename(const std::string& old_name,
       [&]<class T>(T& obj)
       {
         if constexpr (not std::is_same_v<T, UnregisteredObject>)
+        {
           obj->set_name(new_name);
+          assert(object_names.contains(obj));
+          object_names[obj] = new_name;
+        }
       },
       node.mapped());
 
