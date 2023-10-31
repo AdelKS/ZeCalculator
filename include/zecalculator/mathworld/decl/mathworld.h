@@ -67,8 +67,13 @@ struct  NameError
     return NameError{.type = NOT_IN_WORLD, .name = std::string(name)};
   }
 
+  static NameError not_in_world()
+  {
+    return NameError{.type = NOT_IN_WORLD};
+  }
+
   Type type;
-  std::string name;
+  std::string name = {};
 };
 
 class Ok {};
