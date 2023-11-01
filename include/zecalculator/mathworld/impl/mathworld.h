@@ -158,6 +158,9 @@ tl::expected<ref<ObjectType>, NameError> MathWorld<type>::add(std::string_view n
   if constexpr (sizeof...(Arg) > 0)
     world_object.set(std::forward<Arg>(arg)...);
 
+  // some objects may already have expressions depending on this object
+  parse_direct_revdeps_of(std::string(name));
+
   return world_object;
 }
 
