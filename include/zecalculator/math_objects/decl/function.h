@@ -162,6 +162,7 @@ protected:
 
   friend struct parsing::RpnMaker;
 
+  tl::expected<std::vector<parsing::Token>, Error> tokenized_expr;
   tl::expected<parsing::Parsing<type>, Error> parsed_expr;
   tl::expected<Vars<args_num>, InvalidInputVar> vars;
 

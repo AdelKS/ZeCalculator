@@ -81,12 +81,15 @@ void Function<type, args_num>::set_expression(std::string expr)
 
   if (expression.empty())
   {
+    tokenized_expr = std::vector<parsing::Token>();
     if constexpr (type == parsing::Type::AST)
       parsed_expr = parsing::Tree<parsing::Type::AST>(std::monostate());
     else parsed_expr = {std::monostate()};
   }
   else
   {
+    tokenized_expr = parsing::tokenize(expression);
+
     // just a shortcut to have tokens -> make_tree(tokens, mathworld, vars.value)
     using namespace std::placeholders;
     auto bound_make_tree = [&](const std::vector<parsing::Token>& vec)
@@ -95,10 +98,10 @@ void Function<type, args_num>::set_expression(std::string expr)
     };
 
     if constexpr (type == parsing::Type::AST)
-      parsed_expr = parsing::tokenize(expression).and_then(bound_make_tree);
+      parsed_expr = tokenized_expr.and_then(bound_make_tree);
     else
       parsed_expr
-        = parsing::tokenize(expression).and_then(bound_make_tree).transform(parsing::make_RPN);
+        = tokenized_expr.and_then(bound_make_tree).transform(parsing::make_RPN);
   }
 }
 
