@@ -108,6 +108,27 @@ MathWorld<type>::ConstDynMathObject MathWorld<type>::to_const(DynMathObject obj)
     obj);
 }
 
+template <parsing::Type type>
+template <class ObjectType>
+  requires(tuple_contains_v<MathObjects<type>, ObjectType>)
+ObjectType& MathWorld<type>::add()
+{
+  SlottedDeque<ObjectType> &object_container = std::get<SlottedDeque<ObjectType>>(math_objects);
+
+  size_t id;
+  // compile time check if objects needs MathWorld pointer
+  if constexpr (requires { ObjectType(this); })
+    id = object_container.push(ObjectType(this));
+  else id = object_container.push(ObjectType());
+
+  ObjectType& world_object = object_container[id];
+
+  // object has no name for now
+  object_names.insert({&world_object, ""});
+
+  return world_object;
+}
+
 
 template <parsing::Type type>
 template <class ObjectType, class... Arg>

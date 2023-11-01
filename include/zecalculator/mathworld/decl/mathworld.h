@@ -124,13 +124,19 @@ public:
   const ObjectType& get(size_t id) const;
 
   /// @brief default constructs an ObjectType in the world, under the name 'name'
-  ///        then, if there are extra args, forwards them the member function .set() of the newly added object
+  ///        then, if there are extra args, forwards them to the member function .set() of the newly added object
   /// @param arg...: arguments passed to the set() member function of the object
   /// @note returns a NameError if the name is already taken or has the wrong format, leaves the world unchanged.
   template <class ObjectType, class... Arg>
     requires(tuple_contains_v<MathObjects<type>, ObjectType>
              and (sizeof...(Arg) == 0 or requires(ObjectType o) { o.set(std::declval<Arg>()...); }))
   tl::expected<ref<ObjectType>, NameError> add(std::string_view name, Arg&&... arg);
+
+  /// @brief default constructs an ObjectType in the world, without a name
+  /// @note  use the method MathWorld::set_name(obj, name) to give it a name so it can be used by other objects
+  template <class ObjectType>
+    requires(tuple_contains_v<MathObjects<type>, ObjectType>)
+  ObjectType& add();
 
   /// @brief says if an object with the given name exists within the world
   bool contains(std::string_view name) const;

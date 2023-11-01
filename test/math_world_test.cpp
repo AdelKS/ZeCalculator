@@ -148,5 +148,26 @@ int main()
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
+  "add nameless math object"_test = []<class StructType>()
+  {
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
+
+    MathWorld<type> world;
+    Function<type, 1>& f = world.template add<Function<type, 1>>();
+
+    Function<type, 1>& g = world.template add<Function<type, 1>>("g", Vars<1>{"x"}, "f(x)+1").value();
+
+    expect(bool(g.error()) and g.error()->error_type == Error::UNDEFINED_FUNCTION
+           and g.error()->token.name == "f") << g.error();
+
+    // give a name to "f"
+    auto status = world.set_name(&f, "f");
+    expect(bool(status)) << status;
+
+    // now 'g' should be in a valid state
+    expect(not bool(g.error())) << g.error();
+
+  } | std::tuple<AST_TEST, RPN_TEST>{};
+
   return 0;
 }
