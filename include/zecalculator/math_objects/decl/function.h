@@ -27,6 +27,7 @@
 
 #include <zecalculator/error.h>
 #include <zecalculator/external/expected.h>
+#include <zecalculator/math_objects/decl/math_object.h>
 #include <zecalculator/parsing/data_structures/decl/node.h>
 #include <zecalculator/parsing/shared.h>
 #include <zecalculator/utils/name_map.h>
@@ -78,14 +79,12 @@ struct InputVars<0>
 {};
 
 template <parsing::Type type, size_t args_num>
-class Function: public InputVars<args_num>
+class Function: public MathObject<type>, public InputVars<args_num>
 {
 public:
 
   Function(Function&& f) = default;
   Function& operator = (Function&& f) = default;
-
-  const std::string& get_name() const;
 
   /// @brief sets the names of the input variables
   /// @note the order of the input variables is important when calling the function
@@ -165,9 +164,6 @@ protected:
   tl::expected<double, Error> evaluate(std::span<const double, args_num> args,
                                        size_t current_recursion_depth) const;
 
-  void set_name(std::string name);
-
-  std::string name;
   std::string expression;
 
   template <size_t>
@@ -181,9 +177,6 @@ protected:
   tl::expected<std::vector<parsing::Token>, Error> tokenized_expr;
   tl::expected<parsing::Parsing<type>, Error> parsed_expr;
   tl::expected<Vars<args_num>, Error> vars;
-
-  // non-owning pointer to the mathworld that contains this object
-  const MathWorld<type>* mathworld;
 
   template <parsing::Type>
   friend class MathWorld;

@@ -23,6 +23,7 @@
 #include <zecalculator/evaluation/ast/impl/evaluation.h>
 #include <zecalculator/evaluation/rpn/impl/evaluation.h>
 #include <zecalculator/math_objects/decl/function.h>
+#include <zecalculator/math_objects/impl/math_object.h>
 #include <zecalculator/parsing/impl/parser.h>
 
 #include <unordered_set>
@@ -31,21 +32,9 @@ namespace zc {
 
 template <parsing::Type type, size_t args_num>
 Function<type, args_num>::Function(const MathWorld<type>* mathworld)
-  : tokenized_expr(tl::unexpected(Error::empty_expression())),
-    parsed_expr(tl::unexpected(Error::empty_expression())), mathworld(mathworld)
+  : MathObject<type>(mathworld), tokenized_expr(tl::unexpected(Error::empty_expression())),
+    parsed_expr(tl::unexpected(Error::empty_expression()))
 {}
-
-template <parsing::Type type, size_t args_num>
-void Function<type, args_num>::set_name(std::string name)
-{
-  this->name = std::move(name);
-}
-
-template <parsing::Type type, size_t args_num>
-const std::string& Function<type, args_num>::get_name() const
-{
-  return name;
-}
 
 template <parsing::Type type, size_t args_num>
 void Function<type, args_num>::set_input_vars(Vars<args_num> input_vars)
@@ -109,8 +98,8 @@ void Function<type, args_num>::parse()
   auto bound_make_tree = [&](const std::vector<parsing::Token>& vec)
   {
     if constexpr (args_num == 0)
-      return parsing::make_tree<type>(vec, *mathworld, {});
-    else return parsing::make_tree<type>(vec, *mathworld, this->vars.value());
+      return parsing::make_tree<type>(vec, *this->mathworld, {});
+    else return parsing::make_tree<type>(vec, *this->mathworld, this->vars.value());
   };
 
   if constexpr (type == parsing::Type::AST)
@@ -238,7 +227,7 @@ template <parsing::Type type, size_t args_num>
 tl::expected<double, Error> Function<type, args_num>::evaluate(
   std::span<const double, args_num> args, size_t current_recursion_depth) const
 {
-  if (mathworld->max_recursion_depth < current_recursion_depth) [[unlikely]]
+  if (this->mathworld->max_recursion_depth < current_recursion_depth) [[unlikely]]
     return tl::unexpected(Error::recursion_depth_overflow());
   else if (not bool(*this)) [[unlikely]]
     return tl::unexpected(*error());
