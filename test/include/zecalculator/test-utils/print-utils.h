@@ -10,6 +10,13 @@
 namespace std {
 
 template <class T, class U>
+std::ostream& operator << (std::ostream& os, const std::pair<T, U>& val)
+{
+  os << "{ " << val.first << ", " << val.second << " }";
+  return os;
+}
+
+template <class T, class U>
 std::ostream& operator << (std::ostream& os, const tl::expected<T, U>& expected)
 {
   if (expected)
