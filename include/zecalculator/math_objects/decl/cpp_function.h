@@ -1,8 +1,5 @@
 #pragma once
 
-#include <cstddef>
-#include <zecalculator/parsing/shared.h>
-
 /****************************************************************************
 **  Copyright (c) 2023, Adel Kara Slimane <adel.ks@zegrapher.com>
 **
@@ -23,30 +20,45 @@
 **
 ****************************************************************************/
 
+#include <cstddef>
+#include <utility>
+#include <string>
+
+#include <zecalculator/parsing/shared.h>
+#include <zecalculator/utils/utils.h>
+#include <zecalculator/math_objects/decl/math_object.h>
+
 namespace zc {
 
-template <parsing::Type, size_t>
-class Function;
-
-template <parsing::Type>
-class Sequence;
-
-/// @brief a class that represents a general expression
-/// @note  an expression is a function that does not have any input
 template <parsing::Type type>
-using Expression = Function<type, 0>;
+class MathWorld;
 
-/// @brief there's not mathematical difference between a global variable
-///        and a simple mathematical expression. It just makes more sense
-///        when we add one to a math world: a global variable is an expression
-///        that has a name
-template <parsing::Type type>
-using GlobalVariable = Function<type, 0>;
+/// @brief function signature of the type double (*) (double, double, ...) [args_num doubles as input]
+template <size_t args_num>
+using CppMathFunctionPtr = typename utils::math_func_signature_t<args_num>;
 
-struct GlobalConstant;
-
-template <parsing::Type, size_t args_num>
+template <parsing::Type type, size_t args_num>
   requires (args_num > 0)
-class CppFunction;
+class CppFunction: public MathObject<type>
+{
+public:
 
-}
+  constexpr void set(CppMathFunctionPtr<args_num> ptr);
+
+  template <class... DBL>
+    requires((std::is_convertible_v<DBL, double> and ...) and sizeof...(DBL) == args_num)
+  double operator()(DBL... val) const;
+
+  bool operator == (const CppFunction&) const = default;
+
+protected:
+
+  constexpr CppFunction(const MathWorld<type>* mathworld);
+
+  CppMathFunctionPtr<args_num> f_ptr = nullptr;
+
+  template <parsing::Type>
+  friend class MathWorld;
+};
+
+} // namespace zc

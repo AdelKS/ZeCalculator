@@ -307,7 +307,7 @@ struct FunctionVisiter
   std::vector<Tree<world_type>> subnodes;
 
   template <size_t args_num>
-  Ret operator()(const CppFunction<args_num>* f)
+  Ret operator()(const CppFunction<world_type, args_num>* f)
   {
     if (subnodes.size() != args_num) [[unlikely]]
       return tl::unexpected(Error::mismatched_fun_args(func_txt_token));

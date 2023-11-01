@@ -74,10 +74,10 @@ namespace zc {
         template <size_t args_num>
         struct CppFunction: Text
         {
-          CppFunction(const Text& txt, const zc::CppFunction<args_num>* f)
+          CppFunction(const Text& txt, const zc::rpn::CppFunction<args_num>* f)
             : Text(txt),  f(f) {}
 
-          const zc::CppFunction<args_num>* f;
+          const zc::rpn::CppFunction<args_num>* f;
         };
 
         template <char op, size_t args_num>
@@ -151,14 +151,15 @@ namespace zc {
         };
 
         template <parsing::Type world_type, size_t args_num>
-        struct CppFunction: rpn::CppFunction<args_num>
+        struct CppFunction: Text
         {
           CppFunction(const Text& txt,
-                      const zc::CppFunction<args_num>* f,
+                      const zc::CppFunction<world_type, args_num>* f,
                       std::array<NodePtr<world_type>, args_num> operands)
-            : rpn::CppFunction<args_num>(txt, f), operands(std::move(operands))
+            : Text(txt), f(f), operands(std::move(operands))
           {}
 
+          const zc::CppFunction<world_type, args_num>* f;
           std::array<NodePtr<world_type>, args_num> operands;
         };
 

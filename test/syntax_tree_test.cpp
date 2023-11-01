@@ -77,11 +77,11 @@ int main()
       15,
       {node::ast::CppFunction<type, 1>(
          tokens::Text("cos", 1),
-         world.template get<CppFunction<1>>("cos"),
+         world.template get<CppFunction<type, 1>>("cos"),
          {node::ast::BinaryOperator<type, '+'>(
            11,
            {node::ast::CppFunction<type, 1>(tokens::Text("sin", 5),
-                                            world.template get<CppFunction<1>>("sin"),
+                                            world.template get<CppFunction<type, 1>>("sin"),
                                             {node::InputVariable(tokens::Text("x", 9), 0)}),
             node::Number(1.0, tokens::Text("1", 12))})}),
        node::Number(1.0, tokens::Text("1", 16))});

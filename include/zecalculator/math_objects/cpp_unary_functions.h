@@ -22,11 +22,9 @@
 
 #include <string_view>
 
-#include <zecalculator/math_objects/cpp_function.h>
+#include <zecalculator/math_objects/decl/cpp_function.h>
 
 namespace zc {
-
-using CppUnaryFunction = CppFunction<1>;
 
 // we save the names along with the function pointers for convenience
 // we could save only the function pointers, and the names only in the inventory

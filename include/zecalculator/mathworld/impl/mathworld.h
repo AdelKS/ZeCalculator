@@ -29,7 +29,7 @@ template <parsing::Type type>
 MathWorld<type>::MathWorld()
 {
   for (auto&& [name, f_ptr]: builtin_unary_functions)
-    add<CppUnaryFunction>(name, f_ptr);
+    add<CppUnaryFunction<type>>(name, f_ptr);
 
   for (auto&& [name, cst]: builtin_global_constants)
     add<GlobalConstant>(name, cst);

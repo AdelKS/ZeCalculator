@@ -5,7 +5,6 @@ if not meson.is_subproject()
   install_headers(
     files(
       'aliases.h',
-      'cpp_binary_functions.h',
       'cpp_function.h',
       'cpp_unary_functions.h',
       'forward_declares.h',

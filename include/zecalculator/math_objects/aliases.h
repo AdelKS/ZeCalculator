@@ -24,6 +24,12 @@
 
 namespace zc {
 
+template <parsing::Type type>
+using CppUnaryFunction = CppFunction<type, 1>;
+
+template <parsing::Type type>
+using CppBinaryFunction = CppFunction<type, 2>;
+
 namespace ast {
 
   template <size_t args_num>
@@ -32,6 +38,12 @@ namespace ast {
   using Sequence = zc::Sequence<parsing::Type::AST>;
   using Expression = zc::Expression<parsing::Type::AST>;
   using GlobalVariable = zc::GlobalVariable<parsing::Type::AST>;
+
+  template <size_t args_num>
+  using CppFunction = zc::CppFunction<parsing::Type::AST, args_num>;
+
+  using CppUnaryFunction = CppFunction<1>;
+  using CppBinaryFunction = CppFunction<2>;
 
 } // namespace ast
 
@@ -43,6 +55,12 @@ namespace rpn {
   using Sequence = zc::Sequence<parsing::Type::RPN>;
   using Expression = zc::Expression<parsing::Type::RPN>;
   using GlobalVariable = zc::GlobalVariable<parsing::Type::RPN>;
+
+  template <size_t args_num>
+  using CppFunction = zc::CppFunction<parsing::Type::RPN, args_num>;
+
+  using CppUnaryFunction = CppFunction<1>;
+  using CppBinaryFunction = CppFunction<2>;
 
 } // namespace rpn
 

@@ -21,7 +21,6 @@
 ****************************************************************************/
 
 #include <zecalculator/error.h>
-#include <zecalculator/math_objects/cpp_binary_functions.h>
 #include <zecalculator/math_objects/cpp_unary_functions.h>
 #include <zecalculator/math_objects/global_constant.h>
 #include <zecalculator/math_objects/object_list.h>

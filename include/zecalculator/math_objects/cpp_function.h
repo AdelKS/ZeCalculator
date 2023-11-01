@@ -20,46 +20,5 @@
 **
 ****************************************************************************/
 
-#include <cstddef>
-#include <utility>
-#include <string>
-
-#include <zecalculator/utils/utils.h>
-
-namespace zc {
-
-/// @brief function signature of the type double (*) (double, double, ...) [args_num doubles as input]
-template <size_t args_num>
-using CppMathFunctionPtr = typename utils::math_func_signature_t<args_num>;
-
-template <size_t args_num>
-  requires (args_num > 0)
-struct CppFunction
-{
-public:
-
-  constexpr CppFunction() = default;
-
-  constexpr CppFunction(CppMathFunctionPtr<args_num> f_ptr) : f_ptr(f_ptr) {};
-
-  void set_name(std::string name) { this->name = std::move(name); }
-
-  const std::string& get_name() const { return name; }
-
-  constexpr void set(CppMathFunctionPtr<args_num> ptr) {f_ptr = ptr; }
-
-  template <class... DBL>
-    requires((std::is_convertible_v<DBL, double> and ...) and sizeof...(DBL) == args_num)
-  double operator()(DBL... val) const
-  {
-    return f_ptr(val...);
-  }
-
-  bool operator == (const CppFunction&) const = default;
-
-protected:
-  CppMathFunctionPtr<args_num> f_ptr = nullptr;
-  std::string name;
-};
-
-} // namespace zc
+#include <zecalculator/math_objects/decl/cpp_function.h>
+#include <zecalculator/math_objects/impl/cpp_function.h>

@@ -20,13 +20,31 @@
 **
 ****************************************************************************/
 
-#include <cmath>
-
-#include <zecalculator/math_objects/cpp_function.h>
-#include <zecalculator/parsing/data_structures/token.h>
+#include <zecalculator/math_objects/decl/cpp_function.h>
+#include <zecalculator/math_objects/impl/math_object.h>
 
 namespace zc {
 
-using CppBinaryFunction = CppFunction<2>;
-
+template <parsing::Type type, size_t args_num>
+  requires(args_num > 0)
+constexpr void CppFunction<type, args_num>::set(CppMathFunctionPtr<args_num> ptr)
+{
+  f_ptr = ptr;
 }
+
+template <parsing::Type type, size_t args_num>
+  requires(args_num > 0)
+template <class... DBL>
+  requires((std::is_convertible_v<DBL, double> and ...) and sizeof...(DBL) == args_num)
+double CppFunction<type, args_num>::operator()(DBL... val) const
+{
+  return f_ptr(val...);
+}
+
+template <parsing::Type type, size_t args_num>
+  requires(args_num > 0)
+constexpr CppFunction<type, args_num>::CppFunction(const MathWorld<type>* mathworld)
+  : MathObject<type>(mathworld)
+{}
+
+} // namespace zc
