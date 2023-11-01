@@ -274,7 +274,7 @@ int main()
 
     auto deps = seq.direct_dependencies();
 
-    expect(deps.size() == 5_u); // "+", "-", "*", "u" and "f"
+    expect(deps.size() == 2_u); // "u" and "f"
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 

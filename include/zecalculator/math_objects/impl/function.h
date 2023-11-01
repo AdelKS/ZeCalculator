@@ -156,97 +156,28 @@ const tl::expected<parsing::Parsing<type>, Error>& Function<type, args_num>::get
   return parsed_expr;
 }
 
-template <parsing::Type type>
-struct DepVisitor
-{
-  using ObjectType = typename MathWorld<type>::ConstDynMathObject;
-  std::vector<ObjectType> deps;
-
-  template <class T>
-  void insert(const T& obj)
-  {
-    // tests for same alternative then same address
-    auto test = [&](auto&& val)
-    {
-      cref<T>* ptr = std::get_if<cref<T>>(&val);
-      return ptr and &ptr->get() == &obj;
-    };
-
-    if (not std::ranges::any_of(deps, test))
-      deps.push_back(std::cref(obj));
-  }
-
-
-  template <class T>
-  void operator()(const T& alt)
-  {
-    // AST
-
-    if constexpr (is_any_of<T,
-                            parsing::node::ast::CppFunction<type, 0>,
-                            parsing::node::ast::CppFunction<type, 1>,
-                            parsing::node::ast::CppFunction<type, 2>,
-                            parsing::node::ast::Function<type, 0>,
-                            parsing::node::ast::Function<type, 1>,
-                            parsing::node::ast::Function<type, 2>>)
-    {
-      insert(alt.f);
-      std::ranges::for_each(alt.operands, [this](auto&& v){ std::visit(*this, *v); });
-    }
-    else if constexpr (std::is_same_v<T, parsing::node::ast::Sequence<type>>)
-    {
-      insert(alt.u);
-      std::visit(*this, *alt.operand);
-    }
-
-    // RPN
-
-    else if constexpr (is_any_of<T,
-                                 parsing::node::rpn::Function<0>,
-                                 parsing::node::rpn::Function<1>,
-                                 parsing::node::rpn::Function<2>,
-                                 parsing::node::rpn::CppFunction<1>,
-                                 parsing::node::rpn::CppFunction<2>>)
-    {
-      insert(alt.f);
-    }
-    else if constexpr (std::is_same_v<T, parsing::node::rpn::Sequence>)
-    {
-      insert(alt.u);
-    }
-
-    // shared / templated
-
-    else if constexpr (std::is_same_v<T, parsing::node::GlobalVariable<type>>)
-    {
-      insert(alt.var);
-    }
-    else if constexpr (std::is_same_v<T, parsing::node::GlobalConstant>)
-    {
-      insert(alt.constant);
-    }
-
-    // we do nothing with every other possibility
-  }
-};
-
 template <parsing::Type type, size_t args_num>
-auto Function<type, args_num>::direct_dependencies() const
+std::unordered_map<std::string, deps::ObjectType> Function<type, args_num>::direct_dependencies() const
 {
-  DepVisitor<type> visitor;
+  if (not tokenized_expr.has_value())
+    return {};
 
-  if (not bool(*this))
-    return visitor.deps;
+  std::unordered_map<std::string, deps::ObjectType> deps;
 
-  if constexpr (type == parsing::Type::RPN)
-    std::ranges::for_each(parsed_expr.value(), [&](auto&& v){ std::visit(visitor, v); });
-  else
-  {
-    auto& val = *parsed_expr.value();
-    std::visit(visitor, val);
-  }
+  for (const parsing::Token& tok: tokenized_expr.value())
+    std::visit(
+      overloaded{
+        [&](const parsing::tokens::Function& f) {
+          deps.insert({f.name, deps::ObjectType::FUNCTION});
+        },
+        [&](const parsing::tokens::Variable& v) {
+          if (not vars.has_value() or std::ranges::count(*vars, v.name) == 0)
+            deps.insert({v.name, deps::ObjectType::VARIABLE});
+        },
+        [](auto&&){ /* no op */ },
+      }, tok);
 
-  return visitor.deps;
+  return deps;
 }
 
 template <parsing::Type type, size_t args_num>

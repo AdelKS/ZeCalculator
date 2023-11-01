@@ -61,6 +61,11 @@ namespace parsing {
 struct Ok {};
 struct Empty {};
 
+namespace deps {
+  /// @brief used to know the type of the dependency when querying deps
+  enum ObjectType {VARIABLE, FUNCTION};
+}
+
 struct InvalidInputVar
 {
   std::string var_name;
@@ -101,8 +106,11 @@ public:
   /// @brief returns the number of input variables, if they are valid
   static constexpr size_t argument_size() { return args_num; };
 
-  /// @brief gives the math objects that are present in this function's expression
-  auto direct_dependencies() const;
+  /// @brief gives the Functions and Variables this function directly depends on
+  /// @note  uses only the function's expression (no name lookup is done in
+  ///        the MathWorld the function belongs to)
+  /// @note  undefined functions & variables in the math world will still be listed
+  std::unordered_map<std::string, deps::ObjectType> direct_dependencies() const;
 
   /// @brief tests if the function is valid, i.e. has a valid expression and input vars
   operator bool () const;
