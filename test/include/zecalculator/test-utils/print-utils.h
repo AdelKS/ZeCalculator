@@ -82,5 +82,9 @@ namespace zc {
     } // namespace tokens
   } // namespace parsing
 
+  namespace deps {
+    std::ostream& operator << (std::ostream& os, ObjectType type);
+  }
+
   std::ostream& operator << (std::ostream& os, const Error& err);
 }

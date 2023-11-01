@@ -109,6 +109,14 @@ std::ostream& operator << (std::ostream& os, const Error& err)
   return os;
 }
 
-}
+} // namespace eval
 
-}
+namespace deps {
+  std::ostream& operator << (std::ostream& os, ObjectType type)
+  {
+    os << magic_enum::enum_name(type);
+    return os;
+  }
+} // namespace deps
+
+} // namespace zc
