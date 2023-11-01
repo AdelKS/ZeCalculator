@@ -270,11 +270,10 @@ int main()
 
     // add a function named "f", note that the constant "my_constant" is only defined after
     world.template add<Function<type, 2>>("f", Vars<2>{"x", "y"}, "1 + x + y").value();
-    Sequence<type>& seq = world.template add<Sequence<type>>("u", "n", "1 + f(1, 1) + f(2, 2) + u(n-1) + 3*u(n-1)", Vals{0}).value();
+    Sequence<type>& seq = world.template add<Sequence<type>>("u", "n", "1 + f(1, 1) + f(2, 2) + u(n-1) + 3*u(n-1) + cos(n)", Vals{0}).value();
 
-    auto deps = seq.direct_dependencies();
-
-    expect(deps.size() == 2_u); // "u" and "f"
+    constexpr auto t = deps::ObjectType::FUNCTION;
+    expect(seq.direct_dependencies() == std::unordered_map{std::pair{std::string("u"), t}, {"f", t}, {"cos", t}}); // "u" and "f"
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
