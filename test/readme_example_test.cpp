@@ -40,8 +40,17 @@ int main()
   // Add a one parameter function named "f"
   ast::Function<1>& f = world.add<ast::Function<1>>("f", Vars<1>{"x"}, "x + my_constant + cos(math::pi)").value();
 
-  // We know the expression is correct
+  // We know the expression is correct, returns an std::optional<zc::Error>
   assert(not f.error());
+
+  // We can query the direct (or all) dependencies of Function based objects
+  // the methods returns a map that gives the names and the type of dep
+  // this function returns something as soon as the tokenize step in the parsing is successful
+  // (done when calling set_expression() method)
+  assert(bool(f.direct_dependencies()
+              == std::unordered_map{std::pair(std::string("my_constant"), deps::VARIABLE),
+                                    {"cos", deps::FUNCTION},
+                                    {"math::pi", deps::VARIABLE}}));
 
   // Evaluate function, returns an 'expected'
   expected<double, Error> eval = f({1});
