@@ -262,7 +262,7 @@ int main()
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
-  "direct dependencies"_test = []<class StructType>()
+  "sequence direct dependencies"_test = []<class StructType>()
   {
     constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
 
@@ -274,6 +274,25 @@ int main()
 
     constexpr auto t = deps::ObjectType::FUNCTION;
     expect(seq.direct_dependencies() == std::unordered_map{std::pair{std::string("u"), t}, {"f", t}, {"cos", t}}); // "u" and "f"
+
+  } | std::tuple<AST_TEST, RPN_TEST>{};
+
+  "function direct dependencies"_test = []<class StructType>()
+  {
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
+
+    MathWorld<type> world;
+
+    // add a function named "f", note that the constant "my_constant" is only defined after
+    world.template add<GlobalConstant<type>>("my_constant", 3.0).value();
+    Function<type, 1>& f = world.template add<Function<type, 1>>("f", Vars<1>{"x"}, "x + my_constant + cos(math::pi)").value();
+
+    using namespace std::string_literals;
+
+    expect(f.direct_dependencies()
+           == std::unordered_map{std::pair(std::string("my_constant"), deps::VARIABLE),
+                                 {"cos", deps::FUNCTION},
+                                 {"math::pi", deps::VARIABLE}}); // "u" and "f"
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
