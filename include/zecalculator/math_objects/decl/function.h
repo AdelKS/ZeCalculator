@@ -63,16 +63,22 @@ namespace deps {
   enum ObjectType {VARIABLE, FUNCTION};
 }
 
-struct InvalidInputVar
-{
-  std::string var_name;
-};
-
 template <size_t args_num>
 using Vars = std::array<std::string, args_num>;
 
+/// @brief class that handles Function's input vars
+template <size_t args_num>
+struct InputVars
+{
+  tl::expected<std::array<std::string, args_num>, Error> vars;
+};
+
+template <>
+struct InputVars<0>
+{};
+
 template <parsing::Type type, size_t args_num>
-class Function
+class Function: public InputVars<args_num>
 {
 public:
 
@@ -116,6 +122,9 @@ public:
   std::optional<Error> error() const;
 
   const tl::expected<parsing::Parsing<type>, Error>& get_parsing() const;
+
+  /// @brief (re)parse the expression
+  void parse();
 
   /// @brief evaluation on a given math world with the given input
   tl::expected<double, Error> evaluate(const std::array<double, args_num>& args) const
@@ -165,7 +174,7 @@ protected:
 
   tl::expected<std::vector<parsing::Token>, Error> tokenized_expr;
   tl::expected<parsing::Parsing<type>, Error> parsed_expr;
-  tl::expected<Vars<args_num>, InvalidInputVar> vars;
+  tl::expected<Vars<args_num>, Error> vars;
 
   // non-owning pointer to the mathworld that contains this object
   const MathWorld<type>* mathworld;

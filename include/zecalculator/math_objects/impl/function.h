@@ -51,8 +51,13 @@ void Function<type, args_num>::set_input_vars(Vars<args_num> input_vars)
 {
   auto it = std::ranges::find_if_not(input_vars, parsing::is_valid_name);
   if (it != input_vars.end())
-    vars = tl::unexpected(InvalidInputVar{*it});
-  else vars = std::move(input_vars);
+    this->vars = tl::unexpected(
+      Error::wrong_format(parsing::tokens::Text(*it, SubstrInfo{.size = (*it).size()})));
+  else
+  {
+    this->vars = std::move(input_vars);
+    parse();
+  }
 }
 
 template <parsing::Type type, size_t args_num>
@@ -60,8 +65,13 @@ void Function<type, args_num>::set_input_var(std::string input_var)
   requires (args_num == 1)
 {
   if (parsing::is_valid_name(input_var)) [[unlikely]]
-    vars = tl::unexpected(InvalidInputVar{std::move(input_var)});
-  else vars = std::array{std::move(input_var)};
+    this->vars = tl::unexpected(
+      Error::wrong_format(parsing::tokens::Text(input_var, SubstrInfo{.size = input_var.size()})));
+  else
+  {
+    this->vars = std::array{std::move(input_var)};
+    parse();
+  }
 }
 
 template <parsing::Type type, size_t args_num>
@@ -74,27 +84,38 @@ void Function<type, args_num>::set_expression(std::string expr)
   expression = std::move(expr);
 
   if (expression.empty())
-  {
-    tokenized_expr = tl::unexpected(Error::empty());
-    parsed_expr = tl::unexpected(Error::empty());
-  }
-  else
-  {
-    tokenized_expr = parsing::tokenize(expression);
+    tokenized_expr = tl::unexpected(Error::empty_expression());
+  else tokenized_expr = parsing::tokenize(expression);
 
-    // just a shortcut to have tokens -> make_tree(tokens, mathworld, vars.value)
-    using namespace std::placeholders;
-    auto bound_make_tree = [&](const std::vector<parsing::Token>& vec)
+  parse();
+}
+
+template <parsing::Type type, size_t args_num>
+void Function<type, args_num>::parse()
+{
+  if constexpr (args_num > 0)
+  {
+    if (not this->vars)
     {
-      return parsing::make_tree<type>(vec, *mathworld, vars.value());
-    };
-
-    if constexpr (type == parsing::Type::AST)
-      parsed_expr = tokenized_expr.and_then(bound_make_tree);
-    else
-      parsed_expr
-        = tokenized_expr.and_then(bound_make_tree).transform(parsing::make_RPN);
+      parsed_expr = tl::unexpected(Error::invalid_function());
+      return;
+    }
   }
+
+  // just a shortcut to have tokens -> make_tree(tokens, mathworld, vars.value)
+  using namespace std::placeholders;
+  auto bound_make_tree = [&](const std::vector<parsing::Token>& vec)
+  {
+    if constexpr (args_num == 0)
+      return parsing::make_tree<type>(vec, *mathworld, {});
+    else return parsing::make_tree<type>(vec, *mathworld, this->vars.value());
+  };
+
+  if constexpr (type == parsing::Type::AST)
+    parsed_expr = tokenized_expr.and_then(bound_make_tree);
+  else
+    parsed_expr
+      = tokenized_expr.and_then(bound_make_tree).transform(parsing::make_RPN);
 }
 
 template <parsing::Type type, size_t args_num>
@@ -115,15 +136,24 @@ void Function<type, args_num>::set(std::string expr)
 template <parsing::Type type, size_t args_num>
 Function<type, args_num>::operator bool () const
 {
-  if constexpr (type == parsing::Type::AST)
-    return bool(parsed_expr) and bool(vars);
-  else return bool(parsed_expr) and bool(vars);
+  if constexpr (args_num == 0)
+    return bool(parsed_expr);
+  else return bool(parsed_expr) and bool(this->vars);
 }
 
 template <parsing::Type type, size_t args_num>
 std::optional<Error> Function<type, args_num>::error() const
 {
-  return parsed_expr.has_value() ? std::optional<Error>() : parsed_expr.error();
+  if constexpr (args_num > 0)
+  {
+    if (not this->vars)
+      return this->vars.error();
+  }
+
+  if (not parsed_expr)
+    return parsed_expr.error();
+  else
+    return {};
 }
 
 template <parsing::Type type, size_t args_num>

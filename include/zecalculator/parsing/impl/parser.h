@@ -352,6 +352,9 @@ tl::expected<Tree<type>, Error> make_tree(std::span<const parsing::Token> tokens
 {
   using Ret = tl::expected<Tree<type>, Error>;
 
+  if (tokens.empty()) [[unlikely]]
+    return tl::unexpected(Error::empty());
+
   // when there's only a single token, it can only be number or a variable
   if (tokens.size() == 1)
   {
