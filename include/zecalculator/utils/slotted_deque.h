@@ -62,7 +62,7 @@ public:
   ///@brief frees the slot 'slot'
   void pop(const size_t slot)
   {
-    (*this)[slot].reset();
+    Parent::operator[](slot).reset();
     free_slots.push(slot);
   }
 
