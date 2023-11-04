@@ -123,8 +123,7 @@ ObjectType& MathWorld<type>::add()
 
   ObjectType& world_object = object_container[id];
 
-  // object has no name for now
-  object_names.insert({&world_object, ""});
+  object_slots[&world_object] = id;
 
   return world_object;
 }
@@ -152,6 +151,7 @@ tl::expected<ref<ObjectType>, NameError> MathWorld<type>::add(std::string_view n
   ObjectType& world_object = object_container[id];
   world_object.set_name(std::string(name));
   object_names[&world_object] = name;
+  object_slots[&world_object] = id;
 
   inventory[std::string(name)] = &world_object;
 
@@ -204,19 +204,18 @@ template <class ObjectType>
   requires(tuple_contains_v<MathObjects<type>, ObjectType>)
 tl::expected<Ok, NameError> MathWorld<type>::set_name(ObjectType* obj, const std::string& name)
 {
-  const auto it = object_names.find(obj);
-  if (it == object_names.end()) [[unlikely]]
+  const auto slot_it = object_slots.find(obj);
+  if (slot_it == object_slots.end()) [[unlikely]]
     return tl::unexpected(NameError::not_in_world());
   else if (not parsing::is_valid_name(name)) [[unlikely]]
     return tl::unexpected(NameError::invalid_format(name));
   else if (inventory.contains(name))
     return tl::unexpected(NameError::already_taken(name));
 
-  // save old name first
-  const std::string old_name = it->second;
-
-  // overwrite with new name
-  it->second = name;
+  std::string old_name;
+  const auto name_it = object_names.find(obj);
+  if (name_it != object_names.end())
+    old_name = name_it->second;
 
   if (not old_name.empty())
   {
