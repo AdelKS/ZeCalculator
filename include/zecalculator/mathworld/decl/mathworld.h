@@ -170,6 +170,10 @@ protected:
   /// @brief two uses: tracks 1. all objects handled by this world, 2. their name if they have one (empty otherwise)
   std::unordered_map<to_variant_t<tuple_transform_t<ptr, MathObjects<type>>>, std::string> object_names;
 
+  /// @brief the slot within the SlottedDeque, taken by each math object
+  /// @note used for easy lookup and deletion
+  std::unordered_map<to_variant_t<tuple_transform_t<cst_ptr, MathObjects<type>>>, size_t> object_slots;
+
   tuple_transform_t<SlottedDeque, MathObjects<type>> math_objects;
 
 };
