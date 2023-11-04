@@ -104,5 +104,4 @@ namespace zc {
 
   std::ostream& operator << (std::ostream& os, const Error& err);
   std::ostream& operator << (std::ostream& os, Ok);
-  std::ostream& operator << (std::ostream& os, const NameError&);
 }

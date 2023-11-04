@@ -68,7 +68,7 @@ int main()
 
     MathWorld<type> world;
     auto res = world.rename("foo", "bar");
-    expect(not res and res.error().type == NameError::NOT_IN_WORLD);
+    expect(not res and res.error().error_type == Error::OBJECT_NOT_IN_WORLD);
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
@@ -119,7 +119,7 @@ int main()
     Function<type, 1>& f = world.template add<Function<type, 1>>("f", Vars<1>{"x"}, "cos(x)").value();
 
     auto res = world.set_name(&f, "cos");
-    expect(not res and res.error().type == NameError::ALREADY_TAKEN);
+    expect(not res and res.error().error_type == Error::NAME_ALREADY_TAKEN);
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
@@ -131,7 +131,7 @@ int main()
     Function<type, 1>& f = world.template add<Function<type, 1>>("f", Vars<1>{"x"}, "cos(x)").value();
 
     auto res = world.set_name(&f, "1+1");
-    expect(not res and res.error().type == NameError::INVALID_FORMAT);
+    expect(not res and res.error().error_type == Error::WRONG_FORMAT);
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
@@ -144,7 +144,7 @@ int main()
 
     // try to change the name of object in the wrong world
     auto res = world2.set_name(&f, "g");
-    expect(not res and res.error().type == NameError::NOT_IN_WORLD);
+    expect(not res and res.error().error_type == Error::OBJECT_NOT_IN_WORLD);
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 

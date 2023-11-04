@@ -133,12 +133,12 @@ template <parsing::Type type>
 template <class ObjectType, class... Arg>
   requires(tuple_contains_v<MathObjects<type>, ObjectType>
            and (sizeof...(Arg) == 0 or requires(ObjectType o) { o.set(std::declval<Arg>()...); }))
-tl::expected<ref<ObjectType>, NameError> MathWorld<type>::add(const std::string& name, Arg &&...arg)
+tl::expected<ref<ObjectType>, Error> MathWorld<type>::add(const std::string& name, Arg &&...arg)
 {
   if (not parsing::is_valid_name(name))
-    return tl::unexpected(NameError::invalid_format(name));
+    return tl::unexpected(Error::wrong_format(name));
   else if (contains(name))
-    return tl::unexpected(NameError::already_taken(name));
+    return tl::unexpected(Error::name_already_taken(name));
 
   SlottedDeque<ObjectType> &object_container = std::get<SlottedDeque<ObjectType>>(math_objects);
 
@@ -165,11 +165,11 @@ tl::expected<ref<ObjectType>, NameError> MathWorld<type>::add(const std::string&
 }
 
 template <parsing::Type type>
-tl::expected<Ok, NameError> MathWorld<type>::rename(const std::string& old_name,
-                                                    const std::string& new_name)
+tl::expected<Ok, Error> MathWorld<type>::rename(const std::string& old_name,
+                                                const std::string& new_name)
 {
   if (not parsing::is_valid_name(new_name)) [[unlikely]]
-    return tl::unexpected(NameError::invalid_format(new_name));
+    return tl::unexpected(Error::wrong_format(new_name));
 
   auto node = inventory.extract(old_name);
   if (node) [[likely]]
@@ -196,21 +196,21 @@ tl::expected<Ok, NameError> MathWorld<type>::rename(const std::string& old_name,
 
     return Ok{};
   }
-  else return tl::unexpected(NameError::not_in_world(old_name));
+  else return tl::unexpected(Error::object_not_in_world(old_name));
 }
 
 template <parsing::Type type>
 template <class ObjectType>
   requires(tuple_contains_v<MathObjects<type>, ObjectType>)
-tl::expected<Ok, NameError> MathWorld<type>::set_name(ObjectType* obj, const std::string& name)
+tl::expected<Ok, Error> MathWorld<type>::set_name(ObjectType* obj, const std::string& name)
 {
   const auto slot_it = object_slots.find(obj);
   if (slot_it == object_slots.end()) [[unlikely]]
-    return tl::unexpected(NameError::not_in_world());
+    return tl::unexpected(Error::object_not_in_world());
   else if (not parsing::is_valid_name(name)) [[unlikely]]
-    return tl::unexpected(NameError::invalid_format(name));
+    return tl::unexpected(Error::wrong_format(name));
   else if (inventory.contains(name))
-    return tl::unexpected(NameError::already_taken(name));
+    return tl::unexpected(Error::name_already_taken(name));
 
   std::string old_name;
   const auto name_it = object_names.find(obj);

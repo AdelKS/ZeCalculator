@@ -108,12 +108,6 @@ std::ostream& operator << (std::ostream& os, Ok)
   return os;
 }
 
-std::ostream& operator << (std::ostream& os, const NameError& err)
-{
-  os << "Name error: " << magic_enum::enum_name(err.type) << " on name: " << err.name;
-  return os;
-}
-
 namespace eval {
 
 std::ostream& operator << (std::ostream& os, const Error& err)

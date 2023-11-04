@@ -47,35 +47,6 @@ namespace rpn {
   using MathWorld = zc::MathWorld<parsing::Type::RPN>;
 }
 
-
-struct  NameError
-{
-  enum Type {ALREADY_TAKEN, INVALID_FORMAT, NOT_IN_WORLD};
-
-  static NameError already_taken(std::string_view name)
-  {
-    return NameError{.type = ALREADY_TAKEN, .name = std::string(name)};
-  }
-
-  static NameError invalid_format(std::string_view name)
-  {
-    return NameError{.type = INVALID_FORMAT, .name = std::string(name)};
-  }
-
-  static NameError not_in_world(std::string_view name)
-  {
-    return NameError{.type = NOT_IN_WORLD, .name = std::string(name)};
-  }
-
-  static NameError not_in_world()
-  {
-    return NameError{.type = NOT_IN_WORLD};
-  }
-
-  Type type;
-  std::string name = {};
-};
-
 class Ok {};
 class UnregisteredObject {};
 
@@ -126,11 +97,11 @@ public:
   /// @brief default constructs an ObjectType in the world, under the name 'name'
   ///        then, if there are extra args, forwards them to the member function .set() of the newly added object
   /// @param arg...: arguments passed to the set() member function of the object
-  /// @note returns a NameError if the name is already taken or has the wrong format, leaves the world unchanged.
+  /// @note returns an Error if the name is already taken or has the wrong format, leaves the world unchanged.
   template <class ObjectType, class... Arg>
     requires(tuple_contains_v<MathObjects<type>, ObjectType>
              and (sizeof...(Arg) == 0 or requires(ObjectType o) { o.set(std::declval<Arg>()...); }))
-  tl::expected<ref<ObjectType>, NameError> add(const std::string& name, Arg&&... arg);
+  tl::expected<ref<ObjectType>, Error> add(const std::string& name, Arg&&... arg);
 
   /// @brief default constructs an ObjectType in the world, without a name
   /// @note  use the method MathWorld::set_name(obj, name) to give it a name so it can be used by other objects
@@ -145,12 +116,12 @@ public:
   tl::expected<double, Error> evaluate(std::string expr) const;
 
   /// @brief renames object to new name
-  tl::expected<Ok, NameError> rename(const std::string& old_name, const std::string& new_name);
+  tl::expected<Ok, Error> rename(const std::string& old_name, const std::string& new_name);
 
   /// @brief sets/renames object to given name
   template <class ObjectType>
     requires(tuple_contains_v<MathObjects<type>, ObjectType>)
-  tl::expected<Ok, NameError> set_name(ObjectType* obj, const std::string& name);
+  tl::expected<Ok, Error> set_name(ObjectType* obj, const std::string& name);
 
   /// @brief delete object given by pointer
   /// @returns Ok if the deletion was successful, UnregisteredObject otherwise
