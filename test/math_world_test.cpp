@@ -200,5 +200,28 @@ int main()
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
+  "erase object by name"_test = []<class StructType>()
+  {
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
+
+    MathWorld<type> world;
+    Function<type, 1>& f = world.template add<Function<type, 1>>("f", Vars<1>{"x"}, "cos(x)").value();
+    Function<type, 1>& g = world.template add<Function<type, 1>>("g", Vars<1>{"x"}, "f(x)+1").value();
+
+    // no issues expected with parsing of 'f' nor 'g'
+    expect(not bool(f.error()));
+    expect(not bool(g.error()));
+
+    // "cos" is part of the default constructed math world
+    expect(bool(world.erase("cos")));
+
+    // cannot erase the same object twice
+    expect(not bool(world.erase("cos")));
+
+    // after erasing 'cos', 'f' must have been reparsed and get an undefined function error on 'cos
+    expect(bool(f.error()) and f.error()->error_type == Error::UNDEFINED_FUNCTION and f.error()->token.name == "cos");
+
+  } | std::tuple<AST_TEST, RPN_TEST>{};
+
   return 0;
 }

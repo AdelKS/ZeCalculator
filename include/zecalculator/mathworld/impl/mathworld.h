@@ -297,4 +297,17 @@ tl::expected<Ok, UnregisteredObject> MathWorld<type>::erase(ObjectType* obj)
   return Ok{};
 }
 
+template <parsing::Type type>
+tl::expected<Ok, UnregisteredObject> MathWorld<type>::erase(const std::string& name)
+{
+  return std::visit(
+    [this]<class T>(T&& obj) -> tl::expected<Ok, UnregisteredObject> {
+      if constexpr (std::is_same_v<std::remove_cvref_t<T>, UnregisteredObject>)
+        return tl::unexpected(UnregisteredObject{});
+      else return this->erase(obj);
+    },
+    get(name));
+}
+
+
 } // namespace zc
