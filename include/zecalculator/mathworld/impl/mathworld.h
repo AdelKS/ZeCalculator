@@ -269,4 +269,32 @@ tl::expected<double, Error> MathWorld<type>::evaluate(std::string expr) const
   return f();
 }
 
+template <parsing::Type type>
+template <class ObjectType>
+  requires(tuple_contains_v<MathObjects<type>, ObjectType>)
+tl::expected<Ok, UnregisteredObject> MathWorld<type>::erase(ObjectType* obj)
+{
+  const auto slot_node = object_slots.extract(obj);
+  if (not bool(slot_node)) [[unlikely]]
+    return tl::unexpected(UnregisteredObject{});
+
+  const auto name_node = object_names.extract(obj);
+  if (bool(name_node))
+  {
+    // extract "name" from the inventory and just throw it away
+    auto node = inventory.extract(name_node.mapped());
+
+    // the inventory *should* have a valid node
+    assert(bool(node));
+
+    // functions could be depending on 'name' so re-parse them
+    parse_direct_revdeps_of(name_node.mapped());
+  }
+
+  // remove math object
+  std::get<SlottedDeque<ObjectType>>(math_objects).pop(slot_node.mapped());
+
+  return Ok{};
+}
+
 } // namespace zc
