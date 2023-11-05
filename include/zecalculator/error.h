@@ -55,17 +55,17 @@ struct Error
 
   static Error unexpected(parsing::tokens::Text  token)
   {
-    return Error {.error_type = UNEXPECTED, .token = token};
+    return Error {.type = UNEXPECTED, .token = token};
   }
 
   static Error wrong_format(parsing::tokens::Text  token)
   {
-    return Error {.error_type = WRONG_FORMAT, .token = token};
+    return Error {.type = WRONG_FORMAT, .token = token};
   }
 
   static Error missing(parsing::tokens::Text  token)
   {
-    return Error {.error_type = MISSING, .token = token};
+    return Error {.type = MISSING, .token = token};
   }
 
   static Error unkown()
@@ -134,7 +134,7 @@ struct Error
   }
 
   // kind of error
-  Type error_type = UNKNOWN;
+  Type type = UNKNOWN;
 
   // on what token
   parsing::tokens::Text token = {};

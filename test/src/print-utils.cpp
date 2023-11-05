@@ -95,7 +95,7 @@ std::ostream &operator<<(std::ostream &os, const node::ast::Node<Type::RPN> &nod
 
 std::ostream& operator << (std::ostream& os, const Error& err)
 {
-  os << magic_enum::enum_name(err.error_type)
+  os << magic_enum::enum_name(err.type)
      << " at "
      << err.token;
 
@@ -112,7 +112,7 @@ namespace eval {
 
 std::ostream& operator << (std::ostream& os, const Error& err)
 {
-  os << magic_enum::enum_name(err.error_type)
+  os << magic_enum::enum_name(err.type)
      << " at "
      << err.token;
 

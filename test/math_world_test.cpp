@@ -68,7 +68,7 @@ int main()
 
     MathWorld<type> world;
     auto res = world.rename("foo", "bar");
-    expect(not res and res.error().error_type == Error::OBJECT_NOT_IN_WORLD);
+    expect(not res and res.error().type == Error::OBJECT_NOT_IN_WORLD);
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
@@ -82,7 +82,7 @@ int main()
     expect(bool(world.rename("cos", "couscous")));
 
     auto res = world.evaluate("f(1)");
-    expect(not res and res.error().error_type == Error::UNDEFINED_FUNCTION
+    expect(not res and res.error().type == Error::UNDEFINED_FUNCTION
            and res.error().token.name == "cos") << res;
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
@@ -107,7 +107,7 @@ int main()
     Function<type, 1>& g = world.template add<Function<type, 1>>("g", Vars<1>{"x"}, "f(x)+1").value();
 
     expect(bool(world.set_name(&f, "h")));
-    expect(g.error()->error_type == Error::UNDEFINED_FUNCTION and g.error()->token.name == "f") << g.error();
+    expect(g.error()->type == Error::UNDEFINED_FUNCTION and g.error()->token.name == "f") << g.error();
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
@@ -119,7 +119,7 @@ int main()
     Function<type, 1>& f = world.template add<Function<type, 1>>("f", Vars<1>{"x"}, "cos(x)").value();
 
     auto res = world.set_name(&f, "cos");
-    expect(not res and res.error().error_type == Error::NAME_ALREADY_TAKEN);
+    expect(not res and res.error().type == Error::NAME_ALREADY_TAKEN);
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
@@ -131,7 +131,7 @@ int main()
     Function<type, 1>& f = world.template add<Function<type, 1>>("f", Vars<1>{"x"}, "cos(x)").value();
 
     auto res = world.set_name(&f, "1+1");
-    expect(not res and res.error().error_type == Error::WRONG_FORMAT);
+    expect(not res and res.error().type == Error::WRONG_FORMAT);
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
@@ -144,7 +144,7 @@ int main()
 
     // try to change the name of object in the wrong world
     auto res = world2.set_name(&f, "g");
-    expect(not res and res.error().error_type == Error::OBJECT_NOT_IN_WORLD);
+    expect(not res and res.error().type == Error::OBJECT_NOT_IN_WORLD);
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
@@ -157,7 +157,7 @@ int main()
 
     Function<type, 1>& g = world.template add<Function<type, 1>>("g", Vars<1>{"x"}, "f(x)+1").value();
 
-    expect(bool(g.error()) and g.error()->error_type == Error::UNDEFINED_FUNCTION
+    expect(bool(g.error()) and g.error()->type == Error::UNDEFINED_FUNCTION
            and g.error()->token.name == "f") << g.error();
 
     // give a name to "f"
@@ -187,7 +187,7 @@ int main()
     expect(not bool(world.erase(&f)));
 
     // after erasing 'f', 'g' must have been reparsed and get an undefined function error on f
-    expect(bool(g.error()) and g.error()->error_type == Error::UNDEFINED_FUNCTION and g.error()->token.name == "f");
+    expect(bool(g.error()) and g.error()->type == Error::UNDEFINED_FUNCTION and g.error()->token.name == "f");
 
     // add a new function
     Function<type, 1>& h = world.template add<Function<type, 1>>("h", Vars<1>{"x"}, "1+x").value();
@@ -219,7 +219,7 @@ int main()
     expect(not bool(world.erase("cos")));
 
     // after erasing 'cos', 'f' must have been reparsed and get an undefined function error on 'cos
-    expect(bool(f.error()) and f.error()->error_type == Error::UNDEFINED_FUNCTION and f.error()->token.name == "cos");
+    expect(bool(f.error()) and f.error()->type == Error::UNDEFINED_FUNCTION and f.error()->token.name == "cos");
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 

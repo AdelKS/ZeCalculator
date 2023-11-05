@@ -120,7 +120,7 @@ int main()
 
     auto error = world.evaluate("2 + cos").error();
 
-    expect(error.error_type == Error::WRONG_OBJECT_TYPE);
+    expect(error.type == Error::WRONG_OBJECT_TYPE);
     expect(error.token.substr_info == SubstrInfo{.begin = 4, .size = 3});
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
@@ -133,7 +133,7 @@ int main()
     world.template add<GlobalConstant<type>>("g", 3);
 
     auto error = world.evaluate("7 + g(3)").error();
-    expect(error.error_type == Error::WRONG_OBJECT_TYPE);
+    expect(error.type == Error::WRONG_OBJECT_TYPE);
     expect(error.token.substr_info == SubstrInfo{.begin = 4, .size = 1});
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
