@@ -30,19 +30,19 @@ struct Error
   // type of error
   enum Type : uint8_t
   {
-    UNKNOWN = 0,
-    EMPTY,
-    WRONG_FORMAT,
-    UNEXPECTED,
-    MISSING,
-    UNDEFINED_VARIABLE,
-    UNDEFINED_FUNCTION,
     CALLING_FUN_ARG_COUNT_MISMATCH,
-    NOT_IMPLEMENTED,
-    EMPTY_EXPRESSION,
-    INVALID_FUNCTION,
     CALLING_INVALID_FUNCTION, // expression that contains a function who cannot return values
+    EMPTY_EXPRESSION,
+    EMPTY,
+    INVALID_FUNCTION,
+    MISSING,
+    NOT_IMPLEMENTED,
     RECURSION_DEPTH_OVERFLOW, // maximum recursion depth has been reached
+    UNDEFINED_FUNCTION,
+    UNDEFINED_VARIABLE,
+    UNEXPECTED,
+    UNKNOWN,
+    WRONG_FORMAT,
     WRONG_OBJECT_TYPE, // object has been used as a different type as it actually is, example "2+cos" (where cos is a function used here as variable)
   };
 
