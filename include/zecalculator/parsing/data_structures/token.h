@@ -40,6 +40,12 @@ struct Text
 {
   Text() = default;
 
+  Text(std::string_view name) : name(name)
+  {}
+
+  Text(std::string name) : name(std::move(name))
+  {}
+
   Text(std::string_view substr, std::string_view original_expr)
     : name(std::string(substr)), substr_info(SubstrInfo::from_views(substr, original_expr))
   {}
