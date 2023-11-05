@@ -36,7 +36,9 @@ struct Error
     EMPTY,
     INVALID_FUNCTION,
     MISSING,
+    NAME_ALREADY_TAKEN,
     NOT_IMPLEMENTED,
+    OBJECT_NOT_IN_WORLD,
     RECURSION_DEPTH_OVERFLOW, // maximum recursion depth has been reached
     UNDEFINED_FUNCTION,
     UNDEFINED_VARIABLE,
@@ -114,6 +116,21 @@ struct Error
   static Error wrong_object_type(parsing::tokens::Text tokenTxt)
   {
     return Error {WRONG_OBJECT_TYPE, tokenTxt};
+  }
+
+  static Error name_already_taken(parsing::tokens::Text tokenTxt)
+  {
+    return Error {NAME_ALREADY_TAKEN, tokenTxt};
+  }
+
+  static Error object_not_in_world(parsing::tokens::Text tokenTxt)
+  {
+    return Error {OBJECT_NOT_IN_WORLD, tokenTxt};
+  }
+
+  static Error object_not_in_world()
+  {
+    return Error {OBJECT_NOT_IN_WORLD};
   }
 
   // kind of error
