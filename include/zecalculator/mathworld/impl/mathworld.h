@@ -29,10 +29,10 @@ template <parsing::Type type>
 MathWorld<type>::MathWorld()
 {
   for (auto&& [name, f_ptr]: builtin_unary_functions)
-    add<CppUnaryFunction<type>>(name, f_ptr);
+    add<CppUnaryFunction<type>>(std::string(name), f_ptr);
 
   for (auto&& [name, cst]: builtin_global_constants)
-    add<GlobalConstant<type>>(name, cst);
+    add<GlobalConstant<type>>(std::string(name), cst);
 }
 
 template <parsing::Type type>
@@ -133,7 +133,7 @@ template <parsing::Type type>
 template <class ObjectType, class... Arg>
   requires(tuple_contains_v<MathObjects<type>, ObjectType>
            and (sizeof...(Arg) == 0 or requires(ObjectType o) { o.set(std::declval<Arg>()...); }))
-tl::expected<ref<ObjectType>, NameError> MathWorld<type>::add(std::string_view name, Arg &&...arg)
+tl::expected<ref<ObjectType>, NameError> MathWorld<type>::add(const std::string& name, Arg &&...arg)
 {
   if (not parsing::is_valid_name(name))
     return tl::unexpected(NameError::invalid_format(name));
@@ -149,17 +149,17 @@ tl::expected<ref<ObjectType>, NameError> MathWorld<type>::add(std::string_view n
   else id = object_container.push(ObjectType());
 
   ObjectType& world_object = object_container[id];
-  world_object.set_name(std::string(name));
+  world_object.set_name(name);
   object_names[&world_object] = name;
   object_slots[&world_object] = id;
 
-  inventory[std::string(name)] = &world_object;
+  inventory[name] = &world_object;
 
   if constexpr (sizeof...(Arg) > 0)
     world_object.set(std::forward<Arg>(arg)...);
 
   // some objects may already have expressions depending on this object
-  parse_direct_revdeps_of(std::string(name));
+  parse_direct_revdeps_of(name);
 
   return world_object;
 }

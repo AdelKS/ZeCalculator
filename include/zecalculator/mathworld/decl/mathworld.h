@@ -130,7 +130,7 @@ public:
   template <class ObjectType, class... Arg>
     requires(tuple_contains_v<MathObjects<type>, ObjectType>
              and (sizeof...(Arg) == 0 or requires(ObjectType o) { o.set(std::declval<Arg>()...); }))
-  tl::expected<ref<ObjectType>, NameError> add(std::string_view name, Arg&&... arg);
+  tl::expected<ref<ObjectType>, NameError> add(const std::string& name, Arg&&... arg);
 
   /// @brief default constructs an ObjectType in the world, without a name
   /// @note  use the method MathWorld::set_name(obj, name) to give it a name so it can be used by other objects
