@@ -31,6 +31,7 @@
 #include <cmath>
 #include <numeric>
 #include <optional>
+#include <ranges>
 #include <string_view>
 
 namespace zc {
@@ -504,14 +505,10 @@ tl::expected<Tree<type>, Error> make_tree(std::span<const parsing::Token> tokens
   }
 
   // if we reach the end of this function, something is not right
-  const std::optional<SubstrInfo> substrinfo
-    = std::accumulate(tokens.begin(),
-                      tokens.end(),
-                      substr_info(tokens.front()),
-                      [](const std::optional<SubstrInfo>& info, const Token& t1) -> std::optional<SubstrInfo>
-                      { return info and substr_info(t1) ? *info + *substr_info(t1) : std::optional<SubstrInfo>{}; });
+  auto text_tokens = tokens | std::views::transform([](auto&& tok){ return text_token(tok); });
+  tokens::Text unexpected_slice = std::accumulate(text_tokens.begin() + 1, text_tokens.end(), *text_tokens.begin());
 
-  return tl::unexpected(Error::unexpected(tokens::Unkown("", substrinfo)));
+  return tl::unexpected(Error::unexpected(unexpected_slice));
 }
 
 struct RpnMaker
