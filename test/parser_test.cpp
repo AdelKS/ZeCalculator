@@ -40,6 +40,26 @@ int main()
       << parsing;
   };
 
+  "signed positive number"_test = []()
+  {
+    auto parsing = tokenize("+12.2E+3");
+
+    expect(bool(parsing) and parsing->size() == 1
+           and std::holds_alternative<tokens::Number>(parsing->front())
+           and std::get<tokens::Number>(parsing->front()).value == 12.2E+3)
+      << parsing;
+  };
+
+  "signed negative number"_test = []()
+  {
+    auto parsing = tokenize("-12.2E+3");
+
+    expect(bool(parsing) and parsing->size() == 1
+           and std::holds_alternative<tokens::Number>(parsing->front())
+           and std::get<tokens::Number>(parsing->front()).value == -12.2E+3)
+      << parsing;
+  };
+
   "simple expression"_test = []()
   {
     auto parsing = tokenize("2+2*2");
