@@ -74,6 +74,21 @@ struct Text
   bool operator == (const Text& other) const = default;
 };
 
+Text operator + (const Text& t1, const Text& t2)
+{
+  std::string name;
+  std::optional<SubstrInfo> opt_substr_info;
+  if (t1.substr_info and t2.substr_info)
+  {
+    opt_substr_info = *t1.substr_info + *t2.substr_info;
+
+    if (t1.substr_info->begin + t1.substr_info->size == t2.substr_info->begin)
+      name = t1.name + t2.name;
+  }
+
+  return Text(name, opt_substr_info);
+}
+
 struct Unkown: Text
 {
   explicit Unkown(const Text& txt) : Text(txt) {}
