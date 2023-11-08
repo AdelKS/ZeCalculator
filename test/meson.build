@@ -10,7 +10,7 @@ test_sources = files(
     'readme_example_test.cpp',
     'rpn_test.cpp',
     'sequence_test.cpp',
-    'syntax_tree_test.cpp',
+    'ast_test.cpp',
 )
 
 foreach test_src: test_sources
