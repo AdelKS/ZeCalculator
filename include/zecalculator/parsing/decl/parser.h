@@ -58,12 +58,12 @@ bool is_valid_name(std::string_view name);
 /// @param input_vars: variable names that are considered as input (for functions)
 ///                    e.g."x" in the function "f" such as "f(x) = cos(x)"
 template <Type type>
-tl::expected<Tree<type>, Error> make_tree(std::span<const parsing::Token> tokens,
+tl::expected<AST<type>, Error> make_tree(std::span<const parsing::Token> tokens,
                                           const MathWorld<type>& math_world,
                                           std::span<const std::string> input_vars = {});
 
 /// @brief transforms a syntax tree to a flat Reverse Polish / postfix notation representation
-RPN make_RPN(const Tree<Type::RPN>& tree);
+RPN make_RPN(const AST<Type::RPN>& tree);
 
 }
 }

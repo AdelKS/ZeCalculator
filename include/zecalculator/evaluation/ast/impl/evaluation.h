@@ -158,7 +158,7 @@ inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator () (con
 /// @param input_vars: variables that are given as input to the tree, will shadow any variable in the math world
 /// @param world: math world (contains functions, global constants... etc)
 template <size_t input_size>
-inline tl::expected<double, Error> evaluate(const parsing::Tree<parsing::Type::AST>& tree,
+inline tl::expected<double, Error> evaluate(const parsing::AST<parsing::Type::AST>& tree,
                                             std::span<const double, input_size> input_vars,
                                             size_t current_recursion_depth)
 {
@@ -170,14 +170,14 @@ inline tl::expected<double, Error> evaluate(const parsing::Tree<parsing::Type::A
 
 /// @brief evaluates a syntax tree using a given math world
 template <size_t input_size>
-inline tl::expected<double, Error> evaluate(const parsing::Tree<parsing::Type::AST>& tree,
+inline tl::expected<double, Error> evaluate(const parsing::AST<parsing::Type::AST>& tree,
                                             std::span<const double, input_size> input_vars)
 {
   return evaluate(tree, input_vars, 0);
 }
 
 /// @brief evaluates a syntax tree using a given math world
-inline tl::expected<double, Error> evaluate(const parsing::Tree<parsing::Type::AST>& tree)
+inline tl::expected<double, Error> evaluate(const parsing::AST<parsing::Type::AST>& tree)
 {
   return evaluate(tree, std::span<const double>(), 0);
 }

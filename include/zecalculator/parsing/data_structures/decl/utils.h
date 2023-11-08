@@ -35,7 +35,7 @@ struct SubstrInfo;
 namespace parsing {
 
   template <parsing::Type type>
-  using Parsing = std::conditional_t<type == parsing::Type::AST, Tree<parsing::Type::AST>, RPN>;
+  using Parsing = std::conditional_t<type == parsing::Type::AST, AST<parsing::Type::AST>, RPN>;
 
   template <class NodeType>
     requires(utils::is_any_of<NodeType,

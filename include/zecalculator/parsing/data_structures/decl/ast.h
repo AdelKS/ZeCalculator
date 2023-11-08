@@ -75,10 +75,10 @@ namespace parsing {
   } // namespace node
 
   /// @brief A tree representation in an AST or RPN world
-  /// @note when the math world is RPN based, this Tree is simply an intermediate form
+  /// @note when the math world is RPN based, this AST is simply an intermediate form
   ///       before being transformed into an RPN representation
   template <parsing::Type world_type>
-  using Tree = node::ast::NodePtr<world_type>;
+  using AST = node::ast::NodePtr<world_type>;
 
   } // namespace parsing
 } // namespace zc

@@ -46,7 +46,7 @@ int main()
 
     expect(bool(expect_node));
 
-    Tree<type> expected_node = node::ast::BinaryOperator<type, '+'>(
+    AST<type> expected_node = node::ast::BinaryOperator<type, '+'>(
       1,
       {node::Number(2.0, tokens::Text{"2", 0}),
        node::ast::BinaryOperator<type, '*'>(3,
@@ -73,7 +73,7 @@ int main()
 
     expect(bool(expect_node));
 
-    Tree<type> expected_node = node::ast::BinaryOperator<type, '+'>(
+    AST<type> expected_node = node::ast::BinaryOperator<type, '+'>(
       15,
       {node::ast::CppFunction<type, 1>(
          tokens::Text("cos", 1),

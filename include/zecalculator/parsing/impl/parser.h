@@ -272,11 +272,11 @@ inline tl::expected<std::vector<std::span<const Token>::iterator>, Error>
   return non_pth_enclosed_tokens;
 }
 
-/// @brief functor that maps a MathWorld::ConstDynMathObject to tl::expected<ast::Tree, Error>
+/// @brief functor that maps a MathWorld::ConstDynMathObject to tl::expected<ast::AST, Error>
 template <parsing::Type world_type>
 struct VariableVisiter
 {
-  using Ret = tl::expected<parsing::Tree<world_type>, Error>;
+  using Ret = tl::expected<parsing::AST<world_type>, Error>;
 
   const tokens::Text& var_txt_token;
 
@@ -303,20 +303,20 @@ struct VariableVisiter
 template <parsing::Type world_type>
 struct FunctionVisiter
 {
-  using Ret = tl::expected<Tree<world_type>, Error>;
+  using Ret = tl::expected<AST<world_type>, Error>;
 
   const tokens::Text& func_txt_token;
-  std::vector<Tree<world_type>> subnodes;
+  std::vector<AST<world_type>> subnodes;
 
   /// @brief moves the elements of 'subnodes' into an array
   template <size_t args_num>
-  std::array<Tree<world_type>, args_num> get_subnode_arr()
+  std::array<AST<world_type>, args_num> get_subnode_arr()
   {
     assert(subnodes.size() == args_num);
 
     auto helper = [&]<size_t...i>(std::index_sequence<i...>)
     {
-      return std::array<Tree<world_type>, args_num>{std::move(subnodes[i])...};
+      return std::array<AST<world_type>, args_num>{std::move(subnodes[i])...};
     };
     return helper(std::make_index_sequence<args_num>());
   }
@@ -360,11 +360,11 @@ struct FunctionVisiter
 };
 
 template <Type type>
-tl::expected<Tree<type>, Error> make_tree(std::span<const parsing::Token> tokens,
+tl::expected<AST<type>, Error> make_tree(std::span<const parsing::Token> tokens,
                                           const MathWorld<type>& world,
                                           std::span<const std::string> input_vars)
 {
-  using Ret = tl::expected<Tree<type>, Error>;
+  using Ret = tl::expected<AST<type>, Error>;
 
   if (tokens.empty()) [[unlikely]]
     return tl::unexpected(Error::empty());
@@ -376,7 +376,7 @@ tl::expected<Tree<type>, Error> make_tree(std::span<const parsing::Token> tokens
       utils::overloaded{
         [&](const tokens::Number& num) -> Ret
         {
-          return Tree<type>(num);
+          return AST<type>(num);
         },
         [&](const tokens::Variable& var) -> Ret
         {
@@ -385,7 +385,7 @@ tl::expected<Tree<type>, Error> make_tree(std::span<const parsing::Token> tokens
           auto it = std::ranges::find(input_vars, var.name);
           if (it != input_vars.end())
             // the index is computed with the distance between begin() and 'it'
-            return Tree<type>(node::InputVariable(var, std::distance(input_vars.begin(), it)));
+            return AST<type>(node::InputVariable(var, std::distance(input_vars.begin(), it)));
           else
             return std::visit(VariableVisiter<type>{var}, world.get(var.name));
         },
@@ -427,7 +427,7 @@ tl::expected<Tree<type>, Error> make_tree(std::span<const parsing::Token> tokens
     // add the FunctionCallEnd token so we handle it in the loop
     non_pth_wrapped_args->push_back(tokens.end()-1);
 
-    std::vector<Tree<type>> subnodes;
+    std::vector<AST<type>> subnodes;
     auto last_non_coma_token_it = tokens.begin()+2;
     for (auto tokenIt: *non_pth_wrapped_args)
     {
@@ -457,7 +457,7 @@ tl::expected<Tree<type>, Error> make_tree(std::span<const parsing::Token> tokens
     // loop through the expression by increasing operator priority
     // -> because the deepest parts of the syntax tree are to be calculated first
     auto get_node = [&]<char op>(std::integral_constant<char, op>,
-                                 auto&& tokenIt) -> tl::expected<Tree<type>, Error>
+                                 auto&& tokenIt) -> tl::expected<AST<type>, Error>
     {
       // we are not within parentheses, and we are at the right operator priority
       if (tokenIt == tokens.begin() or tokenIt + 1 == tokens.end())
@@ -483,14 +483,14 @@ tl::expected<Tree<type>, Error> make_tree(std::span<const parsing::Token> tokens
                                     return std::holds_alternative<tokens::Operator<op, 2>>(*tokenIt);
                                   });
     };
-    auto try_op = [&]<char op>(std::integral_constant<char, op>) -> std::optional<tl::expected<Tree<type>, Error>>
+    auto try_op = [&]<char op>(std::integral_constant<char, op>) -> std::optional<tl::expected<AST<type>, Error>>
     {
       const auto tokenItIt = get_op_token(std::integral_constant<char, op>());
       if (tokenItIt != non_pth_enclosed_tokens.end())
         return get_node(std::integral_constant<char, op>(), *tokenItIt);
       else return {};
     };
-    auto constexpr_loop = [&]<size_t... i>(std::integer_sequence<size_t, i...>) -> std::optional<tl::expected<Tree<type>, Error>>
+    auto constexpr_loop = [&]<size_t... i>(std::integer_sequence<size_t, i...>) -> std::optional<tl::expected<AST<type>, Error>>
     {
       auto res_arr = std::array {try_op(std::integral_constant<char, tokens::operators[i]>())...};
       for (auto&& val: res_arr)
@@ -526,7 +526,7 @@ struct RpnMaker
   RPN operator()(const node::ast::CppFunction<Type::RPN, args_num>& func)
   {
     RPN res;
-    for (const Tree<Type::RPN>& sub_node : func.operands)
+    for (const AST<Type::RPN>& sub_node : func.operands)
     {
       RPN tmp = std::visit(*this, *sub_node);
       std::ranges::move(tmp, std::back_inserter(res));
@@ -540,7 +540,7 @@ struct RpnMaker
   RPN operator () (const node::ast::Function<Type::RPN, args_num>& func)
   {
     RPN res;
-    for (const Tree<Type::RPN>& sub_node : func.operands)
+    for (const AST<Type::RPN>& sub_node : func.operands)
     {
       RPN tmp = std::visit(*this, *sub_node);
       std::ranges::move(tmp, std::back_inserter(res));
@@ -554,7 +554,7 @@ struct RpnMaker
   RPN operator () (const node::ast::Operator<Type::RPN, op, args_num>& func)
   {
     RPN res;
-    for (const Tree<Type::RPN>& sub_node : func.operands)
+    for (const AST<Type::RPN>& sub_node : func.operands)
     {
       RPN tmp = std::visit(*this, *sub_node);
       std::ranges::move(tmp, std::back_inserter(res));
@@ -581,7 +581,7 @@ struct RpnMaker
 
 };
 
-inline RPN make_RPN(const Tree<Type::RPN>& tree)
+inline RPN make_RPN(const AST<Type::RPN>& tree)
 {
   return std::visit(RpnMaker{}, *tree);
 }
