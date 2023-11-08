@@ -6,7 +6,7 @@ test_sources = files(
     'function_test.cpp',
     'global_variable_test.cpp',
     'math_world_test.cpp',
-    'parser_test.cpp',
+    'tokenizer_test.cpp',
     'readme_example_test.cpp',
     'rpn_test.cpp',
     'sequence_test.cpp',

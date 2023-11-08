@@ -5,11 +5,11 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "parser_test",
+            "name": "tokenizer_test",
             "cwd": "${workspaceRoot}/build-zc-debug/",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceRoot}/build-zc-debug/test/parser_test",
+            "program": "${workspaceRoot}/build-zc-debug/test/tokenizer_test",
             "preLaunchTask": "build",
             "setupCommands": [
                 {
