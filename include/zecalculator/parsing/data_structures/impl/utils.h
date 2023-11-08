@@ -33,26 +33,25 @@
 namespace zc {
   namespace parsing {
 
-    template <class NodeType>
-      requires(utils::is_any_of<NodeType,
-                                node::ast::Node<parsing::Type::AST>,
-                                node::ast::Node<parsing::Type::RPN>,
-                                node::rpn::Node>)
-    inline parsing::tokens::Text text_token(const NodeType& token)
-    {
-      return std::visit(
-        utils::overloaded {
-          [](const auto& tk) -> parsing::tokens::Text {
-            return tk;
-          }},
-        token);
+  template <class NodeType>
+    requires(utils::is_any_of<NodeType,
+                              ast::node::Node<parsing::Type::AST>,
+                              ast::node::Node<parsing::Type::RPN>,
+                              rpn::node::Node>)
+  inline parsing::tokens::Text text_token(const NodeType& token)
+  {
+    return std::visit(utils::overloaded{[](const auto& tk) -> parsing::tokens::Text
+                                        {
+                                          return tk;
+                                        }},
+                      token);
     }
 
     template <class NodeType>
       requires(utils::is_any_of<NodeType,
-                                node::ast::Node<parsing::Type::AST>,
-                                node::ast::Node<parsing::Type::RPN>,
-                                node::rpn::Node>)
+                                ast::node::Node<parsing::Type::AST>,
+                                ast::node::Node<parsing::Type::RPN>,
+                                rpn::node::Node>)
     inline SubstrInfo substr_info(const NodeType& token)
     {
       return text_token(token).substr_info;

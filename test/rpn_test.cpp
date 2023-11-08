@@ -25,7 +25,6 @@
 #include <boost/ut.hpp>
 #include <zecalculator/parsing/data_structures/rpn.h>
 
-using namespace zc;
 using namespace zc::parsing;
 
 int main()
@@ -38,20 +37,20 @@ int main()
 
     expect(bool(parsing)) << parsing;
 
-    MathWorld<parsing::Type::RPN> world;
+    zc::MathWorld<Type::RPN> world;
 
     auto expect_tree = make_tree(parsing.value(), world);
 
     expect(bool(expect_tree));
 
-    auto rpn_expr = parsing::make_RPN(expect_tree.value());
+    auto rpn_expr = make_RPN(expect_tree.value());
 
     RPN expected_rpn;
-    expected_rpn.push_back(node::Number(2.0, tokens::Text{"2", 0}));
-    expected_rpn.push_back(node::Number(3.0, tokens::Text{"3", 4}));
-    expected_rpn.push_back(node::rpn::Operator<'-', 2>(2));
-    expected_rpn.push_back(tokens::Number(2.0, tokens::Text{"2", 8}));
-    expected_rpn.push_back(node::rpn::Operator<'+', 2>(6));
+    expected_rpn.push_back(shared::node::Number(2.0, tokens::Text{"2", 0}));
+    expected_rpn.push_back(shared::node::Number(3.0, tokens::Text{"3", 4}));
+    expected_rpn.push_back(rpn::node::Operator<'-', 2>(2));
+    expected_rpn.push_back(shared::node::Number(2.0, tokens::Text{"2", 8}));
+    expected_rpn.push_back(rpn::node::Operator<'+', 2>(6));
 
     expect(bool(rpn_expr == expected_rpn)) << "Expected: " << expected_rpn << "Answer: " << rpn_expr;
   };

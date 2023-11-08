@@ -29,8 +29,8 @@
 
 namespace zc {
 namespace parsing {
-  namespace node {
-    namespace rpn {
+  namespace rpn {
+    namespace node {
 
       template <size_t>
       struct Function;
@@ -46,10 +46,10 @@ namespace parsing {
       template <char op>
       using BinaryOperator = Operator<op, 2>;
 
-      using GlobalConstant = node::GlobalConstant<parsing::Type::RPN>;
+      using GlobalConstant = shared::node::GlobalConstant<parsing::Type::RPN>;
 
-      using Node = std::variant<InputVariable,
-                                Number,
+      using Node = std::variant<shared::node::InputVariable,
+                                shared::node::Number,
                                 Operator<'=', 2>,
                                 Operator<'+', 2>,
                                 Operator<'-', 2>,
@@ -64,11 +64,11 @@ namespace parsing {
                                 Function<2>,
                                 Sequence>;
 
-    } // namespace rpn
+    } // namespace node
 
-  } // namespace node
+  } // namespace rpn
 
-  using RPN = std::vector<node::rpn::Node>;
+  using RPN = std::vector<rpn::node::Node>;
 
 } // namespace parsing
 } // namespace zc

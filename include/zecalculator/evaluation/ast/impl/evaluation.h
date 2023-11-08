@@ -29,8 +29,8 @@ namespace ast {
 
 template <size_t input_size>
 template <size_t args_num>
-inline Evaluator<input_size>::ReturnType
-  Evaluator<input_size>::operator()(const zc::parsing::node::ast::Function<zc::parsing::Type::AST, args_num>& node)
+inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator()(
+  const zc::parsing::ast::node::Function<zc::parsing::Type::AST, args_num>& node)
 {
   if (node.f->mathworld->max_recursion_depth < current_recursion_depth)
     return tl::unexpected(Error::recursion_depth_overflow());
@@ -52,8 +52,8 @@ inline Evaluator<input_size>::ReturnType
 
 template <size_t input_size>
 template <char op, size_t args_num>
-inline Evaluator<input_size>::ReturnType
-  Evaluator<input_size>::operator()(const zc::parsing::node::ast::Operator<zc::parsing::Type::AST, op, args_num>& node)
+inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator()(
+  const zc::parsing::ast::node::Operator<zc::parsing::Type::AST, op, args_num>& node)
 {
   std::array<double, args_num> evaluations;
   size_t i = 0;
@@ -87,8 +87,8 @@ inline Evaluator<input_size>::ReturnType
 }
 
 template <size_t input_size>
-inline Evaluator<input_size>::ReturnType
-  Evaluator<input_size>::operator()(const zc::parsing::node::ast::Sequence<zc::parsing::Type::AST>& node)
+inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator()(
+  const zc::parsing::ast::node::Sequence<zc::parsing::Type::AST>& node)
 {
   if (node.u->mathworld->max_recursion_depth < current_recursion_depth)
     return tl::unexpected(Error::recursion_depth_overflow());
@@ -103,7 +103,7 @@ inline Evaluator<input_size>::ReturnType
 template <size_t input_size>
 template <size_t args_num>
 inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator()(
-  const zc::parsing::node::ast::CppFunction<zc::parsing::Type::AST, args_num>& node)
+  const zc::parsing::ast::node::CppFunction<zc::parsing::Type::AST, args_num>& node)
 {
   std::array<double, args_num> evals;
   for (size_t i = 0 ; i != args_num ; i++)
@@ -124,13 +124,14 @@ inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator()(
 
 template <size_t input_size>
 inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator () (
-  const zc::parsing::node::GlobalConstant<zc::parsing::Type::AST>& node)
+  const zc::parsing::shared::node::GlobalConstant<zc::parsing::Type::AST>& node)
 {
   return node.constant->value;
 }
 
 template <size_t input_size>
-inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator () (const zc::parsing::node::InputVariable& node)
+inline Evaluator<input_size>::ReturnType
+  Evaluator<input_size>::operator()(const zc::parsing::shared::node::InputVariable& node)
 {
   // node.index should never be bigger than input_vars.size()
   assert(node.index < input_vars.size());
@@ -139,7 +140,8 @@ inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator () (con
 }
 
 template <size_t input_size>
-inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator () (const zc::parsing::node::Number& node)
+inline Evaluator<input_size>::ReturnType
+  Evaluator<input_size>::operator()(const zc::parsing::shared::node::Number& node)
 {
   return node.value;
 }

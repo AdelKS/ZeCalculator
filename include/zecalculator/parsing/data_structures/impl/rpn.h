@@ -32,11 +32,12 @@
 
 namespace zc {
   namespace parsing {
-    namespace node {
+    namespace rpn {
 
-      namespace rpn {
+      namespace node {
 
         using parsing::Type::RPN;
+        using tokens::Text;
 
         template <size_t args_num>
         struct Function: Text

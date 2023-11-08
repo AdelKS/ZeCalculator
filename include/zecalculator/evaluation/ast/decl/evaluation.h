@@ -40,21 +40,21 @@ struct Evaluator
   using ReturnType = tl::expected<double, Error>;
 
   template <char op, size_t args_num>
-  ReturnType operator () (const zc::parsing::node::ast::Operator<zc::parsing::Type::AST, op, args_num>&);
+  ReturnType operator () (const zc::parsing::ast::node::Operator<zc::parsing::Type::AST, op, args_num>&);
 
   template <size_t args_num>
-  ReturnType operator () (const zc::parsing::node::ast::Function<zc::parsing::Type::AST, args_num>&);
+  ReturnType operator () (const zc::parsing::ast::node::Function<zc::parsing::Type::AST, args_num>&);
 
-  ReturnType operator () (const zc::parsing::node::ast::Sequence<zc::parsing::Type::AST>&);
+  ReturnType operator () (const zc::parsing::ast::node::Sequence<zc::parsing::Type::AST>&);
 
-  ReturnType operator () (const zc::parsing::node::InputVariable&);
+  ReturnType operator () (const zc::parsing::shared::node::InputVariable&);
 
-  ReturnType operator () (const zc::parsing::node::Number&);
+  ReturnType operator () (const zc::parsing::shared::node::Number&);
 
   template <size_t args_num>
-  ReturnType operator () (const zc::parsing::node::ast::CppFunction<zc::parsing::Type::AST, args_num>&);
+  ReturnType operator () (const zc::parsing::ast::node::CppFunction<zc::parsing::Type::AST, args_num>&);
 
-  ReturnType operator () (const zc::parsing::node::GlobalConstant<zc::parsing::Type::AST>&);
+  ReturnType operator () (const zc::parsing::shared::node::GlobalConstant<zc::parsing::Type::AST>&);
 
 };
 

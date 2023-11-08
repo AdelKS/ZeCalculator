@@ -282,13 +282,13 @@ struct VariableVisiter
 
   Ret operator()(const GlobalConstant<world_type>* global_constant)
   {
-    return std::make_unique<node::ast::Node<world_type>>(
-      node::GlobalConstant<world_type>(var_txt_token, global_constant));
+    return std::make_unique<ast::node::Node<world_type>>(
+      shared::node::GlobalConstant<world_type>(var_txt_token, global_constant));
   }
   Ret operator()(const zc::GlobalVariable<world_type>* global_variable)
   {
-    return std::make_unique<node::ast::Node<world_type>>(
-      node::ast::GlobalVariable<world_type>(var_txt_token, global_variable));
+    return std::make_unique<ast::node::Node<world_type>>(
+      ast::node::GlobalVariable<world_type>(var_txt_token, global_variable));
   }
   Ret operator()(UnregisteredObject)
   {
@@ -328,8 +328,8 @@ struct FunctionVisiter
     if (subnodes.size() != args_num) [[unlikely]]
       return tl::unexpected(Error::mismatched_fun_args(func_txt_token));
 
-    return std::make_unique<node::ast::Node<world_type>>(
-      node::ast::CppFunction<world_type, args_num>(
+    return std::make_unique<ast::node::Node<world_type>>(
+      ast::node::CppFunction<world_type, args_num>(
         func_txt_token, f, get_subnode_arr<args_num>()));
   }
   template <size_t args_num>
@@ -338,16 +338,16 @@ struct FunctionVisiter
     if (subnodes.size() != args_num) [[unlikely]]
       return tl::unexpected(Error::mismatched_fun_args(func_txt_token));
 
-    return std::make_unique<node::ast::Node<world_type>>(
-      node::ast::Function<world_type, args_num>(func_txt_token, f, get_subnode_arr<args_num>()));
+    return std::make_unique<ast::node::Node<world_type>>(
+      ast::node::Function<world_type, args_num>(func_txt_token, f, get_subnode_arr<args_num>()));
   }
   Ret operator()(const zc::Sequence<world_type>* u)
   {
     if (subnodes.size() != 1) [[unlikely]]
       return tl::unexpected(Error::mismatched_fun_args(func_txt_token));
 
-    return std::make_unique<node::ast::Node<world_type>>(
-      node::ast::Sequence<world_type>(func_txt_token, u, std::move(subnodes.front())));
+    return std::make_unique<ast::node::Node<world_type>>(
+      ast::node::Sequence<world_type>(func_txt_token, u, std::move(subnodes.front())));
   }
   Ret operator()(UnregisteredObject)
   {
@@ -385,7 +385,7 @@ tl::expected<AST<type>, Error> make_tree(std::span<const parsing::Token> tokens,
           auto it = std::ranges::find(input_vars, var.name);
           if (it != input_vars.end())
             // the index is computed with the distance between begin() and 'it'
-            return AST<type>(node::InputVariable(var, std::distance(input_vars.begin(), it)));
+            return AST<type>(shared::node::InputVariable(var, std::distance(input_vars.begin(), it)));
           else
             return std::visit(VariableVisiter<type>{var}, world.get(var.name));
         },
@@ -471,7 +471,7 @@ tl::expected<AST<type>, Error> make_tree(std::span<const parsing::Token> tokens,
       if (not right_hand_side.has_value())
         return right_hand_side;
 
-      return node::ast::Operator<type, op, 2>(text_token(*tokenIt).substr_info.value().begin,
+      return ast::node::Operator<type, op, 2>(text_token(*tokenIt).substr_info.value().begin,
                                               std::array{std::move(left_hand_side.value()),
                                                          std::move(right_hand_side.value())});
     };
@@ -514,16 +514,16 @@ tl::expected<AST<type>, Error> make_tree(std::span<const parsing::Token> tokens,
 
 struct RpnMaker
 {
-  RPN operator()(const node::ast::Sequence<Type::RPN>& seq)
+  RPN operator()(const ast::node::Sequence<Type::RPN>& seq)
   {
     RPN res = std::visit(*this, *seq.operand);
 
-    res.push_back(node::rpn::Sequence(seq, seq.u));
+    res.push_back(rpn::node::Sequence(seq, seq.u));
     return res;
   }
 
   template <size_t args_num>
-  RPN operator()(const node::ast::CppFunction<Type::RPN, args_num>& func)
+  RPN operator()(const ast::node::CppFunction<Type::RPN, args_num>& func)
   {
     RPN res;
     for (const AST<Type::RPN>& sub_node : func.operands)
@@ -532,12 +532,12 @@ struct RpnMaker
       std::ranges::move(tmp, std::back_inserter(res));
     }
 
-    res.push_back(node::rpn::CppFunction<args_num>(func, func.f));
+    res.push_back(rpn::node::CppFunction<args_num>(func, func.f));
     return res;
   }
 
   template <size_t args_num>
-  RPN operator () (const node::ast::Function<Type::RPN, args_num>& func)
+  RPN operator () (const ast::node::Function<Type::RPN, args_num>& func)
   {
     RPN res;
     for (const AST<Type::RPN>& sub_node : func.operands)
@@ -546,12 +546,12 @@ struct RpnMaker
       std::ranges::move(tmp, std::back_inserter(res));
     }
 
-    res.push_back(node::rpn::Function<args_num>(func, func.f));
+    res.push_back(rpn::node::Function<args_num>(func, func.f));
     return res;
   }
 
   template <char op, size_t args_num>
-  RPN operator () (const node::ast::Operator<Type::RPN, op, args_num>& func)
+  RPN operator () (const ast::node::Operator<Type::RPN, op, args_num>& func)
   {
     RPN res;
     for (const AST<Type::RPN>& sub_node : func.operands)
@@ -560,21 +560,21 @@ struct RpnMaker
       std::ranges::move(tmp, std::back_inserter(res));
     }
 
-    res.push_back(node::rpn::Operator<op, args_num>(func));
+    res.push_back(rpn::node::Operator<op, args_num>(func));
     return res;
   }
 
-  RPN operator () (const node::InputVariable& in_var)
+  RPN operator () (const shared::node::InputVariable& in_var)
   {
     return RPN(1, in_var);
   }
 
-  RPN operator () (const node::GlobalConstant<Type::RPN>& var)
+  RPN operator () (const shared::node::GlobalConstant<Type::RPN>& var)
   {
     return RPN(1, var);
   }
 
-  RPN operator () (const node::Number& number)
+  RPN operator () (const shared::node::Number& number)
   {
     return RPN(1, number);
   }

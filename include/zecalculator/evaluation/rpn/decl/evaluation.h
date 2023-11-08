@@ -45,22 +45,22 @@ struct Evaluator
 
   using ReturnType = tl::expected<double, Error>;
 
-  void operator () (const zc::parsing::node::Number&);
+  void operator () (const zc::parsing::shared::node::Number&);
 
-  void operator () (const zc::parsing::node::InputVariable&);
+  void operator () (const zc::parsing::shared::node::InputVariable&);
 
   template <size_t args_num>
-  void operator () (const zc::parsing::node::rpn::Function<args_num>&);
+  void operator () (const zc::parsing::rpn::node::Function<args_num>&);
 
   template <char op, size_t args_num>
-  void operator () (const zc::parsing::node::rpn::Operator<op, args_num>&);
+  void operator () (const zc::parsing::rpn::node::Operator<op, args_num>&);
 
-  void operator () (const zc::parsing::node::rpn::Sequence&);
+  void operator () (const zc::parsing::rpn::node::Sequence&);
 
   template <size_t args_num>
-  void operator () (const zc::parsing::node::rpn::CppFunction<args_num>&);
+  void operator () (const zc::parsing::rpn::node::CppFunction<args_num>&);
 
-  void operator () (const zc::parsing::node::rpn::GlobalConstant&);
+  void operator () (const zc::parsing::rpn::node::GlobalConstant&);
 
 };
 

@@ -25,7 +25,6 @@
 #include <zecalculator/test-utils/print-utils.h>
 #include <zecalculator/test-utils/structs.h>
 
-using namespace zc;
 using namespace zc::parsing;
 
 int main()
@@ -34,11 +33,11 @@ int main()
 
   "simple expression"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
+    constexpr Type type = std::is_same_v<StructType, AST_TEST> ? Type::AST : Type::RPN;
 
-    MathWorld<type> world;
+    zc::MathWorld<type> world;
 
-    auto parsing = parsing::tokenize("2+2*2");
+    auto parsing = tokenize("2+2*2");
 
     expect(bool(parsing)) << parsing;
 
@@ -46,12 +45,12 @@ int main()
 
     expect(bool(expect_node));
 
-    AST<type> expected_node = node::ast::BinaryOperator<type, '+'>(
+    AST<type> expected_node = ast::node::BinaryOperator<type, '+'>(
       1,
-      {node::Number(2.0, tokens::Text{"2", 0}),
-       node::ast::BinaryOperator<type, '*'>(3,
-                                            {node::Number(2.0, tokens::Text{"2", 2}),
-                                             node::Number(2.0, tokens::Text{"2", 4})})});
+      {shared::node::Number(2.0, tokens::Text{"2", 0}),
+       ast::node::BinaryOperator<type, '*'>(3,
+                                            {shared::node::Number(2.0, tokens::Text{"2", 2}),
+                                             shared::node::Number(2.0, tokens::Text{"2", 4})})});
 
     expect(*expect_node == expected_node);
 
@@ -62,29 +61,29 @@ int main()
 
   "function expression"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
-    MathWorld<type> world;
+    constexpr Type type = std::is_same_v<StructType, AST_TEST> ? Type::AST : Type::RPN;
+    zc::MathWorld<type> world;
 
     auto parsing = tokenize("(cos(sin(x)+1))+1");
 
     expect(bool(parsing)) << parsing;
 
-    auto expect_node = make_tree(parsing.value(), world, Vars<1>{"x"});
+    auto expect_node = make_tree(parsing.value(), world, zc::Vars<1>{"x"});
 
     expect(bool(expect_node));
 
-    AST<type> expected_node = node::ast::BinaryOperator<type, '+'>(
+    AST<type> expected_node = ast::node::BinaryOperator<type, '+'>(
       15,
-      {node::ast::CppFunction<type, 1>(
+      {ast::node::CppFunction<type, 1>(
          tokens::Text("cos", 1),
-         world.template get<CppFunction<type, 1>>("cos"),
-         {node::ast::BinaryOperator<type, '+'>(
+         world.template get<zc::CppFunction<type, 1>>("cos"),
+         {ast::node::BinaryOperator<type, '+'>(
            11,
-           {node::ast::CppFunction<type, 1>(tokens::Text("sin", 5),
-                                            world.template get<CppFunction<type, 1>>("sin"),
-                                            {node::InputVariable(tokens::Text("x", 9), 0)}),
-            node::Number(1.0, tokens::Text("1", 12))})}),
-       node::Number(1.0, tokens::Text("1", 16))});
+           {ast::node::CppFunction<type, 1>(tokens::Text("sin", 5),
+                                            world.template get<zc::CppFunction<type, 1>>("sin"),
+                                            {shared::node::InputVariable(tokens::Text("x", 9), 0)}),
+            shared::node::Number(1.0, tokens::Text("1", 12))})}),
+       shared::node::Number(1.0, tokens::Text("1", 16))});
 
     if (*expect_node != expected_node)
       std::cout << *expect_node;

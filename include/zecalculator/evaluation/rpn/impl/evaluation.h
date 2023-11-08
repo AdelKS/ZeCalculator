@@ -31,14 +31,14 @@ namespace eval {
 namespace rpn {
 
 template <size_t input_size>
-inline void Evaluator<input_size>::operator () (const zc::parsing::node::Number& val)
+inline void Evaluator<input_size>::operator () (const zc::parsing::shared::node::Number& val)
 {
   expected_eval_stack->push_back(val.value);
 }
 
 template <size_t input_size>
 template <size_t args_num>
-inline void Evaluator<input_size>::operator()(const zc::parsing::node::rpn::Function<args_num>& node)
+inline void Evaluator<input_size>::operator()(const zc::parsing::rpn::node::Function<args_num>& node)
 {
   if (not bool(node.f)) [[unlikely]]
     expected_eval_stack = tl::unexpected(Error::calling_invalid_function(node));
@@ -64,7 +64,8 @@ inline void Evaluator<input_size>::operator()(const zc::parsing::node::rpn::Func
 
 template <size_t input_size>
 template <size_t args_num>
-inline void Evaluator<input_size>::operator()(const zc::parsing::node::rpn::CppFunction<args_num>& node)
+inline void
+  Evaluator<input_size>::operator()(const zc::parsing::rpn::node::CppFunction<args_num>& node)
 {
   // points on the before last value on the stack
   const auto it = expected_eval_stack->end() - args_num;
@@ -85,7 +86,7 @@ inline void Evaluator<input_size>::operator()(const zc::parsing::node::rpn::CppF
 
 template <size_t input_size>
 template <char op, size_t args_num>
-inline void Evaluator<input_size>::operator()(const zc::parsing::node::rpn::Operator<op, args_num>&)
+inline void Evaluator<input_size>::operator()(const zc::parsing::rpn::node::Operator<op, args_num>&)
 {
   // points on the before last value on the stack
   const auto it = expected_eval_stack->end() - args_num;
@@ -115,7 +116,7 @@ inline void Evaluator<input_size>::operator()(const zc::parsing::node::rpn::Oper
 }
 
 template <size_t input_size>
-inline void Evaluator<input_size>::operator()(const zc::parsing::node::rpn::Sequence& node)
+inline void Evaluator<input_size>::operator()(const zc::parsing::rpn::node::Sequence& node)
 {
   //              std::cout << "Evaluating zc function: " << node.name << std::endl;
   if (not bool(node.u))
@@ -137,7 +138,7 @@ inline void Evaluator<input_size>::operator()(const zc::parsing::node::rpn::Sequ
 }
 
 template <size_t input_size>
-inline void Evaluator<input_size>::operator () (const zc::parsing::node::InputVariable& in_var)
+inline void Evaluator<input_size>::operator () (const zc::parsing::shared::node::InputVariable& in_var)
 {
   // node.index should never be bigger than input_vars.size()
   assert(in_var.index < input_vars.size());
@@ -146,7 +147,7 @@ inline void Evaluator<input_size>::operator () (const zc::parsing::node::InputVa
 }
 
 template <size_t input_size>
-inline void Evaluator<input_size>::operator()(const zc::parsing::node::rpn::GlobalConstant& node)
+inline void Evaluator<input_size>::operator()(const zc::parsing::rpn::node::GlobalConstant& node)
 {
   expected_eval_stack->push_back(node.constant->value);
 }
@@ -167,7 +168,7 @@ inline tl::expected<double, Error> evaluate(const parsing::RPN& expr,
                                                       .current_recursion_depth
                                                       = current_recursion_depth};
 
-  for (const parsing::node::rpn::Node& tok: expr)
+  for (const parsing::rpn::node::Node& tok: expr)
   {
     std::visit(stateful_evaluator, tok);
     if (not stateful_evaluator.expected_eval_stack)

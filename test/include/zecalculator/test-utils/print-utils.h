@@ -65,9 +65,9 @@ namespace zc {
 
     std::ostream& operator << (std::ostream& os, const Token& token);
 
-    std::ostream& operator << (std::ostream& os, const node::ast::Node<Type::AST>& node);
+    std::ostream& operator << (std::ostream& os, const ast::node::Node<Type::AST>& node);
 
-    std::ostream& operator << (std::ostream& os, const node::ast::Node<Type::RPN>& node);
+    std::ostream& operator << (std::ostream& os, const ast::node::Node<Type::RPN>& node);
 
     namespace tokens {
 

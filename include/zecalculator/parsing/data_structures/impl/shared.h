@@ -25,26 +25,29 @@
 
 namespace zc {
   namespace parsing {
-    namespace node {
+    namespace shared {
+      namespace node {
 
-      using zc::parsing::tokens::Text;
+        using zc::parsing::tokens::Text;
 
-      struct InputVariable: Text
-      {
-        InputVariable(const Text& txt, size_t index)
-          : Text(txt), index(index) {}
+        struct InputVariable: Text
+        {
+          InputVariable(const Text& txt, size_t index)
+            : Text(txt), index(index) {}
 
-        size_t index;
-      };
+          size_t index;
+        };
 
-      template <parsing::Type world_type>
-      struct GlobalConstant: Text
-      {
-        GlobalConstant(const Text& txt, const zc::GlobalConstant<world_type>* constant)
-          : Text(txt), constant(constant) {}
+        template <parsing::Type world_type>
+        struct GlobalConstant: Text
+        {
+          GlobalConstant(const Text& txt, const zc::GlobalConstant<world_type>* constant)
+            : Text(txt), constant(constant) {}
 
-        const zc::GlobalConstant<world_type>* constant;
-      };
+          const zc::GlobalConstant<world_type>* constant;
+        };
+
+      } // namespace node
     } // namespace node
   } // namespace parsing
 } // namespace zc

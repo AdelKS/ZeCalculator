@@ -39,16 +39,16 @@ namespace parsing {
 
   template <class NodeType>
     requires(utils::is_any_of<NodeType,
-                              node::ast::Node<parsing::Type::AST>,
-                              node::ast::Node<parsing::Type::RPN>,
-                              node::rpn::Node>)
+                              ast::node::Node<parsing::Type::AST>,
+                              ast::node::Node<parsing::Type::RPN>,
+                              rpn::node::Node>)
   parsing::tokens::Text text_token(const NodeType& token);
 
   template <class NodeType>
     requires(utils::is_any_of<NodeType,
-                              node::ast::Node<parsing::Type::AST>,
-                              node::ast::Node<parsing::Type::RPN>,
-                              node::rpn::Node>)
+                              ast::node::Node<parsing::Type::AST>,
+                              ast::node::Node<parsing::Type::RPN>,
+                              rpn::node::Node>)
   SubstrInfo substr_info(const NodeType& token);
 
   } // namespace parsing

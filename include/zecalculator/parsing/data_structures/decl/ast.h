@@ -29,8 +29,8 @@
 
 namespace zc {
 namespace parsing {
-  namespace node {
-    namespace ast {
+  namespace ast {
+    namespace node {
 
       template <parsing::Type, size_t>
       struct Function;
@@ -51,8 +51,8 @@ namespace parsing {
       using BinaryOperator = Operator<type, op, 2>;
 
       template <parsing::Type world_type>
-      using Node = std::variant<InputVariable,
-                                Number,
+      using Node = std::variant<shared::node::InputVariable,
+                                shared::node::Number,
                                 Operator<world_type, '=', 2>,
                                 Operator<world_type, '+', 2>,
                                 Operator<world_type, '-', 2>,
@@ -61,7 +61,7 @@ namespace parsing {
                                 Operator<world_type, '^', 2>,
                                 CppFunction<world_type, 1>,
                                 CppFunction<world_type, 2>,
-                                GlobalConstant<world_type>,
+                                shared::node::GlobalConstant<world_type>,
                                 Function<world_type, 0>,
                                 Function<world_type, 1>,
                                 Function<world_type, 2>,
@@ -70,15 +70,15 @@ namespace parsing {
       template <parsing::Type>
       struct NodePtr;
 
-    } // namespace ast
+    } // namespace node
 
-  } // namespace node
+  } // namespace ast
 
   /// @brief A tree representation in an AST or RPN world
   /// @note when the math world is RPN based, this AST is simply an intermediate form
   ///       before being transformed into an RPN representation
   template <parsing::Type world_type>
-  using AST = node::ast::NodePtr<world_type>;
+  using AST = ast::node::NodePtr<world_type>;
 
   } // namespace parsing
 } // namespace zc

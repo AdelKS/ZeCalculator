@@ -31,8 +31,8 @@
 
 namespace zc {
   namespace parsing {
-    namespace node {
-      namespace ast {
+    namespace ast {
+      namespace node {
 
         template <parsing::Type world_type>
         struct NodePtr: std::unique_ptr<Node<world_type>>

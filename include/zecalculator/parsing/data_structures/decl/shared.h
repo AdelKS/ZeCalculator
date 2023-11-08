@@ -39,16 +39,18 @@ namespace parsing {
 
   } // namespace tokens
 
-  namespace node {
+  namespace shared {
+    namespace node {
 
-    struct InputVariable;
+      struct InputVariable;
 
-    template <parsing::Type>
-    struct GlobalConstant;
+      template <parsing::Type>
+      struct GlobalConstant;
 
-    using Number = zc::parsing::tokens::Number;
+      using Number = zc::parsing::tokens::Number;
 
-  } // namespace node
+    } // namespace node
+  } // namespace shared
 
 } // namespace parsing
 } // namespace zc
