@@ -20,12 +20,13 @@
 
 #pragma once
 
-#include <zecalculator/parsing/data_structures/token.h>
+#include <zecalculator/error.h>
+#include <zecalculator/mathworld/decl/mathworld.h>
 #include <zecalculator/parsing/data_structures/decl/ast.h>
 #include <zecalculator/parsing/data_structures/decl/rpn.h>
+#include <zecalculator/parsing/data_structures/decl/uast.h>
 #include <zecalculator/parsing/data_structures/decl/utils.h>
-#include <zecalculator/mathworld/decl/mathworld.h>
-#include <zecalculator/error.h>
+#include <zecalculator/parsing/data_structures/token.h>
 
 #include <span>
 
@@ -61,6 +62,12 @@ template <Type type>
 tl::expected<AST<type>, Error> make_tree(std::span<const parsing::Token> tokens,
                                           const MathWorld<type>& math_world,
                                           std::span<const std::string> input_vars = {});
+
+/// @brief makes a syntax tree from from a sequence of tokens
+/// @param input_vars: variable names that are considered as input (for functions)
+///                    e.g."x" in the function "f" such as "f(x) = cos(x)"
+tl::expected<UAST, Error> make_uast(std::span<const parsing::Token> tokens,
+                                    std::span<const std::string> input_vars = {});
 
 /// @brief transforms a syntax tree to a flat Reverse Polish / postfix notation representation
 RPN make_RPN(const AST<Type::RPN>& tree);

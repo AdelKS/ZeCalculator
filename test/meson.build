@@ -11,6 +11,7 @@ test_sources = files(
     'rpn_test.cpp',
     'sequence_test.cpp',
     'ast_test.cpp',
+    'uast_test.cpp',
 )
 
 foreach test_src: test_sources

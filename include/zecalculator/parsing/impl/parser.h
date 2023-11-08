@@ -27,6 +27,7 @@
 #include <zecalculator/mathworld/impl/mathworld.h>
 #include <zecalculator/parsing/data_structures/impl/ast.h>
 #include <zecalculator/parsing/data_structures/impl/rpn.h>
+#include <zecalculator/parsing/data_structures/impl/uast.h>
 #include <zecalculator/parsing/decl/parser.h>
 
 #include <cmath>
@@ -491,6 +492,152 @@ tl::expected<AST<type>, Error> make_tree(std::span<const parsing::Token> tokens,
       else return {};
     };
     auto constexpr_loop = [&]<size_t... i>(std::integer_sequence<size_t, i...>) -> std::optional<tl::expected<AST<type>, Error>>
+    {
+      auto res_arr = std::array {try_op(std::integral_constant<char, tokens::operators[i]>())...};
+      for (auto&& val: res_arr)
+      {
+        if (val)
+          return std::move(val);
+      }
+      return {};
+    };
+    auto res = constexpr_loop(std::make_index_sequence<tokens::operators.size()>());
+    if (res)
+      return std::move(*res);
+  }
+
+  // if we reach the end of this function, something is not right
+  auto text_tokens = tokens | std::views::transform([](auto&& tok){ return text_token(tok); });
+  tokens::Text unexpected_slice = std::accumulate(text_tokens.begin() + 1, text_tokens.end(), *text_tokens.begin());
+
+  return tl::unexpected(Error::unexpected(unexpected_slice));
+}
+
+tl::expected<UAST, Error> make_uast(std::span<const parsing::Token> tokens,
+                                    std::span<const std::string> input_vars)
+{
+  using Ret = tl::expected<UAST, Error>;
+
+  if (tokens.empty()) [[unlikely]]
+    return tl::unexpected(Error::empty());
+
+  // when there's only a single token, it can only be number or a variable
+  if (tokens.size() == 1)
+  {
+    return std::visit(
+      utils::overloaded{
+        [&](const tokens::Number& num) -> Ret {
+          return num;
+        },
+        [&](const tokens::Variable& var) -> Ret
+        {
+          // if variable is in 'input_vars' then treat it as such
+          // this will avoid name lookup when we evaluate
+          auto it = std::ranges::find(input_vars, var.name);
+          if (it != input_vars.end())
+            // the index is computed with the distance between begin() and 'it'
+            return shared::node::InputVariable(var, std::distance(input_vars.begin(), it));
+          else return var;
+        },
+        [&](const auto& anything_else) -> Ret {
+          return tl::unexpected(Error::unexpected(anything_else));
+        }},
+      tokens.back());
+  }
+
+  auto expected_non_pth_wrapped_tokens = get_non_pth_enclosed_tokens(tokens);
+  if (not expected_non_pth_wrapped_tokens.has_value())
+    return tl::unexpected(expected_non_pth_wrapped_tokens.error());
+
+  const auto& non_pth_enclosed_tokens = expected_non_pth_wrapped_tokens.value();
+
+  // expression of the type "(...)"
+  if (non_pth_enclosed_tokens.empty() and tokens.size() > 2 and
+      std::holds_alternative<tokens::OpeningParenthesis>(tokens.front()) and
+      std::holds_alternative<tokens::ClosingParenthesis>(tokens.back()))
+  {
+    return make_uast(std::span(tokens.begin()+1, tokens.end()-1), input_vars);
+  }
+
+  // expression of the type "function(...)"
+  else if (non_pth_enclosed_tokens.size() == 1 and tokens.size() > 3 and
+           std::holds_alternative<tokens::Function>(tokens.front()) and
+           std::holds_alternative<tokens::FunctionCallStart>(*(tokens.begin()+1)) and
+           std::holds_alternative<tokens::FunctionCallEnd>(tokens.back()))
+  {
+    /// @todo needs changing to support multi-argument functions
+    /// @note here we expect functions that receive that receive a single argument
+    auto non_pth_wrapped_args = get_non_pth_enclosed_tokens(
+      std::span(tokens.begin() + 2, tokens.end() - 1));
+
+    if (not non_pth_wrapped_args.has_value())
+      return tl::unexpected(non_pth_wrapped_args.error());
+
+    // add the FunctionCallEnd token so we handle it in the loop
+    non_pth_wrapped_args->push_back(tokens.end()-1);
+
+    std::vector<UAST> subnodes;
+    auto last_non_coma_token_it = tokens.begin()+2;
+    for (auto tokenIt: *non_pth_wrapped_args)
+    {
+      if (std::holds_alternative<tokens::FunctionArgumentSeparator>(*tokenIt) or
+          std::holds_alternative<tokens::FunctionCallEnd>(*tokenIt))
+      {
+        auto expected_func_argument = make_uast(std::span(last_non_coma_token_it, tokenIt), input_vars);
+        if (not expected_func_argument.has_value())
+          return expected_func_argument;
+        else subnodes.push_back(std::move(expected_func_argument.value()));
+        last_non_coma_token_it = tokenIt+1;
+      }
+    }
+
+    const auto func_txt_token = text_token(tokens.front());
+    return uast::node::Function(func_txt_token, std::move(subnodes));
+
+    // return ast::node::Function(text_token(tokens.front()), std::move(subnodes));
+  }
+
+  // there are tokens that are not within parentheses
+  else if (not non_pth_enclosed_tokens.empty())
+  {
+    // we check for operations
+    // loop through the expression by increasing operator priority
+    // -> because the deepest parts of the syntax tree are to be calculated first
+    auto get_node = [&]<char op>(std::integral_constant<char, op>,
+                                 auto&& tokenIt) -> Ret
+    {
+      // we are not within parentheses, and we are at the right operator priority
+      if (tokenIt == tokens.begin() or tokenIt + 1 == tokens.end())
+        return tl::unexpected(Error::unexpected(text_token(*tokenIt)));
+
+      auto left_hand_side = make_uast(std::span(tokens.begin(), tokenIt), input_vars);
+      if (not left_hand_side.has_value())
+        return left_hand_side;
+
+      auto right_hand_side = make_uast(std::span(tokenIt + 1, tokens.end()), input_vars);
+      if (not right_hand_side.has_value())
+        return right_hand_side;
+
+      return uast::node::Operator<op, 2>(text_token(*tokenIt).substr_info.value().begin,
+                                         std::array{std::move(left_hand_side.value()),
+                                                    std::move(right_hand_side.value())});
+    };
+    auto get_op_token = [&]<char op>(std::integral_constant<char, op>)
+    {
+      return std::ranges::find_if(non_pth_enclosed_tokens,
+                                  [](auto&& tokenIt)
+                                  {
+                                    return std::holds_alternative<tokens::Operator<op, 2>>(*tokenIt);
+                                  });
+    };
+    auto try_op = [&]<char op>(std::integral_constant<char, op>) -> std::optional<Ret>
+    {
+      const auto tokenItIt = get_op_token(std::integral_constant<char, op>());
+      if (tokenItIt != non_pth_enclosed_tokens.end())
+        return get_node(std::integral_constant<char, op>(), *tokenItIt);
+      else return {};
+    };
+    auto constexpr_loop = [&]<size_t... i>(std::integer_sequence<size_t, i...>) -> std::optional<Ret>
     {
       auto res_arr = std::array {try_op(std::integral_constant<char, tokens::operators[i]>())...};
       for (auto&& val: res_arr)
