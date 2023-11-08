@@ -39,10 +39,6 @@ struct Evaluator
 
   using ReturnType = tl::expected<double, Error>;
 
-  // using T = std::remove_cvref_t<decltype(node)>;
-
-  ReturnType operator () (std::monostate);
-
   template <char op, size_t args_num>
   ReturnType operator () (const zc::parsing::node::ast::Operator<zc::parsing::Type::AST, op, args_num>&);
 

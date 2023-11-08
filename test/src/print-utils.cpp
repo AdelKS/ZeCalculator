@@ -31,9 +31,6 @@ void syntax_node_print_helper(std::ostream& os, const node::ast::Node<world_type
 
   std::visit(
     zc::utils::overloaded{
-      [&](std::monostate) {
-        os << padding_str << "empty tree " << std::endl;
-      },
       [&]<size_t args_num>(const node::ast::Function<world_type, args_num> &f)
       {
         os << padding_str << "Function<" << args_num << "> "

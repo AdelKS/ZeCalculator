@@ -28,12 +28,6 @@ namespace eval {
 namespace ast {
 
 template <size_t input_size>
-inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator () (std::monostate)
-{
-  return tl::unexpected(Error::empty_expression());
-}
-
-template <size_t input_size>
 template <size_t args_num>
 inline Evaluator<input_size>::ReturnType
   Evaluator<input_size>::operator()(const zc::parsing::node::ast::Function<zc::parsing::Type::AST, args_num>& node)

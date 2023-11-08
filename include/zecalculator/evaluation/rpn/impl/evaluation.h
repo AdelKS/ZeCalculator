@@ -31,12 +31,6 @@ namespace eval {
 namespace rpn {
 
 template <size_t input_size>
-inline void Evaluator<input_size>::operator () (std::monostate)
-{
-  expected_eval_stack = tl::unexpected(Error::empty_expression());
-}
-
-template <size_t input_size>
 inline void Evaluator<input_size>::operator () (const zc::parsing::node::Number& val)
 {
   expected_eval_stack->push_back(val.value);

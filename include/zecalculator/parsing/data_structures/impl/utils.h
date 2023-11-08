@@ -42,9 +42,6 @@ namespace zc {
     {
       return std::visit(
         utils::overloaded {
-          [](const std::monostate&) -> parsing::tokens::Text {
-            return parsing::tokens::Text();
-          },
           [](const auto& tk) -> parsing::tokens::Text {
             return tk;
           }},

@@ -45,8 +45,6 @@ struct Evaluator
 
   using ReturnType = tl::expected<double, Error>;
 
-  void operator () (std::monostate);
-
   void operator () (const zc::parsing::node::Number&);
 
   void operator () (const zc::parsing::node::InputVariable&);
