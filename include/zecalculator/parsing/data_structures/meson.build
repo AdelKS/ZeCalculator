@@ -1,8 +1,10 @@
 if not meson.is_subproject()
   install_headers(
     files(
-      'token.h',
-      'node.h',
+      'ast.h',
+      'rpn.h',
+      'shared.h',
+      'utils.h',
     ),
     subdir: 'zecalculator',
     preserve_path: true

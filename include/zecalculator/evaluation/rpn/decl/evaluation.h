@@ -21,7 +21,7 @@
 ****************************************************************************/
 
 #include "zecalculator/external/expected.h"
-#include "zecalculator/parsing/data_structures/decl/node.h"
+#include "zecalculator/parsing/data_structures/decl/rpn.h"
 #include <zecalculator/error.h>
 #include <zecalculator/math_objects/cpp_function.h>
 #include <zecalculator/math_objects/aliases.h>

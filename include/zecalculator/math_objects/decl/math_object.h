@@ -22,7 +22,7 @@
 
 #include <string>
 
-#include <zecalculator/parsing/shared.h>
+#include <zecalculator/parsing/types.h>
 
 namespace zc {
 

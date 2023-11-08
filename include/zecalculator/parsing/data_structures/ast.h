@@ -20,10 +20,5 @@
 **
 ****************************************************************************/
 
-namespace zc {
-namespace parsing {
-
-enum struct Type {AST, RPN};
-
-}
-}
+#include <zecalculator/parsing/data_structures/decl/ast.h>
+#include <zecalculator/parsing/data_structures/impl/ast.h>

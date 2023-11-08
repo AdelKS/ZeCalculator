@@ -24,6 +24,7 @@
 #include <zecalculator/error.h>
 #include <zecalculator/evaluation/rpn/decl/evaluation.h>
 #include <zecalculator/math_objects/impl/function.h>
+#include <zecalculator/parsing/data_structures/impl/rpn.h>
 
 namespace zc {
 namespace eval {

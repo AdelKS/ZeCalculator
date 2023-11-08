@@ -21,7 +21,9 @@
 #pragma once
 
 #include <zecalculator/parsing/data_structures/token.h>
-#include <zecalculator/parsing/data_structures/decl/node.h>
+#include <zecalculator/parsing/data_structures/decl/ast.h>
+#include <zecalculator/parsing/data_structures/decl/rpn.h>
+#include <zecalculator/parsing/data_structures/decl/utils.h>
 #include <zecalculator/mathworld/decl/mathworld.h>
 #include <zecalculator/error.h>
 

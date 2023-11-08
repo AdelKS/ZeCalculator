@@ -21,82 +21,18 @@
 #pragma once
 
 #include <zecalculator/math_objects/aliases.h>
+#include <zecalculator/math_objects/cpp_function.h>
 #include <zecalculator/math_objects/decl/function.h>
 #include <zecalculator/math_objects/decl/sequence.h>
 #include <zecalculator/math_objects/global_constant.h>
-#include <zecalculator/math_objects/cpp_function.h>
-#include <zecalculator/parsing/data_structures/decl/node.h>
+#include <zecalculator/parsing/data_structures/decl/ast.h>
+#include <zecalculator/parsing/data_structures/impl/shared.h>
 #include <zecalculator/parsing/data_structures/token.h>
 
 namespace zc {
   namespace parsing {
     namespace node {
-
-      using zc::parsing::tokens::Text;
-
-      struct InputVariable: Text
-      {
-        InputVariable(const Text& txt, size_t index)
-          : Text(txt), index(index) {}
-
-        size_t index;
-      };
-
-      template <parsing::Type world_type>
-      struct GlobalConstant: Text
-      {
-        GlobalConstant(const Text& txt, const zc::GlobalConstant<world_type>* constant)
-          : Text(txt), constant(constant) {}
-
-        const zc::GlobalConstant<world_type>* constant;
-      };
-
-      namespace rpn {
-
-        using parsing::Type::RPN;
-
-        template <size_t args_num>
-        struct Function: Text
-        {
-          Function(const Text& txt, const zc::Function<RPN, args_num>* f)
-            : Text(txt),  f(f) {}
-
-          const zc::Function<RPN, args_num>* f;
-        };
-
-        struct Sequence: Text
-        {
-          Sequence(const Text& txt, const zc::Sequence<RPN>* u)
-            : Text(txt),  u(u) {}
-
-          const zc::Sequence<RPN>* u;
-        };
-
-        template <size_t args_num>
-        struct CppFunction: Text
-        {
-          CppFunction(const Text& txt, const zc::rpn::CppFunction<args_num>* f)
-            : Text(txt),  f(f) {}
-
-          const zc::rpn::CppFunction<args_num>* f;
-        };
-
-        template <char op, size_t args_num>
-        struct Operator: zc::parsing::tokens::Operator<op, args_num>
-        {
-          using Parent = zc::parsing::tokens::Operator<op, args_num>;
-
-          Operator(const Parent& op_token): Parent(op_token) {}
-          Operator(size_t begin) : zc::parsing::tokens::Operator<op, args_num>(begin){};
-
-          Operator(const Operator&) = default;
-        };
-
-      } // namespace rpn
-
       namespace ast {
-
-        using parsing::Type::AST;
 
         template <parsing::Type world_type>
         struct NodePtr: std::unique_ptr<Node<world_type>>
@@ -124,7 +60,7 @@ namespace zc {
         };
 
         template <parsing::Type world_type, size_t args_num>
-        struct Function: Text
+        struct Function: tokens::Text
         {
           using Operands = std::array<NodePtr<world_type>, args_num>;
 
@@ -140,7 +76,7 @@ namespace zc {
         };
 
         template <parsing::Type world_type>
-        struct Sequence: Text
+        struct Sequence: tokens::Text
         {
           Sequence(const Text& txt, const zc::Sequence<world_type>* u, NodePtr<world_type> operand)
             : Text(txt), u(u), operand(std::move(operand)) {}
@@ -150,7 +86,7 @@ namespace zc {
         };
 
         template <parsing::Type world_type, size_t args_num>
-        struct CppFunction: Text
+        struct CppFunction: tokens::Text
         {
           CppFunction(const Text& txt,
                       const zc::CppFunction<world_type, args_num>* f,
@@ -173,37 +109,7 @@ namespace zc {
           std::array<NodePtr<world_type>, args_num> operands;
         };
 
-      } // namespace rpn
+      } // namespace ast
     } // namespace node
-
-    template <class NodeType>
-      requires(utils::is_any_of<NodeType,
-                                node::ast::Node<parsing::Type::AST>,
-                                node::ast::Node<parsing::Type::RPN>,
-                                node::rpn::Node>)
-    inline parsing::tokens::Text text_token(const NodeType& token)
-    {
-      return std::visit(
-        utils::overloaded {
-          [](const std::monostate&) -> parsing::tokens::Text {
-            return parsing::tokens::Text();
-          },
-          [](const auto& tk) -> parsing::tokens::Text {
-            return tk;
-          }},
-        token);
-    }
-
-    template <class NodeType>
-      requires(utils::is_any_of<NodeType,
-                                node::ast::Node<parsing::Type::AST>,
-                                node::ast::Node<parsing::Type::RPN>,
-                                node::rpn::Node>)
-    inline SubstrInfo substr_info(const NodeType& token)
-    {
-      return text_token(token).substr_info;
-
-    }
-
   } // namespace parsing
 } // namespace zc

@@ -21,7 +21,7 @@
 ****************************************************************************/
 
 #include <zecalculator/evaluation/ast/decl/evaluation.h>
-#include <zecalculator/parsing/data_structures/impl/node.h>
+#include <zecalculator/parsing/data_structures/impl/ast.h>
 
 namespace zc {
 namespace eval {

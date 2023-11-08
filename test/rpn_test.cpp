@@ -23,7 +23,7 @@
 // testing specific headers
 #include <zecalculator/test-utils/print-utils.h>
 #include <boost/ut.hpp>
-#include <zecalculator/parsing/data_structures/node.h>
+#include <zecalculator/parsing/data_structures/rpn.h>
 
 using namespace zc;
 using namespace zc::parsing;

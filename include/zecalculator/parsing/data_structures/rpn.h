@@ -3,7 +3,7 @@
 /****************************************************************************
 **  Copyright (c) 2023, Adel Kara Slimane <adel.ks@zegrapher.com>
 **
-**  This file is part of ZeCalculator's source code.
+**  This file is part of ZeCalculator.
 **
 **  ZeCalculators is free software: you may copy, redistribute and/or modify it
 **  under the terms of the GNU Affero General Public License as published by the
@@ -20,20 +20,5 @@
 **
 ****************************************************************************/
 
-#include <zecalculator/math_objects/aliases.h>
-#include <zecalculator/parsing/types.h>
-
-#include <tuple>
-
-namespace zc {
-
-template <parsing::Type type>
-using MathObjects = std::tuple<CppFunction<type, 1>,
-                               CppFunction<type, 2>,
-                               GlobalConstant<type>,
-                               Function<type, 0>,
-                               Function<type, 1>,
-                               Function<type, 2>,
-                               Sequence<type>>;
-
-}
+#include <zecalculator/parsing/data_structures/decl/rpn.h>
+#include <zecalculator/parsing/data_structures/impl/rpn.h>

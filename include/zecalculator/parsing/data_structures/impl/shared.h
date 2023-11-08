@@ -1,9 +1,7 @@
-#pragma once
-
 /****************************************************************************
 **  Copyright (c) 2023, Adel Kara Slimane <adel.ks@zegrapher.com>
 **
-**  This file is part of ZeCalculator's source code.
+**  This file is part of ZeCalculator.
 **
 **  ZeCalculators is free software: you may copy, redistribute and/or modify it
 **  under the terms of the GNU Affero General Public License as published by the
@@ -20,20 +18,33 @@
 **
 ****************************************************************************/
 
-#include <zecalculator/math_objects/aliases.h>
-#include <zecalculator/parsing/types.h>
+#pragma once
 
-#include <tuple>
+#include <zecalculator/parsing/data_structures/decl/shared.h>
+#include <zecalculator/parsing/data_structures/token.h>
 
 namespace zc {
+  namespace parsing {
+    namespace node {
 
-template <parsing::Type type>
-using MathObjects = std::tuple<CppFunction<type, 1>,
-                               CppFunction<type, 2>,
-                               GlobalConstant<type>,
-                               Function<type, 0>,
-                               Function<type, 1>,
-                               Function<type, 2>,
-                               Sequence<type>>;
+      using zc::parsing::tokens::Text;
 
-}
+      struct InputVariable: Text
+      {
+        InputVariable(const Text& txt, size_t index)
+          : Text(txt), index(index) {}
+
+        size_t index;
+      };
+
+      template <parsing::Type world_type>
+      struct GlobalConstant: Text
+      {
+        GlobalConstant(const Text& txt, const zc::GlobalConstant<world_type>* constant)
+          : Text(txt), constant(constant) {}
+
+        const zc::GlobalConstant<world_type>* constant;
+      };
+    } // namespace node
+  } // namespace parsing
+} // namespace zc

@@ -1,9 +1,7 @@
-#pragma once
-
 /****************************************************************************
 **  Copyright (c) 2023, Adel Kara Slimane <adel.ks@zegrapher.com>
 **
-**  This file is part of ZeCalculator's source code.
+**  This file is part of ZeCalculator.
 **
 **  ZeCalculators is free software: you may copy, redistribute and/or modify it
 **  under the terms of the GNU Affero General Public License as published by the
@@ -20,45 +18,37 @@
 **
 ****************************************************************************/
 
-#include <cstddef>
-#include <utility>
-#include <string>
+#pragma once
 
+#include <memory>
+#include <variant>
+#include <vector>
 #include <zecalculator/parsing/types.h>
 #include <zecalculator/utils/utils.h>
-#include <zecalculator/math_objects/decl/math_object.h>
 
 namespace zc {
 
-template <parsing::Type type>
-class MathWorld;
+struct SubstrInfo;
 
-/// @brief function signature of the type double (*) (double, double, ...) [args_num doubles as input]
-template <size_t args_num>
-using CppMathFunctionPtr = typename utils::math_func_signature_t<args_num>;
+namespace parsing {
+  namespace tokens {
 
-template <parsing::Type type, size_t args_num>
-  requires (args_num > 0)
-class CppFunction: public MathObject<type>
-{
-public:
+    struct Variable;
+    struct Number;
+    struct Text;
 
-  constexpr void set(CppMathFunctionPtr<args_num> ptr);
+  } // namespace tokens
 
-  template <class... DBL>
-    requires((std::is_convertible_v<DBL, double> and ...) and sizeof...(DBL) == args_num)
-  double operator()(DBL... val) const;
+  namespace node {
 
-  bool operator == (const CppFunction&) const = default;
+    struct InputVariable;
 
-protected:
+    template <parsing::Type>
+    struct GlobalConstant;
 
-  constexpr CppFunction(const MathWorld<type>* mathworld);
+    using Number = zc::parsing::tokens::Number;
 
-  CppMathFunctionPtr<args_num> f_ptr = nullptr;
+  } // namespace node
 
-  template <parsing::Type>
-  friend class MathWorld;
-};
-
+} // namespace parsing
 } // namespace zc

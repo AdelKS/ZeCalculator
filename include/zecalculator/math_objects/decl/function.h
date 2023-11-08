@@ -28,8 +28,10 @@
 #include <zecalculator/error.h>
 #include <zecalculator/external/expected.h>
 #include <zecalculator/math_objects/decl/math_object.h>
-#include <zecalculator/parsing/data_structures/decl/node.h>
-#include <zecalculator/parsing/shared.h>
+#include <zecalculator/parsing/data_structures/decl/ast.h>
+#include <zecalculator/parsing/data_structures/decl/rpn.h>
+#include <zecalculator/parsing/data_structures/decl/utils.h>
+#include <zecalculator/parsing/types.h>
 #include <zecalculator/utils/name_map.h>
 
 /* TODO: update approach as the following:

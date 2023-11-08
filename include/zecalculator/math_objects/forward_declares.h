@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstddef>
-#include <zecalculator/parsing/shared.h>
+#include <zecalculator/parsing/types.h>
 
 /****************************************************************************
 **  Copyright (c) 2023, Adel Kara Slimane <adel.ks@zegrapher.com>

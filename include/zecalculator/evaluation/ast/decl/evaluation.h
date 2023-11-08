@@ -21,7 +21,7 @@
 ****************************************************************************/
 
 #include <zecalculator/error.h>
-#include <zecalculator/parsing/data_structures/decl/node.h>
+#include <zecalculator/parsing/data_structures/decl/ast.h>
 #include <zecalculator/math_objects/decl/function.h>
 #include <zecalculator/math_objects/global_constant.h>
 #include <zecalculator/mathworld/decl/mathworld.h>

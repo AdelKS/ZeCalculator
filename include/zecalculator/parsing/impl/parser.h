@@ -25,7 +25,8 @@
 #include <zecalculator/math_objects/impl/function.h>
 #include <zecalculator/math_objects/impl/sequence.h>
 #include <zecalculator/mathworld/impl/mathworld.h>
-#include <zecalculator/parsing/data_structures/impl/node.h>
+#include <zecalculator/parsing/data_structures/impl/ast.h>
+#include <zecalculator/parsing/data_structures/impl/rpn.h>
 #include <zecalculator/parsing/decl/parser.h>
 
 #include <cmath>

@@ -1,3 +1,5 @@
+#pragma once
+
 /****************************************************************************
 **  Copyright (c) 2023, Adel Kara Slimane <adel.ks@zegrapher.com>
 **
@@ -18,72 +20,16 @@
 **
 ****************************************************************************/
 
-#pragma once
-
 #include <memory>
 #include <variant>
 #include <vector>
-#include <zecalculator/parsing/shared.h>
+#include <zecalculator/parsing/types.h>
 #include <zecalculator/utils/utils.h>
+#include <zecalculator/parsing/data_structures/decl/shared.h>
 
 namespace zc {
-
-struct SubstrInfo;
-
 namespace parsing {
-  namespace tokens {
-
-    struct Variable;
-    struct Number;
-    struct Text;
-
-  } // namespace tokens
-
   namespace node {
-
-    struct InputVariable;
-
-    template <parsing::Type>
-    struct GlobalConstant;
-
-    using Number = zc::parsing::tokens::Number;
-
-    namespace rpn {
-
-      template <size_t>
-      struct Function;
-
-      struct Sequence;
-
-      template <size_t>
-      struct CppFunction;
-
-      template <char op, size_t args_num>
-      struct Operator;
-
-      template <char op>
-      using BinaryOperator = Operator<op, 2>;
-
-      using GlobalConstant = node::GlobalConstant<parsing::Type::RPN>;
-
-      using Node = std::variant<InputVariable,
-                                Number,
-                                Operator<'=', 2>,
-                                Operator<'+', 2>,
-                                Operator<'-', 2>,
-                                Operator<'*', 2>,
-                                Operator<'/', 2>,
-                                Operator<'^', 2>,
-                                CppFunction<1>,
-                                CppFunction<2>,
-                                GlobalConstant,
-                                Function<0>,
-                                Function<1>,
-                                Function<2>,
-                                Sequence>;
-
-    } // namespace rpn
-
     namespace ast {
 
       template <parsing::Type, size_t>
@@ -133,25 +79,6 @@ namespace parsing {
   ///       before being transformed into an RPN representation
   template <parsing::Type world_type>
   using Tree = node::ast::NodePtr<world_type>;
-
-  using RPN = std::vector<node::rpn::Node>;
-
-  template <parsing::Type type>
-  using Parsing = std::conditional_t<type == parsing::Type::AST, Tree<parsing::Type::AST>, RPN>;
-
-  template <class NodeType>
-    requires(utils::is_any_of<NodeType,
-                              node::ast::Node<parsing::Type::AST>,
-                              node::ast::Node<parsing::Type::RPN>,
-                              node::rpn::Node>)
-  parsing::tokens::Text text_token(const NodeType& token);
-
-  template <class NodeType>
-    requires(utils::is_any_of<NodeType,
-                              node::ast::Node<parsing::Type::AST>,
-                              node::ast::Node<parsing::Type::RPN>,
-                              node::rpn::Node>)
-  SubstrInfo substr_info(const NodeType& token);
 
   } // namespace parsing
 } // namespace zc

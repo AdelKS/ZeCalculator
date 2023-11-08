@@ -5,7 +5,8 @@
 #include <boost/ut.hpp>
 #include <zecalculator/error.h>
 #include <zecalculator/math_objects/function.h>
-#include <zecalculator/parsing/data_structures/node.h>
+#include <zecalculator/parsing/data_structures/rpn.h>
+#include <zecalculator/parsing/data_structures/ast.h>
 #include <zecalculator/parsing/data_structures/token.h>
 
 namespace std {
