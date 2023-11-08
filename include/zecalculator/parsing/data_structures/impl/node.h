@@ -163,9 +163,9 @@ namespace zc {
         };
 
         template <parsing::Type world_type, char op, size_t args_num>
-        struct Operator: rpn::Operator<op, args_num>
+        struct Operator: zc::parsing::tokens::Operator<op, args_num>
         {
-          using Parent = rpn::Operator<op, args_num>;
+          using Parent = zc::parsing::tokens::Operator<op, args_num>;
 
           Operator(const Parent& parent, std::array<NodePtr<world_type>, args_num> operands)
             : Parent(parent), operands(std::move(operands)){};
