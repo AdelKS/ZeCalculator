@@ -107,6 +107,8 @@ inline void Evaluator<input_size>::operator()(const zc::parsing::node::rpn::Oper
       *it = *(it) / *(it+1);
     else if constexpr (op == '^')
       *it = std::pow(*(it), *(it+1));
+    else if constexpr (op == '=')
+      *it = (*(it) == *(it+1));
     else static_assert(utils::dependent_false_num_v<op>, "case not handled");
   }
   else static_assert(utils::dependent_false_num_v<args_num>, "case not handled");

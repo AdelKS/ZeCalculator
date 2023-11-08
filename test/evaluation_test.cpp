@@ -137,4 +137,15 @@ int main()
     expect(error.token.substr_info == SubstrInfo{.begin = 4, .size = 1});
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
+
+  "expression with equal sign"_test = []<class StructType>()
+  {
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
+
+    MathWorld<type> world;
+
+    expect(world.evaluate("2=2").value() == 1._d);
+    expect(world.evaluate("2+2=2").value() == 0._d);
+
+  } | std::tuple<AST_TEST, RPN_TEST>{};
 }

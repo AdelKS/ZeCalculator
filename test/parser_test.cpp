@@ -60,6 +60,24 @@ int main()
       << parsing;
   };
 
+  "equal sign expression"_test = []()
+  {
+    // the expression doesn't mean anything but can be properly tokenized
+    auto parsing = tokenize("2+2=2");
+
+    expect(bool(parsing)) << parsing;
+
+    auto expected_parsing = std::vector<Token>({
+        tokens::Number(2., tokens::Text{"2", 0}),
+        tokens::BinaryOperator<'+'>(1),
+        tokens::Number(2., tokens::Text{"2", 2}),
+        tokens::BinaryOperator<'='>(3),
+        tokens::Number(2., tokens::Text{"2", 4}),
+    });
+
+    expect(*parsing == expected_parsing);
+  };
+
   "simple expression"_test = []()
   {
     auto parsing = tokenize("2+2*2");

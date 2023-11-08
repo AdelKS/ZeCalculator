@@ -114,9 +114,9 @@ struct Function: Text
 };
 
 // operators ordered in increasing order of priority
-inline constexpr std::array operators = {'+', '-', '*', '/', '^'};
+inline constexpr std::array operators = {'=', '+', '-', '*', '/', '^'};
 
-using OperatorSequence = std::integer_sequence<char, '+', '-', '*', '/', '^'>;
+using OperatorSequence = std::integer_sequence<char, '=', '+', '-', '*', '/', '^'>;
 
 inline constexpr bool is_operator(const char ch)
 {
@@ -175,6 +175,7 @@ using TokenType = std::variant<tokens::Unkown,
                                tokens::Number,
                                tokens::Variable,
                                tokens::Function,
+                               tokens::Operator<'=', 2>,
                                tokens::Operator<'+', 2>,
                                tokens::Operator<'-', 2>,
                                tokens::Operator<'*', 2>,

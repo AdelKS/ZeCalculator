@@ -85,6 +85,8 @@ inline Evaluator<input_size>::ReturnType
       return evaluations[0] / evaluations[1];
     else if constexpr (op == '^')
       return std::pow(evaluations[0], evaluations[1]);
+    else if constexpr (op == '=')
+      return evaluations[0] == evaluations[1];
     else static_assert(utils::dependent_false_num_v<op>, "case not handled");
   }
   else static_assert(utils::dependent_false_num_v<args_num>, "case not handled");
