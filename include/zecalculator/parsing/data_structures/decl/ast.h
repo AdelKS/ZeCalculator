@@ -23,9 +23,10 @@
 #include <memory>
 #include <variant>
 #include <vector>
-#include <zecalculator/parsing/types.h>
-#include <zecalculator/utils/utils.h>
 #include <zecalculator/parsing/data_structures/decl/shared.h>
+#include <zecalculator/parsing/types.h>
+#include <zecalculator/utils/non_unique_ptr.h>
+#include <zecalculator/utils/utils.h>
 
 namespace zc {
 namespace parsing {
@@ -67,8 +68,8 @@ namespace parsing {
                                 Function<world_type, 2>,
                                 Sequence<world_type>>;
 
-      template <parsing::Type>
-      struct NodePtr;
+      template <parsing::Type world_type>
+      using NodePtr = zc::non_unique_ptr<Node<world_type>>;
 
     } // namespace node
 

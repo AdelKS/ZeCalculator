@@ -34,31 +34,6 @@ namespace zc {
     namespace ast {
       namespace node {
 
-        template <parsing::Type world_type>
-        struct NodePtr: std::unique_ptr<Node<world_type>>
-        {
-          using Parent = std::unique_ptr<Node<world_type>>;
-
-          template <class T>
-            requires(not std::is_same_v<std::remove_cvref_t<T>, NodePtr>
-                     and std::is_convertible_v<T, Node<world_type>>)
-          NodePtr(T&& val) : Parent(std::make_unique<Node<world_type>>(std::forward<T>(val)))
-          {}
-
-          NodePtr(Parent&& parent_rval)
-            : Parent(std::move(parent_rval))
-          {}
-
-          NodePtr(NodePtr&&) = default;
-          NodePtr& operator = (NodePtr&&) = default;
-
-          bool operator == (const NodePtr& other) const
-          {
-            assert(*this and other); // cannot be nullptrs, invariant of this class
-            return **this == *other;
-          }
-        };
-
         template <parsing::Type world_type, size_t args_num>
         struct Function: tokens::Text
         {
