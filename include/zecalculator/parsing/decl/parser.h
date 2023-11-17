@@ -69,6 +69,11 @@ tl::expected<AST<type>, Error> make_tree(std::span<const parsing::Token> tokens,
 tl::expected<UAST, Error> make_uast(std::span<const parsing::Token> tokens,
                                     std::span<const std::string> input_vars = {});
 
+/// @brief transforms an UAST to an AST<type> by doing object name lookup within
+///        a MathWorld instance and binding to objects with references
+template <Type type>
+tl::expected<AST<type>, Error> bind(const UAST& uast, const MathWorld<type>& math_world);
+
 /// @brief transforms a syntax tree to a flat Reverse Polish / postfix notation representation
 RPN make_RPN(const AST<Type::RPN>& tree);
 
