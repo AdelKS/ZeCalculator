@@ -34,6 +34,9 @@ namespace utils {
   template <class T, class... U>
   concept is_any_of = (std::is_same_v<T, U> or ...);
 
+  template <class T, class... U>
+  concept is_none_of = ((not std::is_same_v<T, U>) and ...);
+
   template <int>
   inline constexpr bool dependent_false_num_v = false;
 
