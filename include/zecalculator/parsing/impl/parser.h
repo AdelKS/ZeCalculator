@@ -514,53 +514,58 @@ tl::expected<AST<type>, Error> make_tree(std::span<const parsing::Token> tokens,
 }
 
 template <Type type>
-tl::expected<AST<type>, Error> bind(const UAST& uast, const MathWorld<type>& math_world)
+struct bind
 {
-  using Ret = tl::expected<AST<type>, Error>;
+  const MathWorld<type>& math_world;
 
-  return std::visit(
-    utils::overloaded{
-      [](const shared::node::InputVariable& in_var) -> Ret
-      {
-        return in_var;
-      },
-      [](const shared::node::Number& num) -> Ret
-      {
-        return num;
-      },
-      [&](const uast::node::Function& func) -> Ret
-      {
-        std::vector<AST<type>> operands;
-        for (auto&& operand: func.subnodes)
+  tl::expected<AST<type>, Error> operator () (const UAST& uast)
+  {
+    using Ret = tl::expected<AST<type>, Error>;
+
+    return std::visit(
+      utils::overloaded{
+        [](const shared::node::InputVariable& in_var) -> Ret
         {
-          auto expected_bound_node = bind(operand, math_world);
-          if (expected_bound_node) [[likely]]
-            operands.push_back(std::move(*expected_bound_node));
-          else return tl::unexpected(expected_bound_node.error());
+          return in_var;
+        },
+        [](const shared::node::Number& num) -> Ret
+        {
+          return num;
+        },
+        [&](const uast::node::Function& func) -> Ret
+        {
+          std::vector<AST<type>> operands;
+          for (auto&& operand: func.subnodes)
+          {
+            auto expected_bound_node = (*this)(operand);
+            if (expected_bound_node) [[likely]]
+              operands.push_back(std::move(*expected_bound_node));
+            else return tl::unexpected(expected_bound_node.error());
+          }
+
+          return std::visit(FunctionVisiter<type>{func, std::move(operands)}, math_world.get(func.name));
+        },
+        [&](const uast::node::Variable& var) -> Ret
+        {
+          return std::visit(VariableVisiter<type>{var}, math_world.get(var.name));
+        },
+        [&]<char op, size_t args_num>(const uast::node::Operator<op, args_num>& ope) -> Ret
+        {
+          auto get_operator = [&]<size_t... i>(std::index_sequence<i...>) -> Ret
+          {
+            std::array<Ret, args_num> expected_operands = {(*this)(ope.operands[i])...};
+            auto it = std::ranges::find_if_not(expected_operands, [](auto&& v){ return bool(v); });
+            if (it != expected_operands.end())
+              return tl::unexpected(it->error());
+            else return ast::node::Operator<type, op, args_num>(ope, {std::move(*expected_operands[i])...});
+          };
+          return get_operator(std::make_index_sequence<args_num>());
         }
-
-        return std::visit(FunctionVisiter<type>{func, std::move(operands)}, math_world.get(func.name));
       },
-      [&](const uast::node::Variable& var) -> Ret
-      {
-        return std::visit(VariableVisiter<type>{var}, math_world.get(var.name));
-      },
-      [&]<char op, size_t args_num>(const uast::node::Operator<op, args_num>& ope) -> Ret
-      {
-        auto get_operator = [&]<size_t... i>(std::index_sequence<i...>) -> Ret
-        {
-          std::array<Ret, args_num> expected_operands = {bind(ope.operands[i], math_world)...};
-          auto it = std::ranges::find_if_not(expected_operands, [](auto&& v){ return bool(v); });
-          if (it != expected_operands.end())
-            return tl::unexpected(it->error());
-          else return ast::node::Operator<type, op, args_num>(ope, {std::move(*expected_operands[i])...});
-        };
-        return get_operator(std::make_index_sequence<args_num>());
-      }
-    },
-    *uast
-  );
-}
+      *uast
+    );
+  }
+};
 
 tl::expected<UAST, Error> make_uast(std::span<const parsing::Token> tokens,
                                     std::span<const std::string> input_vars)
