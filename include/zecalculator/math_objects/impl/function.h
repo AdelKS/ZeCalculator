@@ -24,6 +24,7 @@
 #include <zecalculator/evaluation/rpn/impl/evaluation.h>
 #include <zecalculator/math_objects/decl/function.h>
 #include <zecalculator/math_objects/impl/math_object.h>
+#include <zecalculator/parsing/data_structures/impl/uast.h>
 #include <zecalculator/parsing/impl/parser.h>
 
 #include <unordered_set>
@@ -93,20 +94,21 @@ void Function<type, args_num>::parse()
     }
   }
 
-  // just a shortcut to have tokens -> make_tree(tokens, mathworld, vars.value)
-  using namespace std::placeholders;
-  auto bound_make_tree = [&](const std::vector<parsing::Token>& vec)
+  auto make_uast = [&](std::span<const parsing::Token> tokens) -> tl::expected<parsing::UAST, Error>
   {
     if constexpr (args_num == 0)
-      return parsing::make_tree<type>(vec, *this->mathworld, {});
-    else return parsing::make_tree<type>(vec, *this->mathworld, this->vars.value());
+      return parsing::make_uast(tokens, {});
+    else return parsing::make_uast(tokens, this->vars.value());
   };
 
+  using namespace std::placeholders;
+  auto bind = std::bind(parsing::bind<type>, _1, std::cref(*this->mathworld));
+
   if constexpr (type == parsing::Type::AST)
-    parsed_expr = tokenized_expr.and_then(bound_make_tree);
+    parsed_expr = tokenized_expr.and_then(make_uast).and_then(bind);
   else
     parsed_expr
-      = tokenized_expr.and_then(bound_make_tree).transform(parsing::make_RPN);
+      = tokenized_expr.and_then(make_uast).and_then(bind).transform(parsing::make_RPN);
 }
 
 template <parsing::Type type, size_t args_num>
