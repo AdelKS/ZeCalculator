@@ -86,7 +86,7 @@ inline tl::expected<std::vector<Token>, Error> tokenize(std::string_view express
     // view on the single character pointed to by 'it'
     const std::string_view char_v = std::string_view(it, 1);
 
-    if (is_digit(*it) or (numberSign and (*it == '-' or *it == '+') and next_char and is_digit(*next_char)))
+    if (is_digit(*it) or (next_char and numberSign and (*it == '-' or *it == '+') and is_digit(*next_char)))
     {
       auto double_val = to_double(std::string_view(it, expression.cend()));
 
