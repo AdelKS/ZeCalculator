@@ -58,14 +58,6 @@ bool is_valid_name(std::string_view name);
 /// @brief makes a syntax tree from from a sequence of tokens
 /// @param input_vars: variable names that are considered as input (for functions)
 ///                    e.g."x" in the function "f" such as "f(x) = cos(x)"
-template <Type type>
-tl::expected<AST<type>, Error> make_tree(std::span<const parsing::Token> tokens,
-                                          const MathWorld<type>& math_world,
-                                          std::span<const std::string> input_vars = {});
-
-/// @brief makes a syntax tree from from a sequence of tokens
-/// @param input_vars: variable names that are considered as input (for functions)
-///                    e.g."x" in the function "f" such as "f(x) = cos(x)"
 tl::expected<UAST, Error> make_uast(std::span<const parsing::Token> tokens,
                                     std::span<const std::string> input_vars = {});
 

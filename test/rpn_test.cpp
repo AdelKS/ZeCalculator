@@ -39,7 +39,7 @@ int main()
 
     zc::MathWorld<Type::RPN> world;
 
-    auto expect_tree = make_tree(parsing.value(), world);
+    auto expect_tree = make_uast(parsing.value()).and_then(bind{world});
 
     expect(bool(expect_tree));
 

@@ -41,7 +41,7 @@ int main()
 
     expect(bool(parsing)) << parsing;
 
-    auto expect_node = make_tree(parsing.value(), world);
+    auto expect_node = make_uast(parsing.value()).and_then(bind{world});
 
     expect(bool(expect_node));
 
@@ -68,7 +68,7 @@ int main()
 
     expect(bool(parsing)) << parsing;
 
-    auto expect_node = make_tree(parsing.value(), world, zc::Vars<1>{"x"});
+    auto expect_node = make_uast(parsing.value(), zc::Vars<1>{"x"}).and_then(bind{world});
 
     expect(bool(expect_node));
 
