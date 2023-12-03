@@ -91,7 +91,7 @@ struct tuple_type_cat<std::tuple<Ui...>, std::tuple<Uj...>>
 template <class T1, class T2, class... T>
 struct tuple_type_cat<T1, T2, T...>
 {
-  using type = tuple_type_cat<typename tuple_type_cat<T1, T2>::type, T...>;
+  using type = tuple_type_cat<typename tuple_type_cat<T1, T2>::type, T...>::type;
 };
 
 template <class... T>
