@@ -51,6 +51,17 @@ int main()
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
+  "operator same priority"_test = []<class StructType>()
+  {
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
+
+    MathWorld<type> world;
+
+    expect(world.evaluate("2+2-2+2").value() == 4._d);
+    expect(world.evaluate("2-2+2-2").value() == 0._d);
+
+  } | std::tuple<AST_TEST, RPN_TEST>{};
+
   "complex expression evaluation"_test = []<class StructType>()
   {
     constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST
