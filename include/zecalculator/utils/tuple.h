@@ -140,4 +140,12 @@ constexpr void tuple_for(Fn&& f, Tuple&& tup)
   for_integer_seq.template operator()(std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<Tuple>>>{});
 }
 
+/// @brief call Fn on each integer in the integer sequence, by forwarding it
+///        as an integral constant
+template <class Fn, class A, A... i>
+constexpr void constexpr_for(Fn&& f, std::integer_sequence<A, i...>)
+{
+  (std::invoke(f, std::integral_constant<A, i>()), ...);
+}
+
 }
