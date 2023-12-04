@@ -27,9 +27,11 @@
 #include <string>
 #include <string_view>
 #include <variant>
+#include <ranges>
 
 #include <zecalculator/external/expected.h>
 #include <zecalculator/utils/substr_info.h>
+#include <zecalculator/utils/tuple.h>
 
 namespace zc {
 namespace parsing {
@@ -113,14 +115,25 @@ struct Function: Text
   using Text::Text;
 };
 
-// operators ordered in increasing order of priority
-inline constexpr std::array operators = {'=', '+', '-', '*', '/', '^'};
+/// @brief operators ordered in increasing order of priority
+/// @note operators in the same array have the same priority, and the evaluation will
+///       be performed left to right
+inline constexpr auto operators = std::make_tuple(std::array{'='},
+                                                  std::array{'+', '-'},
+                                                  std::array{'*', '/'},
+                                                  std::array{'^'});
 
 using OperatorSequence = std::integer_sequence<char, '=', '+', '-', '*', '/', '^'>;
 
 inline constexpr bool is_operator(const char ch)
 {
-  return std::ranges::count(operators, ch);
+  bool found = false;
+  auto is_in_array = [&](const auto& ops)
+  {
+    found = found or std::ranges::count(ops, ch);
+  };
+  tuple_for(is_in_array, operators);
+  return found;
 }
 
 template <char op, size_t args_num>

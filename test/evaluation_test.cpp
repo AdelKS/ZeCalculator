@@ -58,6 +58,8 @@ int main()
     MathWorld<type> world;
 
     expect(world.evaluate("2+2-2+2").value() == 4._d);
+    expect(world.evaluate("2+2-2-2").value() == 0._d);
+    expect(world.evaluate("2-2+2+2").value() == 4._d);
     expect(world.evaluate("2-2+2-2").value() == 0._d);
 
   } | std::tuple<AST_TEST, RPN_TEST>{};

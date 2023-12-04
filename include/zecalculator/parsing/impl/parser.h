@@ -523,32 +523,29 @@ tl::expected<UAST, Error> make_uast(std::span<const parsing::Token> tokens,
                                          std::array{std::move(left_hand_side.value()),
                                                     std::move(right_hand_side.value())});
     };
-    auto get_op_token = [&]<char op>(std::integral_constant<char, op>)
+
+    // test, from right to left, within tokens that are not enclosed within parentheses
+    // for operators in increasing order of priority. As soon as one is found, we take it
+    std::optional<Ret> res;
+    auto test_operator_list = [&]<size_t i>(std::integral_constant<size_t, i>)
     {
-      return std::ranges::find_if(non_pth_enclosed_tokens,
-                                  [](auto&& tokenIt)
-                                  {
-                                    return std::holds_alternative<tokens::Operator<op, 2>>(*tokenIt);
-                                  });
-    };
-    auto try_op = [&]<char op>(std::integral_constant<char, op>) -> std::optional<Ret>
-    {
-      const auto tokenItIt = get_op_token(std::integral_constant<char, op>());
-      if (tokenItIt != non_pth_enclosed_tokens.end())
-        return get_node(std::integral_constant<char, op>(), *tokenItIt);
-      else return {};
-    };
-    auto constexpr_loop = [&]<size_t... i>(std::integer_sequence<size_t, i...>) -> std::optional<Ret>
-    {
-      auto res_arr = std::array {try_op(std::integral_constant<char, tokens::operators[i]>())...};
-      for (auto&& val: res_arr)
+      // we reverse the view, so the actual evaluation of the tree amounts of taking
+      // left to right priority
+      for (const auto& tok: non_pth_enclosed_tokens | std::views::reverse)
       {
-        if (val)
-          return std::move(val);
+        auto test_op = [&]<size_t j>(std::integral_constant<size_t, j>)
+        {
+          constexpr char op = std::get<i>(tokens::operators)[j];
+          if (not res and std::holds_alternative<tokens::Operator<op, 2>>(*tok))
+            res = get_node(std::integral_constant<char, op>(), tok);
+        };
+        constexpr size_t ops_num = std::get<i>(tokens::operators).size();
+        constexpr_for(test_op, std::make_index_sequence<ops_num>());
       }
-      return {};
     };
-    auto res = constexpr_loop(std::make_index_sequence<tokens::operators.size()>());
+    constexpr_for(test_operator_list,
+                  std::make_index_sequence<std::tuple_size_v<decltype(tokens::operators)>>());
+
     if (res)
       return std::move(*res);
   }
