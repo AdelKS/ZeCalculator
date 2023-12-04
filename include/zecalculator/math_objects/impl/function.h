@@ -104,10 +104,10 @@ void Function<type, args_num>::parse()
   using namespace std::placeholders;
 
   if constexpr (type == parsing::Type::AST)
-    parsed_expr = tokenized_expr.and_then(make_uast).and_then(parsing::bind{*this->mathworld});
+    parsed_expr = tokenized_expr.and_then(make_uast).and_then(parsing::bind<type>{*this->mathworld});
   else
     parsed_expr
-      = tokenized_expr.and_then(make_uast).and_then(parsing::bind{*this->mathworld}).transform(parsing::make_RPN);
+      = tokenized_expr.and_then(make_uast).and_then(parsing::bind<type>{*this->mathworld}).transform(parsing::make_RPN);
 }
 
 template <parsing::Type type, size_t args_num>
