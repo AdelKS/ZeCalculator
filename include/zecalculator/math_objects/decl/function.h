@@ -134,8 +134,6 @@ public:
   /// @brief returns the parsing error, if there is any
   std::optional<Error> error() const;
 
-  const tl::expected<parsing::Parsing<type>, Error>& get_parsing() const;
-
   /// @brief (re)parse the expression
   void parse();
 

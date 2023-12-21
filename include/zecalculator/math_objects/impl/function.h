@@ -149,12 +149,6 @@ std::optional<Error> Function<type, args_num>::error() const
 }
 
 template <parsing::Type type, size_t args_num>
-const tl::expected<parsing::Parsing<type>, Error>& Function<type, args_num>::get_parsing() const
-{
-  return parsed_expr;
-}
-
-template <parsing::Type type, size_t args_num>
 std::unordered_map<std::string, deps::ObjectType> Function<type, args_num>::direct_dependencies() const
 {
   if (not tokenized_expr.has_value())
