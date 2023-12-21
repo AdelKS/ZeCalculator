@@ -71,7 +71,7 @@ public:
 protected:
 
   // constructor reserved for MathWorld when using add() function
-  Sequence(const MathWorld<type>* mathworld);
+  Sequence(MathWorld<type>* mathworld);
 
   /// @brief evaluation with recursion depth tracking
   tl::expected<double, Error> evaluate(double index, size_t current_recursion_depth) const;

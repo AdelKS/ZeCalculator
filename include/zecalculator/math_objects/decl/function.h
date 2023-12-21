@@ -164,7 +164,7 @@ public:
 protected:
 
   // constructor reserved for MathWorld when using add() function
-  Function(const MathWorld<type>*);
+  Function(MathWorld<type>*);
 
   /// @note version that tracks the current recursion depth
   tl::expected<double, Error> evaluate(std::span<const double, args_num> args,

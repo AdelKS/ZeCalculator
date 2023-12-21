@@ -37,7 +37,7 @@ public:
 
 protected:
 
-  MathObject(const MathWorld<type>* world);
+  MathObject(MathWorld<type>* world);
   MathObject(std::string name, const MathWorld<type>* world);
 
   void set_name(std::string name);
@@ -45,7 +45,7 @@ protected:
   std::string name;
 
   // non-owning pointer to the mathworld that contains this object
-  const MathWorld<type>* mathworld;
+  MathWorld<type>* mathworld;
 
   template <parsing::Type>
   friend class MathWorld;

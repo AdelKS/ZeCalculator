@@ -32,7 +32,7 @@
 namespace zc {
 
 template <parsing::Type type, size_t args_num>
-Function<type, args_num>::Function(const MathWorld<type>* mathworld)
+Function<type, args_num>::Function(MathWorld<type>* mathworld)
   : MathObject<type>(mathworld), tokenized_expr(tl::unexpected(Error::empty_expression())),
     parsed_expr(tl::unexpected(Error::empty_expression()))
 {}

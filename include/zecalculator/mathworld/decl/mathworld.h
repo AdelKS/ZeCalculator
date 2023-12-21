@@ -113,7 +113,7 @@ public:
   bool contains(std::string_view name) const;
 
   /// @brief evaluates a given expression within this world
-  tl::expected<double, Error> evaluate(std::string expr) const;
+  tl::expected<double, Error> evaluate(std::string expr);
 
   /// @brief renames object to new name
   tl::expected<Ok, Error> rename(const std::string& old_name, const std::string& new_name);

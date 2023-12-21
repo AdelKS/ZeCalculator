@@ -5,7 +5,7 @@
 namespace zc {
 
 template <parsing::Type type>
-Sequence<type>::Sequence(const MathWorld<type>* mathworld) : Parent(mathworld)
+Sequence<type>::Sequence(MathWorld<type>* mathworld) : Parent(mathworld)
 {}
 
 template <parsing::Type type>

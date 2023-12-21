@@ -43,7 +43,7 @@ double CppFunction<type, args_num>::operator()(DBL... val) const
 
 template <parsing::Type type, size_t args_num>
   requires(args_num > 0)
-constexpr CppFunction<type, args_num>::CppFunction(const MathWorld<type>* mathworld)
+constexpr CppFunction<type, args_num>::CppFunction(MathWorld<type>* mathworld)
   : MathObject<type>(mathworld)
 {}
 

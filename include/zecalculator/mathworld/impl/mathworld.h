@@ -262,7 +262,7 @@ void MathWorld<type>::parse_direct_revdeps_of(const std::string& name)
 }
 
 template <parsing::Type type>
-tl::expected<double, Error> MathWorld<type>::evaluate(std::string expr) const
+tl::expected<double, Error> MathWorld<type>::evaluate(std::string expr)
 {
   if (expr.empty()) [[unlikely]]
     return tl::unexpected(Error::empty_expression());

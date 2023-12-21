@@ -25,7 +25,7 @@
 namespace zc {
 
 template <parsing::Type type>
-MathObject<type>::MathObject(const MathWorld<type>* world)
+MathObject<type>::MathObject(MathWorld<type>* world)
   : mathworld(world)
 {}
 
