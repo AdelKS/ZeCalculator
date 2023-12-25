@@ -97,7 +97,7 @@ void Function<type, args_num>::parse()
   auto make_uast = [&](std::span<const parsing::Token> tokens) -> tl::expected<parsing::UAST, Error>
   {
     if constexpr (args_num == 0)
-      return parsing::make_uast(tokens, {});
+      return parsing::make_uast(tokens);
     else return parsing::make_uast(tokens, this->vars.value());
   };
 

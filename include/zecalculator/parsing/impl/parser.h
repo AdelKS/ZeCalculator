@@ -414,8 +414,9 @@ struct bind
   }
 };
 
-tl::expected<UAST, Error> make_uast(std::span<const parsing::Token> tokens,
-                                    std::span<const std::string> input_vars)
+template <std::ranges::viewable_range Range>
+  requires std::is_convertible_v<std::ranges::range_value_t<Range>, std::string_view>
+tl::expected<UAST, Error> make_uast(std::span<const parsing::Token> tokens, const Range& input_vars)
 {
   using Ret = tl::expected<UAST, Error>;
 

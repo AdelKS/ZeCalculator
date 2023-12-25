@@ -58,8 +58,10 @@ bool is_valid_name(std::string_view name);
 /// @brief makes a syntax tree from from a sequence of tokens
 /// @param input_vars: variable names that are considered as input (for functions)
 ///                    e.g."x" in the function "f" such as "f(x) = cos(x)"
+template <std::ranges::viewable_range Range = std::array<std::string, 0>>
+  requires std::is_convertible_v<std::ranges::range_value_t<Range>, std::string_view>
 tl::expected<UAST, Error> make_uast(std::span<const parsing::Token> tokens,
-                                    std::span<const std::string> input_vars = {});
+                                    const Range& input_vars = std::array<std::string, 0>{});
 
 /// @brief functor that transforms an UAST to an AST<type> by doing object name lookup within
 ///        a MathWorld instance and binding to objects with references
