@@ -206,7 +206,8 @@ struct Token: TokenType
   using TokenType::TokenType;
 };
 
-inline tokens::Text text_token(const Token& token)
+template <class... U>
+inline tokens::Text text_token(const std::variant<U...>& token)
 {
   return std::visit([](const auto& tk) -> tokens::Text { return tk; }, token);
 }
