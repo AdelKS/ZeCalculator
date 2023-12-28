@@ -151,25 +151,10 @@ std::optional<Error> Function<type, args_num>::error() const
 template <parsing::Type type, size_t args_num>
 std::unordered_map<std::string, deps::ObjectType> Function<type, args_num>::direct_dependencies() const
 {
-  if (not tokenized_expr.has_value())
+  if (not tokenized_expr.has_value() or not vars.has_value())
     return {};
 
-  std::unordered_map<std::string, deps::ObjectType> deps;
-
-  for (const parsing::Token& tok: tokenized_expr.value())
-    std::visit(
-      utils::overloaded{
-        [&](const parsing::tokens::Function& f) {
-          deps.insert({f.name, deps::ObjectType::FUNCTION});
-        },
-        [&](const parsing::tokens::Variable& v) {
-          if (not vars.has_value() or std::ranges::count(*vars, v.name) == 0)
-            deps.insert({v.name, deps::ObjectType::VARIABLE});
-        },
-        [](auto&&){ /* no op */ },
-      }, tok);
-
-  return deps;
+  return parsing::direct_dependencies(*tokenized_expr, *vars);
 }
 
 template <parsing::Type type, size_t args_num>

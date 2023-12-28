@@ -661,5 +661,28 @@ inline RPN make_RPN(const AST<Type::RPN>& tree)
   return std::visit(RpnMaker{}, *tree);
 }
 
+template <std::ranges::viewable_range Range>
+  requires std::is_convertible_v<std::ranges::range_value_t<Range>, std::string_view>
+std::unordered_map<std::string, deps::ObjectType>
+  direct_dependencies(const std::vector<parsing::Token>& tokens, const Range& input_vars)
+{
+  std::unordered_map<std::string, deps::ObjectType> deps;
+
+  for (const parsing::Token& tok: tokens)
+    std::visit(
+      utils::overloaded{
+        [&](const parsing::tokens::Function& f) {
+          deps.insert({f.name, deps::ObjectType::FUNCTION});
+        },
+        [&](const parsing::tokens::Variable& v) {
+          if (std::ranges::count(input_vars, v.name) == 0)
+            deps.insert({v.name, deps::ObjectType::VARIABLE});
+        },
+        [](auto&&){ /* no op */ },
+      }, tok);
+
+  return deps;
+}
+
 } // namespace parsing
 } // namespace zc

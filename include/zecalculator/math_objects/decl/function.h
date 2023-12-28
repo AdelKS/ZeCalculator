@@ -31,6 +31,7 @@
 #include <zecalculator/parsing/data_structures/decl/ast.h>
 #include <zecalculator/parsing/data_structures/decl/rpn.h>
 #include <zecalculator/parsing/data_structures/decl/utils.h>
+#include <zecalculator/parsing/decl/parser.h>
 #include <zecalculator/parsing/types.h>
 #include <zecalculator/utils/name_map.h>
 
@@ -59,11 +60,6 @@ namespace ast {
 
 namespace parsing {
   struct RpnMaker;
-}
-
-namespace deps {
-  /// @brief used to know the type of the dependency when querying deps
-  enum ObjectType {VARIABLE, FUNCTION};
 }
 
 template <size_t args_num>
