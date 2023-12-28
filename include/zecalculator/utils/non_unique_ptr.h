@@ -35,7 +35,7 @@ struct non_unique_ptr: std::unique_ptr<T>
   {}
 
   template <class U>
-    requires (utils::is_none_of<std::remove_cvref_t<U>, Parent, non_unique_ptr>)
+    requires (utils::is_none_of<std::remove_cvref_t<U>, Parent, non_unique_ptr, T>)
   non_unique_ptr(U&& val) : Parent(std::make_unique<T>(std::forward<U>(val)))
   {}
 
