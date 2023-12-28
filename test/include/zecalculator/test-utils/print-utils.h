@@ -47,6 +47,13 @@ std::ostream& operator << (std::ostream& os, const std::vector<T>& vec)
   return os;
 }
 
+template <class T>
+std::ostream& operator << (std::ostream& os, const std::unique_ptr<T>& ptr)
+{
+  ptr ? os << *ptr : os << "empty unique_ptr";
+  return os;
+}
+
 template <class... T> requires (sizeof...(T) > 0)
 std::ostream& operator << (std::ostream& os, const std::variant<T...>& var)
 {
@@ -68,6 +75,8 @@ namespace zc {
     std::ostream& operator << (std::ostream& os, const ast::node::Node<Type::AST>& node);
 
     std::ostream& operator << (std::ostream& os, const ast::node::Node<Type::RPN>& node);
+
+    std::ostream& operator << (std::ostream& os, const UAST& node);
 
     namespace tokens {
 
