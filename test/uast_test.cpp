@@ -79,4 +79,29 @@ int main()
     expect(*expect_node == expected_node);
 
   };
+
+  "mark input vars"_test = []()
+  {
+    auto parsing = tokenize("(cos(sin(x)+1))+1");
+
+    expect(bool(parsing)) << parsing;
+
+    auto expect_node = make_uast(parsing.value()).transform(mark_input_vars{zc::Vars<1>{"x"}});
+
+    expect(bool(expect_node));
+
+    UAST expected_node = uast::node::BinaryOperator<'+'>(15,
+      {uast::node::Function(tokens::Text("cos", 1),
+        {uast::node::BinaryOperator<'+'>(11,
+          {uast::node::Function(tokens::Text("sin", 5),
+            {shared::node::InputVariable(tokens::Text("x", 9), 0)}),
+             shared::node::Number(1.0, tokens::Text("1", 12))})}),
+      shared::node::Number(1.0, tokens::Text("1", 16))});
+
+    if (*expect_node != expected_node)
+      std::cout << *expect_node;
+
+    expect(*expect_node == expected_node);
+
+  };
 }

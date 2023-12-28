@@ -63,6 +63,17 @@ template <std::ranges::viewable_range Range = std::array<std::string, 0>>
 tl::expected<UAST, Error> make_uast(std::span<const parsing::Token> tokens,
                                     const Range& input_vars = std::array<std::string, 0>{});
 
+template <std::ranges::viewable_range Range>
+  requires std::is_convertible_v<std::ranges::range_value_t<Range>, std::string_view>
+struct mark_input_vars
+{
+  const Range& input_vars;
+
+  /// @brief returns a copy of 'tre' where 'uast::node::Variable' instances are replaced
+  ///         with uast::node::InputVariable when name is in 'input_vars'
+  UAST operator () (const UAST& tree);
+};
+
 /// @brief functor that transforms an UAST to an AST<type> by doing object name lookup within
 ///        a MathWorld instance and binding to objects with references
 template <Type type>

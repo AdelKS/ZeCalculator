@@ -558,6 +558,35 @@ tl::expected<UAST, Error> make_uast(std::span<const parsing::Token> tokens, cons
   return tl::unexpected(Error::unexpected(unexpected_slice));
 }
 
+template <std::ranges::viewable_range Range>
+  requires std::is_convertible_v<std::ranges::range_value_t<Range>, std::string_view>
+UAST mark_input_vars<Range>::operator () (const UAST& tree)
+{
+  return std::visit(utils::overloaded{
+    [&](const shared::node::InputVariable& v) -> UAST { return v; },
+    [&](const shared::node::Number& n) -> UAST { return n; },
+    [&](const uast::node::Function& f) -> UAST {
+      uast::node::Function f_copy(f, {});
+      for (const UAST& sub_tree: f.subnodes)
+        f_copy.subnodes.push_back((*this)(sub_tree));
+      return f_copy;
+    },
+    [&](uast::node::Variable& v) -> UAST {
+      auto it = std::ranges::find(input_vars, v.name);
+      if (it != input_vars.end())
+        return shared::node::InputVariable(v, std::distance(input_vars.begin(), it));
+      else return v;
+    },
+    [&]<char op, size_t args_num>(const uast::node::Operator<op, args_num>& op_f) -> UAST {
+      auto make_operands = [&]<size_t... i>(std::integer_sequence<size_t, i...>)
+      {
+        return std::array{(void(i), (*this)(op_f.operands[i]))...};
+      };
+      return uast::node::Operator<op, args_num>(op_f, make_operands(std::make_index_sequence<args_num>()));
+    }},
+    *tree);
+}
+
 struct RpnMaker
 {
   RPN operator()(const ast::node::Sequence<Type::RPN>& seq)
