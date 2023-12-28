@@ -115,14 +115,6 @@ public:
   /// @brief evaluates a given expression within this world
   tl::expected<double, Error> evaluate(std::string expr);
 
-  /// @brief renames object to new name
-  tl::expected<Ok, Error> rename(const std::string& old_name, const std::string& new_name);
-
-  /// @brief sets/renames object to given name
-  template <class ObjectType>
-    requires(tuple_contains_v<MathObjects<type>, ObjectType>)
-  tl::expected<Ok, Error> set_name(ObjectType* obj, const std::string& name);
-
   /// @brief delete object given by pointer
   /// @returns Ok if the deletion was successful, UnregisteredObject otherwise
   ///          when the pointed-to object is not handled by this instance of MathWorld
