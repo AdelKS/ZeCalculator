@@ -264,9 +264,30 @@ void MathWorld<type>::parse_direct_revdeps_of(const std::string& name)
 template <parsing::Type type>
 tl::expected<double, Error> MathWorld<type>::evaluate(std::string expr) const
 {
-  Function<type, 0> f(this);
-  f.set_expression(std::move(expr));
-  return f();
+  if (expr.empty()) [[unlikely]]
+    return tl::unexpected(Error::empty_expression());
+
+  auto make_uast = [](std::span<const parsing::Token> tokens)
+  {
+    return parsing::make_uast(tokens);
+  };
+
+  auto evaluate = [](const parsing::Parsing<type>& repr)
+  {
+    return zc::evaluate(repr);
+  };
+
+  if constexpr (type == parsing::Type::AST)
+    return parsing::tokenize(expr)
+      .and_then(make_uast)
+      .and_then(parsing::bind<type>{*this})
+      .and_then(evaluate);
+  else
+    return parsing::tokenize(expr)
+      .and_then(make_uast)
+      .and_then(parsing::bind<type>{*this})
+      .transform(parsing::make_RPN)
+      .and_then(evaluate);
 }
 
 template <parsing::Type type>
