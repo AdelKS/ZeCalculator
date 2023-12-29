@@ -41,6 +41,14 @@ public:
   using const_iterator = Parent::const_iterator;
   using Parent::size;
 
+  /// @brief returns the next free slot
+  size_t next_free_slot() const
+  {
+    if (free_slots.empty())
+      return size();
+    else return free_slots.top();
+  }
+
   /// @brief finds the a free slot, puts 'val' in it, then returns the slot index
   size_t push(T val)
   {
