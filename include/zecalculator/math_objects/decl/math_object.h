@@ -37,12 +37,14 @@ public:
 
 protected:
 
-  MathObject(MathWorld<type>* world);
-  MathObject(std::string name, const MathWorld<type>* world);
+  MathObject(size_t slot, MathWorld<type>* world);
+  MathObject(std::string name, size_t slot, const MathWorld<type>* world);
 
   void set_name(std::string name);
 
   std::string name;
+
+  size_t slot;
 
   // non-owning pointer to the mathworld that contains this object
   MathWorld<type>* mathworld;

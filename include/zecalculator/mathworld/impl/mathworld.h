@@ -115,15 +115,11 @@ ObjectType& MathWorld<type>::add()
 {
   SlottedDeque<ObjectType> &object_container = std::get<SlottedDeque<ObjectType>>(math_objects);
 
-  size_t id;
-  // compile time check if objects needs MathWorld pointer
-  if constexpr (requires { ObjectType(this); })
-    id = object_container.push(ObjectType(this));
-  else id = object_container.push(ObjectType());
+  size_t id = object_container.next_free_slot();
+  [[maybe_unused]] size_t new_id = object_container.push(ObjectType(id, this));
+  assert(id == new_id);
 
   ObjectType& world_object = object_container[id];
-
-  object_slots[&world_object] = id;
 
   return world_object;
 }
@@ -142,16 +138,13 @@ tl::expected<ref<ObjectType>, Error> MathWorld<type>::add(const std::string& nam
 
   SlottedDeque<ObjectType> &object_container = std::get<SlottedDeque<ObjectType>>(math_objects);
 
-  size_t id;
-  // compile time check if objects needs MathWorld pointer
-  if constexpr (requires { ObjectType(this); })
-    id = object_container.push(ObjectType(this));
-  else id = object_container.push(ObjectType());
+  size_t id = object_container.next_free_slot();
+  [[maybe_unused]] size_t new_id = object_container.push(ObjectType(id, this));
+  assert(id == new_id);
 
   ObjectType& world_object = object_container[id];
   world_object.set_name(name);
   object_names[&world_object] = name;
-  object_slots[&world_object] = id;
 
   inventory[name] = &world_object;
 
@@ -215,8 +208,9 @@ template <class ObjectType>
   requires(tuple_contains_v<MathObjects<type>, ObjectType>)
 tl::expected<Ok, UnregisteredObject> MathWorld<type>::erase(ObjectType* obj)
 {
-  const auto slot_node = object_slots.extract(obj);
-  if (not bool(slot_node)) [[unlikely]]
+  SlottedDeque<ObjectType> &object_container = std::get<SlottedDeque<ObjectType>>(math_objects);
+
+  if (not object_container.is_assigned(obj->slot) or &object_container[obj->slot] != obj)
     return tl::unexpected(UnregisteredObject{});
 
   const auto name_node = object_names.extract(obj);
@@ -233,7 +227,7 @@ tl::expected<Ok, UnregisteredObject> MathWorld<type>::erase(ObjectType* obj)
   }
 
   // remove math object
-  std::get<SlottedDeque<ObjectType>>(math_objects).pop(slot_node.mapped());
+  object_container.pop(obj->slot);
 
   return Ok{};
 }

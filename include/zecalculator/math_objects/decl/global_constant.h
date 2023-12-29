@@ -39,7 +39,7 @@ public:
   double value = 0;
 
 protected:
-  GlobalConstant(class MathWorld<type>* mathworld);
+  GlobalConstant(size_t slot, class MathWorld<type>* mathworld);
 
   template <parsing::Type>
   friend class MathWorld;

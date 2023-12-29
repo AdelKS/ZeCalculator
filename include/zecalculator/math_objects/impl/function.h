@@ -32,8 +32,8 @@
 namespace zc {
 
 template <parsing::Type type, size_t args_num>
-Function<type, args_num>::Function(MathWorld<type>* mathworld)
-  : MathObject<type>(mathworld), tokenized_expr(tl::unexpected(Error::empty_expression())),
+Function<type, args_num>::Function(size_t slot, MathWorld<type>* mathworld)
+  : MathObject<type>(slot, mathworld), tokenized_expr(tl::unexpected(Error::empty_expression())),
     parsed_expr(tl::unexpected(Error::empty_expression()))
 {}
 

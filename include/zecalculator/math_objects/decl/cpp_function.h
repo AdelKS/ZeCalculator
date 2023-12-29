@@ -53,7 +53,7 @@ public:
 
 protected:
 
-  constexpr CppFunction(MathWorld<type>* mathworld);
+  constexpr CppFunction(size_t slot, MathWorld<type>* mathworld);
 
   CppMathFunctionPtr<args_num> f_ptr = nullptr;
 
