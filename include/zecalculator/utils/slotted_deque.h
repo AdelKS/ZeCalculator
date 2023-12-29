@@ -74,6 +74,12 @@ public:
     free_slots.push(slot);
   }
 
+  /// @brief returns if slot is taken and assigned
+  bool is_assigned(size_t slot)
+  {
+    return slot < size() and Parent::operator [] (slot);
+  }
+
   /// @brief returns the element T at 'slot', bounds checked
   const T& at(size_t slot) const
   {
