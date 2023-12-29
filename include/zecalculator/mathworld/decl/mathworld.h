@@ -56,20 +56,17 @@ class MathWorld
 public:
 
   /// @brief type used when looking up a match object with a name at runtime
-  using DynMathObject = to_variant_t<tuple_type_cat_t<std::tuple<UnregisteredObject>, tuple_transform_t<ptr, MathObjects<type>>>>;
-
-  /// @brief const version of the one above
-  using ConstDynMathObject = to_variant_t<tuple_type_cat_t<std::tuple<UnregisteredObject>, tuple_transform_t<cst_ptr, MathObjects<type>>>>;
+  using DynMathObject = to_variant_t<MathObjects<type>>;
 
   /// @brief default constructor that defines the usual functions and global constants
   MathWorld();
 
   /// @brief get object from name, the underlying type is to be dynamically resolved at runtime
   /// @note const version
-  ConstDynMathObject get(std::string_view name) const;
+  const DynMathObject* get(std::string_view name) const;
 
   /// @brief get object from name, the underlying type is to be dynamically resolved at runtime
-  DynMathObject get(std::string_view name);
+  DynMathObject* get(std::string_view name);
 
   /// @brief get object 'ObjectType' from name, if it exists, nullptr otherwise
   template <class ObjectType>
@@ -122,6 +119,11 @@ public:
     requires(tuple_contains_v<MathObjects<type>, ObjectType>)
   tl::expected<Ok, UnregisteredObject> erase(ObjectType* obj);
 
+  /// @brief delete object given by pointer
+  /// @returns Ok if the deletion was successful, UnregisteredObject otherwise
+  ///          when the pointed-to object is not handled by this instance of MathWorld
+  tl::expected<Ok, UnregisteredObject> erase(DynMathObject* obj);
+
   /// @brief delete object given by name
   /// @returns Ok if the deletion was successful, UnregisteredObject otherwise
   ///          when no registered object has that given name
@@ -136,16 +138,13 @@ protected:
   /// @brief parse all Function-based object that directly depends on obj_name
   void parse_direct_revdeps_of(const std::string& obj_name);
 
-  /// @brief converts a DynMathObject to a ConstDynMathObject
-  ConstDynMathObject to_const(DynMathObject obj) const;
-
   /// @brief maps an object name to its type and ID (index within the container that holds it)
-  name_map<DynMathObject> inventory;
+  name_map<DynMathObject*> inventory;
 
   /// @brief two uses: tracks 1. all objects handled by this world, 2. their name if they have one (empty otherwise)
-  std::unordered_map<to_variant_t<tuple_transform_t<ptr, MathObjects<type>>>, std::string> object_names;
+  std::unordered_map<const DynMathObject*, std::string> object_names;
 
-  tuple_transform_t<SlottedDeque, MathObjects<type>> math_objects;
+  SlottedDeque<DynMathObject> math_objects;
 
 };
 

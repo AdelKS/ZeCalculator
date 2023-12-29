@@ -281,19 +281,15 @@ struct VariableVisiter
 
   const tokens::Text& var_txt_token;
 
-  Ret operator()(const GlobalConstant<world_type>* global_constant)
+  Ret operator()(const GlobalConstant<world_type>& global_constant)
   {
     return std::make_unique<ast::node::Node<world_type>>(
-      shared::node::GlobalConstant<world_type>(var_txt_token, global_constant));
+      shared::node::GlobalConstant<world_type>(var_txt_token, &global_constant));
   }
-  Ret operator()(const zc::GlobalVariable<world_type>* global_variable)
+  Ret operator()(const zc::GlobalVariable<world_type>& global_variable)
   {
     return std::make_unique<ast::node::Node<world_type>>(
-      ast::node::GlobalVariable<world_type>(var_txt_token, global_variable));
-  }
-  Ret operator()(UnregisteredObject)
-  {
-    return tl::unexpected(Error::undefined_variable(var_txt_token));
+      ast::node::GlobalVariable<world_type>(var_txt_token, &global_variable));
   }
   Ret operator()(auto&&)
   {
@@ -324,35 +320,31 @@ struct FunctionVisiter
 
 
   template <size_t args_num>
-  Ret operator()(const CppFunction<world_type, args_num>* f)
+  Ret operator()(const CppFunction<world_type, args_num>& f)
   {
     if (subnodes.size() != args_num) [[unlikely]]
       return tl::unexpected(Error::mismatched_fun_args(func_txt_token));
 
     return std::make_unique<ast::node::Node<world_type>>(
       ast::node::CppFunction<world_type, args_num>(
-        func_txt_token, f, get_subnode_arr<args_num>()));
+        func_txt_token, &f, get_subnode_arr<args_num>()));
   }
   template <size_t args_num>
-  Ret operator()(const zc::Function<world_type, args_num>* f)
+  Ret operator()(const zc::Function<world_type, args_num>& f)
   {
     if (subnodes.size() != args_num) [[unlikely]]
       return tl::unexpected(Error::mismatched_fun_args(func_txt_token));
 
     return std::make_unique<ast::node::Node<world_type>>(
-      ast::node::Function<world_type, args_num>(func_txt_token, f, get_subnode_arr<args_num>()));
+      ast::node::Function<world_type, args_num>(func_txt_token, &f, get_subnode_arr<args_num>()));
   }
-  Ret operator()(const zc::Sequence<world_type>* u)
+  Ret operator()(const zc::Sequence<world_type>& u)
   {
     if (subnodes.size() != 1) [[unlikely]]
       return tl::unexpected(Error::mismatched_fun_args(func_txt_token));
 
     return std::make_unique<ast::node::Node<world_type>>(
-      ast::node::Sequence<world_type>(func_txt_token, u, std::move(subnodes.front())));
-  }
-  Ret operator()(UnregisteredObject)
-  {
-    return tl::unexpected(Error::undefined_function(func_txt_token));
+      ast::node::Sequence<world_type>(func_txt_token, &u, std::move(subnodes.front())));
   }
   Ret operator()(auto&&)
   {
@@ -390,11 +382,17 @@ struct bind
             else return tl::unexpected(expected_bound_node.error());
           }
 
-          return std::visit(FunctionVisiter<type>{func, std::move(operands)}, math_world.get(func.name));
+          auto* dyn_obj = math_world.get(func.name);
+          if (not dyn_obj) [[unlikely]]
+            return tl::unexpected(Error::undefined_function(func));
+          else return std::visit(FunctionVisiter<type>{func, std::move(operands)}, *dyn_obj);
         },
         [&](const uast::node::Variable& var) -> Ret
         {
-          return std::visit(VariableVisiter<type>{var}, math_world.get(var.name));
+          auto* dyn_obj = math_world.get(var.name);
+          if (not dyn_obj) [[unlikely]]
+            return tl::unexpected(Error::undefined_variable(var));
+          else return std::visit(VariableVisiter<type>{var}, *dyn_obj);
         },
         [&]<char op, size_t args_num>(const uast::node::Operator<op, args_num>& ope) -> Ret
         {

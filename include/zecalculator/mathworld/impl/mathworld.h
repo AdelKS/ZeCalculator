@@ -36,17 +36,16 @@ MathWorld<type>::MathWorld()
 }
 
 template <parsing::Type type>
-MathWorld<type>::ConstDynMathObject MathWorld<type>::get(std::string_view name) const
+const MathWorld<type>::DynMathObject* MathWorld<type>::get(std::string_view name) const
 {
   auto it = inventory.find(name);
-  return it != inventory.end() ? to_const(it->second) : ConstDynMathObject();
+  return it != inventory.end() ? it->second : nullptr;
 }
 
 template <parsing::Type type>
-MathWorld<type>::DynMathObject MathWorld<type>::get(std::string_view name)
+MathWorld<type>::DynMathObject* MathWorld<type>::get(std::string_view name)
 {
-  auto it = inventory.find(name);
-  return it != inventory.end() ? it->second : DynMathObject();
+  return const_cast<DynMathObject*>(std::as_const(*this).get(name));
 }
 
 template <parsing::Type type>
@@ -54,9 +53,9 @@ template <class ObjectType>
   requires tuple_contains_v<MathObjects<type>, ObjectType>
 ObjectType* MathWorld<type>::get(std::string_view name)
 {
-  DynMathObject dyn_obj = get(name);
-  if (std::holds_alternative<ObjectType*>(dyn_obj))
-    return std::get<ObjectType*>(dyn_obj);
+  DynMathObject* dyn_obj = get(name);
+  if (dyn_obj and std::holds_alternative<ObjectType>(*dyn_obj))
+    return &std::get<ObjectType>(*dyn_obj);
   else return nullptr;
 }
 
@@ -65,9 +64,9 @@ template <class ObjectType>
   requires tuple_contains_v<MathObjects<type>, ObjectType>
 const ObjectType* MathWorld<type>::get(std::string_view name) const
 {
-  ConstDynMathObject dyn_obj = get(name);
-  if (std::holds_alternative<const ObjectType*>(dyn_obj))
-    return std::get<const ObjectType*>(dyn_obj);
+  const DynMathObject* dyn_obj = get(name);
+  if (dyn_obj and std::holds_alternative<const ObjectType*>(*dyn_obj))
+    return &std::get<ObjectType>(*dyn_obj);
   else return nullptr;
 }
 
@@ -96,30 +95,16 @@ bool MathWorld<type>::contains(std::string_view name) const
   return inventory.find(name) != inventory.end();
 }
 
-
-template <parsing::Type type>
-MathWorld<type>::ConstDynMathObject MathWorld<type>::to_const(DynMathObject obj) const
-{
-  return std::visit(
-    utils::overloaded{
-      [](UnregisteredObject) -> ConstDynMathObject { return UnregisteredObject(); },
-      [](auto* val) -> ConstDynMathObject { return val; }
-    },
-    obj);
-}
-
 template <parsing::Type type>
 template <class ObjectType>
   requires(tuple_contains_v<MathObjects<type>, ObjectType>)
 ObjectType& MathWorld<type>::add()
 {
-  SlottedDeque<ObjectType> &object_container = std::get<SlottedDeque<ObjectType>>(math_objects);
+  size_t id = math_objects.next_free_slot();
+  [[maybe_unused]] size_t new_id = math_objects.push(ObjectType(id, this));
+  assert(id == new_id); // should  be the same
 
-  size_t id = object_container.next_free_slot();
-  [[maybe_unused]] size_t new_id = object_container.push(ObjectType(id, this));
-  assert(id == new_id);
-
-  ObjectType& world_object = object_container[id];
+  ObjectType& world_object = std::get<ObjectType>(math_objects[id]);
 
   return world_object;
 }
@@ -136,17 +121,15 @@ tl::expected<ref<ObjectType>, Error> MathWorld<type>::add(const std::string& nam
   else if (contains(name))
     return tl::unexpected(Error::name_already_taken(name));
 
-  SlottedDeque<ObjectType> &object_container = std::get<SlottedDeque<ObjectType>>(math_objects);
+  size_t id = math_objects.next_free_slot();
+  [[maybe_unused]] size_t new_id = math_objects.push(ObjectType(id, this));
+  assert(id == new_id); // should  be the same
 
-  size_t id = object_container.next_free_slot();
-  [[maybe_unused]] size_t new_id = object_container.push(ObjectType(id, this));
-  assert(id == new_id);
-
-  ObjectType& world_object = object_container[id];
+  ObjectType& world_object = std::get<ObjectType>(math_objects[id]);
   world_object.set_name(name);
-  object_names[&world_object] = name;
+  object_names[&math_objects[id]] = name;
 
-  inventory[name] = &world_object;
+  inventory[name] = &math_objects[id];
 
   if constexpr (sizeof...(Arg) > 0)
     world_object.set(std::forward<Arg>(arg)...);
@@ -160,18 +143,17 @@ tl::expected<ref<ObjectType>, Error> MathWorld<type>::add(const std::string& nam
 template <parsing::Type type>
 void MathWorld<type>::parse_direct_revdeps_of(const std::string& name)
 {
-  auto parse_functions = [&]<class T>(SlottedDeque<T>& container)
+  for (std::optional<DynMathObject>& o: math_objects)
   {
-    if constexpr (is_function_v<T>)
-    {
-      for (std::optional<T>& obj: container)
-      {
-        if (obj and obj->direct_dependencies().contains(name))
-          obj->parse();
-      }
-    }
-  };
-  tuple_for(parse_functions, math_objects);
+    if (o)
+      std::visit(
+        [&]<class T>(T& obj) {
+          if constexpr (is_function_v<T>)
+            if (obj.direct_dependencies().contains(name))
+              obj.parse();
+        },
+        *o);
+  }
 }
 
 template <parsing::Type type>
@@ -208,12 +190,34 @@ template <class ObjectType>
   requires(tuple_contains_v<MathObjects<type>, ObjectType>)
 tl::expected<Ok, UnregisteredObject> MathWorld<type>::erase(ObjectType* obj)
 {
-  SlottedDeque<ObjectType> &object_container = std::get<SlottedDeque<ObjectType>>(math_objects);
-
-  if (not object_container.is_assigned(obj->slot) or &object_container[obj->slot] != obj)
+  if (not math_objects.is_assigned(obj->slot) or
+      not std::holds_alternative<ObjectType>(math_objects[obj->slot]) or
+      &std::get<ObjectType>(math_objects[obj->slot]) != obj)
     return tl::unexpected(UnregisteredObject{});
 
-  const auto name_node = object_names.extract(obj);
+  return erase(&math_objects[obj->slot]);
+}
+
+template <parsing::Type type>
+tl::expected<Ok, UnregisteredObject> MathWorld<type>::erase(DynMathObject* obj)
+{
+  if (not obj)
+    return tl::unexpected(UnregisteredObject{});
+
+  size_t slot = -1;
+  std::visit(
+    [&](MathObject<type>& math_obj) {
+      slot = math_obj.slot;
+    },
+    *obj);
+
+  assert(slot != size_t(-1));
+
+  if (not math_objects.is_assigned(slot)
+      or &math_objects[slot] != obj)
+    return tl::unexpected(UnregisteredObject{});
+
+  const auto name_node = object_names.extract(&math_objects[slot]);
   if (bool(name_node))
   {
     // extract "name" from the inventory and just throw it away
@@ -227,7 +231,7 @@ tl::expected<Ok, UnregisteredObject> MathWorld<type>::erase(ObjectType* obj)
   }
 
   // remove math object
-  object_container.pop(obj->slot);
+  math_objects.pop(slot);
 
   return Ok{};
 }
@@ -235,13 +239,7 @@ tl::expected<Ok, UnregisteredObject> MathWorld<type>::erase(ObjectType* obj)
 template <parsing::Type type>
 tl::expected<Ok, UnregisteredObject> MathWorld<type>::erase(const std::string& name)
 {
-  return std::visit(
-    [this]<class T>(T&& obj) -> tl::expected<Ok, UnregisteredObject> {
-      if constexpr (std::is_same_v<std::remove_cvref_t<T>, UnregisteredObject>)
-        return tl::unexpected(UnregisteredObject{});
-      else return this->erase(obj);
-    },
-    get(name));
+  return erase(get(name));
 }
 
 

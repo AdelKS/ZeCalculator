@@ -179,18 +179,20 @@ std::unordered_map<std::string, deps::ObjectType> Function<type, args_num>::depe
     std::string name = to_explore.extract(to_explore.begin()).value();
     explored_deps.insert(name);
 
+    const auto* dyn_obj = this->mathworld->get(name);
+    if (not dyn_obj)
+      continue;
+
     std::visit(
-      [&]<class T>(T&& val) {
-        if constexpr (requires { val->get_name(); })
+      [&]<class T>(const T& val) {
+
+        if constexpr (utils::is_any_of<T, GlobalConstant<type>, GlobalVariable<type>>)
+          deps.insert({val.get_name(), deps::ObjectType::VARIABLE});
+        else deps.insert({val.get_name(), deps::ObjectType::FUNCTION});
+
+        if constexpr (requires { val.direct_dependencies(); })
         {
-          using Type = std::remove_pointer_t<std::remove_cvref_t<T>>;
-          if constexpr (utils::is_any_of<Type, GlobalConstant<type>, GlobalVariable<type>>)
-            deps.insert({val->get_name(), deps::ObjectType::VARIABLE});
-          else deps.insert({val->get_name(), deps::ObjectType::FUNCTION});
-        }
-        if constexpr (requires { val->direct_dependencies(); })
-        {
-          const auto new_deps = val->direct_dependencies();
+          const auto new_deps = val.direct_dependencies();
           for (auto&& dep: new_deps)
           {
             deps.insert(dep);
@@ -198,7 +200,7 @@ std::unordered_map<std::string, deps::ObjectType> Function<type, args_num>::depe
           }
         }
       },
-      this->mathworld->get(name));
+      *dyn_obj);
   }
   return deps;
 }
