@@ -66,7 +66,7 @@ void syntax_node_print_helper(std::ostream& os, const ast::node::Node<world_type
       [&](const shared::node::GlobalConstant<world_type> &c)
       {
         os << padding_str << "GlobalConstant " << tokens::Text(c)
-          << " value: " << c.constant->value << std::endl;
+          << " value: " << c.constant->value() << std::endl;
       },
       [&](const shared::node::Number &n)
       {

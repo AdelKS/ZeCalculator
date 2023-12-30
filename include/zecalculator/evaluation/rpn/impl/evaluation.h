@@ -149,7 +149,10 @@ inline void Evaluator<input_size>::operator () (const zc::parsing::shared::node:
 template <size_t input_size>
 inline void Evaluator<input_size>::operator()(const zc::parsing::rpn::node::GlobalConstant& node)
 {
-  expected_eval_stack->push_back(node.constant->value);
+  const auto& cst = *(node.constant); // GlobalConstant
+  if (cst)
+    expected_eval_stack->push_back(*cst);
+  else expected_eval_stack = tl::unexpected(cst.error());
 }
 
 }

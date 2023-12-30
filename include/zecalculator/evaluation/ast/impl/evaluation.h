@@ -126,7 +126,7 @@ template <size_t input_size>
 inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator () (
   const zc::parsing::shared::node::GlobalConstant<zc::parsing::Type::AST>& node)
 {
-  return node.constant->value;
+  return *(node.constant);
 }
 
 template <size_t input_size>

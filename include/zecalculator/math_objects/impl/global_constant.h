@@ -32,48 +32,97 @@ GlobalConstant<type>::GlobalConstant(size_t slot, class MathWorld<type>* mathwor
 template <parsing::Type type>
 void GlobalConstant<type>::set(double val)
 {
-  value = val;
+  *this = val;
 }
 
 template <parsing::Type type>
 bool GlobalConstant<type>::operator == (double val) const
 {
-  return value == val;
+  if (exp_value)
+    return *exp_value == val;
+  else return false;
 }
 
 template <parsing::Type type>
 GlobalConstant<type>& GlobalConstant<type>::operator = (double val)
 {
-  value = val;
+  exp_value = val;
   return *this;
 }
 
 template <parsing::Type type>
 GlobalConstant<type>& GlobalConstant<type>::operator += (double val)
 {
-  value += val;
+  if (*this)
+    **this += val;
   return *this;
 }
 
 template <parsing::Type type>
 GlobalConstant<type>& GlobalConstant<type>::operator -= (double val)
 {
-  value -= val;
+  if (*this)
+    **this -= val;
   return *this;
 }
 
 template <parsing::Type type>
 GlobalConstant<type>& GlobalConstant<type>::operator *= (double val)
 {
-  value *= val;
+  if (*this)
+    **this *= val;
   return *this;
 }
 
 template <parsing::Type type>
 GlobalConstant<type>& GlobalConstant<type>::operator /= (double val)
 {
-  value /= val;
+  if (*this)
+    **this /= val;
   return *this;
+}
+
+template <parsing::Type type>
+GlobalConstant<type>::operator bool () const
+{
+  return bool(exp_value);
+}
+
+template <parsing::Type type>
+GlobalConstant<type>::operator tl::expected<double, Error> () const
+{
+  return exp_value;
+}
+
+template <parsing::Type type>
+const double& GlobalConstant<type>::value() const
+{
+  return exp_value.value();
+}
+
+template <parsing::Type type>
+double& GlobalConstant<type>::value()
+{
+  return exp_value.value();
+}
+
+template <parsing::Type type>
+double& GlobalConstant<type>::operator * ()
+{
+  return *exp_value;
+}
+
+template <parsing::Type type>
+const double& GlobalConstant<type>::operator * () const
+{
+  return *exp_value;
+}
+
+
+template <parsing::Type type>
+const Error& GlobalConstant<type>::error() const
+{
+  return exp_value.error();
 }
 
 }

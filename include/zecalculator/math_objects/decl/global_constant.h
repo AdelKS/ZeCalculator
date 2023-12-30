@@ -21,6 +21,7 @@
 ****************************************************************************/
 
 #include <zecalculator/math_objects/decl/math_object.h>
+#include <zecalculator/error.h>
 
 namespace zc {
 
@@ -35,19 +36,31 @@ public:
   void set(double val);
 
   GlobalConstant& operator = (double val);
-
+  
   bool operator == (double val) const;
 
-  double value = 0;
-
-  /// @brief perform operation if there's a value
+  /// @brief perform operation if there's a value, do nothing otherwise
   GlobalConstant& operator += (double val);
   GlobalConstant& operator -= (double val);
   GlobalConstant& operator /= (double val);
   GlobalConstant& operator *= (double val);
 
+  operator bool () const;
+
+  operator tl::expected<double, Error> () const;
+
+  const double& operator * () const;
+  double& operator * ();
+
+  const double& value() const;
+  double& value();
+
+  const Error& error() const;
+
 protected:
   GlobalConstant(size_t slot, class MathWorld<type>* mathworld);
+
+  tl::expected<double, Error> exp_value = tl::unexpected(Error::empty_expression());
 
   template <parsing::Type>
   friend class MathWorld;
