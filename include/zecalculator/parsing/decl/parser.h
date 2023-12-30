@@ -80,6 +80,11 @@ struct mark_input_vars
   UAST operator () (const UAST& tree);
 };
 
+
+// user deduction guide for clang-16 that is stupid
+template <class T>
+mark_input_vars(T) -> mark_input_vars<T>;
+
 /// @brief functor that transforms an UAST to an AST<type> by doing object name lookup within
 ///        a MathWorld instance and binding to objects with references
 template <Type type>
