@@ -36,9 +36,43 @@ void GlobalConstant<type>::set(double val)
 }
 
 template <parsing::Type type>
+bool GlobalConstant<type>::operator == (double val) const
+{
+  return value == val;
+}
+
+template <parsing::Type type>
 GlobalConstant<type>& GlobalConstant<type>::operator = (double val)
 {
   value = val;
+  return *this;
+}
+
+template <parsing::Type type>
+GlobalConstant<type>& GlobalConstant<type>::operator += (double val)
+{
+  value += val;
+  return *this;
+}
+
+template <parsing::Type type>
+GlobalConstant<type>& GlobalConstant<type>::operator -= (double val)
+{
+  value -= val;
+  return *this;
+}
+
+template <parsing::Type type>
+GlobalConstant<type>& GlobalConstant<type>::operator *= (double val)
+{
+  value *= val;
+  return *this;
+}
+
+template <parsing::Type type>
+GlobalConstant<type>& GlobalConstant<type>::operator /= (double val)
+{
+  value /= val;
   return *this;
 }
 

@@ -127,7 +127,7 @@ int main()
 
     expect(f({1}).value() == cpp_f_1(1.0));
 
-    cst.value = 5.0;
+    cst = 5.0;
     cpp_cst = 5.0;
 
     expect(f({1}).value() == cpp_f_1(1.0));
@@ -229,7 +229,7 @@ int main()
         res += f({x}).value();
         iterations++;
         x++;
-        t.value++;
+        t+=1;
       }
       auto end = high_resolution_clock::now();
       std::cout << "Avg zc::Function<" << data_type_str_v << "> eval time: "

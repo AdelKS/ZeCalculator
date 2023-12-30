@@ -42,7 +42,7 @@ int main()
     Function<type, 2>& f = world.template add<Function<type, 2>>("f", Vars<2>{"x", "y"}, "cos(math::pi * x) * y + k*g(x) + r").value();
 
     double cpp_r = 3;
-    r.value = cpp_r;
+    r = cpp_r;
 
     auto cpp_g = [&](double x){
       return sin(3 * std::numbers::pi * x) + cpp_r;
@@ -68,7 +68,7 @@ int main()
     expect(eval.value() == cpp_f(x, y));
 
     cpp_r = 10;
-    r.value = cpp_r;
+    r = cpp_r;
 
     expect(f({x, y}).value() == cpp_f(x, y));
 

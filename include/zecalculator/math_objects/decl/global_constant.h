@@ -36,7 +36,15 @@ public:
 
   GlobalConstant& operator = (double val);
 
+  bool operator == (double val) const;
+
   double value = 0;
+
+  /// @brief perform operation if there's a value
+  GlobalConstant& operator += (double val);
+  GlobalConstant& operator -= (double val);
+  GlobalConstant& operator /= (double val);
+  GlobalConstant& operator *= (double val);
 
 protected:
   GlobalConstant(size_t slot, class MathWorld<type>* mathworld);

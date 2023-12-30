@@ -47,8 +47,8 @@ int main()
 
     MathWorld<type> world;
     GlobalConstant<type>& c1 = world.template add<GlobalConstant<type>>("my_constant1").value();
-    c1.value = 2.0;
-    expect(c1.value == 2.0);
+    c1 = 2.0;
+    expect(c1 == 2.0);
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
