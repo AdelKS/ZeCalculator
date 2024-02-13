@@ -661,10 +661,9 @@ inline RPN make_RPN(const AST<Type::RPN>& tree)
 
 template <std::ranges::viewable_range Range>
   requires std::is_convertible_v<std::ranges::range_value_t<Range>, std::string_view>
-std::unordered_map<std::string, deps::ObjectType>
-  direct_dependencies(const std::vector<parsing::Token>& tokens, const Range& input_vars)
+deps::Deps direct_dependencies(const std::vector<parsing::Token>& tokens, const Range& input_vars)
 {
-  std::unordered_map<std::string, deps::ObjectType> deps;
+  deps::Deps deps;
 
   for (const parsing::Token& tok: tokens)
     std::visit(
@@ -680,6 +679,45 @@ std::unordered_map<std::string, deps::ObjectType>
       }, tok);
 
   return deps;
+}
+
+
+/// @brief appends dependencies of 'uast' in 'deps'
+struct direct_dependency_saver
+{
+  deps::Deps deps;
+
+  direct_dependency_saver& operator () (const UAST& uast)
+  {
+    std::visit(
+      utils::overloaded{
+        [&](const uast::node::Function& f)
+        {
+          deps.insert({f.name, deps::ObjectType::FUNCTION});
+          std::ranges::for_each(f.subnodes, std::ref(*this));
+          // if we do not use std::ref, a copy of this instance is taken
+        },
+        [&](const uast::node::Variable& v)
+        {
+          deps.insert({v.name, deps::ObjectType::VARIABLE});
+        },
+        [&]<char op, size_t args_num>(const uast::node::Operator<op, args_num>& ope)
+        {
+          std::ranges::for_each(ope.operands, std::ref(*this));
+          // if we do not use std::ref, a copy of this instance is taken
+        },
+        [&](const shared::node::InputVariable&) { /* no op */ },
+        [&](const shared::node::Number&) { /* no op */ },
+      },
+      *uast);
+
+    return *this;
+  }
+};
+
+deps::Deps direct_dependencies(const UAST& uast)
+{
+  return std::move(direct_dependency_saver{}(uast).deps);
 }
 
 } // namespace parsing

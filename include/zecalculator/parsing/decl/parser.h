@@ -44,6 +44,8 @@ namespace zc {
 namespace deps {
   /// @brief used to know the type of the dependency when querying deps
   enum ObjectType {VARIABLE, FUNCTION};
+
+  using Deps = std::unordered_map<std::string, ObjectType>;
 } // namespace deps
 
 namespace parsing {
@@ -97,9 +99,11 @@ RPN make_RPN(const AST<Type::RPN>& tree);
 ///        variable names in `input_vars` will be filter out
 template <std::ranges::viewable_range Range = std::array<std::string, 0>>
   requires std::is_convertible_v<std::ranges::range_value_t<Range>, std::string_view>
-std::unordered_map<std::string, deps::ObjectType>
-  direct_dependencies(const std::vector<parsing::Token>& tokens,
-                      const Range& input_vars = std::array<std::string, 0>{});
+deps::Deps direct_dependencies(const std::vector<parsing::Token>& tokens,
+                               const Range& input_vars = std::array<std::string, 0>{});
+
+/// @brief gives the Function and Variable names that intervene in this UAST
+deps::Deps direct_dependencies(const UAST& uast);
 
 } // namespace parsing
 } // namespace zc

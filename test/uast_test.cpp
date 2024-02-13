@@ -53,6 +53,8 @@ int main()
     if (*expect_node != expected_node )
       std::cout << *expect_node << std::endl;
 
+    expect(direct_dependencies(*expect_node).empty());
+
   };
 
   "function expression"_test = []()
@@ -78,6 +80,9 @@ int main()
 
     expect(*expect_node == expected_node);
 
+    expect(direct_dependencies(*expect_node)
+           == zc::deps::Deps{{"cos", zc::deps::FUNCTION}, {"sin", zc::deps::FUNCTION}});
+
   };
 
   "mark input vars"_test = []()
@@ -86,9 +91,21 @@ int main()
 
     expect(bool(parsing)) << parsing;
 
-    auto expect_node = make_uast(parsing.value()).transform(mark_input_vars{zc::Vars<1>{"x"}});
+    auto simple_uast = make_uast(parsing.value());
+
+    // "x" is considered a variable for now
+    expect(direct_dependencies(simple_uast.value())
+           == zc::deps::Deps{{"cos", zc::deps::FUNCTION},
+                             {"sin", zc::deps::FUNCTION},
+                             {"x", zc::deps::VARIABLE}});
+
+    auto expect_node = simple_uast.transform(mark_input_vars{zc::Vars<1>{"x"}});
 
     expect(bool(expect_node));
+
+    // "x" became an "input variable" and therefore not an external dependency anymore
+    expect(direct_dependencies(expect_node.value())
+           == zc::deps::Deps{{"cos", zc::deps::FUNCTION}, {"sin", zc::deps::FUNCTION}});
 
     UAST expected_node = uast::node::BinaryOperator<'+'>(15,
       {uast::node::Function(tokens::Text("cos", 1),
@@ -103,5 +120,25 @@ int main()
 
     expect(*expect_node == expected_node);
 
+  };
+
+  "direct dependencies"_test = []()
+  {
+    auto parsing = tokenize("(cos(sin(x)+1+w)/u(f(h(y))))+1");
+
+    expect(bool(parsing)) << parsing;
+
+    auto expect_node = make_uast(parsing.value(), zc::Vars<1>{"x"});
+
+    expect(bool(expect_node));
+
+    expect(direct_dependencies(expect_node.value())
+           == zc::deps::Deps{{"cos", zc::deps::FUNCTION},
+                             {"sin", zc::deps::FUNCTION},
+                             {"w", zc::deps::VARIABLE},
+                             {"u", zc::deps::FUNCTION},
+                             {"f", zc::deps::FUNCTION},
+                             {"h", zc::deps::FUNCTION},
+                             {"y", zc::deps::VARIABLE},});
   };
 }
