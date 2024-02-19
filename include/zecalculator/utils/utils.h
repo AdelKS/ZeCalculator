@@ -63,5 +63,17 @@ namespace utils {
   template <size_t args_num>
   using math_func_signature_t = typename math_func_signature<std::make_index_sequence<args_num>>::type;
 
+  template <size_t size, class T, class Range>
+    requires (std::ranges::viewable_range<Range> and std::is_convertible_v<std::ranges::range_value_t<Range>, T>)
+  std::array<T, size> to_array(Range&& range)
+  {
+    auto make_array = [&]<size_t... i>(std::index_sequence<i...>)
+    {
+      auto it = range.begin();
+      return std::array<T, size>{(i, *(it++))...};
+    };
+    return make_array(std::make_index_sequence<size>());
+  }
+
 } // namespace internal
 } // namespace zc
