@@ -385,14 +385,14 @@ struct bind
           auto* dyn_obj = math_world.get(func.name);
           if (not dyn_obj) [[unlikely]]
             return tl::unexpected(Error::undefined_function(func));
-          else return std::visit(FunctionVisiter<type>{func, std::move(operands)}, *dyn_obj);
+          else return std::visit(FunctionVisiter<type>{func, std::move(operands)}, dyn_obj->variant);
         },
         [&](const uast::node::Variable& var) -> Ret
         {
           auto* dyn_obj = math_world.get(var.name);
           if (not dyn_obj) [[unlikely]]
             return tl::unexpected(Error::undefined_variable(var));
-          else return std::visit(VariableVisiter<type>{var}, *dyn_obj);
+          else return std::visit(VariableVisiter<type>{var}, dyn_obj->variant);
         },
         [&]<char op, size_t args_num>(const uast::node::Operator<op, args_num>& ope) -> Ret
         {

@@ -46,6 +46,7 @@ struct Error
     UNKNOWN,
     WRONG_FORMAT,
     WRONG_OBJECT_TYPE, // object has been used as a different type as it actually is, example "2+cos" (where cos is a function used here as variable)
+    CPP_INCORRECT_ARGNUM, // programmatically evaluating math object with incorrect number of arguments
   };
 
   static Error empty()
@@ -81,6 +82,11 @@ struct Error
   static Error undefined_function(parsing::tokens::Text tokenTxt)
   {
     return Error {UNDEFINED_FUNCTION, tokenTxt};
+  }
+
+  static Error cpp_incorrect_argnum()
+  {
+    return Error {CPP_INCORRECT_ARGNUM};
   }
 
   static Error mismatched_fun_args(parsing::tokens::Text tokenTxt)

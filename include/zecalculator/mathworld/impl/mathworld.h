@@ -21,6 +21,7 @@
 ****************************************************************************/
 
 #include <zecalculator/mathworld/decl/mathworld.h>
+#include <zecalculator/math_objects/impl/dyn_math_object.h>
 #include <zecalculator/parsing/parser.h>
 
 namespace zc {
@@ -36,16 +37,16 @@ MathWorld<type>::MathWorld()
 }
 
 template <parsing::Type type>
-const MathWorld<type>::DynMathObject* MathWorld<type>::get(std::string_view name) const
+const DynMathObject<type>* MathWorld<type>::get(std::string_view name) const
 {
   auto it = inventory.find(name);
   return it != inventory.end() ? it->second : nullptr;
 }
 
 template <parsing::Type type>
-MathWorld<type>::DynMathObject* MathWorld<type>::get(std::string_view name)
+DynMathObject<type>* MathWorld<type>::get(std::string_view name)
 {
-  return const_cast<DynMathObject*>(std::as_const(*this).get(name));
+  return const_cast<DynMathObject<type>*>(std::as_const(*this).get(name));
 }
 
 template <parsing::Type type>
@@ -53,9 +54,9 @@ template <class ObjectType>
   requires tuple_contains_v<MathObjects<type>, ObjectType>
 ObjectType* MathWorld<type>::get(std::string_view name)
 {
-  DynMathObject* dyn_obj = get(name);
-  if (dyn_obj and std::holds_alternative<ObjectType>(*dyn_obj))
-    return &std::get<ObjectType>(*dyn_obj);
+  DynMathObject<type>* dyn_obj = get(name);
+  if (dyn_obj and std::holds_alternative<ObjectType>(dyn_obj->variant))
+    return &std::get<ObjectType>(dyn_obj->variant);
   else return nullptr;
 }
 
@@ -64,7 +65,7 @@ template <class ObjectType>
   requires tuple_contains_v<MathObjects<type>, ObjectType>
 const ObjectType* MathWorld<type>::get(std::string_view name) const
 {
-  const DynMathObject* dyn_obj = get(name);
+  const DynMathObject<type>* dyn_obj = get(name);
   if (dyn_obj and std::holds_alternative<const ObjectType*>(*dyn_obj))
     return &std::get<ObjectType>(*dyn_obj);
   else return nullptr;
@@ -122,10 +123,10 @@ tl::expected<ref<ObjectType>, Error> MathWorld<type>::add(const std::string& nam
     return tl::unexpected(Error::name_already_taken(name));
 
   size_t id = math_objects.next_free_slot();
-  [[maybe_unused]] size_t new_id = math_objects.push(ObjectType({id, this}));
+  [[maybe_unused]] size_t new_id = math_objects.emplace(ObjectType({id, this}), MathWorldObjectHandle<type>{id, this});
   assert(id == new_id); // should  be the same
 
-  ObjectType& world_object = std::get<ObjectType>(math_objects[id]);
+  ObjectType& world_object = std::get<ObjectType>(math_objects[id].variant);
   world_object.set_name(name);
   object_names[&math_objects[id]] = name;
 
@@ -143,7 +144,7 @@ tl::expected<ref<ObjectType>, Error> MathWorld<type>::add(const std::string& nam
 template <parsing::Type type>
 void MathWorld<type>::parse_direct_revdeps_of(const std::string& name)
 {
-  for (std::optional<DynMathObject>& o: math_objects)
+  for (std::optional<DynMathObject<type>>& o: math_objects)
   {
     if (o)
       std::visit(
@@ -152,7 +153,7 @@ void MathWorld<type>::parse_direct_revdeps_of(const std::string& name)
             if (obj.direct_dependencies().contains(name))
               obj.parse();
         },
-        *o);
+        o->variant);
   }
 }
 
@@ -191,26 +192,20 @@ template <class ObjectType>
 tl::expected<Ok, UnregisteredObject> MathWorld<type>::erase(ObjectType* obj)
 {
   if (not math_objects.is_assigned(obj->slot) or
-      not std::holds_alternative<ObjectType>(math_objects[obj->slot]) or
-      &std::get<ObjectType>(math_objects[obj->slot]) != obj)
+      not std::holds_alternative<ObjectType>(math_objects[obj->slot].variant) or
+      &std::get<ObjectType>(math_objects[obj->slot].variant) != obj)
     return tl::unexpected(UnregisteredObject{});
 
   return erase(&math_objects[obj->slot]);
 }
 
 template <parsing::Type type>
-tl::expected<Ok, UnregisteredObject> MathWorld<type>::erase(DynMathObject* obj)
+tl::expected<Ok, UnregisteredObject> MathWorld<type>::erase(DynMathObject<type>* obj)
 {
   if (not obj)
     return tl::unexpected(UnregisteredObject{});
 
-  size_t slot = -1;
-  std::visit(
-    [&](MathObject<type>& math_obj) {
-      slot = math_obj.slot;
-    },
-    *obj);
-
+  size_t slot = obj->handle.slot;
   assert(slot != size_t(-1));
 
   if (not math_objects.is_assigned(slot)
