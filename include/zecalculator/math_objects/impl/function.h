@@ -200,7 +200,7 @@ std::unordered_map<std::string, deps::ObjectType> Function<type, args_num>::depe
           }
         }
       },
-      *dyn_obj);
+      dyn_obj->variant);
   }
   return deps;
 }

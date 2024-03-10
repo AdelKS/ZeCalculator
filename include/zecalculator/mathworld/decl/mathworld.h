@@ -24,6 +24,7 @@
 #include <zecalculator/math_objects/builtin.h>
 #include <zecalculator/math_objects/global_constant.h>
 #include <zecalculator/math_objects/object_list.h>
+#include <zecalculator/math_objects/decl/dyn_math_object.h>
 #include <zecalculator/utils/name_map.h>
 #include <zecalculator/utils/refs.h>
 #include <zecalculator/utils/slotted_deque.h>
@@ -55,18 +56,15 @@ class MathWorld
 {
 public:
 
-  /// @brief type used when looking up a match object with a name at runtime
-  using DynMathObject = to_variant_t<MathObjects<type>>;
-
   /// @brief default constructor that defines the usual functions and global constants
   MathWorld();
 
   /// @brief get object from name, the underlying type is to be dynamically resolved at runtime
   /// @note const version
-  const DynMathObject* get(std::string_view name) const;
+  const DynMathObject<type>* get(std::string_view name) const;
 
   /// @brief get object from name, the underlying type is to be dynamically resolved at runtime
-  DynMathObject* get(std::string_view name);
+  DynMathObject<type>* get(std::string_view name);
 
   /// @brief get object 'ObjectType' from name, if it exists, nullptr otherwise
   template <class ObjectType>
@@ -122,7 +120,7 @@ public:
   /// @brief delete object given by pointer
   /// @returns Ok if the deletion was successful, UnregisteredObject otherwise
   ///          when the pointed-to object is not handled by this instance of MathWorld
-  tl::expected<Ok, UnregisteredObject> erase(DynMathObject* obj);
+  tl::expected<Ok, UnregisteredObject> erase(DynMathObject<type>* obj);
 
   /// @brief delete object given by name
   /// @returns Ok if the deletion was successful, UnregisteredObject otherwise
@@ -139,12 +137,12 @@ protected:
   void parse_direct_revdeps_of(const std::string& obj_name);
 
   /// @brief maps an object name to its type and ID (index within the container that holds it)
-  name_map<DynMathObject*> inventory;
+  name_map<DynMathObject<type>*> inventory;
 
   /// @brief two uses: tracks 1. all objects handled by this world, 2. their name if they have one (empty otherwise)
-  std::unordered_map<const DynMathObject*, std::string> object_names;
+  std::unordered_map<const DynMathObject<type>*, std::string> object_names;
 
-  SlottedDeque<DynMathObject> math_objects;
+  SlottedDeque<DynMathObject<type>> math_objects;
 
 };
 
