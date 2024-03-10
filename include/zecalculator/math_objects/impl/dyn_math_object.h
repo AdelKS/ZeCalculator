@@ -29,4 +29,51 @@
 
 namespace zc {
 
+template <parsing::Type type>
+template <class... DBL>
+  requires (std::is_convertible_v<DBL, double> and ...)
+tl::expected<double, Error> DynMathObject<type>::evaluate(DBL... val) const
+{
+  using Ret = tl::expected<double, Error>;
+  return std::visit(
+    utils::overloaded{
+      [&]<size_t args_num>(const CppFunction<type, args_num>& cpp_f) -> Ret
+      {
+        if constexpr (sizeof...(val) != args_num)
+          return tl::unexpected(Error::cpp_incorrect_argnum());
+        else return cpp_f(val...);
+      },
+      [&]<size_t args_num>(const Function<type, args_num>& f) -> Ret
+      {
+        if constexpr (sizeof...(val) != args_num)
+          return tl::unexpected(Error::cpp_incorrect_argnum());
+        else if constexpr (sizeof...(val) != 0)
+          return f(std::array{double(val)...});
+        else return f();
+      },
+      [&](const GlobalConstant<type>& cst) -> Ret
+      {
+        if constexpr (sizeof...(val) != 0)
+          return tl::unexpected(Error::cpp_incorrect_argnum());
+        else return cst;
+      },
+      [&](const Sequence<type>& u) -> Ret
+      {
+        if constexpr (sizeof...(val) != 1)
+          return tl::unexpected(Error::cpp_incorrect_argnum());
+        else return u(val...);
+      }
+    },
+    variant
+  );
+}
+
+template <parsing::Type type>
+template <class... DBL>
+  requires (std::is_convertible_v<DBL, double> and ...)
+tl::expected<double, Error> DynMathObject<type>::operator () (DBL... val) const
+{
+  return evaluate(val...);
+}
+
 }

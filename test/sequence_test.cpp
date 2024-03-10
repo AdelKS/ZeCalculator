@@ -47,6 +47,9 @@ int main()
     expect(fib(4).value() == 3.0_d);
     expect(fib(10).value() == 55.0_d);
 
+    auto* fib_obj = world.get("fib");
+    expect(fib_obj && (*fib_obj)(10).value() == 55.0_d);
+
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
   "recursion depth overflow"_test = []<class StructType>()

@@ -49,6 +49,10 @@ int main()
 
     expect(res == expected_res);
 
+    // dynamic object tests
+    auto* obj = world.get("f");
+    expect(obj && (*obj)(omega, t).value() == expected_res);
+
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
   "function evaluation shadowing a global constant"_test = []<class StructType>()
@@ -63,6 +67,13 @@ int main()
     const double expected_res = std::cos(1.0) + 1.0;
 
     expect(res == expected_res);
+
+    // dynamic object tests
+    auto* x_obj = world.get("x");
+    expect(x_obj && (*x_obj)().value() == 2.0);
+
+    auto* f_obj = world.get("f");
+    expect(f_obj && (*f_obj)(1.0).value() == expected_res);
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
@@ -119,6 +130,9 @@ int main()
     GlobalConstant<type>& cst = world.template add<GlobalConstant<type>>("my_constant", 3.0).value();
     Function<type, 1>& f = world.template add<Function<type, 1>>("f", Vars<1>{"x"}, "x + my_constant + cos(math::pi)").value();
 
+    auto* f_obj = world.get("f");
+    expect(f_obj);
+
     double cpp_cst = 3.0;
     auto cpp_f_1 = [&](double x)
     {
@@ -126,11 +140,13 @@ int main()
     };
 
     expect(f({1}).value() == cpp_f_1(1.0));
+    expect((*f_obj)(1) == cpp_f_1(1.0));
 
     cst = 5.0;
     cpp_cst = 5.0;
 
     expect(f({1}).value() == cpp_f_1(1.0));
+    expect((*f_obj)(1).value() == cpp_f_1(1.0));
 
     Function<type, 1>& g = world.template add<Function<type, 1>>("g").value();
     g.set(Vars<1>{"z"}, "2*z + my_constant");
@@ -149,6 +165,7 @@ int main()
     };
 
     expect(f({3}).value() == cpp_f_2(3));
+    expect((*f_obj)(3).value() == cpp_f_2(3));
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
@@ -176,6 +193,9 @@ int main()
     const double x = 5, y = 3;
 
     expect(f({x, y}).value() == cpp_f(x, y));
+
+    auto* f_obj = world.get("f");
+    expect(f_obj && (*f_obj)(x, y).value() == cpp_f(x, y));
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 

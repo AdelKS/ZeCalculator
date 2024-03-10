@@ -42,6 +42,14 @@ using MathObjectsVariant = to_variant_t<MathObjects<type>>;
 template <parsing::Type type>
 struct DynMathObject
 {
+  template <class... DBL>
+    requires (std::is_convertible_v<DBL, double> and ...)
+  tl::expected<double, Error> operator () (DBL... val) const;
+
+  template <class... DBL>
+    requires (std::is_convertible_v<DBL, double> and ...)
+  tl::expected<double, Error> evaluate(DBL... val) const;
+
   MathObjectsVariant<type> variant;
   MathWorldObjectHandle<type> handle;
 };
