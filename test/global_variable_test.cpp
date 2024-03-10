@@ -65,6 +65,12 @@ int main()
       std::cout << error << std::endl;
     }
 
+    auto* dyn_k = world.get("k");
+    expect(dyn_k && (*dyn_k)().value() == cpp_k());
+
+    auto* dyn_r = world.get("r");
+    expect(dyn_r && (*dyn_r)().value() == cpp_r);
+
     expect(eval.value() == cpp_f(x, y));
 
     cpp_r = 10;

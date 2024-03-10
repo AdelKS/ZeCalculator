@@ -46,6 +46,20 @@ public:
 
   DynMathObject(MathObjectsVariant<type> variant, MathWorldObjectHandle<type> handle);
 
+  template <class... DBL>
+    requires (std::is_convertible_v<DBL, double> and ...)
+  tl::expected<double, Error> operator () (DBL... val) const;
+
+  template <class... DBL>
+    requires (std::is_convertible_v<DBL, double> and ...)
+  tl::expected<double, Error> evaluate(DBL... val) const;
+
+  const MathObject<type>& as_math_object() const;
+  const MathObjectsVariant<type>& as_variant() const;
+
+  MathObject<type>& as_math_object();
+  MathObjectsVariant<type>& as_variant();
+
 protected:
 
   /// @note this members is protected because end users aren't supposed to directly access it
