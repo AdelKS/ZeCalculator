@@ -74,12 +74,12 @@ int main()
     expect(not bool(f.error()));
     expect(not bool(g.error()));
 
-    expect(bool(world.erase(&f)));
+    expect(bool(world.erase(f)));
 
     // cannot erase the same object twice
-    expect(not bool(world.erase(&f)));
+    expect(not bool(world.erase(f)));
 
-    // after erasing 'f', 'g' must have been reparsed and get an undefined function error on f
+    // after erasing 'f', 'g' must have been re-parsed and get an undefined function error on f
     expect(bool(g.error()) and g.error()->type == Error::UNDEFINED_FUNCTION and g.error()->token.name == "f");
 
     // add a new function
@@ -90,6 +90,25 @@ int main()
 
     // 'h' must be built where 'f' was built before
     expect(&h == &f);
+
+  } | std::tuple<AST_TEST, RPN_TEST>{};
+
+  "cannot erase object in the wrong world"_test = []<class StructType>()
+  {
+    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
+
+    MathWorld<type> world1;
+    Function<type, 1>& f = world1.template add<Function<type, 1>>("f", Vars<1>{"x"}, "cos(x)").value();
+
+    MathWorld<type> world2;
+    Function<type, 1>& g = world2.template add<Function<type, 1>>("g", Vars<1>{"x"}, "sin(x)+1").value();
+
+    // no issues expected with parsing of 'f' nor 'g'
+    expect(not bool(f.error()));
+    expect(not bool(g.error()));
+
+    // cannot erase 'g' in 'world1'
+    expect(not bool(world1.erase(g)));
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
