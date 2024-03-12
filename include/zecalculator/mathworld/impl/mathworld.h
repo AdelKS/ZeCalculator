@@ -189,27 +189,24 @@ tl::expected<double, Error> MathWorld<type>::evaluate(std::string expr)
 template <parsing::Type type>
 template <class ObjectType>
   requires(tuple_contains_v<MathObjects<type>, ObjectType>)
-tl::expected<Ok, UnregisteredObject> MathWorld<type>::erase(ObjectType* obj)
+tl::expected<Ok, UnregisteredObject> MathWorld<type>::erase(ObjectType& obj)
 {
-  if (not math_objects.is_assigned(obj->slot) or
-      not std::holds_alternative<ObjectType>(math_objects[obj->slot].variant) or
-      &std::get<ObjectType>(math_objects[obj->slot].variant) != obj)
+  if (obj.slot >= math_objects.size()
+      or not math_objects.is_assigned(obj.slot)
+      or std::get_if<ObjectType>(&math_objects[obj.slot].variant) != &obj)
     return tl::unexpected(UnregisteredObject{});
 
-  return erase(&math_objects[obj->slot]);
+  return erase(math_objects[obj.slot]);
 }
 
 template <parsing::Type type>
-tl::expected<Ok, UnregisteredObject> MathWorld<type>::erase(DynMathObject<type>* obj)
+tl::expected<Ok, UnregisteredObject> MathWorld<type>::erase(DynMathObject<type>& obj)
 {
-  if (not obj)
-    return tl::unexpected(UnregisteredObject{});
+  size_t slot = obj.handle.slot;
 
-  size_t slot = obj->handle.slot;
-  assert(slot != size_t(-1));
-
-  if (not math_objects.is_assigned(slot)
-      or &math_objects[slot] != obj)
+  if (slot >= math_objects.size()
+      or not math_objects.is_assigned(slot)
+      or &math_objects[slot] != &obj)
     return tl::unexpected(UnregisteredObject{});
 
   const auto name_node = object_names.extract(&math_objects[slot]);
@@ -234,7 +231,10 @@ tl::expected<Ok, UnregisteredObject> MathWorld<type>::erase(DynMathObject<type>*
 template <parsing::Type type>
 tl::expected<Ok, UnregisteredObject> MathWorld<type>::erase(const std::string& name)
 {
-  return erase(get(name));
+  DynMathObject<type>* dyn_obj = get(name);
+  if (not dyn_obj)
+    return tl::unexpected(UnregisteredObject{});
+  else return erase(*dyn_obj);
 }
 
 

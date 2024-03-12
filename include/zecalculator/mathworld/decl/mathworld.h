@@ -115,12 +115,12 @@ public:
   ///          when the pointed-to object is not handled by this instance of MathWorld
   template <class ObjectType>
     requires(tuple_contains_v<MathObjects<type>, ObjectType>)
-  tl::expected<Ok, UnregisteredObject> erase(ObjectType* obj);
+  tl::expected<Ok, UnregisteredObject> erase(ObjectType& obj);
 
   /// @brief delete object given by pointer
   /// @returns Ok if the deletion was successful, UnregisteredObject otherwise
   ///          when the pointed-to object is not handled by this instance of MathWorld
-  tl::expected<Ok, UnregisteredObject> erase(DynMathObject<type>* obj);
+  tl::expected<Ok, UnregisteredObject> erase(DynMathObject<type>& obj);
 
   /// @brief delete object given by name
   /// @returns Ok if the deletion was successful, UnregisteredObject otherwise
