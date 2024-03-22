@@ -21,8 +21,6 @@
 ****************************************************************************/
 
 #include <cstddef>
-#include <utility>
-#include <string>
 
 #include <zecalculator/parsing/types.h>
 #include <zecalculator/utils/utils.h>
@@ -53,7 +51,7 @@ public:
 
 protected:
 
-  constexpr CppFunction(size_t slot, MathWorld<type>* mathworld);
+  constexpr CppFunction(MathWorldObjectHandle<type> obj_handle);
 
   CppMathFunctionPtr<args_num> f_ptr = nullptr;
 

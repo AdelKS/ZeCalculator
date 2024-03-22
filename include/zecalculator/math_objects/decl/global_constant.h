@@ -36,7 +36,7 @@ public:
   void set(double val);
 
   GlobalConstant& operator = (double val);
-  
+
   bool operator == (double val) const;
 
   /// @brief perform operation if there's a value, do nothing otherwise
@@ -58,7 +58,7 @@ public:
   const Error& error() const;
 
 protected:
-  GlobalConstant(size_t slot, class MathWorld<type>* mathworld);
+  GlobalConstant(MathWorldObjectHandle<type> obj_handle);
 
   tl::expected<double, Error> exp_value = tl::unexpected(Error::empty_expression());
 

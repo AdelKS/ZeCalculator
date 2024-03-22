@@ -25,8 +25,8 @@
 namespace zc {
 
 template <parsing::Type type>
-GlobalConstant<type>::GlobalConstant(size_t slot, class MathWorld<type>* mathworld)
-  : MathObject<type>(slot, mathworld)
+GlobalConstant<type>::GlobalConstant(MathWorldObjectHandle<type> obj_handle)
+  : MathObject<type>(obj_handle)
 {}
 
 template <parsing::Type type>

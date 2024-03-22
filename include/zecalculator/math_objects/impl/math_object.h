@@ -25,13 +25,13 @@
 namespace zc {
 
 template <parsing::Type type>
-MathObject<type>::MathObject(size_t slot, MathWorld<type>* world)
-  : slot(slot), mathworld(world)
+MathObject<type>::MathObject(MathWorldObjectHandle<type> obj_handle)
+  : MathWorldObjectHandle<type>(obj_handle)
 {}
 
 template <parsing::Type type>
-MathObject<type>::MathObject(std::string name, size_t slot, const MathWorld<type>* world)
-  : name(std::move(name)), slot(slot), mathworld(world)
+MathObject<type>::MathObject(std::string name, MathWorldObjectHandle<type> obj_handle)
+  : name(std::move(name)), MathWorldObjectHandle<type>(obj_handle)
 {}
 
 template <parsing::Type type>

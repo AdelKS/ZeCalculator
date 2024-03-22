@@ -160,7 +160,7 @@ public:
 protected:
 
   // constructor reserved for MathWorld when using add() function
-  Function(size_t slot, MathWorld<type>*);
+  Function(MathWorldObjectHandle<type> obj_handle);
 
   /// @note version that tracks the current recursion depth
   tl::expected<double, Error> evaluate(std::span<const double, args_num> args,

@@ -29,29 +29,33 @@ namespace zc {
 template <parsing::Type type>
 class MathWorld;
 
+/// @brief struct that gives enough information to identify an object within a mathworld
 template <parsing::Type type>
-class MathObject
+struct MathWorldObjectHandle
+{
+  size_t slot;
+
+  // non-owning pointer to the mathworld that contains this object
+  MathWorld<type>* mathworld;
+};
+
+template <parsing::Type type>
+class MathObject: protected MathWorldObjectHandle<type>
 {
 public:
   const std::string& get_name() const;
 
 protected:
 
-  MathObject(size_t slot, MathWorld<type>* world);
-  MathObject(std::string name, size_t slot, const MathWorld<type>* world);
+  MathObject(MathWorldObjectHandle<type> obj_handle);
+  MathObject(std::string name, MathWorldObjectHandle<type> obj_handle);
 
   void set_name(std::string name);
 
   std::string name;
 
-  size_t slot;
-
-  // non-owning pointer to the mathworld that contains this object
-  MathWorld<type>* mathworld;
-
   template <parsing::Type>
   friend class MathWorld;
-
 };
 
 }

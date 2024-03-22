@@ -122,7 +122,7 @@ tl::expected<ref<ObjectType>, Error> MathWorld<type>::add(const std::string& nam
     return tl::unexpected(Error::name_already_taken(name));
 
   size_t id = math_objects.next_free_slot();
-  [[maybe_unused]] size_t new_id = math_objects.push(ObjectType(id, this));
+  [[maybe_unused]] size_t new_id = math_objects.push(ObjectType({id, this}));
   assert(id == new_id); // should  be the same
 
   ObjectType& world_object = std::get<ObjectType>(math_objects[id]);

@@ -43,8 +43,8 @@ double CppFunction<type, args_num>::operator()(DBL... val) const
 
 template <parsing::Type type, size_t args_num>
   requires(args_num > 0)
-constexpr CppFunction<type, args_num>::CppFunction(size_t slot, MathWorld<type>* mathworld)
-  : MathObject<type>(slot, mathworld)
+constexpr CppFunction<type, args_num>::CppFunction(MathWorldObjectHandle<type> obj_handle)
+  : MathObject<type>(obj_handle)
 {}
 
 } // namespace zc
