@@ -67,6 +67,24 @@ public:
     }
   }
 
+  template <class... U>
+  size_t emplace(U&&... args)
+  {
+    if (free_slots.empty())
+    {
+      const size_t slot = size();
+      Parent::emplace_back(std::in_place_t{}, std::forward<U>(args)...);
+      return slot;
+    }
+    else
+    {
+      const size_t slot = free_slots.top();
+      free_slots.pop();
+      Parent::operator[](slot).emplace(std::forward<U>(args)...);
+      return slot;
+    }
+  }
+
   ///@brief frees the slot 'slot'
   void pop(const size_t slot)
   {
