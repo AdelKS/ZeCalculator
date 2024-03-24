@@ -33,11 +33,12 @@ int main()
 
   "simple expression"_test = []()
   {
-    auto parsing = tokenize("2+2*2");
+    std::string expression = "2+2*2";
+    auto parsing = tokenize(expression);
 
     expect(bool(parsing)) << parsing;
 
-    auto expect_node = make_uast(parsing.value());
+    auto expect_node = make_uast(expression, parsing.value());
 
     expect(bool(expect_node));
 
@@ -59,11 +60,12 @@ int main()
 
   "function expression"_test = []()
   {
+    std::string expression = "(cos(sin(x)+1))+1";
     auto parsing = tokenize("(cos(sin(x)+1))+1");
 
     expect(bool(parsing)) << parsing;
 
-    auto expect_node = make_uast(parsing.value(), zc::Vars<1>{"x"});
+    auto expect_node = make_uast(expression, parsing.value(), zc::Vars<1>{"x"});
 
     expect(bool(expect_node));
 
@@ -87,11 +89,13 @@ int main()
 
   "mark input vars"_test = []()
   {
-    auto parsing = tokenize("(cos(sin(x)+1))+1");
+    std::string expression = "(cos(sin(x)+1))+1";
+
+    auto parsing = tokenize(expression);
 
     expect(bool(parsing)) << parsing;
 
-    auto simple_uast = make_uast(parsing.value());
+    auto simple_uast = make_uast(expression, parsing.value());
 
     // "x" is considered a variable for now
     expect(direct_dependencies(simple_uast.value())
@@ -124,11 +128,13 @@ int main()
 
   "direct dependencies"_test = []()
   {
-    auto parsing = tokenize("(cos(sin(x)+1+w)/u(f(h(y))))+1");
+    std::string expression = "(cos(sin(x)+1+w)/u(f(h(y))))+1";
+
+    auto parsing = tokenize(expression);
 
     expect(bool(parsing)) << parsing;
 
-    auto expect_node = make_uast(parsing.value(), zc::Vars<1>{"x"});
+    auto expect_node = make_uast(expression, parsing.value(), zc::Vars<1>{"x"});
 
     expect(bool(expect_node));
 

@@ -214,7 +214,7 @@ int main()
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
-  "calling function without arguments"_test = []<class StructType>()
+  "calling function with wrong number of arguments"_test = []<class StructType>()
   {
     constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
 
@@ -222,11 +222,13 @@ int main()
 
     // add a function named "f", note that the constant "my_constant" is only defined after
     world.template add<Function<type, 2>>("f", Vars<2>{"x", "y"}, "1 + x + y").value();
-    GlobalVariable<type>& expr = world.template add<GlobalVariable<type>>("val", "1 + f(1)").value();
 
-    expect(bool(expr.error()));
-    expect(expr.error().value() == Error::mismatched_fun_args(parsing::tokens::Text("f", 4)))
-      << expr.error().value();
+    std::string var_expr = "1 + f(1)";
+    tl::expected<double, Error> res = world.evaluate("1 + f(1)");
+
+    expect(not res.has_value());
+    expect(res.error() == Error::mismatched_fun_args(parsing::tokens::Text("f", 4), var_expr))
+      << res.error();
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 

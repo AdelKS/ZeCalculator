@@ -33,10 +33,11 @@ int main()
 
   "empty expression"_test = []()
   {
-    auto parsing = tokenize("        ");
+    std::string expression = "        ";
+    auto parsing = tokenize(expression);
 
     expect(not bool(parsing)
-           and parsing.error() == Error::unexpected(tokens::EndOfExpression("", SubstrInfo{8, 0})))
+           and parsing.error() == Error::unexpected(tokens::EndOfExpression("", SubstrInfo{8, 0}), expression))
       << parsing;
   };
 
@@ -139,19 +140,21 @@ int main()
 
   "two operators"_test = []()
   {
-    auto parsing = tokenize("2*-1");
+    std::string expression = "2*-1";
+    auto parsing = tokenize(expression);
 
     expect(not parsing and
-           parsing.error() == Error::unexpected(tokens::BinaryOperator<'-'>(2)))
+           parsing.error() == Error::unexpected(tokens::BinaryOperator<'-'>(2), expression))
         << parsing;
   };
 
   "extra parenthesis"_test = []()
   {
-    auto parsing = tokenize("2+2)");
+    std::string expression = "2+2)";
+    auto parsing = tokenize(expression);
 
     expect(not parsing and
-           parsing.error() == Error::unexpected(tokens::ClosingParenthesis(")", 3, 1)));
+           parsing.error() == Error::unexpected(tokens::ClosingParenthesis(")", 3, 1), expression));
   };
 
   "floating point operations"_test = []()
@@ -222,7 +225,7 @@ int main()
 
     expect(not bool(parsing)) << parsing;
 
-    expect(parsing.error() == Error::missing(tokens::FunctionCallEnd("", 7))) << parsing.error();
+    expect(parsing.error() == Error::missing(tokens::FunctionCallEnd("", 7), std::string(str))) << parsing.error();
   };
 
   "missing normal closing pth"_test = []()
@@ -232,7 +235,7 @@ int main()
 
     expect(not bool(parsing)) << parsing;
 
-    expect(parsing.error() == Error::missing(tokens::ClosingParenthesis("", 9))) << parsing.error();
+    expect(parsing.error() == Error::missing(tokens::ClosingParenthesis("", 9), std::string(str))) << parsing.error();
   };
 
   "unexpected end of expression"_test = []()
@@ -242,7 +245,7 @@ int main()
 
     expect(not bool(parsing)) << parsing;
 
-    expect(parsing.error() == Error::unexpected(tokens::EndOfExpression("", 2)))
+    expect(parsing.error() == Error::unexpected(tokens::EndOfExpression("", 2), std::string(str)))
       << parsing.error();
   };
 

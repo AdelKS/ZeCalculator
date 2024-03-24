@@ -41,7 +41,7 @@ template <size_t args_num>
 inline void Evaluator<input_size>::operator()(const zc::parsing::rpn::node::Function<args_num>& node)
 {
   if (not bool(node.f)) [[unlikely]]
-    expected_eval_stack = tl::unexpected(Error::calling_invalid_function(node));
+    expected_eval_stack = tl::unexpected(Error::calling_invalid_function(node, node.f->expression));
   else
   {
     const auto evaluations = std::span<const double, args_num>(expected_eval_stack->end() - args_num,
@@ -120,7 +120,7 @@ inline void Evaluator<input_size>::operator()(const zc::parsing::rpn::node::Sequ
 {
   //              std::cout << "Evaluating zc function: " << node.name << std::endl;
   if (not bool(node.u))
-    expected_eval_stack = tl::unexpected(Error::calling_invalid_function(node));
+    expected_eval_stack = tl::unexpected(Error::calling_invalid_function(node, node.u->expression));
   else
   {
     // sequence handles only one argument
