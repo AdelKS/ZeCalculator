@@ -33,13 +33,14 @@ int main()
 
   "simple rpn expression"_test = []()
   {
+    std::string expression = "2 - 3 + 2";
     auto parsing = tokenize("2 - 3 + 2");
 
     expect(bool(parsing)) << parsing;
 
     zc::MathWorld<Type::RPN> world;
 
-    auto expect_tree = make_uast(parsing.value()).and_then(bind<Type::RPN>{world});
+    auto expect_tree = make_uast(expression, parsing.value()).and_then(bind<Type::RPN>{expression, world});
 
     expect(bool(expect_tree));
 

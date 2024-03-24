@@ -118,9 +118,9 @@ template <class ObjectType, class... Arg>
 tl::expected<ref<ObjectType>, Error> MathWorld<type>::add(const std::string& name, Arg &&...arg)
 {
   if (not parsing::is_valid_name(name))
-    return tl::unexpected(Error::wrong_format(name));
+    return tl::unexpected(Error::wrong_format(name, name));
   else if (contains(name))
-    return tl::unexpected(Error::name_already_taken(name));
+    return tl::unexpected(Error::name_already_taken(name, name));
 
   size_t id = math_objects.next_free_slot();
   [[maybe_unused]] size_t new_id = math_objects.emplace(ObjectType({id, this}), MathWorldObjectHandle<type>{id, this});
@@ -163,9 +163,9 @@ tl::expected<double, Error> MathWorld<type>::evaluate(std::string expr)
   if (expr.empty()) [[unlikely]]
     return tl::unexpected(Error::empty_expression());
 
-  auto make_uast = [](std::span<const parsing::Token> tokens)
+  auto make_uast = [&](std::span<const parsing::Token> tokens)
   {
-    return parsing::make_uast(tokens);
+    return parsing::make_uast(expr, tokens);
   };
 
   auto evaluate = [](const parsing::Parsing<type>& repr)
@@ -176,12 +176,12 @@ tl::expected<double, Error> MathWorld<type>::evaluate(std::string expr)
   if constexpr (type == parsing::Type::AST)
     return parsing::tokenize(expr)
       .and_then(make_uast)
-      .and_then(parsing::bind<type>{*this})
+      .and_then(parsing::bind<type>{expr, *this})
       .and_then(evaluate);
   else
     return parsing::tokenize(expr)
       .and_then(make_uast)
-      .and_then(parsing::bind<type>{*this})
+      .and_then(parsing::bind<type>{expr, *this})
       .transform(parsing::make_RPN)
       .and_then(evaluate);
 }

@@ -44,7 +44,7 @@ void Function<type, args_num>::set_input_vars(Vars<args_num> input_vars)
   auto it = std::ranges::find_if_not(input_vars, parsing::is_valid_name);
   if (it != input_vars.end())
     this->vars = tl::unexpected(
-      Error::wrong_format(parsing::tokens::Text(*it, SubstrInfo{.size = (*it).size()})));
+      Error::wrong_format(parsing::tokens::Text(*it, SubstrInfo{.size = (*it).size()}), *it));
   else
   {
     this->vars = std::move(input_vars);
@@ -58,7 +58,7 @@ void Function<type, args_num>::set_input_var(std::string input_var)
 {
   if (parsing::is_valid_name(input_var)) [[unlikely]]
     this->vars = tl::unexpected(
-      Error::wrong_format(parsing::tokens::Text(input_var, SubstrInfo{.size = input_var.size()})));
+      Error::wrong_format(parsing::tokens::Text(input_var, SubstrInfo{.size = input_var.size()}), input_var));
   else
   {
     this->vars = std::array{std::move(input_var)};
@@ -97,17 +97,17 @@ void Function<type, args_num>::parse()
   auto make_uast = [&](std::span<const parsing::Token> tokens) -> tl::expected<parsing::UAST, Error>
   {
     if constexpr (args_num == 0)
-      return parsing::make_uast(tokens);
-    else return parsing::make_uast(tokens, this->vars.value());
+      return parsing::make_uast(expression, tokens);
+    else return parsing::make_uast(expression, tokens, this->vars.value());
   };
 
   using namespace std::placeholders;
 
   if constexpr (type == parsing::Type::AST)
-    parsed_expr = tokenized_expr.and_then(make_uast).and_then(parsing::bind<type>{*this->mathworld});
+    parsed_expr = tokenized_expr.and_then(make_uast).and_then(parsing::bind<type>{expression, *this->mathworld});
   else
     parsed_expr
-      = tokenized_expr.and_then(make_uast).and_then(parsing::bind<type>{*this->mathworld}).transform(parsing::make_RPN);
+      = tokenized_expr.and_then(make_uast).and_then(parsing::bind<type>{expression, *this->mathworld}).transform(parsing::make_RPN);
 }
 
 template <parsing::Type type, size_t args_num>

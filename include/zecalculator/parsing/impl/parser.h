@@ -103,7 +103,7 @@ inline tl::expected<std::vector<Token>, Error> tokenize(std::string_view express
       }
       else
         return tl::unexpected(Error::wrong_format(
-          tokens::Number(std::nan(""), tokens::Text(char_v, orig_expr))));
+          tokens::Number(std::nan(""), tokens::Text(char_v, orig_expr)), std::string(expression)));
     }
     else if (tokens::is_operator(*it))
     {
@@ -120,7 +120,7 @@ inline tl::expected<std::vector<Token>, Error> tokenize(std::string_view express
         ope = numberSign = closingParenthesis = canEnd = false;
         it++;
       }
-      else return tl::unexpected(Error::unexpected(tokens::Text(char_v, orig_expr)));
+      else return tl::unexpected(Error::unexpected(tokens::Text(char_v, orig_expr), std::string(expression)));
     }
     else if (*it == '(')
     {
@@ -141,7 +141,7 @@ inline tl::expected<std::vector<Token>, Error> tokenize(std::string_view express
         ope = closingParenthesis = canEnd = false;
         it++;
       }
-      else return tl::unexpected(Error::unexpected(tokens::OpeningParenthesis(char_v, orig_expr)));
+      else return tl::unexpected(Error::unexpected(tokens::OpeningParenthesis(char_v, orig_expr), std::string(expression)));
     }
     else if (*it == ')')
     {
@@ -159,7 +159,7 @@ inline tl::expected<std::vector<Token>, Error> tokenize(std::string_view express
         value = numberSign = openingParenthesis = false;
         it++;
       }
-      else return tl::unexpected(Error::unexpected(tokens::ClosingParenthesis(char_v, orig_expr)));
+      else return tl::unexpected(Error::unexpected(tokens::ClosingParenthesis(char_v, orig_expr), std::string(expression)));
     }
     else if (*it == ' ')
       // spaces are skipped
@@ -168,7 +168,7 @@ inline tl::expected<std::vector<Token>, Error> tokenize(std::string_view express
     {
       if (not last_opened_pth.empty() and last_opened_pth.top() == FUNCTION_CALL_PTH)
         parsing.emplace_back(tokens::FunctionArgumentSeparator(char_v, orig_expr));
-      else return tl::unexpected(Error::unexpected(tokens::FunctionArgumentSeparator(char_v, orig_expr)));
+      else return tl::unexpected(Error::unexpected(tokens::FunctionArgumentSeparator(char_v, orig_expr), std::string(expression)));
 
       openingParenthesis = numberSign = value = true;
       canEnd = ope = closingParenthesis = false;
@@ -205,7 +205,7 @@ inline tl::expected<std::vector<Token>, Error> tokenize(std::string_view express
           openingParenthesis = true;
         }
       }
-      else return tl::unexpected(Error::unexpected(tokens::Unkown(char_v, orig_expr)));
+      else return tl::unexpected(Error::unexpected(tokens::Unkown(char_v, orig_expr), std::string(expression)));
     }
   }
 
@@ -213,14 +213,14 @@ inline tl::expected<std::vector<Token>, Error> tokenize(std::string_view express
   {
     std::string_view expr_cend = std::string_view(it, 0);
     if (last_opened_pth.top() == FUNCTION_CALL_PTH)
-      return tl::unexpected(Error::missing(tokens::FunctionCallEnd(expr_cend, orig_expr)));
-    else return tl::unexpected(Error::missing(tokens::ClosingParenthesis(expr_cend, orig_expr)));
+      return tl::unexpected(Error::missing(tokens::FunctionCallEnd(expr_cend, orig_expr), std::string(expression)));
+    else return tl::unexpected(Error::missing(tokens::ClosingParenthesis(expr_cend, orig_expr), std::string(expression)));
   }
 
   if (not canEnd)
   {
     std::string_view expr_cend = std::string_view(it, 0);
-    return tl::unexpected(Error::unexpected(tokens::EndOfExpression(expr_cend, orig_expr)));
+    return tl::unexpected(Error::unexpected(tokens::EndOfExpression(expr_cend, orig_expr), std::string(expression)));
   }
 
   return parsing;
@@ -235,7 +235,7 @@ inline bool is_valid_name(std::string_view name)
 }
 
 inline tl::expected<std::vector<std::span<const Token>::iterator>, Error>
-  get_non_pth_enclosed_tokens(std::span<const Token> tokens)
+  get_non_pth_enclosed_tokens(std::span<const Token> tokens, std::string_view expression)
 {
   std::vector<std::span<const Token>::iterator> non_pth_enclosed_tokens;
 
@@ -257,13 +257,13 @@ inline tl::expected<std::vector<std::span<const Token>::iterator>, Error>
     {
       if (not last_opened_pth.empty() and last_opened_pth.top() == FUNCTION_CALL_PTH)
         last_opened_pth.pop();
-      else return tl::unexpected(Error::unexpected(text_token(*tokenIt)));
+      else return tl::unexpected(Error::unexpected(text_token(*tokenIt), std::string(expression)));
     }
     else if (std::holds_alternative<tokens::ClosingParenthesis>(*tokenIt))
     {
       if (not last_opened_pth.empty() and last_opened_pth.top() == NORMAL_PTH)
         last_opened_pth.pop();
-      else return tl::unexpected(Error::unexpected(text_token(*tokenIt)));
+      else return tl::unexpected(Error::unexpected(text_token(*tokenIt), std::string(expression)));
     }
     // if not a parenthesis, and the token is not enclosed within parentheses, push it
     else if (last_opened_pth.empty())
@@ -278,7 +278,7 @@ template <parsing::Type world_type>
 struct VariableVisiter
 {
   using Ret = tl::expected<parsing::AST<world_type>, Error>;
-
+  std::string expression;
   const tokens::Text& var_txt_token;
 
   Ret operator()(const GlobalConstant<world_type>& global_constant)
@@ -293,7 +293,7 @@ struct VariableVisiter
   }
   Ret operator()(auto&&)
   {
-    return tl::unexpected(Error::wrong_object_type(var_txt_token));
+    return tl::unexpected(Error::wrong_object_type(var_txt_token, expression));
   }
 };
 
@@ -301,7 +301,7 @@ template <parsing::Type world_type>
 struct FunctionVisiter
 {
   using Ret = tl::expected<AST<world_type>, Error>;
-
+  std::string expression;
   const tokens::Text& func_txt_token;
   std::vector<AST<world_type>> subnodes;
 
@@ -323,7 +323,7 @@ struct FunctionVisiter
   Ret operator()(const CppFunction<world_type, args_num>& f)
   {
     if (subnodes.size() != args_num) [[unlikely]]
-      return tl::unexpected(Error::mismatched_fun_args(func_txt_token));
+      return tl::unexpected(Error::mismatched_fun_args(func_txt_token, expression));
 
     return std::make_unique<ast::node::Node<world_type>>(
       ast::node::CppFunction<world_type, args_num>(
@@ -333,7 +333,7 @@ struct FunctionVisiter
   Ret operator()(const zc::Function<world_type, args_num>& f)
   {
     if (subnodes.size() != args_num) [[unlikely]]
-      return tl::unexpected(Error::mismatched_fun_args(func_txt_token));
+      return tl::unexpected(Error::mismatched_fun_args(func_txt_token, expression));
 
     return std::make_unique<ast::node::Node<world_type>>(
       ast::node::Function<world_type, args_num>(func_txt_token, &f, get_subnode_arr<args_num>()));
@@ -341,20 +341,21 @@ struct FunctionVisiter
   Ret operator()(const zc::Sequence<world_type>& u)
   {
     if (subnodes.size() != 1) [[unlikely]]
-      return tl::unexpected(Error::mismatched_fun_args(func_txt_token));
+      return tl::unexpected(Error::mismatched_fun_args(func_txt_token, expression));
 
     return std::make_unique<ast::node::Node<world_type>>(
       ast::node::Sequence<world_type>(func_txt_token, &u, std::move(subnodes.front())));
   }
   Ret operator()(auto&&)
   {
-    return tl::unexpected(Error::wrong_object_type(func_txt_token));
+    return tl::unexpected(Error::wrong_object_type(func_txt_token, expression));
   }
 };
 
 template <Type type>
 struct bind
 {
+  std::string expression;
   const MathWorld<type>& math_world;
 
   tl::expected<AST<type>, Error> operator () (const UAST& uast)
@@ -384,15 +385,15 @@ struct bind
 
           auto* dyn_obj = math_world.get(func.name);
           if (not dyn_obj) [[unlikely]]
-            return tl::unexpected(Error::undefined_function(func));
-          else return std::visit(FunctionVisiter<type>{func, std::move(operands)}, dyn_obj->variant);
+            return tl::unexpected(Error::undefined_function(func, expression));
+          else return std::visit(FunctionVisiter<type>{expression, func, std::move(operands)}, dyn_obj->variant);
         },
         [&](const uast::node::Variable& var) -> Ret
         {
           auto* dyn_obj = math_world.get(var.name);
           if (not dyn_obj) [[unlikely]]
-            return tl::unexpected(Error::undefined_variable(var));
-          else return std::visit(VariableVisiter<type>{var}, dyn_obj->variant);
+            return tl::unexpected(Error::undefined_variable(var, expression));
+          else return std::visit(VariableVisiter<type>{expression, var}, dyn_obj->variant);
         },
         [&]<char op, size_t args_num>(const uast::node::Operator<op, args_num>& ope) -> Ret
         {
@@ -414,7 +415,7 @@ struct bind
 
 template <std::ranges::viewable_range Range>
   requires std::is_convertible_v<std::ranges::range_value_t<Range>, std::string_view>
-tl::expected<UAST, Error> make_uast(std::span<const parsing::Token> tokens, const Range& input_vars)
+tl::expected<UAST, Error> make_uast(std::string_view expression, std::span<const parsing::Token> tokens, const Range& input_vars)
 {
   using Ret = tl::expected<UAST, Error>;
 
@@ -440,12 +441,12 @@ tl::expected<UAST, Error> make_uast(std::span<const parsing::Token> tokens, cons
           else return var;
         },
         [&](const auto& anything_else) -> Ret {
-          return tl::unexpected(Error::unexpected(anything_else));
+          return tl::unexpected(Error::unexpected(anything_else, std::string(expression)));
         }},
       tokens.back());
   }
 
-  auto expected_non_pth_wrapped_tokens = get_non_pth_enclosed_tokens(tokens);
+  auto expected_non_pth_wrapped_tokens = get_non_pth_enclosed_tokens(tokens, expression);
   if (not expected_non_pth_wrapped_tokens.has_value())
     return tl::unexpected(expected_non_pth_wrapped_tokens.error());
 
@@ -456,7 +457,7 @@ tl::expected<UAST, Error> make_uast(std::span<const parsing::Token> tokens, cons
       std::holds_alternative<tokens::OpeningParenthesis>(tokens.front()) and
       std::holds_alternative<tokens::ClosingParenthesis>(tokens.back()))
   {
-    return make_uast(std::span(tokens.begin()+1, tokens.end()-1), input_vars);
+    return make_uast(expression, std::span(tokens.begin()+1, tokens.end()-1), input_vars);
   }
 
   // expression of the type "function(...)"
@@ -468,7 +469,7 @@ tl::expected<UAST, Error> make_uast(std::span<const parsing::Token> tokens, cons
     /// @todo needs changing to support multi-argument functions
     /// @note here we expect functions that receive that receive a single argument
     auto non_pth_wrapped_args = get_non_pth_enclosed_tokens(
-      std::span(tokens.begin() + 2, tokens.end() - 1));
+      std::span(tokens.begin() + 2, tokens.end() - 1), expression);
 
     if (not non_pth_wrapped_args.has_value())
       return tl::unexpected(non_pth_wrapped_args.error());
@@ -483,7 +484,7 @@ tl::expected<UAST, Error> make_uast(std::span<const parsing::Token> tokens, cons
       if (std::holds_alternative<tokens::FunctionArgumentSeparator>(*tokenIt) or
           std::holds_alternative<tokens::FunctionCallEnd>(*tokenIt))
       {
-        auto expected_func_argument = make_uast(std::span(last_non_coma_token_it, tokenIt), input_vars);
+        auto expected_func_argument = make_uast(expression, std::span(last_non_coma_token_it, tokenIt), input_vars);
         if (not expected_func_argument.has_value())
           return expected_func_argument;
         else subnodes.push_back(std::move(expected_func_argument.value()));
@@ -508,13 +509,13 @@ tl::expected<UAST, Error> make_uast(std::span<const parsing::Token> tokens, cons
     {
       // we are not within parentheses, and we are at the right operator priority
       if (tokenIt == tokens.begin() or tokenIt + 1 == tokens.end())
-        return tl::unexpected(Error::unexpected(text_token(*tokenIt)));
+        return tl::unexpected(Error::unexpected(text_token(*tokenIt), std::string(expression)));
 
-      auto left_hand_side = make_uast(std::span(tokens.begin(), tokenIt), input_vars);
+      auto left_hand_side = make_uast(expression, std::span(tokens.begin(), tokenIt), input_vars);
       if (not left_hand_side.has_value())
         return left_hand_side;
 
-      auto right_hand_side = make_uast(std::span(tokenIt + 1, tokens.end()), input_vars);
+      auto right_hand_side = make_uast(expression, std::span(tokenIt + 1, tokens.end()), input_vars);
       if (not right_hand_side.has_value())
         return right_hand_side;
 
@@ -553,7 +554,7 @@ tl::expected<UAST, Error> make_uast(std::span<const parsing::Token> tokens, cons
   auto text_tokens = tokens | std::views::transform([](auto&& tok){ return text_token(tok); });
   tokens::Text unexpected_slice = std::accumulate(text_tokens.begin() + 1, text_tokens.end(), *text_tokens.begin());
 
-  return tl::unexpected(Error::unexpected(unexpected_slice));
+  return tl::unexpected(Error::unexpected(unexpected_slice, std::string(expression)));
 }
 
 template <std::ranges::viewable_range Range>

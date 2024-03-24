@@ -102,9 +102,11 @@ int main()
 
     MathWorld<type> world;
 
-    auto error = world.evaluate("cos(1) + my_constant1").error();
+    std::string expression = "cos(1) + my_constant1";
 
-    expect(error == zc::Error::undefined_variable(parsing::tokens::Variable("my_constant1", 9, 12))) << error;
+    auto error = world.evaluate(expression).error();
+
+    expect(error == zc::Error::undefined_variable(parsing::tokens::Variable("my_constant1", 9, 12), expression)) << error;
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 

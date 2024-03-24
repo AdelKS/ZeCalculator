@@ -68,7 +68,8 @@ bool is_valid_name(std::string_view name);
 ///                    e.g."x" in the function "f" such as "f(x) = cos(x)"
 template <std::ranges::viewable_range Range = std::array<std::string, 0>>
   requires std::is_convertible_v<std::ranges::range_value_t<Range>, std::string_view>
-tl::expected<UAST, Error> make_uast(std::span<const parsing::Token> tokens,
+tl::expected<UAST, Error> make_uast(std::string_view expression,
+                                    std::span<const parsing::Token> tokens,
                                     const Range& input_vars = std::array<std::string, 0>{});
 
 template <std::ranges::viewable_range Range>

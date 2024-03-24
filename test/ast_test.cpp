@@ -36,12 +36,13 @@ int main()
     constexpr Type type = std::is_same_v<StructType, AST_TEST> ? Type::AST : Type::RPN;
 
     zc::MathWorld<type> world;
+    std::string expression = "2+2*2";
 
-    auto parsing = tokenize("2+2*2");
+    auto parsing = tokenize(expression);
 
     expect(bool(parsing)) << parsing;
 
-    auto expect_node = make_uast(parsing.value()).and_then(bind<type>{world});
+    auto expect_node = make_uast(expression, parsing.value()).and_then(bind<type>{expression, world});
 
     expect(bool(expect_node));
 
@@ -64,11 +65,13 @@ int main()
     constexpr Type type = std::is_same_v<StructType, AST_TEST> ? Type::AST : Type::RPN;
     zc::MathWorld<type> world;
 
-    auto parsing = tokenize("(cos(sin(x)+1))+1");
+    std::string expression = "(cos(sin(x)+1))+1";
+
+    auto parsing = tokenize(expression);
 
     expect(bool(parsing)) << parsing;
 
-    auto expect_node = make_uast(parsing.value(), zc::Vars<1>{"x"}).and_then(bind<type>{world});
+    auto expect_node = make_uast(expression, parsing.value(), zc::Vars<1>{"x"}).and_then(bind<type>{expression, world});
 
     expect(bool(expect_node));
 

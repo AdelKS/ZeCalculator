@@ -54,19 +54,19 @@ struct Error
     return Error {EMPTY};
   }
 
-  static Error unexpected(parsing::tokens::Text  token)
+  static Error unexpected(parsing::tokens::Text  token, std::string expression)
   {
-    return Error {.type = UNEXPECTED, .token = token};
+    return Error {UNEXPECTED, token, std::move(expression)};
   }
 
-  static Error wrong_format(parsing::tokens::Text  token)
+  static Error wrong_format(parsing::tokens::Text  token, std::string expression)
   {
-    return Error {.type = WRONG_FORMAT, .token = token};
+    return Error {WRONG_FORMAT, token, std::move(expression)};
   }
 
-  static Error missing(parsing::tokens::Text  token)
+  static Error missing(parsing::tokens::Text  token, std::string expression)
   {
-    return Error {.type = MISSING, .token = token};
+    return Error {MISSING, token, std::move(expression)};
   }
 
   static Error unkown()
@@ -74,14 +74,14 @@ struct Error
     return Error {UNKNOWN};
   }
 
-  static Error undefined_variable(parsing::tokens::Text tokenTxt)
+  static Error undefined_variable(parsing::tokens::Text tokenTxt, std::string expression)
   {
-    return Error {UNDEFINED_VARIABLE, tokenTxt};
+    return Error {UNDEFINED_VARIABLE, tokenTxt, std::move(expression)};
   }
 
-  static Error undefined_function(parsing::tokens::Text tokenTxt)
+  static Error undefined_function(parsing::tokens::Text tokenTxt, std::string expression)
   {
-    return Error {UNDEFINED_FUNCTION, tokenTxt};
+    return Error {UNDEFINED_FUNCTION, tokenTxt, std::move(expression)};
   }
 
   static Error cpp_incorrect_argnum()
@@ -89,14 +89,14 @@ struct Error
     return Error {CPP_INCORRECT_ARGNUM};
   }
 
-  static Error mismatched_fun_args(parsing::tokens::Text tokenTxt)
+  static Error mismatched_fun_args(parsing::tokens::Text tokenTxt, std::string expression)
   {
-    return Error {CALLING_FUN_ARG_COUNT_MISMATCH, tokenTxt};
+    return Error {CALLING_FUN_ARG_COUNT_MISMATCH, tokenTxt, std::move(expression)};
   }
 
-  static Error not_implemented(parsing::tokens::Text tokenTxt)
+  static Error not_implemented(parsing::tokens::Text tokenTxt, std::string expression)
   {
-    return Error {NOT_IMPLEMENTED, tokenTxt};
+    return Error {NOT_IMPLEMENTED, tokenTxt, std::move(expression)};
   }
 
   static Error empty_expression()
@@ -109,9 +109,9 @@ struct Error
     return Error {INVALID_FUNCTION};
   }
 
-  static Error calling_invalid_function(parsing::tokens::Text tokenTxt)
+  static Error calling_invalid_function(parsing::tokens::Text tokenTxt, std::string expression)
   {
-    return Error {CALLING_INVALID_FUNCTION, tokenTxt};
+    return Error {CALLING_INVALID_FUNCTION, tokenTxt, std::move(expression)};
   }
 
   static Error recursion_depth_overflow()
@@ -119,19 +119,19 @@ struct Error
     return Error{RECURSION_DEPTH_OVERFLOW};
   }
 
-  static Error wrong_object_type(parsing::tokens::Text tokenTxt)
+  static Error wrong_object_type(parsing::tokens::Text tokenTxt, std::string expression)
   {
-    return Error {WRONG_OBJECT_TYPE, tokenTxt};
+    return Error {WRONG_OBJECT_TYPE, tokenTxt, std::move(expression)};
   }
 
-  static Error name_already_taken(parsing::tokens::Text tokenTxt)
+  static Error name_already_taken(parsing::tokens::Text tokenTxt, std::string expression)
   {
-    return Error {NAME_ALREADY_TAKEN, tokenTxt};
+    return Error {NAME_ALREADY_TAKEN, tokenTxt, std::move(expression)};
   }
 
-  static Error object_not_in_world(parsing::tokens::Text tokenTxt)
+  static Error object_not_in_world(parsing::tokens::Text tokenTxt, std::string expression)
   {
-    return Error {OBJECT_NOT_IN_WORLD, tokenTxt};
+    return Error {OBJECT_NOT_IN_WORLD, tokenTxt, std::move(expression)};
   }
 
   static Error object_not_in_world()
@@ -144,6 +144,9 @@ struct Error
 
   // on what token
   parsing::tokens::Text token = {};
+
+  /// @brief full expression where the parsing error is
+  std::string expression = {};
 
   bool operator == (const Error& other) const = default;
 };
