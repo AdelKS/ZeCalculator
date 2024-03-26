@@ -383,14 +383,14 @@ struct bind
             else return tl::unexpected(expected_bound_node.error());
           }
 
-          auto* dyn_obj = math_world.get(func.name);
+          auto* dyn_obj = math_world.get(func.substr);
           if (not dyn_obj) [[unlikely]]
             return tl::unexpected(Error::undefined_function(func, expression));
           else return std::visit(FunctionVisiter<type>{expression, func, std::move(operands)}, dyn_obj->variant);
         },
         [&](const uast::node::Variable& var) -> Ret
         {
-          auto* dyn_obj = math_world.get(var.name);
+          auto* dyn_obj = math_world.get(var.substr);
           if (not dyn_obj) [[unlikely]]
             return tl::unexpected(Error::undefined_variable(var, expression));
           else return std::visit(VariableVisiter<type>{expression, var}, dyn_obj->variant);
@@ -434,7 +434,7 @@ tl::expected<UAST, Error> make_uast(std::string_view expression, std::span<const
         {
           // if variable is in 'input_vars' then treat it as such
           // this will avoid name lookup when we evaluate
-          auto it = std::ranges::find(input_vars, var.name);
+          auto it = std::ranges::find(input_vars, var.substr);
           if (it != input_vars.end())
             // the index is computed with the distance between begin() and 'it'
             return shared::node::InputVariable(var, std::distance(input_vars.begin(), it));
@@ -571,7 +571,7 @@ UAST mark_input_vars<Range>::operator () (const UAST& tree)
       return f_copy;
     },
     [&](uast::node::Variable& v) -> UAST {
-      auto it = std::ranges::find(input_vars, v.name);
+      auto it = std::ranges::find(input_vars, v.substr);
       if (it != input_vars.end())
         return shared::node::InputVariable(v, std::distance(input_vars.begin(), it));
       else return v;
@@ -670,11 +670,11 @@ deps::Deps direct_dependencies(const std::vector<parsing::Token>& tokens, const 
     std::visit(
       utils::overloaded{
         [&](const parsing::tokens::Function& f) {
-          deps.insert({f.name, deps::ObjectType::FUNCTION});
+          deps.insert({f.substr, deps::ObjectType::FUNCTION});
         },
         [&](const parsing::tokens::Variable& v) {
-          if (std::ranges::count(input_vars, v.name) == 0)
-            deps.insert({v.name, deps::ObjectType::VARIABLE});
+          if (std::ranges::count(input_vars, v.substr) == 0)
+            deps.insert({v.substr, deps::ObjectType::VARIABLE});
         },
         [](auto&&){ /* no op */ },
       }, tok);
@@ -694,13 +694,13 @@ struct direct_dependency_saver
       utils::overloaded{
         [&](const uast::node::Function& f)
         {
-          deps.insert({f.name, deps::ObjectType::FUNCTION});
+          deps.insert({f.substr, deps::ObjectType::FUNCTION});
           std::ranges::for_each(f.subnodes, std::ref(*this));
           // if we do not use std::ref, a copy of this instance is taken
         },
         [&](const uast::node::Variable& v)
         {
-          deps.insert({v.name, deps::ObjectType::VARIABLE});
+          deps.insert({v.substr, deps::ObjectType::VARIABLE});
         },
         [&]<char op, size_t args_num>(const uast::node::Operator<op, args_num>& ope)
         {

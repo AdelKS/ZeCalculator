@@ -80,7 +80,7 @@ int main()
     expect(not bool(world.erase(f)));
 
     // after erasing 'f', 'g' must have been re-parsed and get an undefined function error on f
-    expect(bool(g.error()) and g.error()->type == Error::UNDEFINED_FUNCTION and g.error()->token.name == "f");
+    expect(bool(g.error()) and g.error()->type == Error::UNDEFINED_FUNCTION and g.error()->token.substr == "f");
 
     // add a new function
     Function<type, 1>& h = world.template add<Function<type, 1>>("h", Vars<1>{"x"}, "1+x").value();
@@ -131,7 +131,7 @@ int main()
     expect(not bool(world.erase("cos")));
 
     // after erasing 'cos', 'f' must have been reparsed and get an undefined function error on 'cos
-    expect(bool(f.error()) and f.error()->type == Error::UNDEFINED_FUNCTION and f.error()->token.name == "cos");
+    expect(bool(f.error()) and f.error()->type == Error::UNDEFINED_FUNCTION and f.error()->token.substr == "cos");
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
