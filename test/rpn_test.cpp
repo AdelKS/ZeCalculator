@@ -49,9 +49,9 @@ int main()
     RPN expected_rpn;
     expected_rpn.push_back(shared::node::Number(2.0, tokens::Text{"2", 0}));
     expected_rpn.push_back(shared::node::Number(3.0, tokens::Text{"3", 4}));
-    expected_rpn.push_back(rpn::node::Operator<'-', 2>(2));
+    expected_rpn.push_back(rpn::node::Operator<'-', 2>(tokens::Text{"2 - 3", 0}));
     expected_rpn.push_back(shared::node::Number(2.0, tokens::Text{"2", 8}));
-    expected_rpn.push_back(rpn::node::Operator<'+', 2>(6));
+    expected_rpn.push_back(rpn::node::Operator<'+', 2>(tokens::Text{expression, 0}));
 
     expect(bool(rpn_expr == expected_rpn)) << "Expected: " << expected_rpn << "Answer: " << rpn_expr;
   };

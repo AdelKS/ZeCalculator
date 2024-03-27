@@ -31,23 +31,30 @@ namespace zc {
       namespace node {
 
         template <char op, size_t args_num>
-        struct Operator: zc::parsing::tokens::Operator<op, args_num>
+        struct Operator: parsing::tokens::Text
         {
-          using Parent = zc::parsing::tokens::Operator<op, args_num>;
           using Operands = std::array<NodePtr, args_num>;
 
-          Operator(const Parent& parent, Operands operands)
-            : Parent(parent), operands(std::move(operands)){};
+          Operator(parsing::tokens::Text text, parsing::tokens::Text name_token, Operands operands)
+            : parsing::tokens::Text(std::move(text)), name_token(std::move(name_token)),
+              operands(std::move(operands)){};
 
+          parsing::tokens::Text name_token;
           Operands operands;
         };
 
         struct Function: parsing::tokens::Text
         {
-          Function(const parsing::tokens::Text& text, std::vector<NodePtr> subnodes)
-            : parsing::tokens::Text(text), subnodes(std::move(subnodes))
+          Function(parsing::tokens::Text full_expr,
+                   parsing::tokens::Text name_token,
+                   parsing::tokens::Text args_token,
+                   std::vector<NodePtr> subnodes)
+            : parsing::tokens::Text(std::move(full_expr)), name_token(std::move(name_token)),
+              args_token(std::move(args_token)), subnodes(std::move(subnodes))
           {}
 
+          parsing::tokens::Text name_token;
+          parsing::tokens::Text args_token;
           std::vector<NodePtr> subnodes;
 
           bool operator == (const Function& other) const = default;

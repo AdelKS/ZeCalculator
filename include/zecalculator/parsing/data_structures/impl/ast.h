@@ -74,12 +74,10 @@ namespace zc {
         };
 
         template <parsing::Type world_type, char op, size_t args_num>
-        struct Operator: zc::parsing::tokens::Operator<op, args_num>
+        struct Operator: tokens::Text
         {
-          using Parent = zc::parsing::tokens::Operator<op, args_num>;
-
-          Operator(const Parent& parent, std::array<NodePtr<world_type>, args_num> operands)
-            : Parent(parent), operands(std::move(operands)){};
+          Operator(const Text& txt, std::array<NodePtr<world_type>, args_num> operands)
+            : Text(txt), operands(std::move(operands)){};
 
           std::array<NodePtr<world_type>, args_num> operands;
         };

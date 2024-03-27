@@ -227,7 +227,7 @@ int main()
     tl::expected<double, Error> res = world.evaluate("1 + f(1)");
 
     expect(not res.has_value());
-    expect(res.error() == Error::mismatched_fun_args(parsing::tokens::Text("f", 4), var_expr))
+    expect(res.error() == Error::mismatched_fun_args(parsing::tokens::Text("1", 6), var_expr))
       << res.error();
 
   } | std::tuple<AST_TEST, RPN_TEST>{};

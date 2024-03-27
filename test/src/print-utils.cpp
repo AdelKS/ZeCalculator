@@ -96,7 +96,7 @@ void syntax_node_print_helper(std::ostream& os, const uast::node::Node& node, si
       [&](const uast::node::Function &f)
       {
         os << padding_str << "Function<" << f.subnodes.size() << "> "
-          << tokens::Text(f) << " {" << std::endl;
+          << f.name_token << "subexpr: " << tokens::Text(f) << " {" << std::endl;
         for (const auto &operand : f.subnodes)
           syntax_node_print_helper(os, *operand, padding + 2);
         os << padding_str << "}" << std::endl;
@@ -104,7 +104,7 @@ void syntax_node_print_helper(std::ostream& os, const uast::node::Node& node, si
       [&]<char op, size_t args_num>(const uast::node::Operator<op, args_num> &f)
       {
         os << padding_str << "Operator<" << op << ", " << args_num
-          << "> " << tokens::Text(f) << " {" << std::endl;
+          << "> " << f.name_token << "subexpr: " << tokens::Text(f) << " {" << std::endl;
         for (auto &&operand : f.operands)
           syntax_node_print_helper(os, *operand, padding + 2);
         os << padding_str << "}" << std::endl;

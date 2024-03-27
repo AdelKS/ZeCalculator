@@ -66,12 +66,9 @@ namespace zc {
         };
 
         template <char op, size_t args_num>
-        struct Operator: zc::parsing::tokens::Operator<op, args_num>
+        struct Operator: Text
         {
-          using Parent = zc::parsing::tokens::Operator<op, args_num>;
-
-          Operator(const Parent& op_token): Parent(op_token) {}
-          Operator(size_t begin) : zc::parsing::tokens::Operator<op, args_num>(begin){};
+          Operator(const Text& txt): Text(txt) {}
 
           Operator(const Operator&) = default;
         };

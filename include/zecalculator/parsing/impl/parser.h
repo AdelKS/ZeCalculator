@@ -302,7 +302,7 @@ struct FunctionVisiter
 {
   using Ret = tl::expected<AST<world_type>, Error>;
   std::string expression;
-  const tokens::Text& func_txt_token;
+  const uast::node::Function& func;
   std::vector<AST<world_type>> subnodes;
 
   /// @brief moves the elements of 'subnodes' into an array
@@ -323,32 +323,32 @@ struct FunctionVisiter
   Ret operator()(const CppFunction<world_type, args_num>& f)
   {
     if (subnodes.size() != args_num) [[unlikely]]
-      return tl::unexpected(Error::mismatched_fun_args(func_txt_token, expression));
+      return tl::unexpected(Error::mismatched_fun_args(func.args_token, expression));
 
     return std::make_unique<ast::node::Node<world_type>>(
       ast::node::CppFunction<world_type, args_num>(
-        func_txt_token, &f, get_subnode_arr<args_num>()));
+        func.substr, &f, get_subnode_arr<args_num>()));
   }
   template <size_t args_num>
   Ret operator()(const zc::Function<world_type, args_num>& f)
   {
     if (subnodes.size() != args_num) [[unlikely]]
-      return tl::unexpected(Error::mismatched_fun_args(func_txt_token, expression));
+      return tl::unexpected(Error::mismatched_fun_args(func.args_token, expression));
 
     return std::make_unique<ast::node::Node<world_type>>(
-      ast::node::Function<world_type, args_num>(func_txt_token, &f, get_subnode_arr<args_num>()));
+      ast::node::Function<world_type, args_num>(func.substr, &f, get_subnode_arr<args_num>()));
   }
   Ret operator()(const zc::Sequence<world_type>& u)
   {
     if (subnodes.size() != 1) [[unlikely]]
-      return tl::unexpected(Error::mismatched_fun_args(func_txt_token, expression));
+      return tl::unexpected(Error::mismatched_fun_args(func.args_token, expression));
 
     return std::make_unique<ast::node::Node<world_type>>(
-      ast::node::Sequence<world_type>(func_txt_token, &u, std::move(subnodes.front())));
+      ast::node::Sequence<world_type>(func.name_token, &u, std::move(subnodes.front())));
   }
   Ret operator()(auto&&)
   {
-    return tl::unexpected(Error::wrong_object_type(func_txt_token, expression));
+    return tl::unexpected(Error::wrong_object_type(func.name_token, expression));
   }
 };
 
@@ -383,9 +383,9 @@ struct bind
             else return tl::unexpected(expected_bound_node.error());
           }
 
-          auto* dyn_obj = math_world.get(func.substr);
+          auto* dyn_obj = math_world.get(func.name_token.substr);
           if (not dyn_obj) [[unlikely]]
-            return tl::unexpected(Error::undefined_function(func, expression));
+            return tl::unexpected(Error::undefined_function(func.name_token, expression));
           else return std::visit(FunctionVisiter<type>{expression, func, std::move(operands)}, dyn_obj->variant);
         },
         [&](const uast::node::Variable& var) -> Ret
@@ -421,6 +421,16 @@ tl::expected<UAST, Error> make_uast(std::string_view expression, std::span<const
 
   if (tokens.empty()) [[unlikely]]
     return tl::unexpected(Error::empty());
+
+  auto get_current_sub_expr = [&](){
+    auto end_token = text_token(tokens.back());
+    size_t start = text_token(tokens.front()).substr_info->begin;
+    size_t end = end_token.substr_info->begin + end_token.substr_info->size;
+
+    return tokens::Text(expression.substr(start, end - start), expression);
+  };
+
+  tokens::Text current_sub_expr = get_current_sub_expr();
 
   // when there's only a single token, it can only be number or a variable
   if (tokens.size() == 1)
@@ -492,8 +502,17 @@ tl::expected<UAST, Error> make_uast(std::string_view expression, std::span<const
       }
     }
 
-    const auto func_txt_token = text_token(tokens.front());
-    return uast::node::Function(func_txt_token, std::move(subnodes));
+    auto func_token = text_token(tokens.front());
+
+    tokens::Text args_token;
+    // remove the function name and the opening parenthesis and the last parenthesis
+    args_token.substr_info = SubstrInfo{.begin = current_sub_expr.substr_info->begin
+                                                 + func_token.substr.size() + 1,
+                                        .size = current_sub_expr.substr_info->size
+                                                - func_token.substr.size() - 2};
+    args_token.substr = args_token.substr_info->substr(expression);
+
+    return uast::node::Function(current_sub_expr, std::move(func_token), std::move(args_token), std::move(subnodes));
 
     // return ast::node::Function(text_token(tokens.front()), std::move(subnodes));
   }
@@ -519,7 +538,8 @@ tl::expected<UAST, Error> make_uast(std::string_view expression, std::span<const
       if (not right_hand_side.has_value())
         return right_hand_side;
 
-      return uast::node::Operator<op, 2>(text_token(*tokenIt).substr_info.value().begin,
+      return uast::node::Operator<op, 2>(current_sub_expr,
+                                         text_token(*tokenIt),
                                          std::array{std::move(left_hand_side.value()),
                                                     std::move(right_hand_side.value())});
     };
@@ -550,11 +570,7 @@ tl::expected<UAST, Error> make_uast(std::string_view expression, std::span<const
       return std::move(*res);
   }
 
-  // if we reach the end of this function, something is not right
-  auto text_tokens = tokens | std::views::transform([](auto&& tok){ return text_token(tok); });
-  tokens::Text unexpected_slice = std::accumulate(text_tokens.begin() + 1, text_tokens.end(), *text_tokens.begin());
-
-  return tl::unexpected(Error::unexpected(unexpected_slice, std::string(expression)));
+  return tl::unexpected(Error::unexpected(current_sub_expr, std::string(expression)));
 }
 
 template <std::ranges::viewable_range Range>
@@ -565,7 +581,7 @@ UAST mark_input_vars<Range>::operator () (const UAST& tree)
     [&](const shared::node::InputVariable& v) -> UAST { return v; },
     [&](const shared::node::Number& n) -> UAST { return n; },
     [&](const uast::node::Function& f) -> UAST {
-      uast::node::Function f_copy(f, {});
+      uast::node::Function f_copy(f, f.name_token, f.args_token, {});
       for (const UAST& sub_tree: f.subnodes)
         f_copy.subnodes.push_back((*this)(sub_tree));
       return f_copy;
@@ -581,7 +597,7 @@ UAST mark_input_vars<Range>::operator () (const UAST& tree)
       {
         return std::array{(void(i), (*this)(op_f.operands[i]))...};
       };
-      return uast::node::Operator<op, args_num>(op_f, make_operands(std::make_index_sequence<args_num>()));
+      return uast::node::Operator<op, args_num>(op_f, op_f.name_token, make_operands(std::make_index_sequence<args_num>()));
     }},
     *tree);
 }
@@ -694,7 +710,7 @@ struct direct_dependency_saver
       utils::overloaded{
         [&](const uast::node::Function& f)
         {
-          deps.insert({f.substr, deps::ObjectType::FUNCTION});
+          deps.insert({f.name_token.substr, deps::ObjectType::FUNCTION});
           std::ranges::for_each(f.subnodes, std::ref(*this));
           // if we do not use std::ref, a copy of this instance is taken
         },

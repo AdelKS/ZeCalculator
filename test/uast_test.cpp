@@ -43,9 +43,9 @@ int main()
     expect(bool(expect_node));
 
     UAST expected_node = uast::node::BinaryOperator<'+'>(
-      1,
+      tokens::Text(expression, 0), tokens::Text("+", 1),
       {shared::node::Number(2.0, tokens::Text{"2", 0}),
-       uast::node::BinaryOperator<'*'>(3,
+       uast::node::BinaryOperator<'*'>(tokens::Text("2*2", 2), tokens::Text("*", 3),
                                        {shared::node::Number(2.0, tokens::Text{"2", 2}),
                                         shared::node::Number(2.0, tokens::Text{"2", 4})})});
 
@@ -69,10 +69,10 @@ int main()
 
     expect(bool(expect_node));
 
-    UAST expected_node = uast::node::BinaryOperator<'+'>(15,
-      {uast::node::Function(tokens::Text("cos", 1),
-        {uast::node::BinaryOperator<'+'>(11,
-          {uast::node::Function(tokens::Text("sin", 5),
+    UAST expected_node = uast::node::BinaryOperator<'+'>(tokens::Text(expression, 0), tokens::Text("+", 15),
+      {uast::node::Function(tokens::Text("cos(sin(x)+1)", 1), tokens::Text("cos", 1), tokens::Text("sin(x)+1", 13),
+        {uast::node::BinaryOperator<'+'>(tokens::Text("cos(sin(x)+1", 1), tokens::Text("+", 11),
+          {uast::node::Function(tokens::Text("sin(x)", 5), tokens::Text("cos", 5), tokens::Text("x", 9),
             {shared::node::InputVariable(tokens::Text("x", 9), 0)}),
              shared::node::Number(1.0, tokens::Text("1", 12))})}),
       shared::node::Number(1.0, tokens::Text("1", 16))});
@@ -89,7 +89,7 @@ int main()
 
   "mark input vars"_test = []()
   {
-    std::string expression = "(cos(sin(x)+1))+1";
+    std::string expression = "cos(x)+sin(x)+1";
 
     auto parsing = tokenize(expression);
 
@@ -111,13 +111,16 @@ int main()
     expect(direct_dependencies(expect_node.value())
            == zc::deps::Deps{{"cos", zc::deps::FUNCTION}, {"sin", zc::deps::FUNCTION}});
 
-    UAST expected_node = uast::node::BinaryOperator<'+'>(15,
-      {uast::node::Function(tokens::Text("cos", 1),
-        {uast::node::BinaryOperator<'+'>(11,
-          {uast::node::Function(tokens::Text("sin", 5),
-            {shared::node::InputVariable(tokens::Text("x", 9), 0)}),
-             shared::node::Number(1.0, tokens::Text("1", 12))})}),
-      shared::node::Number(1.0, tokens::Text("1", 16))});
+    UAST expected_node =
+    uast::node::BinaryOperator<'+'>(
+      tokens::Text(expression, 0), tokens::Text("+", 13),
+      {uast::node::BinaryOperator<'+'>(
+        tokens::Text("cos(x)+sin(x)", 0), tokens::Text("+", 6),
+        {uast::node::Function(tokens::Text("cos(x)", 0), tokens::Text("cos", 0), tokens::Text("x", 4),
+          {shared::node::InputVariable(tokens::Text("x", 4), 0)}),
+         uast::node::Function(tokens::Text("sin(x)", 7), tokens::Text("sin", 7), tokens::Text("x", 11),
+          {shared::node::InputVariable(tokens::Text("x", 11), 0)})}),
+       shared::node::Number(1.0, tokens::Text("1", 12))});
 
     if (*expect_node != expected_node)
       std::cout << *expect_node;
