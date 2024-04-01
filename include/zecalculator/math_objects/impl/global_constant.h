@@ -44,6 +44,14 @@ GlobalConstant<type>& GlobalConstant<type>::set(double val)
 }
 
 template <parsing::Type type>
+GlobalConstant<type>& GlobalConstant<type>::set_fast(double val)
+{
+  m_value.value = val;
+
+  return *this;
+}
+
+template <parsing::Type type>
 bool GlobalConstant<type>::operator == (double val) const
 {
   return m_value.value == val;

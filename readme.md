@@ -146,12 +146,12 @@ There is for now one benchmark defined in the tests, called "parametric function
 
 The current results are (AMD Ryzen 5950X, `-march=native -O3` compile flags)
 - `g++ 13.2.1` + `libstdc++` + `ld.bfd 2.41.0`
-  - `ast`: 210ns ± 5ns
-  - `rpn`: 225ns ± 5ns
+  - `ast`: 145ns ± 5ns
+  - `rpn`: 145ns ± 5ns
   - `c++`: 75ns ± 5ns
 - `clang++ 17.0.6` + `libc++` + `ld.lld 17.0.6`
-  - `ast`: 255ns ± 5ns
-  - `rpn`: 275ns ± 5ns
+  - `ast`: 135ns ± 5ns
+  - `rpn`: 150ns ± 5ns
   - `c++`: 75ns ± 5ns
 
 <details>
@@ -178,7 +178,7 @@ The current results are (AMD Ryzen 5950X, `-march=native -O3` compile flags)
         res += f({x}).value();
         iterations++;
         x++;
-        t+=1;
+        t.set_fast(t.value()+1);
       }
       auto end = high_resolution_clock::now();
       std::cout << "Avg zc::Function<" << data_type_str_v << "> eval time: "

@@ -34,7 +34,12 @@ class GlobalConstant: public MathEqObject<type>
 {
 public:
 
+  /// @brief changes the value stored along with the equation with the new value
   GlobalConstant& set(double val);
+
+  /// @brief changes the value stored, leaves the equation unchanged and outdated
+  /// @note only used for benchmarks to avoid measuring the string operations
+  GlobalConstant& set_fast(double val);
 
   GlobalConstant& operator = (double val);
 

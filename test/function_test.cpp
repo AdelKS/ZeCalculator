@@ -250,7 +250,7 @@ int main()
         res += f({x}).value();
         iterations++;
         x++;
-        t+=1;
+        t.set_fast(t.value()+1);
       }
       auto end = high_resolution_clock::now();
       std::cout << "Avg zc::Function<" << data_type_str_v << "> eval time: "
