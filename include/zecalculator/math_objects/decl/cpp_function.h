@@ -52,6 +52,7 @@ public:
 protected:
 
   constexpr CppFunction(MathWorldObjectHandle<type> obj_handle);
+  constexpr CppFunction(MathObject<type> obj, CppMathFunctionPtr<args_num> ptr);
 
   CppMathFunctionPtr<args_num> f_ptr = nullptr;
 

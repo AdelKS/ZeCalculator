@@ -46,13 +46,8 @@ template <parsing::Type type>
 class Sequence: public zc::Function<type, 1>
 {
   using Parent = Function<type, 1>;
+
 public:
-
-  void set(std::string var_name,
-           const std::string& expr,
-           std::vector<double> first_vals = {});
-
-  void set_input_var(std::string var_name);
 
   void set_first_values(std::vector<double> first_vals);
 
@@ -71,7 +66,7 @@ public:
 protected:
 
   // constructor reserved for MathWorld when using add() function
-  Sequence(MathWorldObjectHandle<type> obj_handle);
+  Sequence(Parent parent);
 
   /// @brief evaluation with recursion depth tracking
   tl::expected<double, Error> evaluate(double index, size_t current_recursion_depth) const;

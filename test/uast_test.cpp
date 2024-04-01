@@ -65,7 +65,7 @@ int main()
 
     expect(bool(parsing)) << parsing;
 
-    auto expect_node = make_uast(expression, parsing.value(), zc::Vars<1>{"x"});
+    auto expect_node = make_uast(expression, parsing.value(), std::array{"x"});
 
     expect(bool(expect_node));
 
@@ -103,7 +103,7 @@ int main()
                              {"sin", zc::deps::FUNCTION},
                              {"x", zc::deps::VARIABLE}});
 
-    auto expect_node = simple_uast.transform(mark_input_vars{zc::Vars<1>{"x"}});
+    auto expect_node = simple_uast.transform(mark_input_vars{std::array{"x"}});
 
     expect(bool(expect_node));
 
@@ -137,7 +137,7 @@ int main()
 
     expect(bool(parsing)) << parsing;
 
-    auto expect_node = make_uast(expression, parsing.value(), zc::Vars<1>{"x"});
+    auto expect_node = make_uast(expression, parsing.value(), std::array{"x"});
 
     expect(bool(expect_node));
 

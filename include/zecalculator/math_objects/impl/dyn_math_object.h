@@ -30,11 +30,19 @@
 namespace zc {
 
 template <parsing::Type type>
+DynMathObject<type>::DynMathObject(tl::expected<MathObjectsVariant<type>, Error> exp_variant, MathWorldObjectHandle<type> handle)
+  : tl::expected<MathObjectsVariant<type>, Error>(std::move(exp_variant)), MathWorldObjectHandle<type>(std::move(handle))
+{}
+
+template <parsing::Type type>
 template <class... DBL>
   requires (std::is_convertible_v<DBL, double> and ...)
 tl::expected<double, Error> DynMathObject<type>::evaluate(DBL... val) const
 {
   using Ret = tl::expected<double, Error>;
+  if (not bool(*this))
+    return tl::unexpected(this->error());
+
   return std::visit(
     utils::overloaded{
       [&]<size_t args_num>(const CppFunction<type, args_num>& cpp_f) -> Ret
@@ -55,7 +63,7 @@ tl::expected<double, Error> DynMathObject<type>::evaluate(DBL... val) const
       {
         if constexpr (sizeof...(val) != 0)
           return tl::unexpected(Error::cpp_incorrect_argnum());
-        else return cst;
+        else return cst.value();
       },
       [&](const Sequence<type>& u) -> Ret
       {
@@ -64,7 +72,7 @@ tl::expected<double, Error> DynMathObject<type>::evaluate(DBL... val) const
         else return u(val...);
       }
     },
-    variant
+    **this
   );
 }
 
@@ -74,6 +82,46 @@ template <class... DBL>
 tl::expected<double, Error> DynMathObject<type>::operator () (DBL... val) const
 {
   return evaluate(val...);
+}
+
+template <parsing::Type type>
+template <class T>
+  requires (tuple_contains_v<MathObjects<type>, T>)
+const T& DynMathObject<type>::value_as() const
+{
+  return std::get<T>(this->value());
+}
+
+
+template <parsing::Type type>
+template <class T>
+  requires (tuple_contains_v<MathObjects<type>, T>)
+T& DynMathObject<type>::value_as()
+{
+  return std::get<T>(this->value());
+}
+
+template <parsing::Type type>
+template <class T>
+  requires (tuple_contains_v<MathObjects<type>, T> or std::is_same_v<T, Error>)
+bool DynMathObject<type>::holds() const
+{
+  if constexpr (std::is_same_v<T, Error>)
+    return not this->has_value();
+  else
+  {
+    if (this->has_value())
+      return std::holds_alternative<T>(**this);
+    else return false;
+  }
+}
+
+template <parsing::Type type>
+std::string DynMathObject<type>::get_name() const
+{
+  if (bool(*this))
+    return std::visit([](const auto& val){ return val.get_name(); }, **this);
+  else return std::string();
 }
 
 }

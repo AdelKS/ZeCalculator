@@ -31,6 +31,9 @@ struct non_unique_ptr: std::unique_ptr<T>
 {
   using Parent = std::unique_ptr<T>;
 
+  non_unique_ptr() : Parent(std::make_unique<T>())
+  {}
+
   non_unique_ptr(T val) : Parent(std::make_unique<T>(std::move(val)))
   {}
 
@@ -53,7 +56,8 @@ struct non_unique_ptr: std::unique_ptr<T>
 
   non_unique_ptr& operator = (const non_unique_ptr& other)
   {
-    reset(other ? std::make_unique<T>(*other) : nullptr);
+    this->reset(other ? new T(*other) : nullptr);
+    return *this;
   }
 
   non_unique_ptr(non_unique_ptr&&) = default;

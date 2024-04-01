@@ -21,108 +21,74 @@
 ****************************************************************************/
 
 #include <zecalculator/math_objects/decl/global_constant.h>
+#include <format>
 
 namespace zc {
 
 template <parsing::Type type>
-GlobalConstant<type>::GlobalConstant(MathWorldObjectHandle<type> obj_handle)
-  : MathObject<type>(obj_handle)
+GlobalConstant<type>::GlobalConstant(MathEqObject<type> math_expr_obj, parsing::tokens::Number m_value)
+  : MathEqObject<type>(std::move(math_expr_obj)), m_value(std::move(m_value))
 {}
 
 template <parsing::Type type>
-void GlobalConstant<type>::set(double val)
+GlobalConstant<type>& GlobalConstant<type>::set(double val)
 {
-  *this = val;
+  std::string val_str = std::format("{}", val);
+  SubstrInfo& substr_info = m_value.substr_info.value();
+  this->m_equation.replace(substr_info.begin, substr_info.size, val_str);
+
+  substr_info.size = val_str.size();
+  m_value.substr = val_str;
+  m_value.value = val;
+
+  return *this;
 }
 
 template <parsing::Type type>
 bool GlobalConstant<type>::operator == (double val) const
 {
-  if (exp_value)
-    return *exp_value == val;
-  else return false;
+  return m_value.value == val;
 }
 
 template <parsing::Type type>
 GlobalConstant<type>& GlobalConstant<type>::operator = (double val)
 {
-  exp_value = val;
+  set(val);
   return *this;
 }
 
 template <parsing::Type type>
 GlobalConstant<type>& GlobalConstant<type>::operator += (double val)
 {
-  if (*this)
-    **this += val;
+  set(m_value.value + val);
   return *this;
 }
 
 template <parsing::Type type>
 GlobalConstant<type>& GlobalConstant<type>::operator -= (double val)
 {
-  if (*this)
-    **this -= val;
+  set(m_value.value - val);
   return *this;
 }
 
 template <parsing::Type type>
 GlobalConstant<type>& GlobalConstant<type>::operator *= (double val)
 {
-  if (*this)
-    **this *= val;
+  set(m_value.value * val);
   return *this;
 }
 
 template <parsing::Type type>
 GlobalConstant<type>& GlobalConstant<type>::operator /= (double val)
 {
-  if (*this)
-    **this /= val;
+  set(m_value.value / val);
   return *this;
 }
 
 template <parsing::Type type>
-GlobalConstant<type>::operator bool () const
+double GlobalConstant<type>::value() const
 {
-  return bool(exp_value);
-}
-
-template <parsing::Type type>
-GlobalConstant<type>::operator tl::expected<double, Error> () const
-{
-  return exp_value;
-}
-
-template <parsing::Type type>
-const double& GlobalConstant<type>::value() const
-{
-  return exp_value.value();
-}
-
-template <parsing::Type type>
-double& GlobalConstant<type>::value()
-{
-  return exp_value.value();
-}
-
-template <parsing::Type type>
-double& GlobalConstant<type>::operator * ()
-{
-  return *exp_value;
-}
-
-template <parsing::Type type>
-const double& GlobalConstant<type>::operator * () const
-{
-  return *exp_value;
-}
-
-
-template <parsing::Type type>
-const Error& GlobalConstant<type>::error() const
-{
-  return exp_value.error();
+  return m_value.value;
 }
 
 }

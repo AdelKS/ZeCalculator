@@ -52,8 +52,8 @@ namespace parsing {
       using BinaryOperator = Operator<type, op, 2>;
 
       template <parsing::Type world_type>
-      using Node = std::variant<shared::node::InputVariable,
-                                shared::node::Number,
+      using Node = std::variant<shared::node::Number,
+                                shared::node::InputVariable,
                                 Operator<world_type, '=', 2>,
                                 Operator<world_type, '+', 2>,
                                 Operator<world_type, '-', 2>,

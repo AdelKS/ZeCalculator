@@ -99,6 +99,8 @@ struct Unkown: Text
 
 struct Number: Text
 {
+  Number() = default;
+
   Number(double value, const tokens::Text& text_token): Text(text_token), value(value) {}
   double value = std::nan("");
 };

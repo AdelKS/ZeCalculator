@@ -90,8 +90,8 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    world.template add<GlobalConstant<type>>("my_constant1", 2.0);
-    world.template add<GlobalConstant<type>>("my_constant2", 3.0);
+    world.add("my_constant1 = 2.0");
+    world.add("my_constant2 = 3.0");
 
     expect(world.evaluate("my_constant1 + my_constant2").value() == 5.0_d);
   } | std::tuple<AST_TEST, RPN_TEST>{};
@@ -115,9 +115,9 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    world.template add<GlobalConstant<type>>("x", 2.0);
+    world.add("x  =   2.0");
 
-    Function<type, 1>& fun = world.template add<Function<type, 1>>("f", Vars<1>{"x"}, "cos(x) + x").value();
+    Function<type, 1>& fun = world.add("f(x) = cos(x) + x").template value_as<Function<type, 1>>();
 
     const double res = fun({1.0}).value();
 
@@ -145,7 +145,7 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    world.template add<GlobalConstant<type>>("g", 3);
+    world.add("g = 3");
 
     auto error = world.evaluate("7 + g(3)").error();
     expect(error.type == Error::WRONG_OBJECT_TYPE);

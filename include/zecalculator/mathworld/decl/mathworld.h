@@ -32,7 +32,6 @@
 #include <zecalculator/utils/utils.h>
 
 #include <string>
-#include <variant>
 #include <string_view>
 
 namespace zc {
@@ -89,20 +88,36 @@ public:
     requires tuple_contains_v<MathObjects<type>, ObjectType>
   const ObjectType& get(size_t id) const;
 
-  /// @brief default constructs an ObjectType in the world, under the name 'name'
-  ///        then, if there are extra args, forwards them to the member function .set() of the newly added object
-  /// @param arg...: arguments passed to the set() member function of the object
-  /// @note returns an Error if the name is already taken or has the wrong format, leaves the world unchanged.
-  template <class ObjectType, class... Arg>
-    requires(tuple_contains_v<MathObjects<type>, ObjectType>
-             and (sizeof...(Arg) == 0 or requires(ObjectType o) { o.set(std::declval<Arg>()...); }))
-  tl::expected<ref<ObjectType>, Error> add(const std::string& name, Arg&&... arg);
+  /// @brief returns a handle to a new math object
+  /// @note  the variant within contains the Unknown alternative
+  DynMathObject<type>& add();
 
-  /// @brief default constructs an ObjectType in the world, without a name
-  /// @note  use the method MathWorld::set_name(obj, name) to give it a name so it can be used by other objects
-  template <class ObjectType>
-    requires(tuple_contains_v<MathObjects<type>, ObjectType>)
-  ObjectType& add();
+  /// @brief Add new object with given definition, see 'redefine()' for more information
+  template <class InterpretAs = DynMathObject<type>>
+    requires (tuple_contains_v<MathEqObjects<type>, InterpretAs>
+              or std::is_same_v<DynMathObject<type>, InterpretAs>)
+  DynMathObject<type>& add(std::string definition);
+
+  /// @brief add cpp function
+  template <size_t args_num>
+    requires (args_num <= max_func_args)
+  DynMathObject<type>& add(std::string name, CppMathFunctionPtr<args_num> cpp_f);
+
+  /// @brief redefine 'obj' with 'definition' and intepret the definition as 'InterpretAs' type
+  /// @note the default 'DynMathObject<type>>' type means "auto", i.e. try to guess the object type
+  /// @returns the same reference: the variant within may contain a different alternative
+  /// @example in auto, definition := "y = 1.2" returns a DynMathObject that contains a GlobalConstant
+  /// @example in auto, definition := "y = f(1.2)" returns a DynMathObject that contains a a GlobalVariable
+  /// @example in auto, definition := "y(x) = cos(x)" returns a DynMathObject that contains a a Function
+  template <class InterpretAs = DynMathObject<type>>
+    requires (tuple_contains_v<MathEqObjects<type>, InterpretAs>
+              or std::is_same_v<DynMathObject<type>, InterpretAs>)
+  DynMathObject<type>& redefine(DynMathObject<type>& obj, std::string definition);
+
+  /// @brief redefine math object as cpp function
+  template <size_t args_num>
+    requires (args_num <= max_func_args)
+  DynMathObject<type>& redefine(DynMathObject<type>& obj, std::string name, CppMathFunctionPtr<args_num> cpp_f);
 
   /// @brief says if an object with the given name exists within the world
   bool contains(std::string_view name) const;
@@ -133,8 +148,11 @@ public:
 
 protected:
 
+  /// @brief checks that this object has actually been allocated in this world
+  bool sanity_check(const DynMathObject<type>& obj);
+
   /// @brief parse all Function-based object that directly depends on obj_name
-  void parse_direct_revdeps_of(const std::string& obj_name);
+  void rebind_direct_revdeps_of(const std::string& obj_name);
 
   /// @brief maps an object name to its type and ID (index within the container that holds it)
   name_map<DynMathObject<type>*> inventory;

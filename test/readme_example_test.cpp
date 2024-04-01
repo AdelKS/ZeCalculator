@@ -30,55 +30,82 @@ int main()
 
   // Notes about adding a math object to a math world:
   // - Each added object exists only within the math world that creates it
-  // - Adding a math object returns a tl::expected that can have an error instead of a
-  //   ref to the object (e.g.: invalid format for the name, or name is already taken)
-
-  // Add a global constant called "my_constant" with an initial value of 3.0
-  // Note: the .value() call from tl::expected<> throws if it actually holds an error
-  ast::GlobalConstant& my_constant = world.add<ast::GlobalConstant>("my_constant", 3.0).value();
+  // - Adding a math object returns a DynMathObject reference that is essentially an expected<variant, error>
+  //   with some helper functions.
+  //   - the variant contains all the possible objects: function, sequence, global constant, global variable, cpp function
+  //   - the error expresses what went wrong in parsing the equation
 
   // Add a one parameter function named "f"
-  ast::Function<1>& f = world.add<ast::Function<1>>("f", Vars<1>{"x"}, "x + my_constant + cos(math::pi)").value();
+  // Note that 'my_constant' is only defined later
+  // - this function's state will be updated once 'my_constant' is defined
+  // - (re)defining objects within a math world can potentially modify every other objects
+  ast::DynMathObject& obj1 = world.add("f(x) = x + my_constant + cos(math::pi)");
 
-  // We know the expression is correct, returns an std::optional<zc::Error>
-  assert(not f.error());
+  // the expected should hold a variant whose alternative is a single variable function
+  assert(obj1.holds<ast::Function<1>>());
 
-  // We can query the direct (or all) dependencies of Function based objects
-  // the methods returns a map that gives the names and the type of dep
-  // this function returns something as soon as the tokenize step in the parsing is successful
-  // (done when calling set_expression() method)
-  assert(bool(f.direct_dependencies()
-              == std::unordered_map{std::pair(std::string("my_constant"), deps::VARIABLE),
-                                    {"cos", deps::FUNCTION},
-                                    {"math::pi", deps::VARIABLE}}));
+  // if we try to evaluate the function, we get an Error object
+  assert(obj1(1.0).error() == Error::undefined_variable(parsing::tokens::Text("my_constant", 11), "f(x) = x + my_constant + cos(math::pi)"));
 
-  // Evaluate function, returns an 'expected'
-  expected<double, Error> eval = f({1});
+  // Add a global constant called "my_constant" with an initial value of 3.0
+  ast::DynMathObject& obj2 = world.add("my_constant = 3.0");
+
+  // We can evaluate 'obj1'
+  // note: we could also do it when 'my_constant' was undefined,
+  //       in that case the result would be the same error as above
+  expected<double, Error> eval = obj1(1.0);
 
   // Notes:
   // - We know the expression is correct, otherwise the call `.value()` will throw
   // - The error can be recovered with '.error()`
   // - To know if the result is correct
   //   - call `.has_value()`
-  //   - use the `bool()` operator on the expression
+  //   - use the `bool()` operator on 'eval'
   assert(eval.value() == 3);
 
+  // add a single argument function 'g' to the world
+  world.add("g(z) = 2*z + my_constant");
+
+  // redefine what 'obj1' is
+  // - a function of two variables, with different names now
+  // - calls the function 'g'
+  world.redefine(obj1, "h(u, v) = u + v + my_constant + g(v)");
+
+  // the equation should be parsed as a two-argument function
+  assert(obj1.holds<ast::Function<2>>());
+
+  // evaluate function again and get the new value
+  assert(obj1(1, 3).value() == 16);
+
+  // ======================================================================================
+
+  // the underlying objects can be retrieved either by using the fact that
+  // DynMathObject publicly inherits expected<variant, error> or the 'value_as' helper function:
+  // - "value" prefix just like expected::value, i.e. can throw
+  // - "value_as" as a wrapper to std::get<>(expected::value), can throw for two different reasons
+  //   - the expected has an error
+  //   - the alternative asked is not the actual one held by the variant
+  ast::Function<2>& func = obj1.value_as<ast::Function<2>>();
+  ast::GlobalConstant& my_constant = obj2.value_as<ast::GlobalConstant>();
+
+  // each specific math object has extra public methods that may prove useful
+
+  // functions can be in error state if one of its direct dependencies are undefined
+  // e.g. "f(x) = cos(x) + g(x)" but "g(x)" is undefined
+  assert(not func.error());
+
+  // We can query the direct (or all) dependencies of Function based objects
+  // the methods returns a map that gives the names and the type of dep
+  assert(bool(func.direct_dependencies()
+              == std::unordered_map{std::pair(std::string("my_constant"), deps::VARIABLE),
+                                    {"g", deps::FUNCTION}}));
+
   // overwrite the value of the global constant
+  // without needing to redefine it through a full equation (which will require parsing etc...)
   my_constant = 5.0;
 
-  // evaluate function again and get the new value
-  assert(f({1}).value() == 5);
-
-  // define one parameter function 'g'
-  world.add<ast::Function<1>>("g", Vars<1>{"z"}, "2*z + my_constant").value();
-
-  // change 'f':
-  // - different number of input variables and different names
-  // - expression calls a function g
-  f.set(Vars<1>{"y"}, "y + my_constant + g(y)");
-
-  // evaluate function again and get the new value
-  assert(f({3}).value() == 19);
+  // Function objects can also be evaluated
+  assert(func({1, 1}).value() == 14);
 
   return 0;
 }

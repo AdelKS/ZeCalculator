@@ -101,7 +101,7 @@ RPN make_RPN(const AST<Type::RPN>& tree);
 template <std::ranges::viewable_range Range = std::array<std::string, 0>>
   requires std::is_convertible_v<std::ranges::range_value_t<Range>, std::string_view>
 deps::Deps direct_dependencies(const std::vector<parsing::Token>& tokens,
-                               const Range& input_vars = std::array<std::string, 0>{});
+                               const Range& input_vars = {});
 
 /// @brief gives the Function and Variable names that intervene in this UAST
 deps::Deps direct_dependencies(const UAST& uast);

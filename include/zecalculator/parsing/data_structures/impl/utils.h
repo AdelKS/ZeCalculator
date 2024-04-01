@@ -40,11 +40,12 @@ namespace zc {
                               rpn::node::Node>)
   inline parsing::tokens::Text text_token(const NodeType& token)
   {
-    return std::visit(utils::overloaded{[](const auto& tk) -> parsing::tokens::Text
-                                        {
-                                          return tk;
-                                        }},
-                      token);
+    return std::visit(
+      [](const auto& tk) -> parsing::tokens::Text
+      {
+        return tk;
+      },
+      token);
     }
 
     template <class NodeType>

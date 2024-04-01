@@ -23,7 +23,7 @@
 #include <zecalculator/evaluation/ast/impl/evaluation.h>
 #include <zecalculator/evaluation/rpn/impl/evaluation.h>
 #include <zecalculator/math_objects/decl/function.h>
-#include <zecalculator/math_objects/impl/math_object.h>
+#include <zecalculator/math_objects/impl/math_eq_object.h>
 #include <zecalculator/parsing/data_structures/impl/uast.h>
 #include <zecalculator/parsing/impl/parser.h>
 
@@ -32,136 +32,49 @@
 namespace zc {
 
 template <parsing::Type type, size_t args_num>
-Function<type, args_num>::Function(MathWorldObjectHandle<type> obj_handle)
-  : MathObject<type>(obj_handle), tokenized_expr(tl::unexpected(Error::empty_expression())),
-    parsed_expr(tl::unexpected(Error::empty_expression()))
-{}
-
-template <parsing::Type type, size_t args_num>
-void Function<type, args_num>::set_input_vars(Vars<args_num> input_vars)
-  requires (args_num > 0 )
+Function<type, args_num>::Function(MathEqObject<type> base,
+                                   std::array<parsing::tokens::Text, args_num> vars)
+  : MathEqObject<type>(std::move(base)),
+    vars(std::move(vars)),
+    direct_deps(parsing::direct_dependencies(this->rhs))
 {
-  auto it = std::ranges::find_if_not(input_vars, parsing::is_valid_name);
-  if (it != input_vars.end())
-    this->vars = tl::unexpected(
-      Error::wrong_format(parsing::tokens::Text(*it, SubstrInfo{.size = (*it).size()}), *it));
-  else
-  {
-    this->vars = std::move(input_vars);
-    parse();
-  }
+  rebind();
 }
 
 template <parsing::Type type, size_t args_num>
-void Function<type, args_num>::set_input_var(std::string input_var)
-  requires (args_num == 1)
+void Function<type, args_num>::rebind()
 {
-  if (parsing::is_valid_name(input_var)) [[unlikely]]
-    this->vars = tl::unexpected(
-      Error::wrong_format(parsing::tokens::Text(input_var, SubstrInfo{.size = input_var.size()}), input_var));
-  else
-  {
-    this->vars = std::array{std::move(input_var)};
-    parse();
-  }
-}
-
-template <parsing::Type type, size_t args_num>
-void Function<type, args_num>::set_expression(std::string expr)
-{
-  // do nothing if it's the same expression
-  if (expression == expr)
-    return;
-
-  expression = std::move(expr);
-
-  if (expression.empty())
-    tokenized_expr = tl::unexpected(Error::empty_expression());
-  else tokenized_expr = parsing::tokenize(expression);
-
-  parse();
-}
-
-template <parsing::Type type, size_t args_num>
-void Function<type, args_num>::parse()
-{
-  if constexpr (args_num > 0)
-  {
-    if (not this->vars)
-    {
-      parsed_expr = tl::unexpected(Error::invalid_function());
-      return;
-    }
-  }
-
-  auto make_uast = [&](std::span<const parsing::Token> tokens) -> tl::expected<parsing::UAST, Error>
-  {
-    if constexpr (args_num == 0)
-      return parsing::make_uast(expression, tokens);
-    else return parsing::make_uast(expression, tokens, this->vars.value());
-  };
-
-  using namespace std::placeholders;
-
   if constexpr (type == parsing::Type::AST)
-    parsed_expr = tokenized_expr.and_then(make_uast).and_then(parsing::bind<type>{expression, *this->mathworld});
+    bound_rhs = parsing::bind<type>{this->m_equation, *this->mathworld}(this->rhs);
   else
-    parsed_expr
-      = tokenized_expr.and_then(make_uast).and_then(parsing::bind<type>{expression, *this->mathworld}).transform(parsing::make_RPN);
-}
-
-template <parsing::Type type, size_t args_num>
-void Function<type, args_num>::set(Vars<args_num> input_vars, std::string expr)
-  requires (args_num >= 1)
-{
-  set_input_vars(std::move(input_vars));
-  set_expression(std::move(expr));
-}
-
-template <parsing::Type type, size_t args_num>
-void Function<type, args_num>::set(std::string expr)
-  requires (args_num == 0)
-{
-  set_expression(std::move(expr));
+    bound_rhs = parsing::bind<type>{this->m_equation, *this->mathworld}(this->rhs).transform(parsing::make_RPN);
 }
 
 template <parsing::Type type, size_t args_num>
 Function<type, args_num>::operator bool () const
 {
-  if constexpr (args_num == 0)
-    return bool(parsed_expr);
-  else return bool(parsed_expr) and bool(this->vars);
+  return bool(bound_rhs);
 }
 
 template <parsing::Type type, size_t args_num>
 std::optional<Error> Function<type, args_num>::error() const
 {
-  if constexpr (args_num > 0)
-  {
-    if (not this->vars)
-      return this->vars.error();
-  }
-
-  if (not parsed_expr)
-    return parsed_expr.error();
-  else
-    return {};
+  if (not bound_rhs)
+    return bound_rhs.error();
+  else return {};
 }
 
 template <parsing::Type type, size_t args_num>
-std::unordered_map<std::string, deps::ObjectType> Function<type, args_num>::direct_dependencies() const
+const std::unordered_map<std::string, deps::ObjectType>& Function<type, args_num>::direct_dependencies() const
 {
-  if (not tokenized_expr.has_value() or not vars.has_value())
-    return {};
-
-  return parsing::direct_dependencies(*tokenized_expr, *vars);
+  return direct_deps;
 }
 
 template <parsing::Type type, size_t args_num>
 std::unordered_map<std::string, deps::ObjectType> Function<type, args_num>::dependencies() const
 {
   std::unordered_map<std::string, deps::ObjectType> deps = direct_dependencies();
-  std::unordered_set<std::string> explored_deps = {this->name};
+  std::unordered_set<std::string> explored_deps = {this->name.substr};
 
   std::unordered_set<std::string> to_explore;
 
@@ -180,7 +93,7 @@ std::unordered_map<std::string, deps::ObjectType> Function<type, args_num>::depe
     explored_deps.insert(name);
 
     const auto* dyn_obj = this->mathworld->get(name);
-    if (not dyn_obj)
+    if (not dyn_obj or not *dyn_obj)
       continue;
 
     std::visit(
@@ -200,7 +113,7 @@ std::unordered_map<std::string, deps::ObjectType> Function<type, args_num>::depe
           }
         }
       },
-      dyn_obj->variant);
+      **dyn_obj);
   }
   return deps;
 }
@@ -214,7 +127,7 @@ tl::expected<double, Error> Function<type, args_num>::evaluate(
   else if (not bool(*this)) [[unlikely]]
     return tl::unexpected(*error());
 
-  return zc::evaluate(*parsed_expr, args, current_recursion_depth);
+  return zc::evaluate(bound_rhs.value(), args, current_recursion_depth);
 }
 
 template <parsing::Type type, size_t args_num>

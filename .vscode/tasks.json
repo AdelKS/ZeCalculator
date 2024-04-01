@@ -136,7 +136,7 @@
             "options": {
                 "cwd": "${cwd}/build-zc-debug-clang"
             },
-            "dependsOn": "setup-clang",
+            "dependsOn": "setup-clangd",
             "problemMatcher": ["$meson-gcc"],
             "group": {
                 "kind": "build",

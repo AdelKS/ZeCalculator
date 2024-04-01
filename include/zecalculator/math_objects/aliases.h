@@ -47,6 +47,10 @@ namespace ast {
 
   using GlobalConstant = zc::GlobalConstant<parsing::Type::AST>;
 
+  using Unkown = zc::Unknown<parsing::Type::AST>;
+
+  using DynMathObject = zc::DynMathObject<parsing::Type::AST>;
+
 } // namespace ast
 
 namespace rpn {
@@ -65,6 +69,10 @@ namespace rpn {
   using CppBinaryFunction = CppFunction<2>;
 
   using GlobalConstant = zc::GlobalConstant<parsing::Type::RPN>;
+
+  using Unkown = zc::Unknown<parsing::Type::RPN>;
+
+  using DynMathObject = zc::DynMathObject<parsing::Type::RPN>;
 
 } // namespace rpn
 

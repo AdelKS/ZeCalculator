@@ -1,16 +1,9 @@
 if not meson.is_subproject()
   install_headers(
     files(
-      'ast.h',
-      'rpn.h',
-      'shared.h',
-      'token.h',
-      'uast.h',
-      'utils.h',
+      'parser.h',
     ),
     subdir: 'zecalculator',
     preserve_path: true
   )
 endif
-subdir('decl')
-subdir('impl')

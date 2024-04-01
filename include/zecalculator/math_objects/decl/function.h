@@ -27,9 +27,11 @@
 
 #include <zecalculator/error.h>
 #include <zecalculator/external/expected.h>
-#include <zecalculator/math_objects/decl/math_object.h>
+#include <zecalculator/math_objects/decl/math_eq_object.h>
+#include <zecalculator/mathworld/decl/mathworld.h>
 #include <zecalculator/parsing/data_structures/decl/ast.h>
 #include <zecalculator/parsing/data_structures/decl/rpn.h>
+#include <zecalculator/parsing/data_structures/decl/uast.h>
 #include <zecalculator/parsing/data_structures/decl/utils.h>
 #include <zecalculator/parsing/decl/parser.h>
 #include <zecalculator/parsing/types.h>
@@ -62,52 +64,22 @@ namespace parsing {
   struct RpnMaker;
 }
 
-template <size_t args_num>
-using Vars = std::array<std::string, args_num>;
-
-/// @brief class that handles Function's input vars
-template <size_t args_num>
-struct InputVars
-{
-  tl::expected<std::array<std::string, args_num>, Error> vars;
-};
-
-template <>
-struct InputVars<0>
-{};
-
 template <class T>
 struct is_function: std::false_type {};
 
 template <class T>
 inline constexpr bool is_function_v = is_function<T>::value;
 
+/// @brief class representing a function
+/// @tparam type: representation type (AST, RPN)
+/// @tparam args_num: number of arguments the function receives
 template <parsing::Type type, size_t args_num>
-class Function: public MathObject<type>, public InputVars<args_num>
+class Function: public MathEqObject<type>
 {
 public:
 
   Function(Function&& f) = default;
   Function& operator = (Function&& f) = default;
-
-  /// @brief sets the names of the input variables
-  /// @note the order of the input variables is important when calling the function
-  ///       with positional arguments
-  void set_input_vars(Vars<args_num> input_vars)
-    requires (args_num > 0);
-
-  void set_input_var(std::string input_var)
-    requires (args_num == 1);
-
-  /// \brief set the expression
-  void set_expression(std::string expr);
-
-  /// @brief sets both the input_vars and the expression
-  void set(Vars<args_num> input_vars, std::string expr)
-    requires (args_num >= 1);
-
-  void set(std::string expr)
-    requires (args_num == 0);
 
   /// @brief returns the number of input variables, if they are valid
   static constexpr size_t argument_size() { return args_num; };
@@ -116,7 +88,7 @@ public:
   /// @note  uses only the function's expression (no name lookup is done in
   ///        the MathWorld the function belongs to)
   /// @note  undefined functions & variables in the math world will still be listed
-  std::unordered_map<std::string, deps::ObjectType> direct_dependencies() const;
+  const std::unordered_map<std::string, deps::ObjectType>& direct_dependencies() const;
 
   /// @brief gives all the Functions and Variables this function (recursively) depends on
   /// @note  uses only the function's expression (no name lookup is done in
@@ -129,9 +101,6 @@ public:
 
   /// @brief returns the parsing error, if there is any
   std::optional<Error> error() const;
-
-  /// @brief (re)parse the expression
-  void parse();
 
   /// @brief evaluation on a given math world with the given input
   tl::expected<double, Error> evaluate(const std::array<double, args_num>& args) const
@@ -160,13 +129,25 @@ public:
 protected:
 
   // constructor reserved for MathWorld when using add() function
-  Function(MathWorldObjectHandle<type> obj_handle);
+  Function(MathEqObject<type> base,
+           std::array<parsing::tokens::Text, args_num> vars);
+
+  /// @brief rebind math object names to actual objects in the math world
+  /// @note this function is called when function names changed etc...
+  void rebind();
 
   /// @note version that tracks the current recursion depth
   tl::expected<double, Error> evaluate(std::span<const double, args_num> args,
                                        size_t current_recursion_depth) const;
 
-  std::string expression;
+  /// @brief variable names, as views on the function's 'm_definition' (part of parent MathObject class)
+  std::array<parsing::tokens::Text, args_num> vars;
+
+  /// @brief object names this function directly depends on
+  std::unordered_map<std::string, deps::ObjectType> direct_deps;
+
+  /// @brief binding of the UAST 'left_expr' (parent MathObject class) to 'mathWorld'
+  tl::expected<parsing::Parsing<type>, Error> bound_rhs = tl::unexpected(Error::empty_expression());
 
   template <size_t>
   friend struct eval::rpn::Evaluator;
@@ -175,10 +156,6 @@ protected:
   friend struct eval::ast::Evaluator;
 
   friend struct parsing::RpnMaker;
-
-  tl::expected<std::vector<parsing::Token>, Error> tokenized_expr;
-  tl::expected<parsing::Parsing<type>, Error> parsed_expr;
-  tl::expected<Vars<args_num>, Error> vars;
 
   template <parsing::Type>
   friend class MathWorld;

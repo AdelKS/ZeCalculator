@@ -3,7 +3,7 @@
 /****************************************************************************
 **  Copyright (c) 2023, Adel Kara Slimane <adel.ks@zegrapher.com>
 **
-**  This file is part of ZeCalculator's source code.
+**  This file is part of ZeCalculator.
 **
 **  ZeCalculators is free software: you may copy, redistribute and/or modify it
 **  under the terms of the GNU Affero General Public License as published by the
@@ -20,24 +20,5 @@
 **
 ****************************************************************************/
 
-#include <zecalculator/math_objects/decl/math_object.h>
-
-namespace zc {
-
-template <parsing::Type type>
-MathObject<type>::MathObject(MathWorldObjectHandle<type> obj_handle)
-  : MathWorldObjectHandle<type>(obj_handle)
-{}
-
-template <parsing::Type type>
-MathObject<type>::MathObject(parsing::tokens::Text name, MathWorldObjectHandle<type> obj_handle)
-  : MathWorldObjectHandle<type>(obj_handle), name(std::move(name))
-{}
-
-template <parsing::Type type>
-const std::string& MathObject<type>::get_name() const
-{
-  return name.substr;
-}
-
-}
+#include <zecalculator/parsing/data_structures/decl/uast.h>
+#include <zecalculator/parsing/data_structures/impl/uast.h>

@@ -20,7 +20,8 @@
 **
 ****************************************************************************/
 
-#include <zecalculator/math_objects/decl/math_object.h>
+#include <zecalculator/math_objects/decl/math_eq_object.h>
+#include <zecalculator/parsing/data_structures/token.h>
 #include <zecalculator/error.h>
 
 namespace zc {
@@ -29,11 +30,11 @@ template <parsing::Type type>
 class MathWorld;
 
 template <parsing::Type type>
-class GlobalConstant: public MathObject<type>
+class GlobalConstant: public MathEqObject<type>
 {
 public:
 
-  void set(double val);
+  GlobalConstant& set(double val);
 
   GlobalConstant& operator = (double val);
 
@@ -45,22 +46,12 @@ public:
   GlobalConstant& operator /= (double val);
   GlobalConstant& operator *= (double val);
 
-  operator bool () const;
-
-  operator tl::expected<double, Error> () const;
-
-  const double& operator * () const;
-  double& operator * ();
-
-  const double& value() const;
-  double& value();
-
-  const Error& error() const;
+  double value() const;
 
 protected:
-  GlobalConstant(MathWorldObjectHandle<type> obj_handle);
+  GlobalConstant(MathEqObject<type> math_expr_obj, parsing::tokens::Number m_value);
 
-  tl::expected<double, Error> exp_value = tl::unexpected(Error::empty_expression());
+  parsing::tokens::Number m_value;
 
   template <parsing::Type>
   friend class MathWorld;

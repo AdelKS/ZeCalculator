@@ -22,6 +22,7 @@
 
 #include <type_traits>
 #include <utility>
+#include <cassert>
 
 namespace zc {
 namespace utils {
@@ -39,6 +40,9 @@ namespace utils {
 
   template <int>
   inline constexpr bool dependent_false_num_v = false;
+
+  template <class>
+  inline constexpr bool dependent_false_v = false;
 
   template <class Fn, class Int, Int... v>
   constexpr void for_int_seq(Fn&& f, std::integer_sequence<Int, v...>)
@@ -69,8 +73,8 @@ namespace utils {
   {
     auto make_array = [&]<size_t... i>(std::index_sequence<i...>)
     {
-      auto it = range.begin();
-      return std::array<T, size>{(i, *(it++))...};
+      [[maybe_unused]] auto it = range.begin();
+      return std::array<T, size>{(void(i), assert(it != range.end()), *(it++))...};
     };
     return make_array(std::make_index_sequence<size>());
   }

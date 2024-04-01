@@ -20,30 +20,47 @@
 **
 ****************************************************************************/
 
-#include <zecalculator/utils/tuple.h>
-#include <zecalculator/math_objects/aliases.h>
-#include <zecalculator/parsing/types.h>
+#include <string>
 
-#include <tuple>
+#include <zecalculator/parsing/types.h>
+#include <zecalculator/math_objects/math_object.h>
+#include <zecalculator/parsing/data_structures/decl/uast.h>
 
 namespace zc {
 
-/// @brief contains all the math objects that are defined through an equation
 template <parsing::Type type>
-using MathEqObjects = std::tuple<GlobalConstant<type>,
-                                 Function<type, 0>,
-                                 Function<type, 1>,
-                                 Function<type, 2>,
-                                 Sequence<type>>;
+class MathWorld;
 
 template <parsing::Type type>
-using MathObjects = tuple_type_cat_t<MathEqObjects<type>,
-                                     std::tuple<
-                                     CppFunction<type, 1>,
-                                     CppFunction<type, 2>>>;
+class Unknown;
 
-/// @brief maximum number of arguments functions can take
-/// @todo template the rest of the code to take this as input
-constexpr size_t max_func_args = 2;
+template <parsing::Type type>
+class MathEqObject: public MathObject<type>
+{
+public:
+  const std::string& equation() const { return m_equation; };
+
+protected:
+  MathEqObject(MathObject<type> math_obj, std::string equation);
+
+  MathEqObject(const MathEqObject&) = default;
+  MathEqObject& operator = (const MathEqObject&) = default;
+
+  /// @brief full function definition
+  /// @note needs to be in the format "[function signature] = [expression]" or "[variable name] = [expression]"
+  /// @example "f(x) = cos(x)"
+  /// @example "volume = 2.0"
+  std::string m_equation;
+
+  /// @brief the left side to the equal sign in the definition
+  parsing::UAST lhs;
+
+  /// @brief the right side to the equal sign in the definition
+  parsing::UAST rhs;
+
+  template <parsing::Type>
+  friend class MathWorld;
+
+};
 
 }

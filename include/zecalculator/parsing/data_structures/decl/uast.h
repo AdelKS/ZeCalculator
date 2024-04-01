@@ -27,6 +27,7 @@
 #include <zecalculator/parsing/data_structures/decl/shared.h>
 #include <zecalculator/parsing/data_structures/token.h>
 #include <zecalculator/utils/utils.h>
+#include <zecalculator/utils/non_unique_ptr.h>
 
 namespace zc {
 namespace parsing {
@@ -43,8 +44,8 @@ namespace parsing {
 
       using Variable = parsing::tokens::Variable;
 
-      using Node = std::variant<shared::node::InputVariable,
-                                shared::node::Number,
+      using Node = std::variant<shared::node::Number,
+                                shared::node::InputVariable,
                                 uast::node::Function,
                                 uast::node::Variable,
                                 uast::node::Operator<'=', 2>,

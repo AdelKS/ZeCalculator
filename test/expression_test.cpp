@@ -39,12 +39,11 @@ int main()
 
     MathWorld<type> world;
 
-    world.template add<Function<type, 2>>("f", Vars<2>{"x", "y"}, "x + y").value();
-    world.template add<GlobalConstant<type>>("t", t);
+    world.add("f( x, y)  = x + y");
+    world.add(std::format("t = {}", t));
 
     GlobalVariable<type>& expr
-      = world.template add<GlobalVariable<type>>("test_var", "cos(math::pi * t) + 2 + f(3, 4)")
-          .value();
+      = world.add("test_var = cos(math::pi * t) + 2 + f(3, 4)").template value_as<GlobalVariable<type>>();
 
     auto cpp_f = [](double x, double y) {
       return x + y;

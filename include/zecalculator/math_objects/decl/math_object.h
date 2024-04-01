@@ -19,9 +19,6 @@
 **  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **
 ****************************************************************************/
-
-#include <string>
-
 #include <zecalculator/parsing/types.h>
 
 namespace zc {
@@ -48,11 +45,9 @@ public:
 protected:
 
   MathObject(MathWorldObjectHandle<type> obj_handle);
-  MathObject(std::string name, MathWorldObjectHandle<type> obj_handle);
+  MathObject(parsing::tokens::Text name, MathWorldObjectHandle<type> obj_handle);
 
-  void set_name(std::string name);
-
-  std::string name;
+  parsing::tokens::Text name;
 
   template <parsing::Type>
   friend class MathWorld;

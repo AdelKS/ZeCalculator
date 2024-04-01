@@ -20,30 +20,15 @@
 **
 ****************************************************************************/
 
-#include <zecalculator/utils/tuple.h>
-#include <zecalculator/math_objects/aliases.h>
-#include <zecalculator/parsing/types.h>
-
-#include <tuple>
+#include <zecalculator/math_objects/decl/math_eq_object.h>
+#include <zecalculator/parsing/data_structures/impl/uast.h>
 
 namespace zc {
 
-/// @brief contains all the math objects that are defined through an equation
 template <parsing::Type type>
-using MathEqObjects = std::tuple<GlobalConstant<type>,
-                                 Function<type, 0>,
-                                 Function<type, 1>,
-                                 Function<type, 2>,
-                                 Sequence<type>>;
+MathEqObject<type>::MathEqObject(MathObject<type> math_obj, std::string equation)
+  : MathObject<type>(std::move(math_obj)), m_equation(equation)
+{}
 
-template <parsing::Type type>
-using MathObjects = tuple_type_cat_t<MathEqObjects<type>,
-                                     std::tuple<
-                                     CppFunction<type, 1>,
-                                     CppFunction<type, 2>>>;
-
-/// @brief maximum number of arguments functions can take
-/// @todo template the rest of the code to take this as input
-constexpr size_t max_func_args = 2;
 
 }

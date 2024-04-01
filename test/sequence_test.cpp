@@ -36,7 +36,13 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    Sequence<type>& fib = world.template add<Sequence<type>>("fib", "n", "fib(n-1) + fib(n-2)", Vals{0, 1}).value();
+    auto& obj = world.template add<Sequence<type>>("fib(n) = fib(n-1) + fib(n-2)");
+
+    expect(bool(obj));
+
+    auto& fib = obj.template value_as<Sequence<type>>();
+
+    fib.set_first_values(std::vector{0., 1.});
     // TODO: make function be able to call itself at instantiation within a math world
 
     expect(not fib.error());
@@ -57,7 +63,7 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    Sequence<type>& bad = world.template add<Sequence<type>>("bad", "n", "bad(n+10) + bad(n+20)").value();
+    auto& bad = world.add("bad(n) = bad(n+10) + bad(n+20)");
 
     expect(bad(0).error() == Error::recursion_depth_overflow());
 

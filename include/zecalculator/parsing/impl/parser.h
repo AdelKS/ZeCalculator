@@ -386,14 +386,18 @@ struct bind
           auto* dyn_obj = math_world.get(func.name_token.substr);
           if (not dyn_obj) [[unlikely]]
             return tl::unexpected(Error::undefined_function(func.name_token, expression));
-          else return std::visit(FunctionVisiter<type>{expression, func, std::move(operands)}, dyn_obj->variant);
+          if (not dyn_obj->has_value())
+            return tl::unexpected(Error::object_in_invalid_state(func.name_token, expression));
+          else return std::visit(FunctionVisiter<type>{expression, func, std::move(operands)}, **dyn_obj);
         },
         [&](const uast::node::Variable& var) -> Ret
         {
           auto* dyn_obj = math_world.get(var.substr);
           if (not dyn_obj) [[unlikely]]
             return tl::unexpected(Error::undefined_variable(var, expression));
-          else return std::visit(VariableVisiter<type>{expression, var}, dyn_obj->variant);
+          if (not dyn_obj->has_value())
+            return tl::unexpected(Error::object_in_invalid_state(var, expression));
+          else return std::visit(VariableVisiter<type>{expression, var}, **dyn_obj);
         },
         [&]<char op, size_t args_num>(const uast::node::Operator<op, args_num>& ope) -> Ret
         {

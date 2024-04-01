@@ -6,6 +6,7 @@ if not meson.is_subproject()
       'refs.h',
       'slotted_deque.h',
       'substr_info.h',
+      'tuple.h',
       'utils.h',
     ),
     subdir: 'zecalculator',

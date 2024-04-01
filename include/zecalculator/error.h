@@ -31,10 +31,9 @@ struct Error
   enum Type : uint8_t
   {
     CALLING_FUN_ARG_COUNT_MISMATCH,
-    CALLING_INVALID_FUNCTION, // expression that contains a function who cannot return values
+    OBJECT_INVALID_STATE, // expression that contains a function who cannot return values
     EMPTY_EXPRESSION,
     EMPTY,
-    INVALID_FUNCTION,
     MISSING,
     NAME_ALREADY_TAKEN,
     NOT_IMPLEMENTED,
@@ -46,6 +45,7 @@ struct Error
     UNKNOWN,
     WRONG_FORMAT,
     WRONG_OBJECT_TYPE, // object has been used as a different type as it actually is, example "2+cos" (where cos is a function used here as variable)
+    NOT_MATH_OBJECT_DEFINITION, // the parsed expression is not of the form "[func_call] = [expression]" or " [variable_name] = [expression]"
     CPP_INCORRECT_ARGNUM, // programmatically evaluating math object with incorrect number of arguments
   };
 
@@ -104,14 +104,9 @@ struct Error
     return Error {EMPTY_EXPRESSION};
   }
 
-  static Error invalid_function()
+  static Error object_in_invalid_state(parsing::tokens::Text tokenTxt, std::string expression)
   {
-    return Error {INVALID_FUNCTION};
-  }
-
-  static Error calling_invalid_function(parsing::tokens::Text tokenTxt, std::string expression)
-  {
-    return Error {CALLING_INVALID_FUNCTION, tokenTxt, std::move(expression)};
+    return Error {OBJECT_INVALID_STATE, tokenTxt, std::move(expression)};
   }
 
   static Error recursion_depth_overflow()
@@ -138,6 +133,11 @@ struct Error
   {
     return Error {OBJECT_NOT_IN_WORLD};
   }
+
+  static Error not_math_object_definition()
+  {
+    return Error {NOT_MATH_OBJECT_DEFINITION};
+  };
 
   // kind of error
   Type type = UNKNOWN;

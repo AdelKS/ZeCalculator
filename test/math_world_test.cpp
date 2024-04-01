@@ -46,7 +46,8 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    GlobalConstant<type>& c1 = world.template add<GlobalConstant<type>>("my_constant1").value();
+    auto& c1 = world.add("my_constant1 = 0").template value_as<GlobalConstant<type>>();
+
     c1 = 2.0;
     expect(c1 == 2.0);
 
@@ -57,8 +58,8 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    world.template add<GlobalConstant<type>>("my_constant1", 2.0);
-    expect(not world.template add<GlobalConstant<type>>("my_constant1", 3.0).has_value());
+    world.add("my_constant1 = 2.0");
+    expect(not world.add("my_constant1 = 3.0"));
 
   } | std::tuple<AST_TEST, RPN_TEST>{};
 
@@ -67,8 +68,8 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    Function<type, 1>& f = world.template add<Function<type, 1>>("f", Vars<1>{"x"}, "cos(x)").value();
-    Function<type, 1>& g = world.template add<Function<type, 1>>("g", Vars<1>{"x"}, "f(x)+1").value();
+    auto& f = world.add("f(x) = cos(x)").template value_as<Function<type, 1>>();
+    auto& g = world.add("g(x) = f(x)+1").template value_as<Function<type, 1>>();
 
     // no issues expected with parsing of 'f' nor 'g'
     expect(not bool(f.error()));
@@ -83,7 +84,7 @@ int main()
     expect(bool(g.error()) and g.error()->type == Error::UNDEFINED_FUNCTION and g.error()->token.substr == "f");
 
     // add a new function
-    Function<type, 1>& h = world.template add<Function<type, 1>>("h", Vars<1>{"x"}, "1+x").value();
+    auto& h = world.add("h(x) = 1+x").template value_as<Function<type, 1>>();
 
     // no issues expected with 'h'
     expect(not bool(h.error()));
@@ -98,14 +99,10 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
 
     MathWorld<type> world1;
-    Function<type, 1>& f = world1.template add<Function<type, 1>>("f", Vars<1>{"x"}, "cos(x)").value();
+    world1.add("f(x) = cos(x)");
 
     MathWorld<type> world2;
-    Function<type, 1>& g = world2.template add<Function<type, 1>>("g", Vars<1>{"x"}, "sin(x)+1").value();
-
-    // no issues expected with parsing of 'f' nor 'g'
-    expect(not bool(f.error()));
-    expect(not bool(g.error()));
+    auto& g = world2.template add<Function<type, 1>>("g(x) = sin(x)+1");
 
     // cannot erase 'g' in 'world1'
     expect(not bool(world1.erase(g)));
@@ -117,8 +114,8 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    Function<type, 1>& f = world.template add<Function<type, 1>>("f", Vars<1>{"x"}, "cos(x)").value();
-    Function<type, 1>& g = world.template add<Function<type, 1>>("g", Vars<1>{"x"}, "f(x)+1").value();
+    Function<type, 1>& f = world.add("f(x)=cos(x)").template value_as<Function<type, 1>>();
+    Function<type, 1>& g = world.add("g(x)= f(x)+1").template value_as<Function<type, 1>>();
 
     // no issues expected with parsing of 'f' nor 'g'
     expect(not bool(f.error()));

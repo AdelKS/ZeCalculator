@@ -47,4 +47,10 @@ constexpr CppFunction<type, args_num>::CppFunction(MathWorldObjectHandle<type> o
   : MathObject<type>(obj_handle)
 {}
 
+template <parsing::Type type, size_t args_num>
+  requires(args_num > 0)
+constexpr CppFunction<type, args_num>::CppFunction(MathObject<type> obj, CppMathFunctionPtr<args_num> ptr)
+  : MathObject<type>(std::move(obj)), f_ptr(ptr)
+{}
+
 } // namespace zc

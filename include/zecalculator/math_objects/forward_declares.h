@@ -50,4 +50,10 @@ template <parsing::Type, size_t args_num>
   requires (args_num > 0)
 class CppFunction;
 
+template <parsing::Type type>
+class Unknown;
+
+template <parsing::Type type>
+struct DynMathObject;
+
 }

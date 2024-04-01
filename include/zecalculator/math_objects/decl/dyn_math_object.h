@@ -40,8 +40,12 @@ template <parsing::Type type>
 using MathObjectsVariant = to_variant_t<MathObjects<type>>;
 
 template <parsing::Type type>
-struct DynMathObject
+struct DynMathObject: tl::expected<MathObjectsVariant<type>, Error>, MathWorldObjectHandle<type>
 {
+  DynMathObject(tl::expected<MathObjectsVariant<type>, Error> exp_variant, MathWorldObjectHandle<type> handle);
+
+  using tl::expected<MathObjectsVariant<type>, Error>::operator =;
+
   template <class... DBL>
     requires (std::is_convertible_v<DBL, double> and ...)
   tl::expected<double, Error> operator () (DBL... val) const;
@@ -50,8 +54,22 @@ struct DynMathObject
     requires (std::is_convertible_v<DBL, double> and ...)
   tl::expected<double, Error> evaluate(DBL... val) const;
 
-  MathObjectsVariant<type> variant;
-  MathWorldObjectHandle<type> handle;
+  /// @brief returns the name of the object, if it's valid, otherwise empty string
+  std::string get_name() const;
+
+  /// @brief gets the value of the expected (the variant) as a specific alternative
+  template <class T>
+    requires (tuple_contains_v<MathObjects<type>, T>)
+  const T& value_as() const;
+
+  /// @brief gets the value of the expected (the variant) as a specific alternative
+  template <class T>
+    requires (tuple_contains_v<MathObjects<type>, T>)
+  T& value_as();
+
+  template <class T>
+    requires (tuple_contains_v<MathObjects<type>, T> or std::is_same_v<T, Error>)
+  bool holds() const;
 };
 
 } // namespace zc

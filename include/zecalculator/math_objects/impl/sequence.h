@@ -5,17 +5,8 @@
 namespace zc {
 
 template <parsing::Type type>
-Sequence<type>::Sequence(MathWorldObjectHandle<type> obj_handle) : Parent(obj_handle)
+Sequence<type>::Sequence(Parent parent) : Parent(std::move(parent))
 {}
-
-template <parsing::Type type>
-void Sequence<type>::set(std::string var_name,
-                         const std::string& expr,
-                         std::vector<double> first_vals)
-{
-  values = std::move(first_vals);
-  Parent::set(std::array{var_name}, expr);
-}
 
 template <parsing::Type type>
 void Sequence<type>::set_first_values(std::vector<double> first_vals)
