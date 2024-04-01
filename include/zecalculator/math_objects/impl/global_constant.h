@@ -21,7 +21,6 @@
 ****************************************************************************/
 
 #include <zecalculator/math_objects/decl/global_constant.h>
-#include <format>
 
 namespace zc {
 
@@ -33,7 +32,7 @@ GlobalConstant<type>::GlobalConstant(MathEqObject<type> math_expr_obj, parsing::
 template <parsing::Type type>
 GlobalConstant<type>& GlobalConstant<type>::set(double val)
 {
-  std::string val_str = std::format("{}", val);
+  std::string val_str = std::to_string(val);
   SubstrInfo& substr_info = m_value.substr_info.value();
   this->m_equation.replace(substr_info.begin, substr_info.size, val_str);
 

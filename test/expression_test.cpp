@@ -40,7 +40,7 @@ int main()
     MathWorld<type> world;
 
     world.add("f( x, y)  = x + y");
-    world.add(std::format("t = {}", t));
+    world.add("t = " + std::to_string(t));
 
     GlobalVariable<type>& expr
       = world.add("test_var = cos(math::pi * t) + 2 + f(3, 4)").template value_as<GlobalVariable<type>>();

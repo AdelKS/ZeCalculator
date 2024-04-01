@@ -38,7 +38,7 @@ int main()
     double cpp_r = 3;
 
     MathWorld<type> world;
-    GlobalConstant<type>& r = world.add(std::format("r = {}", cpp_r)).template value_as<GlobalConstant<type>>();
+    GlobalConstant<type>& r = world.add("r = " + std::to_string(cpp_r)).template value_as<GlobalConstant<type>>();
     world.add("g(x) = sin(3 * math::pi * x) + r");
     world.add("k = 3*g(3)");
     Function<type, 2>& f = world.add("f(x, y)=cos(math::pi * x) * y + k*g(x) + r").template value_as<Function<type, 2>>();
