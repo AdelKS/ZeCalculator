@@ -33,7 +33,7 @@ int main()
 
   "dependent expression"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     const double t = 3;
 
@@ -62,6 +62,6 @@ int main()
 
     expect(expr().value() == cpp_expr());
 
-  } | std::tuple<AST_TEST, RPN_TEST>{};
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
 
 }

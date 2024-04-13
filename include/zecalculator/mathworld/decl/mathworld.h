@@ -39,8 +39,8 @@ namespace zc {
 template <parsing::Type type>
 class MathWorld;
 
-namespace ast {
-  using MathWorld = zc::MathWorld<parsing::Type::AST>;
+namespace fast {
+  using MathWorld = zc::MathWorld<parsing::Type::FAST>;
 }
 
 namespace rpn {

@@ -25,7 +25,7 @@
 #include <zecalculator/math_objects/impl/function.h>
 #include <zecalculator/math_objects/impl/sequence.h>
 #include <zecalculator/mathworld/impl/mathworld.h>
-#include <zecalculator/parsing/data_structures/impl/ast.h>
+#include <zecalculator/parsing/data_structures/impl/fast.h>
 #include <zecalculator/parsing/data_structures/impl/rpn.h>
 #include <zecalculator/parsing/data_structures/impl/uast.h>
 #include <zecalculator/parsing/decl/parser.h>
@@ -273,23 +273,23 @@ inline tl::expected<std::vector<std::span<const Token>::iterator>, Error>
   return non_pth_enclosed_tokens;
 }
 
-/// @brief functor that maps a MathWorld::ConstDynMathObject to tl::expected<ast::AST, Error>
+/// @brief functor that maps a MathWorld::ConstDynMathObject to tl::expected<fast::fast, Error>
 template <parsing::Type world_type>
 struct VariableVisiter
 {
-  using Ret = tl::expected<parsing::AST<world_type>, Error>;
+  using Ret = tl::expected<parsing::FAST<world_type>, Error>;
   std::string expression;
   const tokens::Text& var_txt_token;
 
   Ret operator()(const GlobalConstant<world_type>& global_constant)
   {
-    return std::make_unique<ast::node::Node<world_type>>(
+    return std::make_unique<fast::node::Node<world_type>>(
       shared::node::GlobalConstant<world_type>(var_txt_token, &global_constant));
   }
   Ret operator()(const zc::GlobalVariable<world_type>& global_variable)
   {
-    return std::make_unique<ast::node::Node<world_type>>(
-      ast::node::GlobalVariable<world_type>(var_txt_token, &global_variable));
+    return std::make_unique<fast::node::Node<world_type>>(
+      fast::node::GlobalVariable<world_type>(var_txt_token, &global_variable));
   }
   Ret operator()(auto&&)
   {
@@ -300,20 +300,20 @@ struct VariableVisiter
 template <parsing::Type world_type>
 struct FunctionVisiter
 {
-  using Ret = tl::expected<AST<world_type>, Error>;
+  using Ret = tl::expected<FAST<world_type>, Error>;
   std::string expression;
   const uast::node::Function& func;
-  std::vector<AST<world_type>> subnodes;
+  std::vector<FAST<world_type>> subnodes;
 
   /// @brief moves the elements of 'subnodes' into an array
   template <size_t args_num>
-  std::array<AST<world_type>, args_num> get_subnode_arr()
+  std::array<FAST<world_type>, args_num> get_subnode_arr()
   {
     assert(subnodes.size() == args_num);
 
     auto helper = [&]<size_t...i>(std::index_sequence<i...>)
     {
-      return std::array<AST<world_type>, args_num>{std::move(subnodes[i])...};
+      return std::array<FAST<world_type>, args_num>{std::move(subnodes[i])...};
     };
     return helper(std::make_index_sequence<args_num>());
   }
@@ -325,8 +325,8 @@ struct FunctionVisiter
     if (subnodes.size() != args_num) [[unlikely]]
       return tl::unexpected(Error::mismatched_fun_args(func.args_token, expression));
 
-    return std::make_unique<ast::node::Node<world_type>>(
-      ast::node::CppFunction<world_type, args_num>(
+    return std::make_unique<fast::node::Node<world_type>>(
+      fast::node::CppFunction<world_type, args_num>(
         func.substr, &f, get_subnode_arr<args_num>()));
   }
   template <size_t args_num>
@@ -335,16 +335,16 @@ struct FunctionVisiter
     if (subnodes.size() != args_num) [[unlikely]]
       return tl::unexpected(Error::mismatched_fun_args(func.args_token, expression));
 
-    return std::make_unique<ast::node::Node<world_type>>(
-      ast::node::Function<world_type, args_num>(func.substr, &f, get_subnode_arr<args_num>()));
+    return std::make_unique<fast::node::Node<world_type>>(
+      fast::node::Function<world_type, args_num>(func.substr, &f, get_subnode_arr<args_num>()));
   }
   Ret operator()(const zc::Sequence<world_type>& u)
   {
     if (subnodes.size() != 1) [[unlikely]]
       return tl::unexpected(Error::mismatched_fun_args(func.args_token, expression));
 
-    return std::make_unique<ast::node::Node<world_type>>(
-      ast::node::Sequence<world_type>(func.name_token, &u, std::move(subnodes.front())));
+    return std::make_unique<fast::node::Node<world_type>>(
+      fast::node::Sequence<world_type>(func.name_token, &u, std::move(subnodes.front())));
   }
   Ret operator()(auto&&)
   {
@@ -358,9 +358,9 @@ struct bind
   std::string expression;
   const MathWorld<type>& math_world;
 
-  tl::expected<AST<type>, Error> operator () (const UAST& uast)
+  tl::expected<FAST<type>, Error> operator () (const UAST& uast)
   {
-    using Ret = tl::expected<AST<type>, Error>;
+    using Ret = tl::expected<FAST<type>, Error>;
 
     return std::visit(
       utils::overloaded{
@@ -374,7 +374,7 @@ struct bind
         },
         [&](const uast::node::Function& func) -> Ret
         {
-          std::vector<AST<type>> operands;
+          std::vector<FAST<type>> operands;
           for (auto&& operand: func.subnodes)
           {
             auto expected_bound_node = (*this)(operand);
@@ -407,7 +407,7 @@ struct bind
             auto it = std::ranges::find_if_not(expected_operands, [](auto&& v){ return bool(v); });
             if (it != expected_operands.end())
               return tl::unexpected(it->error());
-            else return ast::node::Operator<type, op, args_num>(ope, {std::move(*expected_operands[i])...});
+            else return fast::node::Operator<type, op, args_num>(ope, {std::move(*expected_operands[i])...});
           };
           return get_operator(std::make_index_sequence<args_num>());
         }
@@ -518,7 +518,7 @@ tl::expected<UAST, Error> make_uast(std::string_view expression, std::span<const
 
     return uast::node::Function(current_sub_expr, std::move(func_token), std::move(args_token), std::move(subnodes));
 
-    // return ast::node::Function(text_token(tokens.front()), std::move(subnodes));
+    // return fast::node::Function(text_token(tokens.front()), std::move(subnodes));
   }
 
   // there are tokens that are not within parentheses
@@ -608,7 +608,7 @@ UAST mark_input_vars<Range>::operator () (const UAST& tree)
 
 struct RpnMaker
 {
-  RPN operator()(const ast::node::Sequence<Type::RPN>& seq)
+  RPN operator()(const fast::node::Sequence<Type::RPN>& seq)
   {
     RPN res = std::visit(*this, *seq.operand);
 
@@ -617,10 +617,10 @@ struct RpnMaker
   }
 
   template <size_t args_num>
-  RPN operator()(const ast::node::CppFunction<Type::RPN, args_num>& func)
+  RPN operator()(const fast::node::CppFunction<Type::RPN, args_num>& func)
   {
     RPN res;
-    for (const AST<Type::RPN>& sub_node : func.operands)
+    for (const FAST<Type::RPN>& sub_node : func.operands)
     {
       RPN tmp = std::visit(*this, *sub_node);
       std::ranges::move(tmp, std::back_inserter(res));
@@ -631,10 +631,10 @@ struct RpnMaker
   }
 
   template <size_t args_num>
-  RPN operator () (const ast::node::Function<Type::RPN, args_num>& func)
+  RPN operator () (const fast::node::Function<Type::RPN, args_num>& func)
   {
     RPN res;
-    for (const AST<Type::RPN>& sub_node : func.operands)
+    for (const FAST<Type::RPN>& sub_node : func.operands)
     {
       RPN tmp = std::visit(*this, *sub_node);
       std::ranges::move(tmp, std::back_inserter(res));
@@ -645,10 +645,10 @@ struct RpnMaker
   }
 
   template <char op, size_t args_num>
-  RPN operator () (const ast::node::Operator<Type::RPN, op, args_num>& func)
+  RPN operator () (const fast::node::Operator<Type::RPN, op, args_num>& func)
   {
     RPN res;
-    for (const AST<Type::RPN>& sub_node : func.operands)
+    for (const FAST<Type::RPN>& sub_node : func.operands)
     {
       RPN tmp = std::visit(*this, *sub_node);
       std::ranges::move(tmp, std::back_inserter(res));
@@ -675,7 +675,7 @@ struct RpnMaker
 
 };
 
-inline RPN make_RPN(const AST<Type::RPN>& tree)
+inline RPN make_RPN(const FAST<Type::RPN>& tree)
 {
   return std::visit(RpnMaker{}, *tree);
 }

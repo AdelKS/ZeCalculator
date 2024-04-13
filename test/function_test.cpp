@@ -35,7 +35,7 @@ int main()
 
   "multi-parameter function evaluation"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
     auto& f = world.add("f(omega,t) = cos(omega * t) + omega * t");
@@ -53,11 +53,11 @@ int main()
     auto* obj = world.get("f");
     expect(obj && (*obj)(omega, t).value() == expected_res);
 
-  } | std::tuple<AST_TEST, RPN_TEST>{};
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
 
   "function evaluation shadowing a global constant"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
     world.add("x = 2.0");
@@ -75,11 +75,11 @@ int main()
     auto* f_obj = world.get("f");
     expect(f_obj && (*f_obj)(1.0).value() == expected_res);
 
-  } | std::tuple<AST_TEST, RPN_TEST>{};
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
 
   "function calling another function"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
     auto& f1 = world.add("");
@@ -119,11 +119,11 @@ int main()
 
     if (bool(expected_res1))
       expect(std::fabs(expected_res1.value() - cpp_f1(x)) < 1e-11) << expected_res1.value() << " = " << cpp_f1(x);
-  } | std::tuple<AST_TEST, RPN_TEST>{};
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
 
   "function overwrites"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
 
@@ -166,11 +166,11 @@ int main()
     expect(f(3).value() == cpp_f_2(3));
     expect((*f_obj)(3).value() == cpp_f_2(3));
 
-  } | std::tuple<AST_TEST, RPN_TEST>{};
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
 
   "nested multi-variable functions"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
 
@@ -196,11 +196,11 @@ int main()
     auto* f_obj = world.get("f");
     expect(f_obj && (*f_obj)(x, y).value() == cpp_f(x, y));
 
-  } | std::tuple<AST_TEST, RPN_TEST>{};
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
 
   "function with dot in name"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
 
@@ -211,11 +211,11 @@ int main()
     expect(fx(1).value() == 2.0);
     expect(fy().value() == 4.0);
 
-  } | std::tuple<AST_TEST, RPN_TEST>{};
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
 
   "calling function with wrong number of arguments"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
 
@@ -229,13 +229,13 @@ int main()
     expect(res.error() == Error::mismatched_fun_args(parsing::tokens::Text("1, 2, 3", 6), var_expr))
       << res.error();
 
-  } | std::tuple<AST_TEST, RPN_TEST>{};
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
 
   "parametric function benchmark"_test = []<class StructType>()
   {
     {
-      constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
-      constexpr std::string_view data_type_str_v = std::is_same_v<StructType, AST_TEST> ? "AST" : "RPN";
+      constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
+      constexpr std::string_view data_type_str_v = std::is_same_v<StructType, FAST_TEST> ? "FAST" : "RPN";
 
       MathWorld<type> world;
       auto& t = world.add("t = 1").template value_as<GlobalConstant<type>>();
@@ -281,11 +281,11 @@ int main()
 
     }
 
-  } | std::tuple<AST_TEST, RPN_TEST>{};
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
 
   "sequence direct dependencies"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
 
@@ -297,11 +297,11 @@ int main()
     constexpr auto t = deps::ObjectType::FUNCTION;
     expect(seq.direct_dependencies() == std::unordered_map{std::pair{std::string("u"), t}, {"f", t}, {"cos", t}}); // "u" and "f"
 
-  } | std::tuple<AST_TEST, RPN_TEST>{};
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
 
   "function direct dependencies"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
 
@@ -316,11 +316,11 @@ int main()
                                  {"cos", deps::FUNCTION},
                                  {"math::pi", deps::VARIABLE}}); // "u" and "f"
 
-  } | std::tuple<AST_TEST, RPN_TEST>{};
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
 
   "dependencies"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
 
@@ -334,6 +334,6 @@ int main()
 
     expect(seq.dependencies() == std::unordered_map{std::pair{std::string("u"), t}, {"f", t}, {"h", t}, {"g", t}, {"sin", t}, {"cos", t}});
 
-  } | std::tuple<AST_TEST, RPN_TEST>{};
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
 
 }

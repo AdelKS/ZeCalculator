@@ -75,7 +75,7 @@ protected:
   friend struct eval::rpn::Evaluator;
 
   template <size_t>
-  friend struct eval::ast::Evaluator;
+  friend struct eval::fast::Evaluator;
 
   // hide functions that are not needed from Function
   using Parent::evaluate;

@@ -33,7 +33,7 @@ int main()
 
   "fibonacci sequence"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
     auto& obj = world.template add<Sequence<type>>("fib(n) = fib(n-1) + fib(n-2)");
@@ -56,16 +56,16 @@ int main()
     auto* fib_obj = world.get("fib");
     expect(fib_obj && (*fib_obj)(10).value() == 55.0_d);
 
-  } | std::tuple<AST_TEST, RPN_TEST>{};
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
 
   "recursion depth overflow"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
     auto& bad = world.add("bad(n) = bad(n+10) + bad(n+20)");
 
     expect(bad(0).error() == Error::recursion_depth_overflow());
 
-  } | std::tuple<AST_TEST, RPN_TEST>{};
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
 }

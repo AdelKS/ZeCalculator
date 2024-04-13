@@ -21,7 +21,6 @@
 #pragma once
 
 #include <string>
-#include <vector>
 #include <optional>
 #include <span>
 
@@ -29,7 +28,7 @@
 #include <zecalculator/external/expected.h>
 #include <zecalculator/math_objects/decl/math_eq_object.h>
 #include <zecalculator/mathworld/decl/mathworld.h>
-#include <zecalculator/parsing/data_structures/decl/ast.h>
+#include <zecalculator/parsing/data_structures/decl/fast.h>
 #include <zecalculator/parsing/data_structures/decl/rpn.h>
 #include <zecalculator/parsing/data_structures/decl/uast.h>
 #include <zecalculator/parsing/data_structures/decl/utils.h>
@@ -54,7 +53,7 @@ namespace rpn {
   struct Evaluator;
 }
 
-namespace ast {
+namespace fast {
   template <size_t>
   struct Evaluator;
 }
@@ -153,7 +152,7 @@ protected:
   friend struct eval::rpn::Evaluator;
 
   template <size_t>
-  friend struct eval::ast::Evaluator;
+  friend struct eval::fast::Evaluator;
 
   friend struct parsing::RpnMaker;
 

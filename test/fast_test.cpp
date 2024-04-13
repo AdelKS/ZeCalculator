@@ -33,7 +33,7 @@ int main()
 
   "simple expression"_test = []<class StructType>()
   {
-    constexpr Type type = std::is_same_v<StructType, FAST_TEST> ? Type::AST : Type::RPN;
+    constexpr Type type = std::is_same_v<StructType, FAST_TEST> ? Type::FAST : Type::RPN;
 
     zc::MathWorld<type> world;
     std::string expression = "2+2*2";
@@ -46,10 +46,10 @@ int main()
 
     expect(bool(expect_node));
 
-    AST<type> expected_node = ast::node::BinaryOperator<type, '+'>(
+    FAST<type> expected_node = fast::node::BinaryOperator<type, '+'>(
       tokens::Text{expression, 0},
       {shared::node::Number(2.0, tokens::Text{"2", 0}),
-       ast::node::BinaryOperator<type, '*'>(tokens::Text{"2*2", 2},
+       fast::node::BinaryOperator<type, '*'>(tokens::Text{"2*2", 2},
                                             {shared::node::Number(2.0, tokens::Text{"2", 2}),
                                              shared::node::Number(2.0, tokens::Text{"2", 4})})});
 
@@ -62,7 +62,7 @@ int main()
 
   "function expression"_test = []<class StructType>()
   {
-    constexpr Type type = std::is_same_v<StructType, FAST_TEST> ? Type::AST : Type::RPN;
+    constexpr Type type = std::is_same_v<StructType, FAST_TEST> ? Type::FAST : Type::RPN;
     zc::MathWorld<type> world;
 
     std::string expression = "(cos(sin(x)+1))+1";
@@ -75,14 +75,14 @@ int main()
 
     expect(bool(expect_node));
 
-    AST<type> expected_node = ast::node::BinaryOperator<type, '+'>(
+    FAST<type> expected_node = fast::node::BinaryOperator<type, '+'>(
       tokens::Text(expression, 0 ),
-      {ast::node::CppFunction<type, 1>(
+      {fast::node::CppFunction<type, 1>(
          tokens::Text("cos", 1),
          world.template get<zc::CppFunction<type, 1>>("cos"),
-         {ast::node::BinaryOperator<type, '+'>(
+         {fast::node::BinaryOperator<type, '+'>(
            tokens::Text("sin(x)+1", 5),
-           {ast::node::CppFunction<type, 1>(tokens::Text("sin", 5),
+           {fast::node::CppFunction<type, 1>(tokens::Text("sin", 5),
                                             world.template get<zc::CppFunction<type, 1>>("sin"),
                                             {shared::node::InputVariable(tokens::Text("x", 9), 0)}),
             shared::node::Number(1.0, tokens::Text("1", 12))})}),

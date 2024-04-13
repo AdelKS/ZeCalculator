@@ -30,28 +30,28 @@ using CppUnaryFunction = CppFunction<type, 1>;
 template <parsing::Type type>
 using CppBinaryFunction = CppFunction<type, 2>;
 
-namespace ast {
+namespace fast {
 
   template <size_t args_num>
-  using Function = zc::Function<parsing::Type::AST, args_num>;
+  using Function = zc::Function<parsing::Type::FAST, args_num>;
 
-  using Sequence = zc::Sequence<parsing::Type::AST>;
-  using Expression = zc::Expression<parsing::Type::AST>;
-  using GlobalVariable = zc::GlobalVariable<parsing::Type::AST>;
+  using Sequence = zc::Sequence<parsing::Type::FAST>;
+  using Expression = zc::Expression<parsing::Type::FAST>;
+  using GlobalVariable = zc::GlobalVariable<parsing::Type::FAST>;
 
   template <size_t args_num>
-  using CppFunction = zc::CppFunction<parsing::Type::AST, args_num>;
+  using CppFunction = zc::CppFunction<parsing::Type::FAST, args_num>;
 
   using CppUnaryFunction = CppFunction<1>;
   using CppBinaryFunction = CppFunction<2>;
 
-  using GlobalConstant = zc::GlobalConstant<parsing::Type::AST>;
+  using GlobalConstant = zc::GlobalConstant<parsing::Type::FAST>;
 
-  using Unkown = zc::Unknown<parsing::Type::AST>;
+  using Unkown = zc::Unknown<parsing::Type::FAST>;
 
-  using DynMathObject = zc::DynMathObject<parsing::Type::AST>;
+  using DynMathObject = zc::DynMathObject<parsing::Type::FAST>;
 
-} // namespace ast
+} // namespace fast
 
 namespace rpn {
 

@@ -33,7 +33,7 @@ int main()
 
   "dependent expression"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     double cpp_r = 3;
 
@@ -80,5 +80,5 @@ int main()
 
     expect(f({x, y}).value() == cpp_f(x, y));
 
-  } | std::tuple<AST_TEST, RPN_TEST>{};
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
 }

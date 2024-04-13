@@ -22,7 +22,7 @@
 
 #include <zecalculator/error.h>
 #include <zecalculator/mathworld/decl/mathworld.h>
-#include <zecalculator/parsing/data_structures/decl/ast.h>
+#include <zecalculator/parsing/data_structures/decl/fast.h>
 #include <zecalculator/parsing/data_structures/decl/rpn.h>
 #include <zecalculator/parsing/data_structures/decl/uast.h>
 #include <zecalculator/parsing/data_structures/decl/utils.h>
@@ -88,13 +88,13 @@ struct mark_input_vars
 template <class T>
 mark_input_vars(T) -> mark_input_vars<T>;
 
-/// @brief functor that transforms an UAST to an AST<type> by doing object name lookup within
+/// @brief functor that transforms an UAST to an FAST<type> by doing object name lookup within
 ///        a MathWorld instance and binding to objects with references
 template <Type type>
 struct bind;
 
 /// @brief transforms a syntax tree to a flat Reverse Polish / postfix notation representation
-RPN make_RPN(const AST<Type::RPN>& tree);
+RPN make_RPN(const FAST<Type::RPN>& tree);
 
 /// @brief gives the Function and Variable names in these tokens
 ///        variable names in `input_vars` will be filter out

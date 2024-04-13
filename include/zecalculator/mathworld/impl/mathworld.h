@@ -377,7 +377,7 @@ tl::expected<double, Error> MathWorld<type>::evaluate(std::string expr)
     return zc::evaluate(repr);
   };
 
-  if constexpr (type == parsing::Type::AST)
+  if constexpr (type == parsing::Type::FAST)
     return parsing::tokenize(expr)
       .and_then(make_uast)
       .and_then(parsing::bind<type>{expr, *this})

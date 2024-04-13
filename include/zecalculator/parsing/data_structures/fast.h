@@ -20,5 +20,5 @@
 **
 ****************************************************************************/
 
-#include <zecalculator/parsing/data_structures/decl/ast.h>
-#include <zecalculator/parsing/data_structures/impl/ast.h>
+#include <zecalculator/parsing/data_structures/decl/fast.h>
+#include <zecalculator/parsing/data_structures/impl/fast.h>

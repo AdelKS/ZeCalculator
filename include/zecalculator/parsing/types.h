@@ -24,7 +24,7 @@ namespace zc {
 namespace parsing {
 
 /// @brief types of parsing
-enum struct Type {AST, RPN};
+enum struct Type {FAST, RPN};
 
 }
 }

@@ -1,7 +1,7 @@
 if not meson.is_subproject()
   install_headers(
     files(
-      'ast.h',
+      'fast.h',
       'rpn.h',
       'shared.h',
       'token.h',

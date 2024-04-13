@@ -6,7 +6,7 @@
 #include <zecalculator/error.h>
 #include <zecalculator/math_objects/function.h>
 #include <zecalculator/parsing/data_structures/rpn.h>
-#include <zecalculator/parsing/data_structures/ast.h>
+#include <zecalculator/parsing/data_structures/fast.h>
 #include <zecalculator/parsing/data_structures/token.h>
 
 namespace std {
@@ -72,9 +72,9 @@ namespace zc {
 
     std::ostream& operator << (std::ostream& os, const Token& token);
 
-    std::ostream& operator << (std::ostream& os, const ast::node::Node<Type::AST>& node);
+    std::ostream& operator << (std::ostream& os, const fast::node::Node<Type::FAST>& node);
 
-    std::ostream& operator << (std::ostream& os, const ast::node::Node<Type::RPN>& node);
+    std::ostream& operator << (std::ostream& os, const fast::node::Node<Type::RPN>& node);
 
     std::ostream& operator << (std::ostream& os, const UAST& node);
 

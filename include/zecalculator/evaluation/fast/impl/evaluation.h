@@ -20,17 +20,17 @@
 **
 ****************************************************************************/
 
-#include <zecalculator/evaluation/ast/decl/evaluation.h>
-#include <zecalculator/parsing/data_structures/impl/ast.h>
+#include <zecalculator/evaluation/fast/decl/evaluation.h>
+#include <zecalculator/parsing/data_structures/impl/fast.h>
 
 namespace zc {
 namespace eval {
-namespace ast {
+namespace fast {
 
 template <size_t input_size>
 template <size_t args_num>
 inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator()(
-  const zc::parsing::ast::node::Function<zc::parsing::Type::AST, args_num>& node)
+  const zc::parsing::fast::node::Function<zc::parsing::Type::FAST, args_num>& node)
 {
   if (node.f->mathworld->max_recursion_depth < current_recursion_depth)
     return tl::unexpected(Error::recursion_depth_overflow());
@@ -53,7 +53,7 @@ inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator()(
 template <size_t input_size>
 template <char op, size_t args_num>
 inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator()(
-  const zc::parsing::ast::node::Operator<zc::parsing::Type::AST, op, args_num>& node)
+  const zc::parsing::fast::node::Operator<zc::parsing::Type::FAST, op, args_num>& node)
 {
   std::array<double, args_num> evaluations;
   size_t i = 0;
@@ -88,7 +88,7 @@ inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator()(
 
 template <size_t input_size>
 inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator()(
-  const zc::parsing::ast::node::Sequence<zc::parsing::Type::AST>& node)
+  const zc::parsing::fast::node::Sequence<zc::parsing::Type::FAST>& node)
 {
   if (node.u->mathworld->max_recursion_depth < current_recursion_depth)
     return tl::unexpected(Error::recursion_depth_overflow());
@@ -103,7 +103,7 @@ inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator()(
 template <size_t input_size>
 template <size_t args_num>
 inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator()(
-  const zc::parsing::ast::node::CppFunction<zc::parsing::Type::AST, args_num>& node)
+  const zc::parsing::fast::node::CppFunction<zc::parsing::Type::FAST, args_num>& node)
 {
   std::array<double, args_num> evals;
   for (size_t i = 0 ; i != args_num ; i++)
@@ -124,7 +124,7 @@ inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator()(
 
 template <size_t input_size>
 inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator () (
-  const zc::parsing::shared::node::GlobalConstant<zc::parsing::Type::AST>& node)
+  const zc::parsing::shared::node::GlobalConstant<zc::parsing::Type::FAST>& node)
 {
   return node.constant->value();
 }
@@ -154,11 +154,11 @@ inline Evaluator<input_size>::ReturnType
 /// @param input_vars: variables that are given as input to the tree, will shadow any variable in the math world
 /// @param world: math world (contains functions, global constants... etc)
 template <size_t input_size>
-inline tl::expected<double, Error> evaluate(const parsing::AST<parsing::Type::AST>& tree,
+inline tl::expected<double, Error> evaluate(const parsing::FAST<parsing::Type::FAST>& tree,
                                             std::span<const double, input_size> input_vars,
                                             size_t current_recursion_depth)
 {
-  return std::visit(eval::ast::Evaluator<input_size>{.input_vars = input_vars,
+  return std::visit(eval::fast::Evaluator<input_size>{.input_vars = input_vars,
                                                      .current_recursion_depth
                                                      = current_recursion_depth},
                     *tree);
@@ -166,14 +166,14 @@ inline tl::expected<double, Error> evaluate(const parsing::AST<parsing::Type::AS
 
 /// @brief evaluates a syntax tree using a given math world
 template <size_t input_size>
-inline tl::expected<double, Error> evaluate(const parsing::AST<parsing::Type::AST>& tree,
+inline tl::expected<double, Error> evaluate(const parsing::FAST<parsing::Type::FAST>& tree,
                                             std::span<const double, input_size> input_vars)
 {
   return evaluate(tree, input_vars, 0);
 }
 
 /// @brief evaluates a syntax tree using a given math world
-inline tl::expected<double, Error> evaluate(const parsing::AST<parsing::Type::AST>& tree)
+inline tl::expected<double, Error> evaluate(const parsing::FAST<parsing::Type::FAST>& tree)
 {
   return evaluate(tree, std::span<const double>(), 0);
 }

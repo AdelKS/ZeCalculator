@@ -26,7 +26,7 @@
 #include <zecalculator/math_objects/decl/sequence.h>
 #include <zecalculator/math_objects/global_constant.h>
 #include <zecalculator/parsing/data_structures/decl/utils.h>
-#include <zecalculator/parsing/data_structures/impl/ast.h>
+#include <zecalculator/parsing/data_structures/impl/fast.h>
 #include <zecalculator/parsing/data_structures/impl/rpn.h>
 #include <zecalculator/parsing/data_structures/token.h>
 
@@ -35,8 +35,8 @@ namespace zc {
 
   template <class NodeType>
     requires(utils::is_any_of<NodeType,
-                              ast::node::Node<parsing::Type::AST>,
-                              ast::node::Node<parsing::Type::RPN>,
+                              fast::node::Node<parsing::Type::FAST>,
+                              fast::node::Node<parsing::Type::RPN>,
                               rpn::node::Node>)
   inline parsing::tokens::Text text_token(const NodeType& token)
   {
@@ -50,8 +50,8 @@ namespace zc {
 
     template <class NodeType>
       requires(utils::is_any_of<NodeType,
-                                ast::node::Node<parsing::Type::AST>,
-                                ast::node::Node<parsing::Type::RPN>,
+                                fast::node::Node<parsing::Type::FAST>,
+                                fast::node::Node<parsing::Type::RPN>,
                                 rpn::node::Node>)
     inline SubstrInfo substr_info(const NodeType& token)
     {

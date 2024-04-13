@@ -25,33 +25,33 @@ std::ostream &operator<<(std::ostream &os, const Token &token)
 }
 
 template <Type world_type>
-void syntax_node_print_helper(std::ostream& os, const ast::node::Node<world_type>& node, size_t padding = 0)
+void syntax_node_print_helper(std::ostream& os, const fast::node::Node<world_type>& node, size_t padding = 0)
 {
   const std::string padding_str(padding, ' ');
 
   std::visit(
     zc::utils::overloaded{
-      [&]<size_t args_num>(const ast::node::Function<world_type, args_num> &f)
+      [&]<size_t args_num>(const fast::node::Function<world_type, args_num> &f)
       {
         os << padding_str << "Function<" << args_num << "> "
           << tokens::Text(f) << " {" << std::endl;
         for (const auto &operand : f.operands)
           syntax_node_print_helper(os, *operand, padding + 2);
       },
-      [&](const ast::node::Sequence<world_type> &u)
+      [&](const fast::node::Sequence<world_type> &u)
       {
         os << padding_str << "Sequence " << tokens::Text(u) << " {"
           << std::endl;
         syntax_node_print_helper(os, *u.operand, padding + 2);
       },
-      [&]<size_t args_num>(const ast::node::CppFunction<world_type, args_num> &f)
+      [&]<size_t args_num>(const fast::node::CppFunction<world_type, args_num> &f)
       {
         os << padding_str << "CppFunction<" << args_num << "> "
           << tokens::Text(f) << " {" << std::endl;
         for (auto &&operand : f.operands)
           syntax_node_print_helper(os, *operand, padding + 2);
       },
-      [&]<char op, size_t args_num>(const ast::node::Operator<world_type, op, args_num> &f)
+      [&]<char op, size_t args_num>(const fast::node::Operator<world_type, op, args_num> &f)
       {
         os << padding_str << "Operator<" << op << ", " << args_num
           << "> " << tokens::Text(f) << " {" << std::endl;
@@ -75,13 +75,13 @@ void syntax_node_print_helper(std::ostream& os, const ast::node::Node<world_type
     node);
 }
 
-std::ostream &operator<<(std::ostream &os, const ast::node::Node<Type::AST> &node) {
+std::ostream &operator<<(std::ostream &os, const fast::node::Node<Type::FAST> &node) {
   os << std::endl;
   syntax_node_print_helper(os, node);
   return os;
 }
 
-std::ostream &operator<<(std::ostream &os, const ast::node::Node<Type::RPN> &node) {
+std::ostream &operator<<(std::ostream &os, const fast::node::Node<Type::RPN> &node) {
   os << std::endl;
   syntax_node_print_helper(os, node);
   return os;

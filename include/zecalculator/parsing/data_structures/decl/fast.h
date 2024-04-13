@@ -30,7 +30,7 @@
 
 namespace zc {
 namespace parsing {
-  namespace ast {
+  namespace fast {
     namespace node {
 
       template <parsing::Type, size_t>
@@ -73,13 +73,13 @@ namespace parsing {
 
     } // namespace node
 
-  } // namespace ast
+  } // namespace fast
 
   /// @brief A tree representation in an AST or RPN world
   /// @note when the math world is RPN based, this AST is simply an intermediate form
   ///       before being transformed into an RPN representation
   template <parsing::Type world_type>
-  using AST = ast::node::NodePtr<world_type>;
+  using FAST = fast::node::NodePtr<world_type>;
 
   } // namespace parsing
 } // namespace zc

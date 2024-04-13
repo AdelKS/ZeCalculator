@@ -33,17 +33,17 @@ int main()
 
   "simple test"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
     CppUnaryFunction<type>* cppFunc = world.template get<CppUnaryFunction<type>>("sqrt");
     expect(cppFunc != nullptr and (*cppFunc)(4) == 2);
 
-  } | std::tuple<AST_TEST, RPN_TEST>{};
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
 
   "Add constant then set value"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
     auto& c1 = world.add("my_constant1 = 0").template value_as<GlobalConstant<type>>();
@@ -51,21 +51,21 @@ int main()
     c1 = 2.0;
     expect(c1 == 2.0);
 
-  } | std::tuple<AST_TEST, RPN_TEST>{};
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
 
   "Add same constant twice"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
     world.add("my_constant1 = 2.0");
     expect(not world.add("my_constant1 = 3.0"));
 
-  } | std::tuple<AST_TEST, RPN_TEST>{};
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
 
   "erase object with pointer"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
     auto& f = world.add("f(x) = cos(x)").template value_as<Function<type, 1>>();
@@ -92,11 +92,11 @@ int main()
     // 'h' must be built where 'f' was built before
     expect(&h == &f);
 
-  } | std::tuple<AST_TEST, RPN_TEST>{};
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
 
   "cannot erase object in the wrong world"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world1;
     world1.add("f(x) = cos(x)");
@@ -107,11 +107,11 @@ int main()
     // cannot erase 'g' in 'world1'
     expect(not bool(world1.erase(g)));
 
-  } | std::tuple<AST_TEST, RPN_TEST>{};
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
 
   "erase object by name"_test = []<class StructType>()
   {
-    constexpr parsing::Type type = std::is_same_v<StructType, AST_TEST> ? parsing::Type::AST : parsing::Type::RPN;
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
     Function<type, 1>& f = world.add("f(x)=cos(x)").template value_as<Function<type, 1>>();
@@ -130,7 +130,7 @@ int main()
     // after erasing 'cos', 'f' must have been reparsed and get an undefined function error on 'cos
     expect(bool(f.error()) and f.error()->type == Error::UNDEFINED_FUNCTION and f.error()->token.substr == "cos");
 
-  } | std::tuple<AST_TEST, RPN_TEST>{};
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
 
   return 0;
 }

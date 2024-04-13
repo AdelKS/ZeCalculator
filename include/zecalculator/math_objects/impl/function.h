@@ -20,7 +20,7 @@
 **
 ****************************************************************************/
 
-#include <zecalculator/evaluation/ast/impl/evaluation.h>
+#include <zecalculator/evaluation/fast/impl/evaluation.h>
 #include <zecalculator/evaluation/rpn/impl/evaluation.h>
 #include <zecalculator/math_objects/decl/function.h>
 #include <zecalculator/math_objects/impl/math_eq_object.h>
@@ -44,7 +44,7 @@ Function<type, args_num>::Function(MathEqObject<type> base,
 template <parsing::Type type, size_t args_num>
 void Function<type, args_num>::rebind()
 {
-  if constexpr (type == parsing::Type::AST)
+  if constexpr (type == parsing::Type::FAST)
     bound_rhs = parsing::bind<type>{this->m_equation, *this->mathworld}(this->rhs);
   else
     bound_rhs = parsing::bind<type>{this->m_equation, *this->mathworld}(this->rhs).transform(parsing::make_RPN);

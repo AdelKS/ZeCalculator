@@ -8,4 +8,4 @@ if not meson.is_subproject()
   )
 endif
 
-subdir('ast')
+subdir('fast')

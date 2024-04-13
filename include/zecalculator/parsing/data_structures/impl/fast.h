@@ -25,13 +25,13 @@
 #include <zecalculator/math_objects/decl/function.h>
 #include <zecalculator/math_objects/decl/sequence.h>
 #include <zecalculator/math_objects/global_constant.h>
-#include <zecalculator/parsing/data_structures/decl/ast.h>
+#include <zecalculator/parsing/data_structures/decl/fast.h>
 #include <zecalculator/parsing/data_structures/impl/shared.h>
 #include <zecalculator/parsing/data_structures/token.h>
 
 namespace zc {
   namespace parsing {
-    namespace ast {
+    namespace fast {
       namespace node {
 
         template <parsing::Type world_type, size_t args_num>
@@ -82,7 +82,7 @@ namespace zc {
           std::array<NodePtr<world_type>, args_num> operands;
         };
 
-      } // namespace ast
+      } // namespace fast
     } // namespace node
   } // namespace parsing
 } // namespace zc
