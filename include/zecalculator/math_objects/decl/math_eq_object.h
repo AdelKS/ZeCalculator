@@ -24,7 +24,7 @@
 
 #include <zecalculator/parsing/types.h>
 #include <zecalculator/math_objects/math_object.h>
-#include <zecalculator/parsing/data_structures/decl/uast.h>
+#include <zecalculator/parsing/data_structures/decl/ast.h>
 
 namespace zc {
 
@@ -53,10 +53,10 @@ protected:
   std::string m_equation;
 
   /// @brief the left side to the equal sign in the definition
-  parsing::UAST lhs;
+  parsing::AST lhs;
 
   /// @brief the right side to the equal sign in the definition
-  parsing::UAST rhs;
+  parsing::AST rhs;
 
   template <parsing::Type>
   friend class MathWorld;

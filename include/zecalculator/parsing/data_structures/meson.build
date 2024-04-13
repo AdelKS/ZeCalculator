@@ -5,7 +5,7 @@ if not meson.is_subproject()
       'rpn.h',
       'shared.h',
       'token.h',
-      'uast.h',
+      'ast.h',
       'utils.h',
     ),
     subdir: 'zecalculator',

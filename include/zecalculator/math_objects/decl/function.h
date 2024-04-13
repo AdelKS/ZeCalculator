@@ -30,7 +30,7 @@
 #include <zecalculator/mathworld/decl/mathworld.h>
 #include <zecalculator/parsing/data_structures/decl/fast.h>
 #include <zecalculator/parsing/data_structures/decl/rpn.h>
-#include <zecalculator/parsing/data_structures/decl/uast.h>
+#include <zecalculator/parsing/data_structures/decl/ast.h>
 #include <zecalculator/parsing/data_structures/decl/utils.h>
 #include <zecalculator/parsing/decl/parser.h>
 #include <zecalculator/parsing/types.h>
@@ -145,7 +145,7 @@ protected:
   /// @brief object names this function directly depends on
   std::unordered_map<std::string, deps::ObjectType> direct_deps;
 
-  /// @brief binding of the UAST 'left_expr' (parent MathObject class) to 'mathWorld'
+  /// @brief binding of the AST 'left_expr' (parent MathObject class) to 'mathWorld'
   tl::expected<parsing::Parsing<type>, Error> bound_rhs = tl::unexpected(Error::empty_expression());
 
   template <size_t>

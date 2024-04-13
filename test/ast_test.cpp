@@ -31,67 +31,123 @@ int main()
 {
   using namespace boost::ut;
 
-  "simple expression"_test = []<class StructType>()
+  "simple expression"_test = []()
   {
-    constexpr Type type = std::is_same_v<StructType, FAST_TEST> ? Type::AST : Type::RPN;
-
-    zc::MathWorld<type> world;
     std::string expression = "2+2*2";
-
     auto parsing = tokenize(expression);
 
     expect(bool(parsing)) << parsing;
 
-    auto expect_node = make_uast(expression, parsing.value()).and_then(bind<type>{expression, world});
+    auto expect_node = make_ast(expression, parsing.value());
 
     expect(bool(expect_node));
 
-    AST<type> expected_node = ast::node::BinaryOperator<type, '+'>(
-      tokens::Text{expression, 0},
+    AST expected_node = ast::node::BinaryOperator<'+'>(
+      tokens::Text(expression, 0), tokens::Text("+", 1),
       {shared::node::Number(2.0, tokens::Text{"2", 0}),
-       ast::node::BinaryOperator<type, '*'>(tokens::Text{"2*2", 2},
-                                            {shared::node::Number(2.0, tokens::Text{"2", 2}),
-                                             shared::node::Number(2.0, tokens::Text{"2", 4})})});
+       ast::node::BinaryOperator<'*'>(tokens::Text("2*2", 2), tokens::Text("*", 3),
+                                       {shared::node::Number(2.0, tokens::Text{"2", 2}),
+                                        shared::node::Number(2.0, tokens::Text{"2", 4})})});
 
     expect(*expect_node == expected_node);
 
     if (*expect_node != expected_node )
-      std::cout << **expect_node << std::endl;
+      std::cout << *expect_node << std::endl;
 
-  } | std::tuple<FAST_TEST, RPN_TEST>{};
+    expect(direct_dependencies(*expect_node).empty());
 
-  "function expression"_test = []<class StructType>()
+  };
+
+  "function expression"_test = []()
   {
-    constexpr Type type = std::is_same_v<StructType, FAST_TEST> ? Type::AST : Type::RPN;
-    zc::MathWorld<type> world;
-
     std::string expression = "(cos(sin(x)+1))+1";
-
-    auto parsing = tokenize(expression);
+    auto parsing = tokenize("(cos(sin(x)+1))+1");
 
     expect(bool(parsing)) << parsing;
 
-    auto expect_node = make_uast(expression, parsing.value(), std::array{"x"}).and_then(bind<type>{expression, world});
+    auto expect_node = make_ast(expression, parsing.value(), std::array{"x"});
 
     expect(bool(expect_node));
 
-    AST<type> expected_node = ast::node::BinaryOperator<type, '+'>(
-      tokens::Text(expression, 0 ),
-      {ast::node::CppFunction<type, 1>(
-         tokens::Text("cos", 1),
-         world.template get<zc::CppFunction<type, 1>>("cos"),
-         {ast::node::BinaryOperator<type, '+'>(
-           tokens::Text("sin(x)+1", 5),
-           {ast::node::CppFunction<type, 1>(tokens::Text("sin", 5),
-                                            world.template get<zc::CppFunction<type, 1>>("sin"),
-                                            {shared::node::InputVariable(tokens::Text("x", 9), 0)}),
-            shared::node::Number(1.0, tokens::Text("1", 12))})}),
-       shared::node::Number(1.0, tokens::Text("1", 16))});
+    AST expected_node = ast::node::BinaryOperator<'+'>(tokens::Text(expression, 0), tokens::Text("+", 15),
+      {ast::node::Function(tokens::Text("cos(sin(x)+1)", 1), tokens::Text("cos", 1), tokens::Text("sin(x)+1", 13),
+        {ast::node::BinaryOperator<'+'>(tokens::Text("cos(sin(x)+1", 1), tokens::Text("+", 11),
+          {ast::node::Function(tokens::Text("sin(x)", 5), tokens::Text("cos", 5), tokens::Text("x", 9),
+            {shared::node::InputVariable(tokens::Text("x", 9), 0)}),
+             shared::node::Number(1.0, tokens::Text("1", 12))})}),
+      shared::node::Number(1.0, tokens::Text("1", 16))});
 
     if (*expect_node != expected_node)
       std::cout << *expect_node;
 
     expect(*expect_node == expected_node);
 
-  } | std::tuple<FAST_TEST, RPN_TEST>{};
+    expect(direct_dependencies(*expect_node)
+           == zc::deps::Deps{{"cos", zc::deps::FUNCTION}, {"sin", zc::deps::FUNCTION}});
+
+  };
+
+  "mark input vars"_test = []()
+  {
+    std::string expression = "cos(x)+sin(x)+1";
+
+    auto parsing = tokenize(expression);
+
+    expect(bool(parsing)) << parsing;
+
+    auto simple_ast = make_ast(expression, parsing.value());
+
+    // "x" is considered a variable for now
+    expect(direct_dependencies(simple_ast.value())
+           == zc::deps::Deps{{"cos", zc::deps::FUNCTION},
+                             {"sin", zc::deps::FUNCTION},
+                             {"x", zc::deps::VARIABLE}});
+
+    auto expect_node = simple_ast.transform(mark_input_vars{std::array{"x"}});
+
+    expect(bool(expect_node));
+
+    // "x" became an "input variable" and therefore not an external dependency anymore
+    expect(direct_dependencies(expect_node.value())
+           == zc::deps::Deps{{"cos", zc::deps::FUNCTION}, {"sin", zc::deps::FUNCTION}});
+
+    AST expected_node =
+    ast::node::BinaryOperator<'+'>(
+      tokens::Text(expression, 0), tokens::Text("+", 13),
+      {ast::node::BinaryOperator<'+'>(
+        tokens::Text("cos(x)+sin(x)", 0), tokens::Text("+", 6),
+        {ast::node::Function(tokens::Text("cos(x)", 0), tokens::Text("cos", 0), tokens::Text("x", 4),
+          {shared::node::InputVariable(tokens::Text("x", 4), 0)}),
+         ast::node::Function(tokens::Text("sin(x)", 7), tokens::Text("sin", 7), tokens::Text("x", 11),
+          {shared::node::InputVariable(tokens::Text("x", 11), 0)})}),
+       shared::node::Number(1.0, tokens::Text("1", 12))});
+
+    if (*expect_node != expected_node)
+      std::cout << *expect_node;
+
+    expect(*expect_node == expected_node);
+
+  };
+
+  "direct dependencies"_test = []()
+  {
+    std::string expression = "(cos(sin(x)+1+w)/u(f(h(y))))+1";
+
+    auto parsing = tokenize(expression);
+
+    expect(bool(parsing)) << parsing;
+
+    auto expect_node = make_ast(expression, parsing.value(), std::array{"x"});
+
+    expect(bool(expect_node));
+
+    expect(direct_dependencies(expect_node.value())
+           == zc::deps::Deps{{"cos", zc::deps::FUNCTION},
+                             {"sin", zc::deps::FUNCTION},
+                             {"w", zc::deps::VARIABLE},
+                             {"u", zc::deps::FUNCTION},
+                             {"f", zc::deps::FUNCTION},
+                             {"h", zc::deps::FUNCTION},
+                             {"y", zc::deps::VARIABLE},});
+  };
 }

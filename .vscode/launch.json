@@ -35,19 +35,19 @@
           ],
         },
         {
-            "name": "ast_test",
-            "cwd": "${workspaceRoot}/build-zc-debug/",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "${workspaceRoot}/build-zc-debug/test/ast_test",
-            "preLaunchTask": "build",
-            "setupCommands": [
-                {
-                  "description": "Enable pretty-printing for gdb",
-                  "text": "-enable-pretty-printing",
-                  "ignoreFailures": true
-                }
-            ],
+          "name": "fast_test",
+          "cwd": "${workspaceRoot}/build-zc-debug/",
+          "type": "cppdbg",
+          "request": "launch",
+          "program": "${workspaceRoot}/build-zc-debug/test/fast_test",
+          "preLaunchTask": "build",
+          "setupCommands": [
+              {
+                "description": "Enable pretty-printing for gdb",
+                "text": "-enable-pretty-printing",
+                "ignoreFailures": true
+              }
+          ],
         },
         {
           "name": "sequence_test",
@@ -140,11 +140,11 @@
           ],
         },
         {
-          "name": "uast_test",
+          "name": "ast_test",
           "cwd": "${workspaceRoot}/build-zc-debug/",
           "type": "cppdbg",
           "request": "launch",
-          "program": "${workspaceRoot}/build-zc-debug/test/uast_test",
+          "program": "${workspaceRoot}/build-zc-debug/test/ast_test",
           "preLaunchTask": "build",
           "setupCommands": [
               {

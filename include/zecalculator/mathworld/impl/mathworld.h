@@ -117,7 +117,7 @@ DynMathObject<type>& MathWorld<type>::add(std::string definition)
  /**
   *  0. Example: def = "f(x) = cos(x)"
   *  1. Tokenize the definition: ['f', '(', 'x', ')', '=', 'cos', '(', 'x', ')']
-  *  2. Make UAST representation of the definition
+  *  2. Make AST representation of the definition
   *         =
   *        / \
   *       f  cos
@@ -148,48 +148,48 @@ DynMathObject<type>& MathWorld<type>::add(std::string definition)
     return obj;
   }
 
-  tl::expected<parsing::UAST, Error> uast = parsing::make_uast(definition, *tokenization);
-  if (not uast)
+  tl::expected<parsing::AST, Error> ast = parsing::make_ast(definition, *tokenization);
+  if (not ast)
   {
-    obj = tl::unexpected(uast.error());
+    obj = tl::unexpected(ast.error());
     return obj;
   }
 
   // the root node of the tree must be the equal sign
-  if (not std::holds_alternative<parsing::uast::node::Operator<'=', 2>>(**uast))
+  if (not std::holds_alternative<parsing::ast::node::Operator<'=', 2>>(**ast))
   {
     obj = tl::unexpected(Error::not_math_object_definition());
     return obj;
   }
 
-  const auto& def_op = std::get<parsing::uast::node::Operator<'=', 2>>(**uast);
+  const auto& def_op = std::get<parsing::ast::node::Operator<'=', 2>>(**ast);
 
   math_expr_obj.lhs = def_op.operands[0];
   math_expr_obj.rhs = def_op.operands[1];
 
   // "f(x) = ...."
-  const bool is_function_def = std::holds_alternative<parsing::uast::node::Function>(*math_expr_obj.lhs);
+  const bool is_function_def = std::holds_alternative<parsing::ast::node::Function>(*math_expr_obj.lhs);
 
   // "var = complex expression that is not a number"
-  const bool is_global_var_def = std::holds_alternative<parsing::uast::node::Variable>(*math_expr_obj.lhs)
+  const bool is_global_var_def = std::holds_alternative<parsing::ast::node::Variable>(*math_expr_obj.lhs)
                                  and not std::holds_alternative<parsing::shared::node::Number>(*math_expr_obj.rhs);
 
   // "var = 13.24213 (a number)"
-  const bool is_global_constant_def = std::holds_alternative<parsing::uast::node::Variable>(*math_expr_obj.lhs)
+  const bool is_global_constant_def = std::holds_alternative<parsing::ast::node::Variable>(*math_expr_obj.lhs)
                                  and std::holds_alternative<parsing::shared::node::Number>(*math_expr_obj.rhs);
 
   if (is_function_def or is_global_var_def)
   {
     if (is_global_var_def)
     {
-      math_expr_obj.name = std::get<parsing::uast::node::Variable>(*math_expr_obj.lhs);
+      math_expr_obj.name = std::get<parsing::ast::node::Variable>(*math_expr_obj.lhs);
       obj = GlobalVariable<type>(math_expr_obj, {});
     }
     else // is_function_def
     {
-      math_expr_obj.name = std::get<parsing::uast::node::Function>(*math_expr_obj.lhs).name_token;
+      math_expr_obj.name = std::get<parsing::ast::node::Function>(*math_expr_obj.lhs).name_token;
 
-      const std::vector<parsing::uast::node::NodePtr>& args = std::get<parsing::uast::node::Function>(*math_expr_obj.lhs).subnodes;
+      const std::vector<parsing::ast::node::NodePtr>& args = std::get<parsing::ast::node::Function>(*math_expr_obj.lhs).subnodes;
 
       // setting up the text that contains all the args
       parsing::tokens::Text args_txt;
@@ -200,17 +200,17 @@ DynMathObject<type>& MathWorld<type>::add(std::string definition)
       args_txt.substr = args_txt.substr_info->substr(definition);
 
       // filling up the variables
-      std::vector<parsing::uast::node::Variable> vars;
+      std::vector<parsing::ast::node::Variable> vars;
       for (const auto& arg: args)
       {
         // the arguments of the function call in the left hand-side must all be regular variables
-        if (not std::holds_alternative<parsing::uast::node::Variable>(*arg))
+        if (not std::holds_alternative<parsing::ast::node::Variable>(*arg))
         {
           obj = tl::unexpected(Error::unexpected(parsing::text_token(*arg), definition));
           return obj;
         }
 
-        vars.push_back(std::get<parsing::uast::node::Variable>(*arg));
+        vars.push_back(std::get<parsing::ast::node::Variable>(*arg));
       }
 
       auto var_names = vars | std::views::transform(&parsing::tokens::Text::substr);
@@ -250,7 +250,7 @@ DynMathObject<type>& MathWorld<type>::add(std::string definition)
   }
   else if (is_global_constant_def)
   {
-    math_expr_obj.name = std::get<parsing::uast::node::Variable>(*math_expr_obj.lhs);
+    math_expr_obj.name = std::get<parsing::ast::node::Variable>(*math_expr_obj.lhs);
     obj = GlobalConstant<type>(math_expr_obj, std::get<parsing::shared::node::Number>(*math_expr_obj.rhs));
   }
   else
@@ -367,9 +367,9 @@ tl::expected<double, Error> MathWorld<type>::evaluate(std::string expr)
   if (expr.empty()) [[unlikely]]
     return tl::unexpected(Error::empty_expression());
 
-  auto make_uast = [&](std::span<const parsing::Token> tokens)
+  auto make_ast = [&](std::span<const parsing::Token> tokens)
   {
-    return parsing::make_uast(expr, tokens);
+    return parsing::make_ast(expr, tokens);
   };
 
   auto evaluate = [](const parsing::Parsing<type>& repr)
@@ -379,12 +379,12 @@ tl::expected<double, Error> MathWorld<type>::evaluate(std::string expr)
 
   if constexpr (type == parsing::Type::FAST)
     return parsing::tokenize(expr)
-      .and_then(make_uast)
+      .and_then(make_ast)
       .and_then(parsing::bind<type>{expr, *this})
       .and_then(evaluate);
   else
     return parsing::tokenize(expr)
-      .and_then(make_uast)
+      .and_then(make_ast)
       .and_then(parsing::bind<type>{expr, *this})
       .transform(parsing::make_RPN)
       .and_then(evaluate);

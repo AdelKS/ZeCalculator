@@ -24,7 +24,7 @@
 #include <zecalculator/mathworld/decl/mathworld.h>
 #include <zecalculator/parsing/data_structures/decl/fast.h>
 #include <zecalculator/parsing/data_structures/decl/rpn.h>
-#include <zecalculator/parsing/data_structures/decl/uast.h>
+#include <zecalculator/parsing/data_structures/decl/ast.h>
 #include <zecalculator/parsing/data_structures/decl/utils.h>
 #include <zecalculator/parsing/data_structures/token.h>
 
@@ -68,7 +68,7 @@ bool is_valid_name(std::string_view name);
 ///                    e.g."x" in the function "f" such as "f(x) = cos(x)"
 template <std::ranges::viewable_range Range = std::array<std::string, 0>>
   requires std::is_convertible_v<std::ranges::range_value_t<Range>, std::string_view>
-tl::expected<UAST, Error> make_uast(std::string_view expression,
+tl::expected<AST, Error> make_ast(std::string_view expression,
                                     std::span<const parsing::Token> tokens,
                                     const Range& input_vars = std::array<std::string, 0>{});
 
@@ -78,9 +78,9 @@ struct mark_input_vars
 {
   const Range& input_vars;
 
-  /// @brief returns a copy of 'tre' where 'uast::node::Variable' instances are replaced
-  ///         with uast::node::InputVariable when name is in 'input_vars'
-  UAST operator () (const UAST& tree);
+  /// @brief returns a copy of 'tre' where 'ast::node::Variable' instances are replaced
+  ///         with ast::node::InputVariable when name is in 'input_vars'
+  AST operator () (const AST& tree);
 };
 
 
@@ -88,7 +88,7 @@ struct mark_input_vars
 template <class T>
 mark_input_vars(T) -> mark_input_vars<T>;
 
-/// @brief functor that transforms an UAST to an FAST<type> by doing object name lookup within
+/// @brief functor that transforms an AST to an FAST<type> by doing object name lookup within
 ///        a MathWorld instance and binding to objects with references
 template <Type type>
 struct bind;
@@ -103,8 +103,8 @@ template <std::ranges::viewable_range Range = std::array<std::string, 0>>
 deps::Deps direct_dependencies(const std::vector<parsing::Token>& tokens,
                                const Range& input_vars = {});
 
-/// @brief gives the Function and Variable names that intervene in this UAST
-deps::Deps direct_dependencies(const UAST& uast);
+/// @brief gives the Function and Variable names that intervene in this AST
+deps::Deps direct_dependencies(const AST& ast);
 
 } // namespace parsing
 } // namespace zc

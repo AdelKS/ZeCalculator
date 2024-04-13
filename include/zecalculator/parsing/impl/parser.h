@@ -27,7 +27,7 @@
 #include <zecalculator/mathworld/impl/mathworld.h>
 #include <zecalculator/parsing/data_structures/impl/fast.h>
 #include <zecalculator/parsing/data_structures/impl/rpn.h>
-#include <zecalculator/parsing/data_structures/impl/uast.h>
+#include <zecalculator/parsing/data_structures/impl/ast.h>
 #include <zecalculator/parsing/decl/parser.h>
 
 #include <cmath>
@@ -302,7 +302,7 @@ struct FunctionVisiter
 {
   using Ret = tl::expected<FAST<world_type>, Error>;
   std::string expression;
-  const uast::node::Function& func;
+  const ast::node::Function& func;
   std::vector<FAST<world_type>> subnodes;
 
   /// @brief moves the elements of 'subnodes' into an array
@@ -358,7 +358,7 @@ struct bind
   std::string expression;
   const MathWorld<type>& math_world;
 
-  tl::expected<FAST<type>, Error> operator () (const UAST& uast)
+  tl::expected<FAST<type>, Error> operator () (const AST& ast)
   {
     using Ret = tl::expected<FAST<type>, Error>;
 
@@ -372,7 +372,7 @@ struct bind
         {
           return num;
         },
-        [&](const uast::node::Function& func) -> Ret
+        [&](const ast::node::Function& func) -> Ret
         {
           std::vector<FAST<type>> operands;
           for (auto&& operand: func.subnodes)
@@ -390,7 +390,7 @@ struct bind
             return tl::unexpected(Error::object_in_invalid_state(func.name_token, expression));
           else return std::visit(FunctionVisiter<type>{expression, func, std::move(operands)}, **dyn_obj);
         },
-        [&](const uast::node::Variable& var) -> Ret
+        [&](const ast::node::Variable& var) -> Ret
         {
           auto* dyn_obj = math_world.get(var.substr);
           if (not dyn_obj) [[unlikely]]
@@ -399,7 +399,7 @@ struct bind
             return tl::unexpected(Error::object_in_invalid_state(var, expression));
           else return std::visit(VariableVisiter<type>{expression, var}, **dyn_obj);
         },
-        [&]<char op, size_t args_num>(const uast::node::Operator<op, args_num>& ope) -> Ret
+        [&]<char op, size_t args_num>(const ast::node::Operator<op, args_num>& ope) -> Ret
         {
           auto get_operator = [&]<size_t... i>(std::index_sequence<i...>) -> Ret
           {
@@ -412,16 +412,16 @@ struct bind
           return get_operator(std::make_index_sequence<args_num>());
         }
       },
-      *uast
+      *ast
     );
   }
 };
 
 template <std::ranges::viewable_range Range>
   requires std::is_convertible_v<std::ranges::range_value_t<Range>, std::string_view>
-tl::expected<UAST, Error> make_uast(std::string_view expression, std::span<const parsing::Token> tokens, const Range& input_vars)
+tl::expected<AST, Error> make_ast(std::string_view expression, std::span<const parsing::Token> tokens, const Range& input_vars)
 {
-  using Ret = tl::expected<UAST, Error>;
+  using Ret = tl::expected<AST, Error>;
 
   if (tokens.empty()) [[unlikely]]
     return tl::unexpected(Error::empty());
@@ -471,7 +471,7 @@ tl::expected<UAST, Error> make_uast(std::string_view expression, std::span<const
       std::holds_alternative<tokens::OpeningParenthesis>(tokens.front()) and
       std::holds_alternative<tokens::ClosingParenthesis>(tokens.back()))
   {
-    return make_uast(expression, std::span(tokens.begin()+1, tokens.end()-1), input_vars);
+    return make_ast(expression, std::span(tokens.begin()+1, tokens.end()-1), input_vars);
   }
 
   // expression of the type "function(...)"
@@ -491,14 +491,14 @@ tl::expected<UAST, Error> make_uast(std::string_view expression, std::span<const
     // add the FunctionCallEnd token so we handle it in the loop
     non_pth_wrapped_args->push_back(tokens.end()-1);
 
-    std::vector<UAST> subnodes;
+    std::vector<AST> subnodes;
     auto last_non_coma_token_it = tokens.begin()+2;
     for (auto tokenIt: *non_pth_wrapped_args)
     {
       if (std::holds_alternative<tokens::FunctionArgumentSeparator>(*tokenIt) or
           std::holds_alternative<tokens::FunctionCallEnd>(*tokenIt))
       {
-        auto expected_func_argument = make_uast(expression, std::span(last_non_coma_token_it, tokenIt), input_vars);
+        auto expected_func_argument = make_ast(expression, std::span(last_non_coma_token_it, tokenIt), input_vars);
         if (not expected_func_argument.has_value())
           return expected_func_argument;
         else subnodes.push_back(std::move(expected_func_argument.value()));
@@ -516,7 +516,7 @@ tl::expected<UAST, Error> make_uast(std::string_view expression, std::span<const
                                                 - func_token.substr.size() - 2};
     args_token.substr = args_token.substr_info->substr(expression);
 
-    return uast::node::Function(current_sub_expr, std::move(func_token), std::move(args_token), std::move(subnodes));
+    return ast::node::Function(current_sub_expr, std::move(func_token), std::move(args_token), std::move(subnodes));
 
     // return fast::node::Function(text_token(tokens.front()), std::move(subnodes));
   }
@@ -534,15 +534,15 @@ tl::expected<UAST, Error> make_uast(std::string_view expression, std::span<const
       if (tokenIt == tokens.begin() or tokenIt + 1 == tokens.end())
         return tl::unexpected(Error::unexpected(text_token(*tokenIt), std::string(expression)));
 
-      auto left_hand_side = make_uast(expression, std::span(tokens.begin(), tokenIt), input_vars);
+      auto left_hand_side = make_ast(expression, std::span(tokens.begin(), tokenIt), input_vars);
       if (not left_hand_side.has_value())
         return left_hand_side;
 
-      auto right_hand_side = make_uast(expression, std::span(tokenIt + 1, tokens.end()), input_vars);
+      auto right_hand_side = make_ast(expression, std::span(tokenIt + 1, tokens.end()), input_vars);
       if (not right_hand_side.has_value())
         return right_hand_side;
 
-      return uast::node::Operator<op, 2>(current_sub_expr,
+      return ast::node::Operator<op, 2>(current_sub_expr,
                                          text_token(*tokenIt),
                                          std::array{std::move(left_hand_side.value()),
                                                     std::move(right_hand_side.value())});
@@ -579,29 +579,29 @@ tl::expected<UAST, Error> make_uast(std::string_view expression, std::span<const
 
 template <std::ranges::viewable_range Range>
   requires std::is_convertible_v<std::ranges::range_value_t<Range>, std::string_view>
-UAST mark_input_vars<Range>::operator () (const UAST& tree)
+AST mark_input_vars<Range>::operator () (const AST& tree)
 {
   return std::visit(utils::overloaded{
-    [&](const shared::node::InputVariable& v) -> UAST { return v; },
-    [&](const shared::node::Number& n) -> UAST { return n; },
-    [&](const uast::node::Function& f) -> UAST {
-      uast::node::Function f_copy(f, f.name_token, f.args_token, {});
-      for (const UAST& sub_tree: f.subnodes)
+    [&](const shared::node::InputVariable& v) -> AST { return v; },
+    [&](const shared::node::Number& n) -> AST { return n; },
+    [&](const ast::node::Function& f) -> AST {
+      ast::node::Function f_copy(f, f.name_token, f.args_token, {});
+      for (const AST& sub_tree: f.subnodes)
         f_copy.subnodes.push_back((*this)(sub_tree));
       return f_copy;
     },
-    [&](uast::node::Variable& v) -> UAST {
+    [&](ast::node::Variable& v) -> AST {
       auto it = std::ranges::find(input_vars, v.substr);
       if (it != input_vars.end())
         return shared::node::InputVariable(v, std::distance(input_vars.begin(), it));
       else return v;
     },
-    [&]<char op, size_t args_num>(const uast::node::Operator<op, args_num>& op_f) -> UAST {
+    [&]<char op, size_t args_num>(const ast::node::Operator<op, args_num>& op_f) -> AST {
       auto make_operands = [&]<size_t... i>(std::integer_sequence<size_t, i...>)
       {
         return std::array{(void(i), (*this)(op_f.operands[i]))...};
       };
-      return uast::node::Operator<op, args_num>(op_f, op_f.name_token, make_operands(std::make_index_sequence<args_num>()));
+      return ast::node::Operator<op, args_num>(op_f, op_f.name_token, make_operands(std::make_index_sequence<args_num>()));
     }},
     *tree);
 }
@@ -703,26 +703,26 @@ deps::Deps direct_dependencies(const std::vector<parsing::Token>& tokens, const 
 }
 
 
-/// @brief appends dependencies of 'uast' in 'deps'
+/// @brief appends dependencies of 'ast' in 'deps'
 struct direct_dependency_saver
 {
   deps::Deps deps;
 
-  direct_dependency_saver& operator () (const UAST& uast)
+  direct_dependency_saver& operator () (const AST& ast)
   {
     std::visit(
       utils::overloaded{
-        [&](const uast::node::Function& f)
+        [&](const ast::node::Function& f)
         {
           deps.insert({f.name_token.substr, deps::ObjectType::FUNCTION});
           std::ranges::for_each(f.subnodes, std::ref(*this));
           // if we do not use std::ref, a copy of this instance is taken
         },
-        [&](const uast::node::Variable& v)
+        [&](const ast::node::Variable& v)
         {
           deps.insert({v.substr, deps::ObjectType::VARIABLE});
         },
-        [&]<char op, size_t args_num>(const uast::node::Operator<op, args_num>& ope)
+        [&]<char op, size_t args_num>(const ast::node::Operator<op, args_num>& ope)
         {
           std::ranges::for_each(ope.operands, std::ref(*this));
           // if we do not use std::ref, a copy of this instance is taken
@@ -730,15 +730,15 @@ struct direct_dependency_saver
         [&](const shared::node::InputVariable&) { /* no op */ },
         [&](const shared::node::Number&) { /* no op */ },
       },
-      *uast);
+      *ast);
 
     return *this;
   }
 };
 
-deps::Deps direct_dependencies(const UAST& uast)
+deps::Deps direct_dependencies(const AST& ast)
 {
-  return std::move(direct_dependency_saver{}(uast).deps);
+  return std::move(direct_dependency_saver{}(ast).deps);
 }
 
 } // namespace parsing

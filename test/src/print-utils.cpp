@@ -87,13 +87,13 @@ std::ostream &operator<<(std::ostream &os, const fast::node::Node<Type::RPN> &no
   return os;
 }
 
-void syntax_node_print_helper(std::ostream& os, const uast::node::Node& node, size_t padding = 0)
+void syntax_node_print_helper(std::ostream& os, const ast::node::Node& node, size_t padding = 0)
 {
   const std::string padding_str(padding, ' ');
 
   std::visit(
     zc::utils::overloaded{
-      [&](const uast::node::Function &f)
+      [&](const ast::node::Function &f)
       {
         os << padding_str << "Function<" << f.subnodes.size() << "> "
           << f.name_token << "subexpr: " << tokens::Text(f) << " {" << std::endl;
@@ -101,7 +101,7 @@ void syntax_node_print_helper(std::ostream& os, const uast::node::Node& node, si
           syntax_node_print_helper(os, *operand, padding + 2);
         os << padding_str << "}" << std::endl;
       },
-      [&]<char op, size_t args_num>(const uast::node::Operator<op, args_num> &f)
+      [&]<char op, size_t args_num>(const ast::node::Operator<op, args_num> &f)
       {
         os << padding_str << "Operator<" << op << ", " << args_num
           << "> " << f.name_token << "subexpr: " << tokens::Text(f) << " {" << std::endl;
@@ -114,7 +114,7 @@ void syntax_node_print_helper(std::ostream& os, const uast::node::Node& node, si
         os << padding_str << "InputVariable " << tokens::Text(v)
           << " index: " << v.index << std::endl;
       },
-      [&](const uast::node::Variable &c)
+      [&](const ast::node::Variable &c)
       {
         os << padding_str << "Variable " << tokens::Text(c) << std::endl;
       },
@@ -125,7 +125,7 @@ void syntax_node_print_helper(std::ostream& os, const uast::node::Node& node, si
     node);
 }
 
-std::ostream& operator << (std::ostream& os, const UAST& node)
+std::ostream& operator << (std::ostream& os, const AST& node)
 {
   os << std::endl;
   syntax_node_print_helper(os, *node);

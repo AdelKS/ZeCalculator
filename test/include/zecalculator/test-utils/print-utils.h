@@ -76,7 +76,7 @@ namespace zc {
 
     std::ostream& operator << (std::ostream& os, const fast::node::Node<Type::RPN>& node);
 
-    std::ostream& operator << (std::ostream& os, const UAST& node);
+    std::ostream& operator << (std::ostream& os, const AST& node);
 
     namespace tokens {
 

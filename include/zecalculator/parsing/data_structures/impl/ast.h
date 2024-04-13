@@ -21,13 +21,13 @@
 #pragma once
 
 #include <zecalculator/math_objects/aliases.h>
-#include <zecalculator/parsing/data_structures/decl/uast.h>
+#include <zecalculator/parsing/data_structures/decl/ast.h>
 #include <zecalculator/parsing/data_structures/impl/shared.h>
 #include <zecalculator/parsing/data_structures/token.h>
 
 namespace zc {
   namespace parsing {
-    namespace uast {
+    namespace ast {
       namespace node {
 
         template <char op, size_t args_num>
@@ -61,6 +61,6 @@ namespace zc {
         };
 
       } // namespace node
-    } // namespace uast
+    } // namespace ast
   } // namespace parsing
 } // namespace zc

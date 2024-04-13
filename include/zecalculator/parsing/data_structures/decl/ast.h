@@ -31,7 +31,7 @@
 
 namespace zc {
 namespace parsing {
-  namespace uast {
+  namespace ast {
     namespace node {
 
       struct Function;
@@ -46,22 +46,22 @@ namespace parsing {
 
       using Node = std::variant<shared::node::Number,
                                 shared::node::InputVariable,
-                                uast::node::Function,
-                                uast::node::Variable,
-                                uast::node::Operator<'=', 2>,
-                                uast::node::Operator<'+', 2>,
-                                uast::node::Operator<'-', 2>,
-                                uast::node::Operator<'*', 2>,
-                                uast::node::Operator<'/', 2>,
-                                uast::node::Operator<'^', 2>>;
+                                ast::node::Function,
+                                ast::node::Variable,
+                                ast::node::Operator<'=', 2>,
+                                ast::node::Operator<'+', 2>,
+                                ast::node::Operator<'-', 2>,
+                                ast::node::Operator<'*', 2>,
+                                ast::node::Operator<'/', 2>,
+                                ast::node::Operator<'^', 2>>;
 
       using NodePtr = zc::non_unique_ptr<Node>;
 
-      } // namespace uast
+      } // namespace ast
     } // namespace node
 
     /// @brief Unbound AST : a generic tree that only keeps string names of objects
-    using UAST = uast::node::NodePtr;
+    using AST = ast::node::NodePtr;
 
   } // namespace parsing
 } // namespace zc

@@ -21,7 +21,7 @@
 ****************************************************************************/
 
 #include <zecalculator/math_objects/decl/math_eq_object.h>
-#include <zecalculator/parsing/data_structures/impl/uast.h>
+#include <zecalculator/parsing/data_structures/impl/ast.h>
 
 namespace zc {
 
