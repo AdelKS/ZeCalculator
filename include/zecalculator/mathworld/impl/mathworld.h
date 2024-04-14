@@ -441,4 +441,58 @@ tl::expected<Ok, UnregisteredObject> MathWorld<type>::erase(const std::string& n
 }
 
 
+/// ObjectHandle
+
+template <parsing::Type type>
+const DynMathObject<type>& MathWorld<type>::ObjectHandle::object() const
+{
+  return world.math_objects.at(slot);
+}
+
+template <parsing::Type type>
+template <class... DBL>
+tl::expected<double, Error> MathWorld<type>::ObjectHandle::operator () (DBL... val) const
+  requires (std::is_convertible_v<DBL, double> and ...)
+{
+  return object()(val...);
+}
+
+template <parsing::Type type>
+template <class... DBL>
+tl::expected<double, Error> MathWorld<type>::ObjectHandle::evaluate(DBL... val) const
+  requires (std::is_convertible_v<DBL, double> and ...)
+{
+  return (*this)(val...);
+}
+
+/// @brief returns the name of the object, if it's valid, otherwise empty string
+template <parsing::Type type>
+std::string MathWorld<type>::ObjectHandle::get_name() const
+{
+  return object().get_name();
+}
+
+/// @brief gets the value of the expected (the variant) as a specific alternative
+template <parsing::Type type>
+template <class T>
+const T& MathWorld<type>::ObjectHandle::value_as() const
+  requires (tuple_contains_v<MathObjects<type>, T>)
+{
+  return object().template value_as<T>();
+}
+
+template <parsing::Type type>
+template <class T>
+bool MathWorld<type>::ObjectHandle::holds() const
+  requires (tuple_contains_v<MathObjects<type>, T> or std::is_same_v<T, Error>)
+{
+  return object().template holds<T>();
+}
+
+template <parsing::Type type>
+MathWorld<type>::ObjectHandle::operator bool () const
+{
+  return bool(object());
+}
+
 } // namespace zc

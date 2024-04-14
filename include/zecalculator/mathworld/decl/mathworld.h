@@ -55,6 +55,43 @@ class MathWorld
 {
 public:
 
+  class ObjectHandle
+  {
+  public:
+
+    const DynMathObject<type>& object() const;
+
+    template <class... DBL>
+    tl::expected<double, Error> operator () (DBL... val) const
+      requires (std::is_convertible_v<DBL, double> and ...);
+
+    template <class... DBL>
+    tl::expected<double, Error> evaluate(DBL... val) const
+      requires (std::is_convertible_v<DBL, double> and ...);
+
+    /// @brief returns the name of the object, if it's valid, otherwise empty string
+    std::string get_name() const;
+
+    /// @brief gets the value of the expected (the variant) as a specific alternative
+    template <class T>
+    const T& value_as() const
+      requires (tuple_contains_v<MathObjects<type>, T>);
+
+    template <class T>
+    bool holds() const
+      requires (tuple_contains_v<MathObjects<type>, T> or std::is_same_v<T, Error>);
+
+    operator bool () const;
+
+  protected:
+    ObjectHandle(size_t slot, const MathWorld<type>& world) : slot(slot), world(world) {}
+
+    const size_t slot;
+    const MathWorld<type>& world;
+
+    friend class MathWorld<type>;
+  };
+
   /// @brief default constructor that defines the usual functions and global constants
   MathWorld();
 
