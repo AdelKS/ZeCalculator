@@ -256,7 +256,6 @@ int main()
     constexpr size_t static_expr_size = static_expr.size();
     constexpr auto duration = nanoseconds(500ms);
 
-
     constexpr size_t max_random_padding = 10;
     size_t dummy = 0;
     std::string expr(static_expr);

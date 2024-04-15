@@ -58,8 +58,17 @@ inline tl::expected<std::vector<Token>, Error> tokenize(std::string_view express
   std::vector<Token> parsing;
 
   auto is_seperator = [](const char ch) {
-    static constexpr std::array separators = {'+', '-', '*', '/', '^', ' ', '(', ')'};
-    return std::ranges::any_of(separators, [&ch](const char op){ return op == ch; });
+
+    static constexpr auto sep_table = []{
+      static_assert(sizeof(char) == 1, "Assuming 1 byte char here");
+      std::array<bool, 256> truth_table;
+      truth_table.fill(false);
+      for (char sep: std::array{'+', '-', '*', '/', '^', ' ', '(', ')'})
+        truth_table[uint8_t(sep)] = true;
+      return truth_table;
+    }();
+
+    return sep_table[uint8_t(ch)];
   };
 
   auto is_digit = [](unsigned char ch)
