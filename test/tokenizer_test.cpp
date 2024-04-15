@@ -23,6 +23,7 @@
 // testing specific headers
 #include <boost/ut.hpp>
 #include <zecalculator/test-utils/print-utils.h>
+#include <zecalculator/test-utils/utils.h>
 
 using namespace zc;
 using namespace zc::parsing;
@@ -247,6 +248,35 @@ int main()
 
     expect(parsing.error() == Error::unexpected(tokens::EndOfExpression("", 2), std::string(str)))
       << parsing.error();
+  };
+
+  "tokenization speed"_test = []()
+  {
+    constexpr std::string_view static_expr = "2+ 3 -  cos(x) - 2 + 3 * 2.5343E+12-34234+2-4 * 34 / 634534           + 45.4E+2";
+    constexpr size_t static_expr_size = static_expr.size();
+    constexpr auto duration = nanoseconds(500ms);
+
+
+    constexpr size_t max_random_padding = 10;
+    size_t dummy = 0;
+    std::string expr(static_expr);
+    expr.reserve(static_expr.size() + max_random_padding);
+
+    size_t iterations = loop_call_for(duration, [&]{
+      // resize with variable number of extra spaces
+      // just to fool the compiler so it thinks each call to this function is unique
+      expr.resize(static_expr_size + (size_t(rand()) % max_random_padding), ' ');
+
+      auto exp_parsing = tokenize(expr);
+      dummy += parsing::text_token(exp_parsing.value().back()).substr.size();
+    });
+
+    // the absolute value doesn't mean anything really, but we can compare between performance improvements
+    std::cout << "tokenization time: "
+              << duration_cast<nanoseconds>(duration/iterations).count() << "ns"
+              << std::endl;
+    std::cout << "dummy: " << dummy << std::endl;
+
   };
 
   return 0;
