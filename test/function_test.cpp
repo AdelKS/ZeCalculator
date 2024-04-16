@@ -22,12 +22,11 @@
 
 // testing specific headers
 #include <boost/ut.hpp>
-#include <chrono>
 #include <zecalculator/test-utils/print-utils.h>
 #include <zecalculator/test-utils/structs.h>
+#include <zecalculator/test-utils/utils.h>
 
 using namespace zc;
-using namespace std::chrono;
 
 int main()
 {
@@ -233,6 +232,7 @@ int main()
 
   "parametric function benchmark"_test = []<class StructType>()
   {
+    constexpr auto duration = nanoseconds(500ms);
     {
       constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
       constexpr std::string_view data_type_str_v = std::is_same_v<StructType, FAST_TEST> ? "FAST" : "RPN";
@@ -242,19 +242,15 @@ int main()
       auto& f = world.add("f(x) =3*cos(t*x) + 2*sin(x/t) + 4").template value_as<Function<type, 1>>();
 
       double x = 0;
-      auto begin = high_resolution_clock::now();
       double res = 0;
-      size_t iterations = 0;
-      while (high_resolution_clock::now() - begin < 1s)
-      {
-        res += f({x}).value();
-        iterations++;
-        x++;
-        t.set_fast(t.value()+1);
-      }
-      auto end = high_resolution_clock::now();
+      size_t iterations =
+        loop_call_for(duration, [&]{
+          res += f({x}).value();
+          x++;
+          t.set_fast(t.value()+1);
+      });
       std::cout << "Avg zc::Function<" << data_type_str_v << "> eval time: "
-                << duration_cast<nanoseconds>((end - begin) / iterations).count() << "ns"
+                << duration_cast<nanoseconds>(duration / iterations).count() << "ns"
                 << std::endl;
       std::cout << "dummy val: " << res << std::endl;
     }
@@ -265,18 +261,15 @@ int main()
       };
 
       double x = 0;
-      auto begin = high_resolution_clock::now();
       double res = 0;
-      size_t iterations = 0;
-      while (high_resolution_clock::now() - begin < 1s)
-      {
-        res += cpp_f(x);
-        iterations++;
-        x++;
-        cpp_t++;
-      }
-      auto end = high_resolution_clock::now();
-      std::cout << "Avg C++ function eval time: " << duration_cast<nanoseconds>((end - begin)/iterations).count() << "ns" << std::endl;
+      size_t iterations =
+        loop_call_for(duration, [&]{
+          res += cpp_f(x);
+          iterations++;
+          x++;
+          cpp_t++;
+      });
+      std::cout << "Avg C++ function eval time: " << duration_cast<nanoseconds>(duration/iterations).count() << "ns" << std::endl;
       std::cout << "dummy val: " << res << std::endl;
 
     }
