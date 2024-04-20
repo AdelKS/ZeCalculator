@@ -58,6 +58,31 @@ int main()
 
   };
 
+  "double parentheses"_test = []()
+  {
+    std::string expression = "(2)*(2)";
+    auto parsing = tokenize(expression);
+
+    expect(bool(parsing)) << parsing;
+
+    auto expect_node = make_ast(expression, parsing.value());
+
+    expect(bool(expect_node));
+
+    AST expected_node = ast::node::BinaryOperator<'*'>(
+      tokens::Text(expression, 0), tokens::Text("*", 3),
+        {shared::node::Number(2.0, tokens::Text{"2", 0}),
+         shared::node::Number(2.0, tokens::Text{"2", 0})});
+
+    expect(*expect_node == expected_node);
+
+    if (*expect_node != expected_node )
+      std::cout << *expect_node << std::endl;
+
+    expect(direct_dependencies(*expect_node).empty());
+
+  };
+
   "function expression"_test = []()
   {
     std::string expression = "(cos(sin(x)+1))+1";
