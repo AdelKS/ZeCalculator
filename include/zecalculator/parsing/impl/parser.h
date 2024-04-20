@@ -63,7 +63,7 @@ inline tl::expected<std::vector<Token>, Error> tokenize(std::string_view express
       static_assert(sizeof(char) == 1, "Assuming 1 byte char here");
       std::array<bool, 256> truth_table;
       truth_table.fill(false);
-      for (char sep: std::array{'+', '-', '*', '/', '^', ' ', '(', ')'})
+      for (char sep: std::array{'+', '-', '*', '/', '^', ' ', '(', ')', ';', ','})
         truth_table[uint8_t(sep)] = true;
       return truth_table;
     }();
@@ -193,8 +193,7 @@ inline tl::expected<std::vector<Token>, Error> tokenize(std::string_view express
 
         const auto token_begin = it;
         while (it != expression.cend() and
-               not is_seperator(*it) and
-               not is_argument_separator(*it)) { it++; }
+               not is_seperator(*it)) { it++; }
 
         const std::string_view token_v(token_begin, it);
 
