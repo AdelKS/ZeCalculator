@@ -91,7 +91,13 @@ mark_input_vars(T) -> mark_input_vars<T>;
 /// @brief functor that transforms an AST to an FAST<type> by doing object name lookup within
 ///        a MathWorld instance and binding to objects with references
 template <Type type>
-struct bind;
+struct bind
+{
+  std::string expression;
+  const MathWorld<type>& math_world;
+
+  tl::expected<FAST<type>, Error> operator () (const AST& ast);
+};
 
 /// @brief transforms a syntax tree to a flat Reverse Polish / postfix notation representation
 RPN make_RPN(const FAST<Type::RPN>& tree);

@@ -361,69 +361,64 @@ struct FunctionVisiter
 };
 
 template <Type type>
-struct bind
+tl::expected<FAST<type>, Error> bind<type>::operator () (const AST& ast)
 {
-  std::string expression;
-  const MathWorld<type>& math_world;
+  using Ret = tl::expected<FAST<type>, Error>;
 
-  tl::expected<FAST<type>, Error> operator () (const AST& ast)
-  {
-    using Ret = tl::expected<FAST<type>, Error>;
-
-    return std::visit(
-      utils::overloaded{
-        [](const shared::node::InputVariable& in_var) -> Ret
-        {
-          return in_var;
-        },
-        [](const shared::node::Number& num) -> Ret
-        {
-          return num;
-        },
-        [&](const ast::node::Function& func) -> Ret
-        {
-          std::vector<FAST<type>> operands;
-          for (auto&& operand: func.subnodes)
-          {
-            auto expected_bound_node = (*this)(operand);
-            if (expected_bound_node) [[likely]]
-              operands.push_back(std::move(*expected_bound_node));
-            else return tl::unexpected(expected_bound_node.error());
-          }
-
-          auto* dyn_obj = math_world.get(func.name_token.substr);
-          if (not dyn_obj) [[unlikely]]
-            return tl::unexpected(Error::undefined_function(func.name_token, expression));
-          if (not dyn_obj->has_value())
-            return tl::unexpected(Error::object_in_invalid_state(func.name_token, expression));
-          else return std::visit(FunctionVisiter<type>{expression, func, std::move(operands)}, **dyn_obj);
-        },
-        [&](const ast::node::Variable& var) -> Ret
-        {
-          auto* dyn_obj = math_world.get(var.substr);
-          if (not dyn_obj) [[unlikely]]
-            return tl::unexpected(Error::undefined_variable(var, expression));
-          if (not dyn_obj->has_value())
-            return tl::unexpected(Error::object_in_invalid_state(var, expression));
-          else return std::visit(VariableVisiter<type>{expression, var}, **dyn_obj);
-        },
-        [&]<char op, size_t args_num>(const ast::node::Operator<op, args_num>& ope) -> Ret
-        {
-          auto get_operator = [&]<size_t... i>(std::index_sequence<i...>) -> Ret
-          {
-            std::array<Ret, args_num> expected_operands = {(*this)(ope.operands[i])...};
-            auto it = std::ranges::find_if_not(expected_operands, [](auto&& v){ return bool(v); });
-            if (it != expected_operands.end())
-              return tl::unexpected(it->error());
-            else return fast::node::Operator<type, op, args_num>(ope, {std::move(*expected_operands[i])...});
-          };
-          return get_operator(std::make_index_sequence<args_num>());
-        }
+  return std::visit(
+    utils::overloaded{
+      [](const shared::node::InputVariable& in_var) -> Ret
+      {
+        return in_var;
       },
-      *ast
-    );
-  }
-};
+      [](const shared::node::Number& num) -> Ret
+      {
+        return num;
+      },
+      [&](const ast::node::Function& func) -> Ret
+      {
+        std::vector<FAST<type>> operands;
+        for (auto&& operand: func.subnodes)
+        {
+          auto expected_bound_node = (*this)(operand);
+          if (expected_bound_node) [[likely]]
+            operands.push_back(std::move(*expected_bound_node));
+          else return tl::unexpected(expected_bound_node.error());
+        }
+
+        auto* dyn_obj = math_world.get(func.name_token.substr);
+        if (not dyn_obj) [[unlikely]]
+          return tl::unexpected(Error::undefined_function(func.name_token, expression));
+        if (not dyn_obj->has_value())
+          return tl::unexpected(Error::object_in_invalid_state(func.name_token, expression));
+        else return std::visit(FunctionVisiter<type>{expression, func, std::move(operands)}, **dyn_obj);
+      },
+      [&](const ast::node::Variable& var) -> Ret
+      {
+        auto* dyn_obj = math_world.get(var.substr);
+        if (not dyn_obj) [[unlikely]]
+          return tl::unexpected(Error::undefined_variable(var, expression));
+        if (not dyn_obj->has_value())
+          return tl::unexpected(Error::object_in_invalid_state(var, expression));
+        else return std::visit(VariableVisiter<type>{expression, var}, **dyn_obj);
+      },
+      [&]<char op, size_t args_num>(const ast::node::Operator<op, args_num>& ope) -> Ret
+      {
+        auto get_operator = [&]<size_t... i>(std::index_sequence<i...>) -> Ret
+        {
+          std::array<Ret, args_num> expected_operands = {(*this)(ope.operands[i])...};
+          auto it = std::ranges::find_if_not(expected_operands, [](auto&& v){ return bool(v); });
+          if (it != expected_operands.end())
+            return tl::unexpected(it->error());
+          else return fast::node::Operator<type, op, args_num>(ope, {std::move(*expected_operands[i])...});
+        };
+        return get_operator(std::make_index_sequence<args_num>());
+      }
+    },
+    *ast
+  );
+}
+
 
 template <std::ranges::viewable_range Range>
   requires std::is_convertible_v<std::ranges::range_value_t<Range>, std::string_view>
