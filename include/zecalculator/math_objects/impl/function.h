@@ -45,9 +45,9 @@ template <parsing::Type type, size_t args_num>
 void Function<type, args_num>::rebind()
 {
   if constexpr (type == parsing::Type::FAST)
-    bound_rhs = parsing::bind<type>{this->m_equation, *this->mathworld}(this->rhs);
+    bound_rhs = parsing::make_fast<type>{this->m_equation, *this->mathworld}(this->rhs);
   else
-    bound_rhs = parsing::bind<type>{this->m_equation, *this->mathworld}(this->rhs).transform(parsing::make_RPN);
+    bound_rhs = parsing::make_fast<type>{this->m_equation, *this->mathworld}(this->rhs).transform(parsing::make_RPN);
 }
 
 template <parsing::Type type, size_t args_num>

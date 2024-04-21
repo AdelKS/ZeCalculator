@@ -42,7 +42,7 @@ int main()
 
     expect(bool(parsing)) << parsing;
 
-    auto expect_node = make_ast(expression, parsing.value()).and_then(bind<type>{expression, world});
+    auto expect_node = make_ast(expression, parsing.value()).and_then(make_fast<type>{expression, world});
 
     expect(bool(expect_node));
 
@@ -71,7 +71,7 @@ int main()
 
     expect(bool(parsing)) << parsing;
 
-    auto expect_node = make_ast(expression, parsing.value(), std::array{"x"}).and_then(bind<type>{expression, world});
+    auto expect_node = make_ast(expression, parsing.value(), std::array{"x"}).and_then(make_fast<type>{expression, world});
 
     expect(bool(expect_node));
 

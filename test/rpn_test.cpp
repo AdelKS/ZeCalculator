@@ -40,7 +40,7 @@ int main()
 
     zc::MathWorld<Type::RPN> world;
 
-    auto expect_tree = make_ast(expression, parsing.value()).and_then(bind<Type::RPN>{expression, world});
+    auto expect_tree = make_ast(expression, parsing.value()).and_then(make_fast<Type::RPN>{expression, world});
 
     expect(bool(expect_tree));
 

@@ -380,12 +380,12 @@ tl::expected<double, Error> MathWorld<type>::evaluate(std::string expr)
   if constexpr (type == parsing::Type::FAST)
     return parsing::tokenize(expr)
       .and_then(make_ast)
-      .and_then(parsing::bind<type>{expr, *this})
+      .and_then(parsing::make_fast<type>{expr, *this})
       .and_then(evaluate);
   else
     return parsing::tokenize(expr)
       .and_then(make_ast)
-      .and_then(parsing::bind<type>{expr, *this})
+      .and_then(parsing::make_fast<type>{expr, *this})
       .transform(parsing::make_RPN)
       .and_then(evaluate);
 }

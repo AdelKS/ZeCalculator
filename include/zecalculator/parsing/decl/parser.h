@@ -91,7 +91,7 @@ mark_input_vars(T) -> mark_input_vars<T>;
 /// @brief functor that transforms an AST to an FAST<type> by doing object name lookup within
 ///        a MathWorld instance and binding to objects with references
 template <Type type>
-struct bind
+struct make_fast
 {
   std::string expression;
   const MathWorld<type>& math_world;

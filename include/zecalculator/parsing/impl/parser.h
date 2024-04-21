@@ -361,7 +361,7 @@ struct FunctionVisiter
 };
 
 template <Type type>
-tl::expected<FAST<type>, Error> bind<type>::operator () (const AST& ast)
+tl::expected<FAST<type>, Error> make_fast<type>::operator () (const AST& ast)
 {
   using Ret = tl::expected<FAST<type>, Error>;
 

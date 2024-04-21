@@ -33,7 +33,7 @@ class MathWorld;
 
 namespace parsing {
   template <Type type>
-  struct bind;
+  struct make_fast;
 }
 
 template <parsing::Type type>
