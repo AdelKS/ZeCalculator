@@ -261,10 +261,12 @@ int main()
     std::string expr(static_expr);
     expr.reserve(static_expr.size() + max_random_padding);
 
+    size_t i = 0;
     size_t iterations = loop_call_for(duration, [&]{
       // resize with variable number of extra spaces
       // just to fool the compiler so it thinks each call to this function is unique
-      expr.resize(static_expr_size + (size_t(rand()) % max_random_padding), ' ');
+      i = (i + 1) % max_random_padding;
+      expr.resize(static_expr_size + i, ' ');
 
       auto exp_parsing = tokenize(expr);
       dummy += parsing::text_token(exp_parsing.value().back()).substr.size();
