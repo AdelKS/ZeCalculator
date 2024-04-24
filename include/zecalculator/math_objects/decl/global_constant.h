@@ -54,9 +54,9 @@ public:
   double value() const;
 
 protected:
-  GlobalConstant(MathEqObject<type> math_expr_obj, parsing::tokens::Number m_value);
+  GlobalConstant(MathEqObject<type> math_expr_obj, parsing::Token m_value);
 
-  parsing::tokens::Number m_value;
+  parsing::Token m_value;
 
   template <parsing::Type>
   friend class MathWorld;

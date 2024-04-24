@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include <utility>
+#include <variant>
 #include <zecalculator/math_objects/aliases.h>
 #include <zecalculator/parsing/data_structures/decl/ast.h>
 #include <zecalculator/parsing/data_structures/impl/shared.h>
@@ -28,39 +30,101 @@
 namespace zc {
   namespace parsing {
     namespace ast {
-      namespace node {
 
-        template <char op, size_t args_num>
-        struct Operator: parsing::tokens::Text
-        {
-          using Operands = std::array<NodePtr, args_num>;
+      inline const Node::Func& Node::func_data() const
+      {
+        assert(std::holds_alternative<Node::Func>(dyn_data));
+        return *std::get_if<Node::Func>(&dyn_data);
+      }
 
-          Operator(parsing::tokens::Text text, parsing::tokens::Text name_token, Operands operands)
-            : parsing::tokens::Text(std::move(text)), name_token(std::move(name_token)),
-              operands(std::move(operands)){};
+      inline const Node::InputVariable& Node::input_var_data() const
+      {
+        assert(std::holds_alternative<Node::InputVariable>(dyn_data));
+        return *std::get_if<Node::InputVariable>(&dyn_data);
+      }
 
-          parsing::tokens::Text name_token;
-          Operands operands;
-        };
+      inline const Node::Number& Node::number_data() const
+      {
+        assert(std::holds_alternative<Node::Number>(dyn_data));
+        return *std::get_if<Node::Number>(&dyn_data);
+      }
 
-        struct Function: parsing::tokens::Text
-        {
-          Function(parsing::tokens::Text full_expr,
-                   parsing::tokens::Text name_token,
-                   parsing::tokens::Text args_token,
-                   std::vector<NodePtr> subnodes)
-            : parsing::tokens::Text(std::move(full_expr)), name_token(std::move(name_token)),
-              args_token(std::move(args_token)), subnodes(std::move(subnodes))
-          {}
+      inline Node::Func& Node::func_data()
+      {
+        return const_cast<Func&>(std::as_const(*this).func_data());
+      }
 
-          parsing::tokens::Text name_token;
-          parsing::tokens::Text args_token;
-          std::vector<NodePtr> subnodes;
+      inline Node::InputVariable& Node::input_var_data()
+      {
+        return const_cast<InputVariable&>(std::as_const(*this).input_var_data());
+      }
 
-          bool operator == (const Function& other) const = default;
-        };
+      inline Node::Number& Node::number_data()
+      {
+        return const_cast<Number&>(std::as_const(*this).number_data());
+      }
 
-      } // namespace node
+      inline Node Node::make_func(Node::Func::Type type,
+                              parsing::tokens::Text name,
+                              parsing::tokens::Text full_expr,
+                              std::vector<Node> subnodes)
+      {
+        return Node{.name = std::move(name),
+                    .dyn_data = Func{.type = type,
+                                     .full_expr = std::move(full_expr),
+                                     .subnodes = std::move(subnodes)}};
+      }
+
+      inline Node Node::make_input_var(parsing::tokens::Text name, size_t index)
+      {
+        return Node{.name = name, .dyn_data = InputVariable{index}};
+      }
+
+      inline Node Node::make_number(parsing::tokens::Text name, double value)
+      {
+        return Node{.name = name, .dyn_data = Number{value}};
+      }
+
+      inline Node Node::make_var(parsing::tokens::Text name)
+      {
+        return Node{.name = name};
+      }
+
+      inline tokens::Text Node::args_token() const
+      {
+        assert(std::holds_alternative<Func>(dyn_data) and func_data().type == Func::FUNCTION);
+
+        tokens::Text args_token;
+        // remove the function name and the opening parenthesis and the last parenthesis
+        args_token.substr_info = SubstrInfo{.begin = func_data().full_expr.substr_info->begin
+                                                     + name.substr.size() + 1,
+                                            .size = func_data().full_expr.substr_info->size
+                                                    - name.substr.size() - 2};
+        args_token.substr = func_data().full_expr.substr.substr(name.substr.size() + 1,
+                                                                args_token.substr_info->size);
+        return args_token;
+      }
+
+      inline bool Node::is_func() const
+      {
+        return std::holds_alternative<Func>(dyn_data);
+      }
+
+      inline bool Node::is_input_var() const
+      {
+        return std::holds_alternative<InputVariable>(dyn_data);
+      }
+
+      inline bool Node::is_number() const
+      {
+        return std::holds_alternative<Number>(dyn_data);
+      }
+
+      inline bool Node::is_var() const
+      {
+        return std::holds_alternative<Variable>(dyn_data);
+      }
+
     } // namespace ast
   } // namespace parsing
 } // namespace zc

@@ -25,7 +25,7 @@
 namespace zc {
 
 template <parsing::Type type>
-GlobalConstant<type>::GlobalConstant(MathEqObject<type> math_expr_obj, parsing::tokens::Number m_value)
+GlobalConstant<type>::GlobalConstant(MathEqObject<type> math_expr_obj, parsing::Token m_value)
   : MathEqObject<type>(std::move(math_expr_obj)), m_value(std::move(m_value))
 {}
 

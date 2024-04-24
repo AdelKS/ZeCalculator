@@ -1,3 +1,4 @@
+#include "zecalculator/parsing/data_structures/decl/ast.h"
 #include <boost/ut.hpp>
 #include <zecalculator/test-utils/magic_enum.h>
 #include <zecalculator/test-utils/print-utils.h>
@@ -9,13 +10,13 @@ std::ostream& operator<<(std::ostream& os, const zc::parsing::tokens::Text& txt_
 {
   os << txt_token.substr;
   if (txt_token.substr_info)
-    os << " at (" << txt_token.substr_info->begin  << ", " << txt_token.substr_info->size << ") ";
+    os << " at " << txt_token.substr_info->begin << " ";
   return os;
 }
 
 std::ostream &operator<<(std::ostream &os, const zc::parsing::Token &token)
 {
-  os << static_cast<const zc::parsing::TokenType&>(token);
+  os << magic_enum::enum_name(token.type) << " " << token.substr;
   return os;
 }
 
@@ -97,58 +98,46 @@ std::ostream &operator<<(std::ostream &os,
   return os;
 }
 
-void syntax_node_print_helper(std::ostream &os,
-                              const zc::parsing::ast::node::Node &node,
-                              size_t padding = 0)
+void syntax_node_print_helper(std::ostream& os, const zc::parsing::AST& node, size_t padding = 0)
 {
   const std::string padding_str(padding, ' ');
 
-  using zc::parsing::ast::node::Function,
-        zc::parsing::tokens::Text,
-        zc::parsing::ast::node::Operator,
-        zc::parsing::ast::node::Variable,
-        zc::parsing::shared::node::InputVariable,
-        zc::parsing::shared::node::Number,
-        zc::parsing::shared::node::GlobalConstant;
-
-  std::visit(
+  return std::visit(
     zc::utils::overloaded{
-      [&](const Function &f)
+      [&](const zc::parsing::AST::Func &func)
       {
-        os << padding_str << "Function<" << f.subnodes.size() << "> "
-          << f.name_token << "subexpr: " << Text(f) << " {" << std::endl;
-        for (const auto &operand : f.subnodes)
-          syntax_node_print_helper(os, *operand, padding + 2);
+        if (func.type == zc::parsing::AST::Func::FUNCTION)
+          os << padding_str << "Function<" << func.subnodes.size()
+              << "> ";
+        else
+          os << padding_str << magic_enum::enum_name(func.type);
+
+        os << " at " << node.name.substr_info->begin
+            << " subexpr: " << func.full_expr << " {" << std::endl;
+        for (auto &&operand : func.subnodes)
+          syntax_node_print_helper(os, operand, padding + 2);
         os << padding_str << "}" << std::endl;
       },
-      [&]<char op, size_t args_num>(const Operator<op, args_num> &f)
+      [&](const zc::parsing::AST::InputVariable &input_var)
       {
-        os << padding_str << "Operator<" << op << ", " << args_num
-          << "> " << f.name_token << "subexpr: " << Text(f) << " {" << std::endl;
-        for (auto &&operand : f.operands)
-          syntax_node_print_helper(os, *operand, padding + 2);
-        os << padding_str << "}" << std::endl;
+        os << padding_str << "InputVariable " << node.name
+            << "index: " << size_t(input_var.index) << std::endl;
       },
-      [&](const InputVariable &v)
+      [&](const zc::parsing::AST::Number &)
       {
-        os << padding_str << "InputVariable " << Text(v)
-          << " index: " << v.index << std::endl;
+        os << padding_str << "Number " << node.name << std::endl;
       },
-      [&](const Variable &c)
+      [&](zc::parsing::AST::Variable)
       {
-        os << padding_str << "Variable " << Text(c) << std::endl;
-      },
-      [&](const Number &n)
-      {
-        os << padding_str << "Number " << n << std::endl;
+        os << padding_str << "Variable " << node.name << std::endl;
       }},
-    node);
+      node.dyn_data);
 }
 
 std::ostream& operator << (std::ostream& os, const zc::parsing::AST& node)
 {
   os << std::endl;
-  syntax_node_print_helper(os, *node);
+  syntax_node_print_helper(os, node);
   return os;
 }
 

@@ -21,13 +21,14 @@
 #pragma once
 
 #include <algorithm>
-#include <cassert>
 #include <cmath>
+#include <cstdint>
 #include <optional>
+#include <ranges>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <variant>
-#include <ranges>
 
 #include <zecalculator/external/expected.h>
 #include <zecalculator/utils/substr_info.h>
@@ -91,121 +92,158 @@ Text operator + (const Text& t1, const Text& t2)
   return Text(name, opt_substr_info);
 }
 
-struct Unkown: Text
+enum Type: size_t
 {
-  explicit Unkown(const Text& txt) : Text(txt) {}
-  using Text::Text;
+  UNKNOWN,
+  NUMBER,
+  VARIABLE,
+  FUNCTION,
+  OP_ASSIGN,
+  OP_ADD,
+  OP_SUBTRACT,
+  OP_MULTIPLY,
+  OP_DIVIDE,
+  OP_POWER,
+  OPENING_PARENTHESIS,
+  CLOSING_PARENTHESIS,
+  FUNCTION_CALL_START,
+  FUNCTION_CALL_END,
+  SEPARATOR,
+  END_OF_EXPRESSION,
 };
 
-struct Number: Text
+struct Operator
 {
-  Number() = default;
-
-  Number(double value, const tokens::Text& text_token): Text(text_token), value(value) {}
-  double value = std::nan("");
+  char token;
+  uint8_t priority;
+  Type type;
 };
 
-struct Variable: Text
+inline constexpr std::array operators = {Operator{'=', 0, OP_ASSIGN},
+                                         Operator{'+', 1, OP_ADD},
+                                         Operator{'-', 1, OP_SUBTRACT},
+                                         Operator{'*', 2, OP_MULTIPLY},
+                                         Operator{'/', 2, OP_DIVIDE},
+                                         Operator{'^', 3, OP_POWER},};
+
+inline constexpr uint8_t max_priority = std::ranges::max(operators | std::views::transform(&Operator::priority));
+
+consteval size_t operator_number(size_t priority)
 {
-  explicit Variable(const Text& txtTok): Text(txtTok) {}
-  using Text::Text;
-};
-
-struct Function: Text
-{
-  explicit Function(const Text& txtTok): Text(txtTok) {}
-  using Text::Text;
-};
-
-/// @brief operators ordered in increasing order of priority
-/// @note operators in the same array have the same priority, and the evaluation will
-///       be performed left to right
-inline constexpr auto operators = std::make_tuple(std::array{'='},
-                                                  std::array{'+', '-'},
-                                                  std::array{'*', '/'},
-                                                  std::array{'^'});
-
-using OperatorSequence = std::integer_sequence<char, '=', '+', '-', '*', '/', '^'>;
-
-inline constexpr bool is_operator(const char ch)
-{
-  bool found = false;
-  auto is_in_array = [&](const auto& ops)
-  {
-    found = found or std::ranges::count(ops, ch);
-  };
-  tuple_for(is_in_array, operators);
-  return found;
+  size_t num = 0;
+  for (const auto& op: operators)
+    if (op.priority == priority)
+      num++;
+  return num;
 }
 
-template <char op, size_t args_num>
-  requires (is_operator(op) and args_num >= 1)
-struct Operator: Function
+template <uint8_t priority>
+consteval auto get_operators()
 {
-  Operator(size_t begin): Function(std::string(1, op), begin) {}
+  std::array<Type, operator_number(priority)> ops;
+  size_t i = 0;
+  for (const auto& op: operators)
+    if (op.priority == priority)
+    {
+      ops[i] = op.type;
+      i++;
+    }
 
-  Operator(std::string_view op_v, std::string_view original_expr)
-    : Function(std::string(op_v), SubstrInfo::from_views(op_v, original_expr))
+  // just a "constexpr" check
+  if (i != ops.size())
+    throw 0;
+
+  return ops;
+}
+
+inline constexpr std::optional<Operator> get_operator_description(const char ch)
+{
+  for(const auto& op: operators)
+    if (op.token == ch)
+      return op;
+
+  return {};
+}
+
+}
+
+struct Token: tokens::Text
+{
+  Token(tokens::Type type, tokens::Text text)
+    : tokens::Text(std::move(text)), type(type)
   {}
-};
 
-template <char op>
-using BinaryOperator = Operator<op, 2>;
+  Token(double value, tokens::Text text)
+    : tokens::Text(std::move(text)), type(tokens::NUMBER), value(value)
+  {}
 
-struct OpeningParenthesis: Text
-{
-  using Text::Text;
-};
+  static Token OpeningParenthesis(std::string_view name, size_t start) {
+    return Token(tokens::OPENING_PARENTHESIS, Text(name, start));
+  }
 
-struct ClosingParenthesis: Text
-{
-  using Text::Text;
-};
+  static Token Function(std::string_view name, size_t start) {
+    return Token(tokens::FUNCTION, Text(name, start));
+  }
 
-struct FunctionCallStart: Text
-{
-  using Text::Text;
-};
+  static Token FunctionCallStart(std::string_view name, size_t start) {
+    return Token(tokens::FUNCTION_CALL_START, Text(name, start));
+  }
 
-struct FunctionCallEnd: Text
-{
-  using Text::Text;
-};
+  static Token Variable(std::string_view name, size_t start) {
+    return Token(tokens::VARIABLE, Text(name, start));
+  }
+  static Token FunctionCallEnd(std::string_view name, size_t start) {
+    return Token(tokens::FUNCTION_CALL_END, Text(name, start));
+  }
 
-struct FunctionArgumentSeparator: Text
-{
-  using Text::Text;
-};
+  static Token Number(double value, std::string_view name, size_t start) {
+    return Token(value, Text(name, start));
+  }
 
-struct EndOfExpression: Text // will be used only to signal errors
-{
-  using Text::Text;
-};
+  static Token Number(double value, tokens::Text token) {
+    return Token(value, std::move(token));
+  }
 
-}
+  static Token Separator(std::string_view name, size_t start) {
+    return Token(tokens::SEPARATOR, Text(name, start));
+  }
 
-/// @brief represents a  in a parsed expression
-/// @example an operatr '+', a function name 'cos', a variable 'x', a number '-3.14E+2'
-using TokenType = std::variant<tokens::Unkown,
-                               tokens::Number,
-                               tokens::Variable,
-                               tokens::Function,
-                               tokens::Operator<'=', 2>,
-                               tokens::Operator<'+', 2>,
-                               tokens::Operator<'-', 2>,
-                               tokens::Operator<'*', 2>,
-                               tokens::Operator<'/', 2>,
-                               tokens::Operator<'^', 2>,
-                               tokens::OpeningParenthesis,
-                               tokens::ClosingParenthesis,
-                               tokens::FunctionCallStart,
-                               tokens::FunctionCallEnd,
-                               tokens::FunctionArgumentSeparator,
-                               tokens::EndOfExpression>;
+  static Token ClosingParenthesis(std::string_view name, size_t start) {
+    return Token(tokens::CLOSING_PARENTHESIS, Text(name, start));
+  }
 
-struct Token: TokenType
-{
-  using TokenType::TokenType;
+  static Token Assign(std::string_view name, size_t start) {
+    return Token(tokens::OP_ASSIGN, Text(name, start));
+  }
+
+  static Token Add(std::string_view name, size_t start) {
+    return Token(tokens::OP_ADD, Text(name, start));
+  }
+
+  static Token Subtract(std::string_view name, size_t start) {
+    return Token(tokens::OP_SUBTRACT, Text(name, start));
+  }
+
+  static Token Multiply(std::string_view name, size_t start) {
+    return Token(tokens::OP_MULTIPLY, Text(name, start));
+  }
+
+  static Token Divide(std::string_view name, size_t start) {
+    return Token(tokens::OP_DIVIDE, Text(name, start));
+  }
+
+  static Token Power(std::string_view name, size_t start) {
+    return Token(tokens::OP_POWER, Text(name, start));
+  }
+
+  static Token EndOfExpression(size_t pos)
+  {
+    return Token(tokens::END_OF_EXPRESSION, Text("", pos));
+  }
+
+  tokens::Type type = tokens::UNKNOWN;
+
+  double value = std::nan("");
 };
 
 template <class... U>
@@ -216,7 +254,7 @@ inline tokens::Text text_token(const std::variant<U...>& token)
 
 inline std::optional<SubstrInfo> substr_info(const Token& token)
 {
-  return text_token(token).substr_info;
+  return token.substr_info;
 }
 
 }

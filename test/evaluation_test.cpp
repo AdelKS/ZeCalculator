@@ -18,6 +18,7 @@
 **
 ****************************************************************************/
 
+#include "zecalculator/parsing/data_structures/token.h"
 #include <zecalculator/zecalculator.h>
 
 // testing specific headers
@@ -106,7 +107,11 @@ int main()
 
     auto error = world.evaluate(expression).error();
 
-    expect(error == zc::Error::undefined_variable(parsing::tokens::Variable("my_constant1", 9, 12), expression)) << error;
+    expect(error
+           == zc::Error::undefined_variable(parsing::Token(parsing::tokens::VARIABLE,
+                                                           parsing::tokens::Text("my_constant1", 9)),
+                                            expression))
+      << error;
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 

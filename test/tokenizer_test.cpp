@@ -18,6 +18,7 @@
 **
 ****************************************************************************/
 
+#include "zecalculator/parsing/data_structures/token.h"
 #include <zecalculator/parsing/parser.h>
 
 // testing specific headers
@@ -38,7 +39,10 @@ int main()
     auto parsing = tokenize(expression);
 
     expect(not bool(parsing)
-           and parsing.error() == Error::unexpected(tokens::EndOfExpression("", SubstrInfo{8, 0}), expression))
+           and parsing.error()
+                 == Error::unexpected(Token(tokens::END_OF_EXPRESSION,
+                                            tokens::Text("", SubstrInfo{8, 0})),
+                                      expression))
       << parsing;
   };
 
@@ -47,8 +51,8 @@ int main()
     auto parsing = tokenize("+12.2E+3");
 
     expect(bool(parsing) and parsing->size() == 1
-           and std::holds_alternative<tokens::Number>(parsing->front())
-           and std::get<tokens::Number>(parsing->front()).value == 12.2E+3)
+           and parsing->front().type == tokens::NUMBER
+           and parsing->front().value == 12.2E+3)
       << parsing;
   };
 
@@ -57,8 +61,8 @@ int main()
     auto parsing = tokenize("-12.2E+3");
 
     expect(bool(parsing) and parsing->size() == 1
-           and std::holds_alternative<tokens::Number>(parsing->front())
-           and std::get<tokens::Number>(parsing->front()).value == -12.2E+3)
+           and parsing->front().type == tokens::NUMBER
+           and parsing->front().value == -12.2E+3)
       << parsing;
   };
 
@@ -70,11 +74,11 @@ int main()
     expect(bool(parsing)) << parsing;
 
     auto expected_parsing = std::vector<Token>({
-        tokens::Number(2., tokens::Text{"2", 0}),
-        tokens::BinaryOperator<'+'>(1),
-        tokens::Number(2., tokens::Text{"2", 2}),
-        tokens::BinaryOperator<'='>(3),
-        tokens::Number(2., tokens::Text{"2", 4}),
+        Token::Number(2., "2", 0),
+        Token::Add("+", 1),
+        Token::Number(2., "2", 2),
+        Token::Assign("=", 3),
+        Token::Number(2., "2", 4),
     });
 
     expect(*parsing == expected_parsing) << *parsing;
@@ -87,11 +91,11 @@ int main()
     expect(bool(parsing)) << parsing;
 
     auto expected_parsing = std::vector<Token>({
-        tokens::Number(2., tokens::Text{"2", 0}),
-        tokens::BinaryOperator<'+'>(1),
-        tokens::Number(2., tokens::Text{"2", 2}),
-        tokens::BinaryOperator<'*'>(3),
-        tokens::Number(2., tokens::Text{"2", 4}),
+        Token::Number(2., "2", 0),
+        Token::Add("+", 1),
+        Token::Number(2., "2", 2),
+        Token::Multiply("*", 3),
+        Token::Number(2., "2", 4),
     });
 
     expect(*parsing == expected_parsing);
@@ -104,11 +108,11 @@ int main()
     expect(bool(parsing)) << parsing;
 
     auto expected_parsing = std::vector<Token>({
-        tokens::Number(2., tokens::Text{"2", 3}),
-        tokens::BinaryOperator<'+'>(5),
-        tokens::Number(2., tokens::Text{"2", 8}),
-        tokens::BinaryOperator<'*'>(11),
-        tokens::Number(2., tokens::Text{"2", 12}),
+        Token::Number(2., "2", 3),
+        Token::Add("+", 5),
+        Token::Number(2., "2", 8),
+        Token::Multiply("*", 11),
+        Token::Number(2., "2", 12),
     });
 
     expect(*parsing == expected_parsing);
@@ -121,19 +125,19 @@ int main()
     expect(bool(parsing)) << parsing;
 
     auto expected_parsing = std::vector<Token>({
-        tokens::OpeningParenthesis("(", 0),
-        tokens::Function("cos", 1),
-        tokens::FunctionCallStart("(", 4),
-        tokens::Function("sin", 5),
-        tokens::FunctionCallStart("(", 8),
-        tokens::Variable("x", 9),
-        tokens::FunctionCallEnd(")", 10),
-        tokens::BinaryOperator<'+'>(11),
-        tokens::Number(1., tokens::Text{"1", 12}),
-        tokens::FunctionCallEnd(")", 13),
-        tokens::ClosingParenthesis(")", 14),
-        tokens::BinaryOperator<'+'>(15),
-        tokens::Number(1., tokens::Text{"1", 16}),
+        Token::OpeningParenthesis("(", 0),
+        Token::Function("cos", 1),
+        Token::FunctionCallStart("(", 4),
+        Token::Function("sin", 5),
+        Token::FunctionCallStart("(", 8),
+        Token::Variable("x", 9),
+        Token::FunctionCallEnd(")", 10),
+        Token::Add("+", 11),
+        Token::Number(1., "1", 12),
+        Token::FunctionCallEnd(")", 13),
+        Token::ClosingParenthesis(")", 14),
+        Token::Add("+", 15),
+        Token::Number(1., "1", 16),
     });
 
     expect(*parsing == expected_parsing);
@@ -145,7 +149,7 @@ int main()
     auto parsing = tokenize(expression);
 
     expect(not parsing and
-           parsing.error() == Error::unexpected(tokens::BinaryOperator<'-'>(2), expression))
+           parsing.error() == Error::unexpected(Token::Subtract("-", 2), expression))
         << parsing;
   };
 
@@ -155,7 +159,7 @@ int main()
     auto parsing = tokenize(expression);
 
     expect(not parsing and
-           parsing.error() == Error::unexpected(tokens::ClosingParenthesis(")", 3, 1), expression));
+           parsing.error() == Error::unexpected(Token::ClosingParenthesis(")", 3), expression));
   };
 
   "floating point operations"_test = []()
@@ -165,9 +169,9 @@ int main()
     expect(bool(parsing)) << parsing;
 
     auto expected_parsing = std::vector<Token>({
-        tokens::Number(223.231E+13, tokens::Text{"223.231E+13", 0}),
-        tokens::BinaryOperator<'+'>(11),
-        tokens::Number(183.283E-132, tokens::Text{"183.283E-132", 12}),
+        Token::Number(223.231E+13, "223.231E+13", 0),
+        Token::Add("+", 11),
+        Token::Number(183.283E-132, "183.283E-132", 12),
     });
 
     expect(*parsing == expected_parsing);
@@ -180,25 +184,25 @@ int main()
     expect(bool(parsing)) << parsing;
 
     auto expected_parsing = std::vector<Token>({
-        tokens::Function("f", 0),
-        tokens::FunctionCallStart("(", 1),
-        tokens::Number(1, tokens::Text{"1", 2}),
-        tokens::BinaryOperator<'+'>(3),
-        tokens::Function("g", 4),
-        tokens::FunctionCallStart("(", 5),
-        tokens::Variable("x", 6),
-        tokens::FunctionArgumentSeparator(",", 7),
-        tokens::Function("r", 9),
-        tokens::FunctionCallStart("(", 10),
-        tokens::Function("h", 11),
-        tokens::FunctionCallStart("(", 12),
-        tokens::Variable("x", 13),
-        tokens::FunctionCallEnd(")", 14),
-        tokens::FunctionCallEnd(")", 15),
-        tokens::FunctionCallEnd(")", 16),
-        tokens::FunctionArgumentSeparator(",", 17),
-        tokens::Variable("x", 19),
-        tokens::FunctionCallEnd(")", 20)
+        Token::Function("f", 0),
+        Token::FunctionCallStart("(", 1),
+        Token::Number(1, "1", 2),
+        Token::Add("+", 3),
+        Token::Function("g", 4),
+        Token::FunctionCallStart("(", 5),
+        Token::Variable("x", 6),
+        Token::Separator(",", 7),
+        Token::Function("r", 9),
+        Token::FunctionCallStart("(", 10),
+        Token::Function("h", 11),
+        Token::FunctionCallStart("(", 12),
+        Token::Variable("x", 13),
+        Token::FunctionCallEnd(")", 14),
+        Token::FunctionCallEnd(")", 15),
+        Token::FunctionCallEnd(")", 16),
+        Token::Separator(",", 17),
+        Token::Variable("x", 19),
+        Token::FunctionCallEnd(")", 20)
     });
 
     if(parsing)
@@ -226,7 +230,7 @@ int main()
 
     expect(not bool(parsing)) << parsing;
 
-    expect(parsing.error() == Error::missing(tokens::FunctionCallEnd("", 7), std::string(str))) << parsing.error();
+    expect(parsing.error() == Error::missing(Token::FunctionCallEnd("", 7), std::string(str))) << parsing.error();
   };
 
   "missing normal closing pth"_test = []()
@@ -236,7 +240,7 @@ int main()
 
     expect(not bool(parsing)) << parsing;
 
-    expect(parsing.error() == Error::missing(tokens::ClosingParenthesis("", 9), std::string(str))) << parsing.error();
+    expect(parsing.error() == Error::missing(Token::ClosingParenthesis("", 9), std::string(str))) << parsing.error();
   };
 
   "unexpected end of expression"_test = []()
@@ -246,7 +250,7 @@ int main()
 
     expect(not bool(parsing)) << parsing;
 
-    expect(parsing.error() == Error::unexpected(tokens::EndOfExpression("", 2), std::string(str)))
+    expect(parsing.error() == Error::unexpected(Token::EndOfExpression(2), std::string(str)))
       << parsing.error();
   };
 
@@ -269,7 +273,7 @@ int main()
       expr.resize(static_expr_size + i, ' ');
 
       auto exp_parsing = tokenize(expr);
-      dummy += parsing::text_token(exp_parsing.value().back()).substr.size();
+      dummy += exp_parsing.value().back().substr.size();
     });
 
     // the absolute value doesn't mean anything really, but we can compare between performance improvements

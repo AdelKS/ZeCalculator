@@ -13,40 +13,16 @@ namespace std {
 
 std::ostream& operator << (std::ostream& os, const zc::parsing::Token& token);
 
-std::ostream& operator << (std::ostream& os, const zc::parsing::fast::node::Node<zc::parsing::Type::FAST>& node);
+std::ostream& operator<<(std::ostream& os,
+                         const zc::parsing::fast::node::Node<zc::parsing::Type::FAST>& node);
 
-std::ostream& operator << (std::ostream& os, const zc::parsing::fast::node::Node<zc::parsing::Type::RPN>& node);
+std::ostream& operator<<(std::ostream& os,
+                         const zc::parsing::fast::node::Node<zc::parsing::Type::RPN>& node);
 
 std::ostream& operator << (std::ostream& os, const zc::parsing::AST& node);
 
 
 std::ostream& operator<<(std::ostream &, const zc::parsing::tokens::Text&);
-
-template <class Tok>
-  requires zc::utils::is_any_of<Tok,
-                                zc::parsing::tokens::Unkown,
-                                zc::parsing::tokens::Number,
-                                zc::parsing::tokens::Variable,
-                                zc::parsing::tokens::Function,
-                                zc::parsing::tokens::Operator<'-', 2>,
-                                zc::parsing::tokens::Operator<'+', 2>,
-                                zc::parsing::tokens::Operator<'*', 2>,
-                                zc::parsing::tokens::Operator<'/', 2>,
-                                zc::parsing::tokens::Operator<'^', 2>,
-                                zc::parsing::tokens::OpeningParenthesis,
-                                zc::parsing::tokens::ClosingParenthesis,
-                                zc::parsing::tokens::FunctionCallStart,
-                                zc::parsing::tokens::FunctionCallEnd,
-                                zc::parsing::tokens::FunctionArgumentSeparator,
-                                zc::parsing::tokens::EndOfExpression>
-std::ostream& operator<<(std::ostream& os, const Tok& token)
-{
-  os << boost::ut::reflection::type_name<Tok>() << " " << static_cast<const zc::parsing::tokens::Text&>(token);
-  return os;
-}
-
-
-
 
 std::ostream& operator << (std::ostream& os, zc::deps::ObjectType type);
 

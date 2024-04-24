@@ -20,9 +20,7 @@
 
 #pragma once
 
-#include <memory>
-#include <variant>
-#include <vector>
+#include <zecalculator/parsing/data_structures/token.h>
 #include <zecalculator/parsing/types.h>
 #include <zecalculator/utils/utils.h>
 
@@ -47,7 +45,7 @@ namespace parsing {
       template <parsing::Type>
       struct GlobalConstant;
 
-      using Number = zc::parsing::tokens::Number;
+      using Number = zc::parsing::Token;
 
     } // namespace node
   } // namespace shared

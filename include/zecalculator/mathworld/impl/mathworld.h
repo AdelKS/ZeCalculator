@@ -20,6 +20,9 @@
 **
 ****************************************************************************/
 
+#include "zecalculator/parsing/data_structures/decl/ast.h"
+#include "zecalculator/parsing/data_structures/token.h"
+#include <ranges>
 #include <zecalculator/mathworld/decl/mathworld.h>
 #include <zecalculator/math_objects/impl/dyn_math_object.h>
 #include <zecalculator/parsing/parser.h>
@@ -149,67 +152,62 @@ DynMathObject<type>& MathWorld<type>::add(std::string definition)
   }
 
   // the root node of the tree must be the equal sign
-  if (not std::holds_alternative<parsing::ast::node::Operator<'=', 2>>(**ast))
+  if (not (ast->is_func() and ast->func_data().type == parsing::AST::Func::OP_ASSIGN))
   {
     obj = tl::unexpected(Error::not_math_object_definition());
     return obj;
   }
 
-  const auto& def_op = std::get<parsing::ast::node::Operator<'=', 2>>(**ast);
+  auto& funcop_data = ast->func_data();
 
-  math_expr_obj.lhs = def_op.operands[0];
-  math_expr_obj.rhs = def_op.operands[1];
+  assert(funcop_data.subnodes.size() == 2);
+
+  math_expr_obj.lhs = std::move(funcop_data.subnodes[0]);
+  math_expr_obj.rhs = std::move(funcop_data.subnodes[1]);
+
+  funcop_data.subnodes.clear();
 
   // "f(x) = ...."
-  const bool is_function_def = std::holds_alternative<parsing::ast::node::Function>(*math_expr_obj.lhs);
+  const bool is_function_def = (math_expr_obj.lhs.is_func()
+                                and math_expr_obj.lhs.func_data().type
+                                      == parsing::AST::Func::FUNCTION);
 
   // "var = complex expression that is not a number"
-  const bool is_global_var_def = std::holds_alternative<parsing::ast::node::Variable>(*math_expr_obj.lhs)
-                                 and not std::holds_alternative<parsing::shared::node::Number>(*math_expr_obj.rhs);
+  const bool is_global_var_def = (math_expr_obj.lhs.is_var()
+                                 and not math_expr_obj.rhs.is_number());
 
   // "var = 13.24213 (a number)"
-  const bool is_global_constant_def = std::holds_alternative<parsing::ast::node::Variable>(*math_expr_obj.lhs)
-                                 and std::holds_alternative<parsing::shared::node::Number>(*math_expr_obj.rhs);
+  const bool is_global_constant_def = (math_expr_obj.lhs.is_var() and math_expr_obj.rhs.is_number());
 
   if (is_function_def or is_global_var_def)
   {
+    math_expr_obj.name = math_expr_obj.lhs.name;
+
     if (is_global_var_def)
     {
-      math_expr_obj.name = std::get<parsing::ast::node::Variable>(*math_expr_obj.lhs);
       obj = GlobalVariable<type>(math_expr_obj, {});
     }
     else // is_function_def
     {
-      math_expr_obj.name = std::get<parsing::ast::node::Function>(*math_expr_obj.lhs).name_token;
-
-      const std::vector<parsing::ast::node::NodePtr>& args = std::get<parsing::ast::node::Function>(*math_expr_obj.lhs).subnodes;
+      const std::vector<parsing::AST>& args = math_expr_obj.lhs.func_data().subnodes;
 
       // setting up the text that contains all the args
-      parsing::tokens::Text args_txt;
-      size_t first_arg_begin = parsing::text_token(*args.front()).substr_info->begin;
-      size_t last_arg_begin = parsing::text_token(*args.back()).substr_info->begin;
-      size_t last_arg_size = parsing::text_token(*args.back()).substr_info->size;
-      args_txt.substr_info = SubstrInfo{.begin = first_arg_begin, .size = last_arg_begin - first_arg_begin + last_arg_size};
-      args_txt.substr = args_txt.substr_info->substr(definition);
+      parsing::tokens::Text args_txt = math_expr_obj.lhs.args_token();
 
-      // filling up the variables
-      std::vector<parsing::ast::node::Variable> vars;
+      // the arguments of the function call in the left hand-side must all be regular variables
       for (const auto& arg: args)
-      {
-        // the arguments of the function call in the left hand-side must all be regular variables
-        if (not std::holds_alternative<parsing::ast::node::Variable>(*arg))
+        if (not arg.is_var())
         {
-          obj = tl::unexpected(Error::unexpected(parsing::text_token(*arg), definition));
+          obj = tl::unexpected(Error::unexpected(arg.name, definition));
           return obj;
         }
 
-        vars.push_back(std::get<parsing::ast::node::Variable>(*arg));
-      }
+      auto var_name_tokens = args | std::views::transform(&parsing::AST::name);
 
-      auto var_names = vars | std::views::transform(&parsing::tokens::Text::substr);
+      auto var_name_strs = var_name_tokens | std::views::transform(&parsing::tokens::Text::substr);
 
       // override 'rhs' with input variables of the function properly marked
-      math_expr_obj.rhs = parsing::mark_input_vars{var_names}(math_expr_obj.rhs);
+      math_expr_obj.rhs = parsing::mark_input_vars{var_name_strs}(math_expr_obj.rhs);
 
       // override 'obj' handle as a function
       bool valid_args_num = false;
@@ -219,7 +217,7 @@ DynMathObject<type>& MathWorld<type>::add(std::string definition)
           return;
 
         valid_args_num = true;
-        obj = Function<type, args_num>(math_expr_obj, utils::to_array<args_num, parsing::tokens::Text>(vars));
+        obj = Function<type, args_num>(math_expr_obj, utils::to_array<args_num, parsing::tokens::Text>(var_name_tokens));
       };
       utils::for_int_seq(add_function, std::make_index_sequence<max_func_args + 1>());
 
@@ -231,24 +229,26 @@ DynMathObject<type>& MathWorld<type>::add(std::string definition)
 
       if constexpr(zc::is_sequence_v<InterpretAs>)
       {
-        if (vars.size() != 1)
+        if (args.size() != 1)
         {
           obj = tl::unexpected(Error::mismatched_fun_args(args_txt, definition));
           return obj;
         }
 
-        obj = Sequence(Function<type, 1>(math_expr_obj, std::array{parsing::tokens::Text(vars.front())}));
+        obj = Sequence(Function<type, 1>(math_expr_obj, {args.front().name}));
       }
     }
   }
   else if (is_global_constant_def)
   {
-    math_expr_obj.name = std::get<parsing::ast::node::Variable>(*math_expr_obj.lhs);
-    obj = GlobalConstant<type>(math_expr_obj, std::get<parsing::shared::node::Number>(*math_expr_obj.rhs));
+    math_expr_obj.name = math_expr_obj.lhs.name;
+    obj = GlobalConstant<type>(math_expr_obj,
+                               parsing::Token(math_expr_obj.rhs.number_data().value,
+                                              math_expr_obj.rhs.name));
   }
   else
   {
-    obj = tl::unexpected(Error::unexpected(parsing::text_token(*math_expr_obj.lhs), definition));
+    obj = tl::unexpected(Error::unexpected(math_expr_obj.lhs.name, definition));
     return obj;
   }
 
