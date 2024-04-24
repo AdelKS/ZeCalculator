@@ -38,11 +38,9 @@ int main()
     zc::MathWorld<type> world;
     std::string expression = "2+2*2";
 
-    auto parsing = tokenize(expression);
-
-    expect(bool(parsing)) << parsing;
-
-    auto expect_node = make_ast(expression, parsing.value()).and_then(make_fast<type>{expression, world});
+    auto expect_node = tokenize(expression)
+                         .and_then(make_ast{expression})
+                         .and_then(make_fast<type>{expression, world});
 
     expect(bool(expect_node));
 
@@ -67,11 +65,9 @@ int main()
 
     std::string expression = "(cos(sin(x)+1))+1";
 
-    auto parsing = tokenize(expression);
-
-    expect(bool(parsing)) << parsing;
-
-    auto expect_node = make_ast(expression, parsing.value(), std::array{"x"}).and_then(make_fast<type>{expression, world});
+    auto expect_node = tokenize(expression)
+                         .and_then(make_ast{expression, std::array{"x"}})
+                         .and_then(make_fast<type>{expression, world});
 
     expect(bool(expect_node));
 

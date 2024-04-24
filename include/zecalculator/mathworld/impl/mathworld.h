@@ -141,14 +141,7 @@ DynMathObject<type>& MathWorld<type>::add(std::string definition)
     return obj;
   }
 
-  auto tokenization = parsing::tokenize(definition);
-  if (not tokenization)
-  {
-    obj = tl::unexpected(tokenization.error());
-    return obj;
-  }
-
-  tl::expected<parsing::AST, Error> ast = parsing::make_ast(definition, *tokenization);
+  auto ast = parsing::tokenize(definition).and_then(parsing::make_ast{definition});
   if (not ast)
   {
     obj = tl::unexpected(ast.error());
@@ -367,11 +360,6 @@ tl::expected<double, Error> MathWorld<type>::evaluate(std::string expr)
   if (expr.empty()) [[unlikely]]
     return tl::unexpected(Error::empty_expression());
 
-  auto make_ast = [&](std::span<const parsing::Token> tokens)
-  {
-    return parsing::make_ast(expr, tokens);
-  };
-
   auto evaluate = [](const parsing::Parsing<type>& repr)
   {
     return zc::evaluate(repr);
@@ -379,12 +367,12 @@ tl::expected<double, Error> MathWorld<type>::evaluate(std::string expr)
 
   if constexpr (type == parsing::Type::FAST)
     return parsing::tokenize(expr)
-      .and_then(make_ast)
+      .and_then(parsing::make_ast{expr})
       .and_then(parsing::make_fast<type>{expr, *this})
       .and_then(evaluate);
   else
     return parsing::tokenize(expr)
-      .and_then(make_ast)
+      .and_then(parsing::make_ast{expr})
       .and_then(parsing::make_fast<type>{expr, *this})
       .transform(parsing::make_RPN)
       .and_then(evaluate);

@@ -68,9 +68,19 @@ bool is_valid_name(std::string_view name);
 ///                    e.g."x" in the function "f" such as "f(x) = cos(x)"
 template <std::ranges::viewable_range Range = std::array<std::string, 0>>
   requires std::is_convertible_v<std::ranges::range_value_t<Range>, std::string_view>
-tl::expected<AST, Error> make_ast(std::string_view expression,
-                                    std::span<const parsing::Token> tokens,
-                                    const Range& input_vars = std::array<std::string, 0>{});
+struct make_ast
+{
+  std::string_view expression;
+  const Range& input_vars = {};
+
+  tl::expected<AST, Error> operator()(std::span<const parsing::Token> tokens);
+};
+
+// user deduction guide for clang-16 that is stupid
+template <class T>
+make_ast(std::string_view, T) -> make_ast<T>;
+
+make_ast(std::string_view) -> make_ast<std::array<std::string, 0>>;
 
 template <std::ranges::viewable_range Range>
   requires std::is_convertible_v<std::ranges::range_value_t<Range>, std::string_view>

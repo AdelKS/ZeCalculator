@@ -34,11 +34,8 @@ int main()
   "simple expression"_test = []()
   {
     std::string expression = "2+2*2";
-    auto parsing = tokenize(expression);
 
-    expect(bool(parsing)) << parsing;
-
-    auto expect_node = make_ast(expression, parsing.value());
+    auto expect_node = tokenize(expression).and_then(make_ast{expression});
 
     expect(bool(expect_node));
 
@@ -61,11 +58,8 @@ int main()
   "double parentheses"_test = []()
   {
     std::string expression = "(2)*(2)";
-    auto parsing = tokenize(expression);
 
-    expect(bool(parsing)) << parsing;
-
-    auto expect_node = make_ast(expression, parsing.value());
+    auto expect_node = tokenize(expression).and_then(make_ast{expression});
 
     expect(bool(expect_node));
 
@@ -86,11 +80,8 @@ int main()
   "function expression"_test = []()
   {
     std::string expression = "(cos(sin(x)+1))+1";
-    auto parsing = tokenize("(cos(sin(x)+1))+1");
 
-    expect(bool(parsing)) << parsing;
-
-    auto expect_node = make_ast(expression, parsing.value(), std::array{"x"});
+    auto expect_node = tokenize(expression).and_then(make_ast{expression, std::array{"x"}});
 
     expect(bool(expect_node));
 
@@ -116,11 +107,7 @@ int main()
   {
     std::string expression = "cos(x)+sin(x)+1";
 
-    auto parsing = tokenize(expression);
-
-    expect(bool(parsing)) << parsing;
-
-    auto simple_ast = make_ast(expression, parsing.value());
+    auto simple_ast = tokenize(expression).and_then(make_ast{expression});
 
     // "x" is considered a variable for now
     expect(direct_dependencies(simple_ast.value())
@@ -158,11 +145,7 @@ int main()
   {
     std::string expression = "(cos(sin(x)+1+w)/u(f(h(y))))+1";
 
-    auto parsing = tokenize(expression);
-
-    expect(bool(parsing)) << parsing;
-
-    auto expect_node = make_ast(expression, parsing.value(), std::array{"x"});
+    auto expect_node = tokenize(expression).and_then(make_ast{expression, std::array{"x"}});
 
     expect(bool(expect_node));
 
@@ -175,4 +158,5 @@ int main()
                              {"h", zc::deps::FUNCTION},
                              {"y", zc::deps::VARIABLE},});
   };
+
 }

@@ -422,7 +422,7 @@ tl::expected<FAST<type>, Error> make_fast<type>::operator () (const AST& ast)
 
 template <std::ranges::viewable_range Range>
   requires std::is_convertible_v<std::ranges::range_value_t<Range>, std::string_view>
-tl::expected<AST, Error> make_ast(std::string_view expression, std::span<const parsing::Token> tokens, const Range& input_vars)
+tl::expected<AST, Error> make_ast<Range>::operator () (std::span<const parsing::Token> tokens)
 {
   using Ret = tl::expected<AST, Error>;
 
@@ -474,7 +474,7 @@ tl::expected<AST, Error> make_ast(std::string_view expression, std::span<const p
       std::holds_alternative<tokens::OpeningParenthesis>(tokens.front()) and
       std::holds_alternative<tokens::ClosingParenthesis>(tokens.back()))
   {
-    return make_ast(expression, std::span(tokens.begin()+1, tokens.end()-1), input_vars);
+    return (*this)(std::span(tokens.begin()+1, tokens.end()-1));
   }
 
   // expression of the type "function(...)"
@@ -501,7 +501,7 @@ tl::expected<AST, Error> make_ast(std::string_view expression, std::span<const p
       if (std::holds_alternative<tokens::FunctionArgumentSeparator>(*tokenIt) or
           std::holds_alternative<tokens::FunctionCallEnd>(*tokenIt))
       {
-        auto expected_func_argument = make_ast(expression, std::span(last_non_coma_token_it, tokenIt), input_vars);
+        auto expected_func_argument = (*this)(std::span(last_non_coma_token_it, tokenIt));
         if (not expected_func_argument.has_value())
           return expected_func_argument;
         else subnodes.push_back(std::move(expected_func_argument.value()));
@@ -537,11 +537,11 @@ tl::expected<AST, Error> make_ast(std::string_view expression, std::span<const p
       if (tokenIt == tokens.begin() or tokenIt + 1 == tokens.end())
         return tl::unexpected(Error::unexpected(text_token(*tokenIt), std::string(expression)));
 
-      auto left_hand_side = make_ast(expression, std::span(tokens.begin(), tokenIt), input_vars);
+      auto left_hand_side = (*this)(std::span(tokens.begin(), tokenIt));
       if (not left_hand_side.has_value())
         return left_hand_side;
 
-      auto right_hand_side = make_ast(expression, std::span(tokenIt + 1, tokens.end()), input_vars);
+      auto right_hand_side = (*this)(std::span(tokenIt + 1, tokens.end()));
       if (not right_hand_side.has_value())
         return right_hand_side;
 
