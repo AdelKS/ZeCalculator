@@ -11,6 +11,50 @@
 
 namespace std {
 
+std::ostream& operator << (std::ostream& os, const zc::parsing::Token& token);
+
+std::ostream& operator << (std::ostream& os, const zc::parsing::fast::node::Node<zc::parsing::Type::FAST>& node);
+
+std::ostream& operator << (std::ostream& os, const zc::parsing::fast::node::Node<zc::parsing::Type::RPN>& node);
+
+std::ostream& operator << (std::ostream& os, const zc::parsing::AST& node);
+
+
+std::ostream& operator<<(std::ostream &, const zc::parsing::tokens::Text&);
+
+template <class Tok>
+  requires zc::utils::is_any_of<Tok,
+                                zc::parsing::tokens::Unkown,
+                                zc::parsing::tokens::Number,
+                                zc::parsing::tokens::Variable,
+                                zc::parsing::tokens::Function,
+                                zc::parsing::tokens::Operator<'-', 2>,
+                                zc::parsing::tokens::Operator<'+', 2>,
+                                zc::parsing::tokens::Operator<'*', 2>,
+                                zc::parsing::tokens::Operator<'/', 2>,
+                                zc::parsing::tokens::Operator<'^', 2>,
+                                zc::parsing::tokens::OpeningParenthesis,
+                                zc::parsing::tokens::ClosingParenthesis,
+                                zc::parsing::tokens::FunctionCallStart,
+                                zc::parsing::tokens::FunctionCallEnd,
+                                zc::parsing::tokens::FunctionArgumentSeparator,
+                                zc::parsing::tokens::EndOfExpression>
+std::ostream& operator<<(std::ostream& os, const Tok& token)
+{
+  os << boost::ut::reflection::type_name<Tok>() << " " << static_cast<const zc::parsing::tokens::Text&>(token);
+  return os;
+}
+
+
+
+
+std::ostream& operator << (std::ostream& os, zc::deps::ObjectType type);
+
+
+std::ostream& operator << (std::ostream& os, const zc::Error& err);
+std::ostream& operator << (std::ostream& os, zc::Ok);
+
+
 template <class T>
 std::ostream& operator << (std::ostream& os, const std::optional<T>& val)
 {
@@ -65,53 +109,4 @@ std::ostream& operator << (std::ostream& os, const std::variant<T...>& var)
   return os;
 }
 
-}
-
-namespace zc {
-  namespace parsing {
-
-    std::ostream& operator << (std::ostream& os, const Token& token);
-
-    std::ostream& operator << (std::ostream& os, const fast::node::Node<Type::FAST>& node);
-
-    std::ostream& operator << (std::ostream& os, const fast::node::Node<Type::RPN>& node);
-
-    std::ostream& operator << (std::ostream& os, const AST& node);
-
-    namespace tokens {
-
-    std::ostream& operator<<(std::ostream &, const tokens::Text&);
-
-    template <class Tok>
-      requires zc::utils::is_any_of<Tok,
-                                    tokens::Unkown,
-                                    tokens::Number,
-                                    tokens::Variable,
-                                    tokens::Function,
-                                    tokens::Operator<'-', 2>,
-                                    tokens::Operator<'+', 2>,
-                                    tokens::Operator<'*', 2>,
-                                    tokens::Operator<'/', 2>,
-                                    tokens::Operator<'^', 2>,
-                                    tokens::OpeningParenthesis,
-                                    tokens::ClosingParenthesis,
-                                    tokens::FunctionCallStart,
-                                    tokens::FunctionCallEnd,
-                                    tokens::FunctionArgumentSeparator,
-                                    tokens::EndOfExpression>
-    std::ostream& operator<<(std::ostream& os, const Tok& token)
-    {
-      os << boost::ut::reflection::type_name<Tok>() << " " << static_cast<const tokens::Text&>(token);
-      return os;
-    }
-
-    } // namespace tokens
-  } // namespace parsing
-
-  namespace deps {
-    std::ostream& operator << (std::ostream& os, ObjectType type);
-  }
-
-  std::ostream& operator << (std::ostream& os, const Error& err);
-  std::ostream& operator << (std::ostream& os, Ok);
 }
