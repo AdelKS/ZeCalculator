@@ -42,7 +42,7 @@ int main()
                          .and_then(make_ast{expression})
                          .and_then(make_fast<type>{expression, world});
 
-    expect(bool(expect_node));
+    expect(bool(expect_node)) << expect_node << fatal;
 
     FAST<type> expected_node = fast::node::BinaryOperator<type, '+'>(
       tokens::Text{expression, 0},
@@ -69,7 +69,7 @@ int main()
                          .and_then(make_ast{expression, std::array{"x"}})
                          .and_then(make_fast<type>{expression, world});
 
-    expect(bool(expect_node));
+    expect(bool(expect_node)) << expect_node << fatal;
 
     FAST<type> expected_node = fast::node::BinaryOperator<type, '+'>(
       tokens::Text(expression, 0 ),

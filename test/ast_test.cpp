@@ -38,7 +38,7 @@ int main()
 
     auto expect_node = tokenize(expression).and_then(make_ast{expression});
 
-    expect(bool(expect_node));
+    expect(bool(expect_node)) << expect_node << fatal;
 
     AST expected_node = ast::node::BinaryOperator<'+'>(
       tokens::Text(expression, 0), tokens::Text("+", 1),
@@ -62,7 +62,7 @@ int main()
 
     auto expect_node = tokenize(expression).and_then(make_ast{expression});
 
-    expect(bool(expect_node));
+    expect(bool(expect_node)) << expect_node << fatal;
 
     AST expected_node = ast::node::BinaryOperator<'*'>(
       tokens::Text(expression, 0), tokens::Text("*", 3),
@@ -84,7 +84,7 @@ int main()
 
     auto expect_node = tokenize(expression).and_then(make_ast{expression, std::array{"x"}});
 
-    expect(bool(expect_node));
+    expect(bool(expect_node)) << expect_node << fatal;
 
     AST expected_node = ast::node::BinaryOperator<'+'>(tokens::Text(expression, 0), tokens::Text("+", 15),
       {ast::node::Function(tokens::Text("cos(sin(x)+1)", 1), tokens::Text("cos", 1), tokens::Text("sin(x)+1", 13),
@@ -110,6 +110,8 @@ int main()
 
     auto simple_ast = tokenize(expression).and_then(make_ast{expression});
 
+    expect(bool(simple_ast)) << simple_ast << fatal;
+
     // "x" is considered a variable for now
     expect(direct_dependencies(simple_ast.value())
            == zc::deps::Deps{{"cos", zc::deps::FUNCTION},
@@ -118,7 +120,7 @@ int main()
 
     auto expect_node = simple_ast.transform(mark_input_vars{std::array{"x"}});
 
-    expect(bool(expect_node));
+    expect(bool(expect_node)) << expect_node << fatal;
 
     // "x" became an "input variable" and therefore not an external dependency anymore
     expect(direct_dependencies(expect_node.value())
@@ -148,7 +150,7 @@ int main()
 
     auto expect_node = tokenize(expression).and_then(make_ast{expression, std::array{"x"}});
 
-    expect(bool(expect_node));
+    expect(bool(expect_node)) << expect_node << fatal;
 
     expect(direct_dependencies(expect_node.value())
            == zc::deps::Deps{{"cos", zc::deps::FUNCTION},

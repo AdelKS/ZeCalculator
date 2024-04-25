@@ -77,7 +77,7 @@ int main()
         tokens::Number(2., tokens::Text{"2", 4}),
     });
 
-    expect(*parsing == expected_parsing);
+    expect(*parsing == expected_parsing) << *parsing;
   };
 
   "simple expression"_test = []()

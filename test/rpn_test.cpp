@@ -41,7 +41,7 @@ int main()
                          .and_then(make_ast{expression})
                          .and_then(make_fast<Type::RPN>{expression, world});
 
-    expect(bool(expect_tree));
+    expect(bool(expect_tree)) << expect_tree << fatal;
 
     auto rpn_expr = make_RPN(expect_tree.value());
 
