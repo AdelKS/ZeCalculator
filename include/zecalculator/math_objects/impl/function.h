@@ -120,8 +120,11 @@ std::unordered_map<std::string, deps::ObjectType> Function<type, args_num>::depe
 
 template <parsing::Type type, size_t args_num>
 tl::expected<double, Error> Function<type, args_num>::evaluate(
-  std::span<const double, args_num> args, size_t current_recursion_depth) const
+  std::span<const double> args, size_t current_recursion_depth) const
 {
+  // the library should always get this right
+  assert(args.size() == args_num);
+
   if (this->mathworld->max_recursion_depth < current_recursion_depth) [[unlikely]]
     return tl::unexpected(Error::recursion_depth_overflow());
   else if (not bool(*this)) [[unlikely]]

@@ -30,15 +30,15 @@ namespace zc {
 namespace eval {
 namespace rpn {
 
-template <size_t input_size>
-inline void Evaluator<input_size>::operator () (const zc::parsing::shared::node::Number& val)
+
+inline void Evaluator::operator () (const zc::parsing::shared::node::Number& val)
 {
   expected_eval_stack->push_back(val.value);
 }
 
-template <size_t input_size>
+
 template <size_t args_num>
-inline void Evaluator<input_size>::operator()(const zc::parsing::rpn::node::Function<args_num>& node)
+inline void Evaluator::operator()(const zc::parsing::rpn::node::Function<args_num>& node)
 {
   if (not bool(node.f)) [[unlikely]]
     expected_eval_stack = tl::unexpected(Error::object_in_invalid_state(node, node.f->equation()));
@@ -62,10 +62,10 @@ inline void Evaluator<input_size>::operator()(const zc::parsing::rpn::node::Func
   }
 }
 
-template <size_t input_size>
+
 template <size_t args_num>
 inline void
-  Evaluator<input_size>::operator()(const zc::parsing::rpn::node::CppFunction<args_num>& node)
+  Evaluator::operator()(const zc::parsing::rpn::node::CppFunction<args_num>& node)
 {
   // points on the before last value on the stack
   const auto it = expected_eval_stack->end() - args_num;
@@ -84,9 +84,9 @@ inline void
     expected_eval_stack->resize(expected_eval_stack->size() - (args_num - 1));
 }
 
-template <size_t input_size>
+
 template <char op, size_t args_num>
-inline void Evaluator<input_size>::operator()(const zc::parsing::rpn::node::Operator<op, args_num>&)
+inline void Evaluator::operator()(const zc::parsing::rpn::node::Operator<op, args_num>&)
 {
   // points on the before last value on the stack
   const auto it = expected_eval_stack->end() - args_num;
@@ -115,8 +115,8 @@ inline void Evaluator<input_size>::operator()(const zc::parsing::rpn::node::Oper
     expected_eval_stack->resize(expected_eval_stack->size() - (args_num - 1));
 }
 
-template <size_t input_size>
-inline void Evaluator<input_size>::operator()(const zc::parsing::rpn::node::Sequence& node)
+
+inline void Evaluator::operator()(const zc::parsing::rpn::node::Sequence& node)
 {
   //              std::cout << "Evaluating zc function: " << node.name << std::endl;
   if (not bool(node.u))
@@ -137,8 +137,8 @@ inline void Evaluator<input_size>::operator()(const zc::parsing::rpn::node::Sequ
   }
 }
 
-template <size_t input_size>
-inline void Evaluator<input_size>::operator () (const zc::parsing::shared::node::InputVariable& in_var)
+
+inline void Evaluator::operator () (const zc::parsing::shared::node::InputVariable& in_var)
 {
   // node.index should never be bigger than input_vars.size()
   assert(in_var.index < input_vars.size());
@@ -146,8 +146,8 @@ inline void Evaluator<input_size>::operator () (const zc::parsing::shared::node:
   expected_eval_stack->push_back(input_vars[in_var.index]);
 }
 
-template <size_t input_size>
-inline void Evaluator<input_size>::operator()(const zc::parsing::rpn::node::GlobalConstant& node)
+
+inline void Evaluator::operator()(const zc::parsing::rpn::node::GlobalConstant& node)
 {
   expected_eval_stack->push_back(node.constant->value());
 }
@@ -159,12 +159,12 @@ inline void Evaluator<input_size>::operator()(const zc::parsing::rpn::node::Glob
 /// @param expr: expr to evaluate
 /// @param input_vars: variables that are given as input to the expr, will shadow any variable in the math world
 /// @param world: math world (contains functions, global constants... etc)
-template <size_t input_size>
+
 inline tl::expected<double, Error> evaluate(const parsing::RPN& expr,
-                                            std::span<const double, input_size> input_vars,
+                                            std::span<const double> input_vars,
                                             size_t current_recursion_depth)
 {
-  eval::rpn::Evaluator<input_size> stateful_evaluator{.input_vars = input_vars,
+  eval::rpn::Evaluator stateful_evaluator{.input_vars = input_vars,
                                                       .current_recursion_depth
                                                       = current_recursion_depth};
 

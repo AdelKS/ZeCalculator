@@ -35,10 +35,9 @@ namespace zc {
 namespace eval {
 namespace rpn {
 
-template <size_t input_size>
 struct Evaluator
 {
-  const std::span<const double, input_size> input_vars;
+  const std::span<const double> input_vars;
   tl::expected<std::vector<double>, Error> expected_eval_stack = {};
   const size_t current_recursion_depth = 0;
   const size_t max_recursion_depth = 100;
@@ -71,15 +70,13 @@ struct Evaluator
 /// @param tree: tree to evaluate
 /// @param input_vars: variables that are given as input to the tree, will shadow any variable in the math world
 /// @param world: math world (contains functions, global constants... etc)
-template <size_t input_size>
 inline tl::expected<double, Error> evaluate(const parsing::RPN& expr,
-                                            std::span<const double, input_size> input_vars,
+                                            std::span<const double> input_vars,
                                             size_t current_recursion_depth);
 
 /// @brief evaluates a syntax tree using a given math world
-template <size_t input_size>
 inline tl::expected<double, Error> evaluate(const parsing::RPN& expr,
-                                            std::span<const double, input_size> input_vars);
+                                            std::span<const double> input_vars);
 
 /// @brief evaluates a syntax tree using a given math world
 inline tl::expected<double, Error> evaluate(const parsing::RPN& tree);

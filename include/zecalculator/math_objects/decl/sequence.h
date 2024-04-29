@@ -71,10 +71,7 @@ protected:
   /// @brief evaluation with recursion depth tracking
   tl::expected<double, Error> evaluate(double index, size_t current_recursion_depth) const;
 
-  template <size_t>
   friend struct eval::rpn::Evaluator;
-
-  template <size_t>
   friend struct eval::fast::Evaluator;
 
   // hide functions that are not needed from Function

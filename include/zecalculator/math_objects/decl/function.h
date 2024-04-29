@@ -49,12 +49,10 @@ class MathWorld;
 
 namespace eval {
 namespace rpn {
-  template <size_t>
   struct Evaluator;
 }
 
 namespace fast {
-  template <size_t>
   struct Evaluator;
 }
 }
@@ -136,7 +134,7 @@ protected:
   void rebind();
 
   /// @note version that tracks the current recursion depth
-  tl::expected<double, Error> evaluate(std::span<const double, args_num> args,
+  tl::expected<double, Error> evaluate(std::span<const double> args,
                                        size_t current_recursion_depth) const;
 
   /// @brief variable names, as views on the function's 'm_definition' (part of parent MathObject class)
@@ -148,10 +146,7 @@ protected:
   /// @brief binding of the AST 'left_expr' (parent MathObject class) to 'mathWorld'
   tl::expected<parsing::Parsing<type>, Error> bound_rhs = tl::unexpected(Error::empty_expression());
 
-  template <size_t>
   friend struct eval::rpn::Evaluator;
-
-  template <size_t>
   friend struct eval::fast::Evaluator;
 
   friend struct parsing::RpnMaker;

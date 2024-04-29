@@ -27,9 +27,9 @@ namespace zc {
 namespace eval {
 namespace fast {
 
-template <size_t input_size>
+
 template <size_t args_num>
-inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator()(
+inline Evaluator::ReturnType Evaluator::operator()(
   const zc::parsing::fast::node::Function<zc::parsing::Type::FAST, args_num>& node)
 {
   if (node.f->mathworld->max_recursion_depth < current_recursion_depth)
@@ -50,9 +50,9 @@ inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator()(
   return node.f->evaluate(evaluations, current_recursion_depth + 1);
 }
 
-template <size_t input_size>
+
 template <char op, size_t args_num>
-inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator()(
+inline Evaluator::ReturnType Evaluator::operator()(
   const zc::parsing::fast::node::Operator<zc::parsing::Type::FAST, op, args_num>& node)
 {
   std::array<double, args_num> evaluations;
@@ -86,8 +86,8 @@ inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator()(
   else static_assert(utils::dependent_false_num_v<args_num>, "case not handled");
 }
 
-template <size_t input_size>
-inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator()(
+
+inline Evaluator::ReturnType Evaluator::operator()(
   const zc::parsing::fast::node::Sequence<zc::parsing::Type::FAST>& node)
 {
   if (node.u->mathworld->max_recursion_depth < current_recursion_depth)
@@ -100,9 +100,9 @@ inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator()(
     return eval;
 }
 
-template <size_t input_size>
+
 template <size_t args_num>
-inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator()(
+inline Evaluator::ReturnType Evaluator::operator()(
   const zc::parsing::fast::node::CppFunction<zc::parsing::Type::FAST, args_num>& node)
 {
   std::array<double, args_num> evals;
@@ -122,16 +122,16 @@ inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator()(
 
 }
 
-template <size_t input_size>
-inline Evaluator<input_size>::ReturnType Evaluator<input_size>::operator () (
+
+inline Evaluator::ReturnType Evaluator::operator () (
   const zc::parsing::shared::node::GlobalConstant<zc::parsing::Type::FAST>& node)
 {
   return node.constant->value();
 }
 
-template <size_t input_size>
-inline Evaluator<input_size>::ReturnType
-  Evaluator<input_size>::operator()(const zc::parsing::shared::node::InputVariable& node)
+
+inline Evaluator::ReturnType
+  Evaluator::operator()(const zc::parsing::shared::node::InputVariable& node)
 {
   // node.index should never be bigger than input_vars.size()
   assert(node.index < input_vars.size());
@@ -139,9 +139,9 @@ inline Evaluator<input_size>::ReturnType
   return input_vars[node.index];
 }
 
-template <size_t input_size>
-inline Evaluator<input_size>::ReturnType
-  Evaluator<input_size>::operator()(const zc::parsing::shared::node::Number& node)
+
+inline Evaluator::ReturnType
+  Evaluator::operator()(const zc::parsing::shared::node::Number& node)
 {
   return node.value;
 }
@@ -153,21 +153,18 @@ inline Evaluator<input_size>::ReturnType
 /// @param tree: tree to evaluate
 /// @param input_vars: variables that are given as input to the tree, will shadow any variable in the math world
 /// @param world: math world (contains functions, global constants... etc)
-template <size_t input_size>
 inline tl::expected<double, Error> evaluate(const parsing::FAST<parsing::Type::FAST>& tree,
-                                            std::span<const double, input_size> input_vars,
+                                            std::span<const double> input_vars,
                                             size_t current_recursion_depth)
 {
-  return std::visit(eval::fast::Evaluator<input_size>{.input_vars = input_vars,
-                                                     .current_recursion_depth
-                                                     = current_recursion_depth},
+  return std::visit(eval::fast::Evaluator{.input_vars = input_vars,
+                                          .current_recursion_depth = current_recursion_depth},
                     *tree);
 }
 
 /// @brief evaluates a syntax tree using a given math world
-template <size_t input_size>
 inline tl::expected<double, Error> evaluate(const parsing::FAST<parsing::Type::FAST>& tree,
-                                            std::span<const double, input_size> input_vars)
+                                            std::span<const double> input_vars)
 {
   return evaluate(tree, input_vars, 0);
 }

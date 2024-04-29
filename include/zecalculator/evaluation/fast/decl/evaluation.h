@@ -31,10 +31,9 @@ namespace zc {
 namespace eval {
 namespace fast {
 
-template <size_t input_size>
 struct Evaluator
 {
-  const std::span<const double, input_size> input_vars;
+  const std::span<const double> input_vars;
   const size_t current_recursion_depth = 0;
 
   using ReturnType = tl::expected<double, Error>;
@@ -65,17 +64,15 @@ struct Evaluator
 /// @param tree: tree to evaluate
 /// @param input_vars: variables that are given as input to the tree, will shadow any variable in the math world
 /// @param world: math world (contains functions, global constants... etc)
-template <size_t input_size>
-inline tl::expected<double, Error> evaluate(const parsing::FAST<parsing::Type::FAST>& tree,
-                                            std::span<const double, input_size> input_vars,
+tl::expected<double, Error> evaluate(const parsing::FAST<parsing::Type::FAST>& tree,
+                                            std::span<const double> input_vars,
                                             size_t current_recursion_depth);
 
 /// @brief evaluates a syntax tree using a given math world
-template <size_t input_size>
-inline tl::expected<double, Error> evaluate(const parsing::FAST<parsing::Type::FAST>& tree,
-                                            std::span<const double, input_size> input_vars);
+tl::expected<double, Error> evaluate(const parsing::FAST<parsing::Type::FAST>& tree,
+                                            std::span<const double> input_vars);
 
 /// @brief evaluates a syntax tree using a given math world
-inline tl::expected<double, Error> evaluate(const parsing::FAST<parsing::Type::FAST>& tree);
+tl::expected<double, Error> evaluate(const parsing::FAST<parsing::Type::FAST>& tree);
 
 } // namespace zc
