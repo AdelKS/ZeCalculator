@@ -31,33 +31,5 @@
 #include <zecalculator/parsing/data_structures/token.h>
 
 namespace zc {
-  namespace parsing {
 
-  template <class NodeType>
-    requires(utils::is_any_of<NodeType,
-                              fast::node::Node<parsing::Type::FAST>,
-                              fast::node::Node<parsing::Type::RPN>,
-                              rpn::node::Node>)
-  inline parsing::tokens::Text text_token(const NodeType& token)
-  {
-    return std::visit(
-      [](const auto& tk) -> parsing::tokens::Text
-      {
-        return tk;
-      },
-      token);
-    }
-
-    template <class NodeType>
-      requires(utils::is_any_of<NodeType,
-                                fast::node::Node<parsing::Type::FAST>,
-                                fast::node::Node<parsing::Type::RPN>,
-                                rpn::node::Node>)
-    inline SubstrInfo substr_info(const NodeType& token)
-    {
-      return text_token(token).substr_info;
-
-    }
-
-  } // namespace parsing
 } // namespace zc

@@ -44,17 +44,14 @@ int main()
 
     expect(bool(expect_node)) << expect_node << fatal;
 
-    FAST<type> expected_node = fast::node::BinaryOperator<type, '+'>(
-      tokens::Text{expression, 0},
-      {shared::node::Number(2.0, tokens::Text{"2", 0}),
-       fast::node::BinaryOperator<type, '*'>(tokens::Text{"2*2", 2},
-                                            {shared::node::Number(2.0, tokens::Text{"2", 2}),
-                                             shared::node::Number(2.0, tokens::Text{"2", 4})})});
+    using T = FAST<type>;
 
-    expect(*expect_node == expected_node);
+    auto expected_node = T{shared::node::Add{},
+                           {T{shared::node::Number{2.0}},
+                            {T{shared::node::Multiply{},
+                                 {T{shared::node::Number{2.0}}, T{shared::node::Number{2.0}}}}}}};
 
-    if (*expect_node != expected_node )
-      std::cout << **expect_node << std::endl;
+    expect(*expect_node == expected_node) << *expect_node;
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 
@@ -71,23 +68,17 @@ int main()
 
     expect(bool(expect_node)) << expect_node << fatal;
 
-    FAST<type> expected_node = fast::node::BinaryOperator<type, '+'>(
-      tokens::Text(expression, 0 ),
-      {fast::node::CppFunction<type, 1>(
-         tokens::Text("cos", 1),
-         world.template get<zc::CppFunction<type, 1>>("cos"),
-         {fast::node::BinaryOperator<type, '+'>(
-           tokens::Text("sin(x)+1", 5),
-           {fast::node::CppFunction<type, 1>(tokens::Text("sin", 5),
-                                            world.template get<zc::CppFunction<type, 1>>("sin"),
-                                            {shared::node::InputVariable(tokens::Text("x", 9), 0)}),
-            shared::node::Number(1.0, tokens::Text("1", 12))})}),
-       shared::node::Number(1.0, tokens::Text("1", 16))});
+    using T = FAST<type>;
 
-    if (*expect_node != expected_node)
-      std::cout << *expect_node;
+    FAST<type> expected_node = T{shared::node::Add{},
+                                 {T{world.template get<zc::CppFunction<type, 1>>("cos"),
+                                    {T{shared::node::Add{},
+                                       {T{world.template get<zc::CppFunction<type, 1>>("sin"),
+                                          {T{shared::node::InputVariable{0}}}},
+                                        T{shared::node::Number{1.0}}}}}},
+                                  T{shared::node::Number{1.0}}}};
 
-    expect(*expect_node == expected_node);
+    expect(*expect_node == expected_node) << *expect_node;
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 }

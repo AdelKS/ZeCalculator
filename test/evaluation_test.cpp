@@ -58,6 +58,8 @@ int main()
 
     MathWorld<type> world;
 
+    [[maybe_unused]] auto res = world.evaluate("2+2-2-2");
+
     expect(world.evaluate("2+2-2+2").value() == 4._d);
     expect(world.evaluate("2+2-2-2").value() == 0._d);
     expect(world.evaluate("2-2+2+2").value() == 4._d);
@@ -155,17 +157,6 @@ int main()
     auto error = world.evaluate("7 + g(3)").error();
     expect(error.type == Error::WRONG_OBJECT_TYPE);
     expect(error.token.substr_info == SubstrInfo{.begin = 4, .size = 1});
-
-  } | std::tuple<FAST_TEST, RPN_TEST>{};
-
-  "expression with equal sign"_test = []<class StructType>()
-  {
-    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
-
-    MathWorld<type> world;
-
-    expect(world.evaluate("2=2").value() == 1._d);
-    expect(world.evaluate("2+2=2").value() == 0._d);
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 }

@@ -20,5 +20,5 @@
 **
 ****************************************************************************/
 
-#include <zecalculator/evaluation/rpn/evaluation.h>
-#include <zecalculator/evaluation/fast/evaluation.h>
+#include <zecalculator/evaluation/decl/evaluation.h>
+#include <zecalculator/evaluation/impl/evaluation.h>

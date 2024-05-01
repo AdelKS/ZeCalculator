@@ -14,10 +14,16 @@ namespace std {
 std::ostream& operator << (std::ostream& os, const zc::parsing::Token& token);
 
 std::ostream& operator<<(std::ostream& os,
-                         const zc::parsing::fast::node::Node<zc::parsing::Type::FAST>& node);
+                         const zc::parsing::FAST<zc::parsing::Type::FAST>& node);
 
 std::ostream& operator<<(std::ostream& os,
-                         const zc::parsing::fast::node::Node<zc::parsing::Type::RPN>& node);
+                         const zc::parsing::FAST<zc::parsing::Type::RPN>& node);
+
+std::ostream& operator<<(std::ostream& os,
+                         const zc::parsing::shared::Node<zc::parsing::Type::RPN>& node);
+
+std::ostream& operator<<(std::ostream& os,
+                         const zc::parsing::shared::Node<zc::parsing::Type::FAST>& node);
 
 std::ostream& operator << (std::ostream& os, const zc::parsing::AST& node);
 

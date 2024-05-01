@@ -23,31 +23,61 @@
 #include <zecalculator/parsing/data_structures/token.h>
 #include <zecalculator/parsing/types.h>
 #include <zecalculator/utils/utils.h>
+#include <zecalculator/math_objects/forward_declares.h>
 
 namespace zc {
 
 struct SubstrInfo;
 
 namespace parsing {
-  namespace tokens {
-
-    struct Variable;
-    struct Number;
-    struct Text;
-
-  } // namespace tokens
-
   namespace shared {
     namespace node {
 
-      struct InputVariable;
+      struct Add {
+        bool operator == (const Add&) const = default;
+      };
+      struct Subtract {
+        bool operator == (const Subtract&) const = default;
+      };
+      struct Multiply {
+        bool operator == (const Multiply&) const = default;
+      };
+      struct Divide {
+        bool operator == (const Divide&) const = default;
+      };
+      struct Power {
+        bool operator == (const Power&) const = default;
+      };
 
-      template <parsing::Type>
-      struct GlobalConstant;
+      struct Number {
+        double value;
 
-      using Number = zc::parsing::Token;
+        bool operator == (const Number&) const = default;
+      };
 
+      struct InputVariable {
+        size_t index;
+
+        bool operator == (const InputVariable&) const = default;
+      };
     } // namespace node
+
+    template <parsing::Type world_type>
+    using Node = std::variant<node::Add,
+                              node::Subtract,
+                              node::Multiply,
+                              node::Divide,
+                              node::Power,
+                              node::Number,
+                              node::InputVariable,
+                              const CppFunction<world_type, 1> *,
+                              const CppFunction<world_type, 2> *,
+                              const zc::GlobalConstant<world_type> *,
+                              const Function<world_type, 0> *,
+                              const Function<world_type, 1> *,
+                              const Function<world_type, 2> *,
+                              const Sequence<world_type> *>;
+
   } // namespace shared
 
 } // namespace parsing

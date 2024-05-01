@@ -21,5 +21,5 @@ foreach test_src: test_sources
         dependencies : zecalculator_testing_dep # dependencies, here the vcl headers
     )
 
-    test(fs.stem(test_src), test_exe, args: ['--success', '--use-colour', 'no']) # register as a test
+    test(fs.stem(test_src), test_exe, args: ['--success']) # register as a test
 endforeach

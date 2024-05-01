@@ -21,80 +21,103 @@ std::ostream &operator<<(std::ostream &os, const zc::parsing::Token &token)
 }
 
 template <zc::parsing::Type world_type>
-void syntax_node_print_helper(std::ostream &os,
-                              const zc::parsing::fast::node::Node<world_type> &node,
-                              size_t padding = 0)
+void shared_node_printer(std::ostream& os,
+                         const zc::parsing::shared::Node<world_type>& node,
+                         size_t padding = 0)
 {
   const std::string padding_str(padding, ' ');
 
-  using zc::parsing::fast::node::Function,
+  using zc::Function,
         zc::parsing::tokens::Text,
-        zc::parsing::fast::node::Sequence,
-        zc::parsing::fast::node::CppFunction,
-        zc::parsing::fast::node::Operator,
+        zc::Sequence,
+        zc::CppFunction,
+        zc::parsing::shared::node::Add,
+        zc::parsing::shared::node::Subtract,
+        zc::parsing::shared::node::Multiply,
+        zc::parsing::shared::node::Divide,
+        zc::parsing::shared::node::Power,
         zc::parsing::shared::node::InputVariable,
         zc::parsing::shared::node::Number,
-        zc::parsing::shared::node::GlobalConstant;
+        zc::GlobalConstant;
+
+  os << padding_str;
 
   std::visit(
     zc::utils::overloaded{
-      [&]<size_t args_num>(const zc::parsing::fast::node::Function<world_type, args_num> &f)
+      [&]<size_t args_num>(const Function<world_type, args_num>* f)
       {
-        os << padding_str << "Function<" << args_num << "> "
-          << Text(f) << " {" << std::endl;
-        for (const auto &operand : f.operands)
-          syntax_node_print_helper(os, *operand, padding + 2);
+        os << "Function<" << args_num << "> "
+          << f->get_name();
       },
-      [&](const Sequence<world_type> &u)
+      [&](const Sequence<world_type>* u)
       {
-        os << padding_str << "Sequence " << Text(u) << " {"
-          << std::endl;
-        syntax_node_print_helper(os, *u.operand, padding + 2);
+        os << "Sequence " << u->get_name();
       },
-      [&]<size_t args_num>(const CppFunction<world_type, args_num> &f)
+      [&]<size_t args_num>(const CppFunction<world_type, args_num>* f)
       {
-        os << padding_str << "CppFunction<" << args_num << "> "
-          << Text(f) << " {" << std::endl;
-        for (auto &&operand : f.operands)
-          syntax_node_print_helper(os, *operand, padding + 2);
+        os << "CppFunction<" << args_num << "> "
+           << f->get_name();
       },
-      [&]<char op, size_t args_num>(const Operator<world_type, op, args_num> &f)
-      {
-        os << padding_str << "Operator<" << op << ", " << args_num
-          << "> " << Text(f) << " {" << std::endl;
-        for (auto &&operand : f.operands)
-          syntax_node_print_helper(os, *operand, padding + 2);
-      },
+      [&](Add)      { os << "+ "; },
+      [&](Subtract) { os << "- "; },
+      [&](Multiply) { os << "× "; },
+      [&](Divide)   { os << "÷ "; },
+      [&](Power)    { os << "^ "; },
       [&](const InputVariable &v)
       {
-        os << padding_str << "InputVariable " << Text(v)
-          << " index: " << v.index << std::endl;
+        os << "InputVariable: index: " << v.index;
       },
-      [&](const GlobalConstant<world_type> &c)
+      [&](const GlobalConstant<world_type> *c)
       {
-        os << padding_str << "GlobalConstant " << Text(c)
-          << " value: " << c.constant->value() << std::endl;
+        os << "GlobalConstant " << c->get_name()
+          << " value: " << c->value();
       },
       [&](const Number &n)
       {
-        os << padding_str << "Number " << n << std::endl;
+        os << "Number " << n.value;
       }},
     node);
 }
 
-std::ostream &operator<<(std::ostream &os,
-                         const zc::parsing::fast::node::Node<zc::parsing::Type::FAST> &node)
+std::ostream& operator<<(std::ostream& os,
+                         const zc::parsing::shared::Node<zc::parsing::Type::RPN>& node)
 {
+  shared_node_printer(os, node);
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os,
+                         const zc::parsing::shared::Node<zc::parsing::Type::FAST>& node)
+{
+  shared_node_printer(os, node);
+  return os;
+}
+
+template <zc::parsing::Type type>
+void fast_printer(std::ostream& os, const zc::parsing::FAST<type>& node, size_t padding = 0)
+{
+  shared_node_printer(os, node.node, padding);
+  if (not node.subnodes.empty())
+  {
+    os << "{\n";
+    for (auto&& subnode: node.subnodes)
+      fast_printer(os, subnode, padding + 2);
+    os << std::string(padding, ' ') << "}";
+  }
   os << std::endl;
-  syntax_node_print_helper(os, node);
+}
+
+std::ostream &operator<<(std::ostream &os,
+                         const zc::parsing::FAST<zc::parsing::Type::FAST> &node)
+{
+  fast_printer(os, node);
   return os;
 }
 
 std::ostream &operator<<(std::ostream &os,
-                         const zc::parsing::fast::node::Node<zc::parsing::Type::RPN> &node)
+                         const zc::parsing::FAST<zc::parsing::Type::RPN> &node)
 {
-  os << std::endl;
-  syntax_node_print_helper(os, node);
+  fast_printer(os, node);
   return os;
 }
 

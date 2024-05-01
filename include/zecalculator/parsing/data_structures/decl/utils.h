@@ -20,36 +20,16 @@
 
 #pragma once
 
-#include <memory>
-#include <variant>
-#include <vector>
 #include <zecalculator/parsing/types.h>
 #include <zecalculator/utils/utils.h>
 #include <zecalculator/parsing/data_structures/decl/fast.h>
 #include <zecalculator/parsing/data_structures/decl/rpn.h>
 
 namespace zc {
+  namespace parsing {
 
-struct SubstrInfo;
+    template <parsing::Type type>
+    using Parsing = std::conditional_t<type == parsing::Type::FAST, FAST<parsing::Type::FAST>, RPN>;
 
-namespace parsing {
-
-  template <parsing::Type type>
-  using Parsing = std::conditional_t<type == parsing::Type::FAST, FAST<parsing::Type::FAST>, RPN>;
-
-  template <class NodeType>
-    requires(utils::is_any_of<NodeType,
-                              fast::node::Node<parsing::Type::FAST>,
-                              fast::node::Node<parsing::Type::RPN>,
-                              rpn::node::Node>)
-  parsing::tokens::Text text_token(const NodeType& token);
-
-  template <class NodeType>
-    requires(utils::is_any_of<NodeType,
-                              fast::node::Node<parsing::Type::FAST>,
-                              fast::node::Node<parsing::Type::RPN>,
-                              rpn::node::Node>)
-  SubstrInfo substr_info(const NodeType& token);
-
-  } // namespace parsing
+  }
 } // namespace zc

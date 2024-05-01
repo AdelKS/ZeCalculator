@@ -31,58 +31,12 @@
 
 namespace zc {
   namespace parsing {
-    namespace fast {
-      namespace node {
 
-        template <parsing::Type world_type, size_t args_num>
-        struct Function: tokens::Text
-        {
-          using Operands = std::array<NodePtr<world_type>, args_num>;
+    template <parsing::Type type>
+    bool FAST<type>::operator == (const FAST& other) const
+    {
+      return node == other.node && subnodes == other.subnodes;
+    }
 
-          Function(const Text& txt, const zc::Function<world_type, args_num>* f, Operands operands)
-            : Text(txt), f(f), operands(std::move(operands)) {}
-
-          Function(const Text& txt, const zc::Function<world_type, args_num>* f)
-            requires (args_num == 0)
-            : Text(txt), f(f) {}
-
-          const zc::Function<world_type, args_num>* f;
-          Operands operands;
-        };
-
-        template <parsing::Type world_type>
-        struct Sequence: tokens::Text
-        {
-          Sequence(const Text& txt, const zc::Sequence<world_type>* u, NodePtr<world_type> operand)
-            : Text(txt), u(u), operand(std::move(operand)) {}
-
-          const zc::Sequence<world_type>* u;
-          NodePtr<world_type> operand;
-        };
-
-        template <parsing::Type world_type, size_t args_num>
-        struct CppFunction: tokens::Text
-        {
-          CppFunction(const Text& txt,
-                      const zc::CppFunction<world_type, args_num>* f,
-                      std::array<NodePtr<world_type>, args_num> operands)
-            : Text(txt), f(f), operands(std::move(operands))
-          {}
-
-          const zc::CppFunction<world_type, args_num>* f;
-          std::array<NodePtr<world_type>, args_num> operands;
-        };
-
-        template <parsing::Type world_type, char op, size_t args_num>
-        struct Operator: tokens::Text
-        {
-          Operator(const Text& txt, std::array<NodePtr<world_type>, args_num> operands)
-            : Text(txt), operands(std::move(operands)){};
-
-          std::array<NodePtr<world_type>, args_num> operands;
-        };
-
-      } // namespace fast
-    } // namespace node
   } // namespace parsing
 } // namespace zc

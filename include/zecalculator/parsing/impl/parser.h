@@ -20,8 +20,7 @@
 **
 ****************************************************************************/
 
-#include <stdexcept>
-#include <utility>
+
 #include <zecalculator/error.h>
 #include <zecalculator/math_objects/aliases.h>
 #include <zecalculator/math_objects/impl/function.h>
@@ -31,13 +30,18 @@
 #include <zecalculator/parsing/data_structures/impl/ast.h>
 #include <zecalculator/parsing/data_structures/impl/fast.h>
 #include <zecalculator/parsing/data_structures/impl/rpn.h>
+#include <zecalculator/parsing/data_structures/impl/shared.h>
 #include <zecalculator/parsing/data_structures/token.h>
 #include <zecalculator/parsing/decl/parser.h>
 
 #include <cmath>
 #include <optional>
 #include <ranges>
+#include <stdexcept>
 #include <string_view>
+#include <utility>
+#include <variant>
+#include <vector>
 
 namespace zc {
 namespace parsing {
@@ -294,18 +298,18 @@ template <parsing::Type world_type>
 struct VariableVisiter
 {
   using Ret = tl::expected<parsing::FAST<world_type>, Error>;
+  using T = parsing::FAST<world_type>;
+
   std::string expression;
   const tokens::Text& var_txt_token;
 
   Ret operator()(const GlobalConstant<world_type>& global_constant)
   {
-    return std::make_unique<fast::node::Node<world_type>>(
-      shared::node::GlobalConstant<world_type>(var_txt_token, &global_constant));
+    return T{&global_constant};
   }
   Ret operator()(const zc::GlobalVariable<world_type>& global_variable)
   {
-    return std::make_unique<fast::node::Node<world_type>>(
-      fast::node::GlobalVariable<world_type>(var_txt_token, &global_variable));
+    return T{&global_variable};
   }
   Ret operator()(auto&&)
   {
@@ -317,23 +321,11 @@ template <parsing::Type world_type>
 struct FunctionVisiter
 {
   using Ret = tl::expected<FAST<world_type>, Error>;
+  using T = FAST<world_type>;
+
   std::string expression;
   const AST& func;
   std::vector<FAST<world_type>> subnodes;
-
-  /// @brief moves the elements of 'subnodes' into an array
-  template <size_t args_num>
-  std::array<FAST<world_type>, args_num> get_subnode_arr()
-  {
-    assert(subnodes.size() == args_num);
-
-    auto helper = [&]<size_t...i>(std::index_sequence<i...>)
-    {
-      return std::array<FAST<world_type>, args_num>{std::move(subnodes[i])...};
-    };
-    return helper(std::make_index_sequence<args_num>());
-  }
-
 
   template <size_t args_num>
   Ret operator()(const CppFunction<world_type, args_num>& f)
@@ -341,9 +333,7 @@ struct FunctionVisiter
     if (subnodes.size() != args_num) [[unlikely]]
       return tl::unexpected(Error::mismatched_fun_args(func.args_token(), expression));
 
-    return std::make_unique<fast::node::Node<world_type>>(
-      fast::node::CppFunction<world_type, args_num>(
-        func.name, &f, get_subnode_arr<args_num>()));
+    return T{&f, std::move(subnodes)};
   }
   template <size_t args_num>
   Ret operator()(const zc::Function<world_type, args_num>& f)
@@ -351,16 +341,14 @@ struct FunctionVisiter
     if (subnodes.size() != args_num) [[unlikely]]
       return tl::unexpected(Error::mismatched_fun_args(func.args_token(), expression));
 
-    return std::make_unique<fast::node::Node<world_type>>(
-      fast::node::Function<world_type, args_num>(func.name, &f, get_subnode_arr<args_num>()));
+    return T{&f, std::move(subnodes)};
   }
   Ret operator()(const zc::Sequence<world_type>& u)
   {
     if (subnodes.size() != 1) [[unlikely]]
       return tl::unexpected(Error::mismatched_fun_args(func.args_token(), expression));
 
-    return std::make_unique<fast::node::Node<world_type>>(
-      fast::node::Sequence<world_type>(func.name, &u, std::move(subnodes.front())));
+    return T{&u, std::move(subnodes)};
   }
   Ret operator()(auto&&)
   {
@@ -385,25 +373,31 @@ tl::expected<FAST<type>, Error> make_fast<type>::operator () (const AST& ast)
           else return tl::unexpected(expected_bound_node.error());
         }
 
-        auto get_op_arr = [&]{
-          assert(func.subnodes.size() == 2);
-          return std::array{std::move(operands.front()), std::move(operands.back())};
-        };
-
         switch (func.type)
         {
           case AST::Func::OP_ASSIGN:
-            return fast::node::Operator<type, '=', 2>(func.full_expr, get_op_arr());
+            return tl::unexpected(Error::not_implemented(ast.name, expression));
+
           case AST::Func::OP_ADD:
-            return fast::node::Operator<type, '+', 2>(func.full_expr, get_op_arr());
+            assert(func.subnodes.size() == 2);
+            return FAST<type>{.node = shared::node::Add{}, .subnodes = std::move(operands)};
+
           case AST::Func::OP_SUBTRACT:
-            return fast::node::Operator<type, '-', 2>(func.full_expr, get_op_arr());
+            assert(func.subnodes.size() == 2);
+            return FAST<type>{.node = shared::node::Subtract{}, .subnodes = std::move(operands)};
+
           case AST::Func::OP_MULTIPLY:
-            return fast::node::Operator<type, '*', 2>(func.full_expr, get_op_arr());
+            assert(func.subnodes.size() == 2);
+            return FAST<type>{.node = shared::node::Multiply{}, .subnodes = std::move(operands)};
+
           case AST::Func::OP_DIVIDE:
-            return fast::node::Operator<type, '/', 2>(func.full_expr, get_op_arr());
+            assert(func.subnodes.size() == 2);
+            return FAST<type>{.node = shared::node::Divide{}, .subnodes = std::move(operands)};
+
           case AST::Func::OP_POWER:
-            return fast::node::Operator<type, '^', 2>(func.full_expr, get_op_arr());
+            assert(func.subnodes.size() == 2);
+            return FAST<type>{.node = shared::node::Power{}, .subnodes = std::move(operands)};
+
           case AST::Func::FUNCTION:
           {
             auto* dyn_obj = math_world.get(ast.name.substr);
@@ -419,11 +413,11 @@ tl::expected<FAST<type>, Error> make_fast<type>::operator () (const AST& ast)
       },
       [&](const AST::InputVariable& input_var) -> Ret
       {
-        return shared::node::InputVariable(ast.name, input_var.index);
+        return FAST<type>{shared::node::InputVariable{input_var.index}};
       },
       [&](const AST::Number& number) -> Ret
       {
-        return Token::Number(number.value, ast.name);
+        return FAST<type>{shared::node::Number{number.value}};
       },
       [&](AST::Variable) -> Ret
       {
@@ -638,78 +632,21 @@ AST mark_input_vars<Range>::operator () (const AST& tree)
     tree.dyn_data);
 }
 
-struct RpnMaker
-{
-  RPN operator()(const fast::node::Sequence<Type::RPN>& seq)
+namespace internal {
+  inline void make_RPN(RPN& res, const FAST<zc::parsing::Type::RPN>& tree)
   {
-    RPN res = std::visit(*this, *seq.operand);
+    for (const auto& node: tree.subnodes)
+      make_RPN(res, node);
 
-    res.push_back(rpn::node::Sequence(seq, seq.u));
-    return res;
+    res.push_back(tree.node);
   }
-
-  template <size_t args_num>
-  RPN operator()(const fast::node::CppFunction<Type::RPN, args_num>& func)
-  {
-    RPN res;
-    for (const FAST<Type::RPN>& sub_node : func.operands)
-    {
-      RPN tmp = std::visit(*this, *sub_node);
-      std::ranges::move(tmp, std::back_inserter(res));
-    }
-
-    res.push_back(rpn::node::CppFunction<args_num>(func, func.f));
-    return res;
-  }
-
-  template <size_t args_num>
-  RPN operator () (const fast::node::Function<Type::RPN, args_num>& func)
-  {
-    RPN res;
-    for (const FAST<Type::RPN>& sub_node : func.operands)
-    {
-      RPN tmp = std::visit(*this, *sub_node);
-      std::ranges::move(tmp, std::back_inserter(res));
-    }
-
-    res.push_back(rpn::node::Function<args_num>(func, func.f));
-    return res;
-  }
-
-  template <char op, size_t args_num>
-  RPN operator () (const fast::node::Operator<Type::RPN, op, args_num>& func)
-  {
-    RPN res;
-    for (const FAST<Type::RPN>& sub_node : func.operands)
-    {
-      RPN tmp = std::visit(*this, *sub_node);
-      std::ranges::move(tmp, std::back_inserter(res));
-    }
-
-    res.push_back(rpn::node::Operator<op, args_num>(func));
-    return res;
-  }
-
-  RPN operator () (const shared::node::InputVariable& in_var)
-  {
-    return RPN(1, in_var);
-  }
-
-  RPN operator () (const shared::node::GlobalConstant<Type::RPN>& var)
-  {
-    return RPN(1, var);
-  }
-
-  RPN operator () (const shared::node::Number& number)
-  {
-    return RPN(1, number);
-  }
-
-};
+}
 
 inline RPN make_RPN(const FAST<Type::RPN>& tree)
 {
-  return std::visit(RpnMaker{}, *tree);
+  RPN res;
+  internal::make_RPN(res, tree);
+  return res;
 }
 
 template <std::ranges::viewable_range Range>

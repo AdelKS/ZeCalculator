@@ -20,11 +20,11 @@
 **
 ****************************************************************************/
 
-#include <zecalculator/evaluation/fast/impl/evaluation.h>
-#include <zecalculator/evaluation/rpn/impl/evaluation.h>
+#include <zecalculator/evaluation/impl/evaluation.h>
 #include <zecalculator/math_objects/decl/function.h>
 #include <zecalculator/math_objects/impl/math_eq_object.h>
 #include <zecalculator/parsing/data_structures/impl/ast.h>
+#include <zecalculator/parsing/data_structures/impl/shared.h>
 #include <zecalculator/parsing/impl/parser.h>
 
 #include <unordered_set>

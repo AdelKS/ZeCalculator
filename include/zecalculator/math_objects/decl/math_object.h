@@ -26,6 +26,11 @@ namespace zc {
 template <parsing::Type type>
 class MathWorld;
 
+namespace eval {
+  template <parsing::Type>
+  struct Evaluator;
+}
+
 /// @brief struct that gives enough information to identify an object within a mathworld
 template <parsing::Type type>
 struct MathWorldObjectHandle
@@ -51,6 +56,7 @@ protected:
 
   template <parsing::Type>
   friend class MathWorld;
+
 };
 
 }

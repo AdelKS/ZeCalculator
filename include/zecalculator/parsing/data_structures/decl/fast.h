@@ -20,66 +20,26 @@
 **
 ****************************************************************************/
 
-#include <memory>
-#include <variant>
-#include <vector>
 #include <zecalculator/parsing/data_structures/decl/shared.h>
+#include <zecalculator/math_objects/forward_declares.h>
 #include <zecalculator/parsing/types.h>
 #include <zecalculator/utils/non_unique_ptr.h>
 #include <zecalculator/utils/utils.h>
 
 namespace zc {
 namespace parsing {
-  namespace fast {
-    namespace node {
-
-      template <parsing::Type, size_t>
-      struct Function;
-
-      template <parsing::Type world_type>
-      using GlobalVariable = Function<world_type, 0>;
-
-      template <parsing::Type>
-      struct Sequence;
-
-      template <parsing::Type, size_t args_num>
-      struct CppFunction;
-
-      template <parsing::Type, char op, size_t args_num>
-      struct Operator;
-
-      template <parsing::Type type, char op>
-      using BinaryOperator = Operator<type, op, 2>;
-
-      template <parsing::Type world_type>
-      using Node = std::variant<shared::node::Number,
-                                shared::node::InputVariable,
-                                Operator<world_type, '=', 2>,
-                                Operator<world_type, '+', 2>,
-                                Operator<world_type, '-', 2>,
-                                Operator<world_type, '*', 2>,
-                                Operator<world_type, '/', 2>,
-                                Operator<world_type, '^', 2>,
-                                CppFunction<world_type, 1>,
-                                CppFunction<world_type, 2>,
-                                shared::node::GlobalConstant<world_type>,
-                                Function<world_type, 0>,
-                                Function<world_type, 1>,
-                                Function<world_type, 2>,
-                                Sequence<world_type>>;
-
-      template <parsing::Type world_type>
-      using NodePtr = zc::non_unique_ptr<Node<world_type>>;
-
-    } // namespace node
-
-  } // namespace fast
 
   /// @brief A tree representation in an AST or RPN world
   /// @note when the math world is RPN based, this AST is simply an intermediate form
   ///       before being transformed into an RPN representation
   template <parsing::Type world_type>
-  using FAST = fast::node::NodePtr<world_type>;
+  struct FAST
+  {
+    shared::Node<world_type> node;
+    std::vector<FAST> subnodes = {};
+
+    bool operator == (const FAST&) const;
+  };
 
   } // namespace parsing
 } // namespace zc

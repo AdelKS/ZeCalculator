@@ -20,55 +20,13 @@
 
 #pragma once
 
-#include <memory>
-#include <variant>
-#include <vector>
+#include <zecalculator/parsing/data_structures/decl/fast.h>
 #include <zecalculator/parsing/data_structures/decl/shared.h>
-#include <zecalculator/parsing/types.h>
-#include <zecalculator/utils/utils.h>
 
 namespace zc {
 namespace parsing {
-  namespace rpn {
-    namespace node {
 
-      template <size_t>
-      struct Function;
-
-      struct Sequence;
-
-      template <size_t>
-      struct CppFunction;
-
-      template <char op, size_t args_num>
-      struct Operator;
-
-      template <char op>
-      using BinaryOperator = Operator<op, 2>;
-
-      using GlobalConstant = shared::node::GlobalConstant<parsing::Type::RPN>;
-
-      using Node = std::variant<shared::node::InputVariable,
-                                shared::node::Number,
-                                Operator<'=', 2>,
-                                Operator<'+', 2>,
-                                Operator<'-', 2>,
-                                Operator<'*', 2>,
-                                Operator<'/', 2>,
-                                Operator<'^', 2>,
-                                CppFunction<1>,
-                                CppFunction<2>,
-                                GlobalConstant,
-                                Function<0>,
-                                Function<1>,
-                                Function<2>,
-                                Sequence>;
-
-    } // namespace node
-
-  } // namespace rpn
-
-  using RPN = std::vector<rpn::node::Node>;
+  using RPN = std::vector<shared::Node<parsing::Type::RPN>>;
 
 } // namespace parsing
 } // namespace zc

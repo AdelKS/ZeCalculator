@@ -48,13 +48,8 @@ template <parsing::Type type>
 class MathWorld;
 
 namespace eval {
-namespace rpn {
+  template <parsing::Type>
   struct Evaluator;
-}
-
-namespace fast {
-  struct Evaluator;
-}
 }
 
 namespace parsing {
@@ -146,8 +141,8 @@ protected:
   /// @brief binding of the AST 'left_expr' (parent MathObject class) to 'mathWorld'
   tl::expected<parsing::Parsing<type>, Error> bound_rhs = tl::unexpected(Error::empty_expression());
 
-  friend struct eval::rpn::Evaluator;
-  friend struct eval::fast::Evaluator;
+  template <parsing::Type>
+  friend struct eval::Evaluator;
 
   friend struct parsing::RpnMaker;
 
