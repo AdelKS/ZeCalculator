@@ -26,7 +26,7 @@ using namespace std;
 
 int main()
 {
-  fast::MathWorld world;
+  rpn::MathWorld world;
 
   // Notes about adding a math object to a math world:
   // - Each added object exists only within the math world that creates it
@@ -39,16 +39,16 @@ int main()
   // Note that 'my_constant' is only defined later
   // - this function's state will be updated once 'my_constant' is defined
   // - (re)defining objects within a math world can potentially modify every other objects
-  fast::DynMathObject& obj1 = world.add("f(x) = x + my_constant + cos(math::pi)");
+  rpn::DynMathObject& obj1 = world.add("f(x) = x + my_constant + cos(math::pi)");
 
   // the expected should hold a variant whose alternative is a single variable function
-  assert(obj1.holds<fast::Function<1>>());
+  assert(obj1.holds<rpn::Function<1>>());
 
   // if we try to evaluate the function, we get an Error object
   assert(obj1(1.0).error() == Error::undefined_variable(parsing::tokens::Text("my_constant", 11), "f(x) = x + my_constant + cos(math::pi)"));
 
   // Add a global constant called "my_constant" with an initial value of 3.0
-  fast::DynMathObject& obj2 = world.add("my_constant = 3.0");
+  rpn::DynMathObject& obj2 = world.add("my_constant = 3.0");
 
   // We can evaluate 'obj1'
   // note: we could also do it when 'my_constant' was undefined,
@@ -72,7 +72,7 @@ int main()
   world.redefine(obj1, "h(u, v) = u + v + my_constant + g(v)");
 
   // the equation should be parsed as a two-argument function
-  assert(obj1.holds<fast::Function<2>>());
+  assert(obj1.holds<rpn::Function<2>>());
 
   // evaluate function again and get the new value
   assert(obj1(1, 3).value() == 16);
@@ -85,8 +85,8 @@ int main()
   // - "value_as" as a wrapper to std::get<>(expected::value), can throw for two different reasons
   //   - the expected has an error
   //   - the alternative asked is not the actual one held by the variant
-  fast::Function<2>& func = obj1.value_as<fast::Function<2>>();
-  fast::GlobalConstant& my_constant = obj2.value_as<fast::GlobalConstant>();
+  rpn::Function<2>& func = obj1.value_as<rpn::Function<2>>();
+  rpn::GlobalConstant& my_constant = obj2.value_as<rpn::GlobalConstant>();
 
   // each specific math object has extra public methods that may prove useful
 
