@@ -25,6 +25,7 @@
 #include <boost/ut.hpp>
 #include <zecalculator/test-utils/print-utils.h>
 #include <zecalculator/test-utils/structs.h>
+#include <zecalculator/test-utils/utils.h>
 
 using namespace zc;
 
@@ -159,4 +160,59 @@ int main()
     expect(error.token.substr_info == SubstrInfo{.begin = 4, .size = 1});
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
+
+  "AST/FAST/RPN creation speed"_test = []<class StructType>()
+  {
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
+    MathWorld<type> world;
+
+    constexpr std::string_view static_expr = "2+ 3 -  cos(x) - 2 + 3 * 2.5343E+12-34234+2-4 * 34 / 634534           + 45.4E+2";
+    constexpr size_t static_expr_size = static_expr.size();
+    constexpr auto duration = nanoseconds(1s);
+
+    constexpr size_t max_random_padding = 10;
+    size_t dummy = 0;
+    std::string expr(static_expr);
+    expr.reserve(static_expr.size() + max_random_padding);
+
+    size_t i = 0;
+    size_t iterations = loop_call_for(duration, [&]{
+      // resize with variable number of extra spaces
+      // just to fool the compiler so it thinks each call to this function is unique
+      i = (i + 1) % max_random_padding;
+      expr.resize(static_expr_size + i, ' ');
+
+      if constexpr (std::is_same_v<StructType, AST_TEST>)
+      {
+        auto exp_ast = parsing::tokenize(expr).and_then(parsing::make_ast{expr});
+        dummy += exp_ast->dyn_data.index();
+      }
+      else if constexpr (std::is_same_v<StructType, FAST_TEST>)
+      {
+        auto exp_ast = parsing::tokenize(expr)
+                         .and_then(parsing::make_ast{expr})
+                         .and_then(parsing::make_fast<type>{expr, world});
+        dummy += exp_ast->node.index();
+      }
+      else
+      {
+        static_assert(std::is_same_v<StructType, RPN_TEST>);
+        auto exp_ast = parsing::tokenize(expr)
+                         .and_then(parsing::make_ast{expr})
+                         .and_then(parsing::make_fast<type>{expr, world})
+                         .transform(parsing::make_RPN);
+        dummy += exp_ast->size();
+      }
+    });
+
+    constexpr std::string_view type_str_v = std::is_same_v<StructType, AST_TEST> ? "AST" :
+                                            std::is_same_v<StructType, FAST_TEST> ? "FAST" : "RPN";
+
+    // the absolute value doesn't mean anything really, but we can compare between performance improvements
+    std::cout << type_str_v << " creation time: "
+              << duration_cast<nanoseconds>(duration/iterations).count() << "ns"
+              << std::endl;
+    std::cout << "dummy: " << dummy << std::endl;
+
+  } | std::tuple<AST_TEST, FAST_TEST, RPN_TEST>{};
 }

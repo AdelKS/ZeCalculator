@@ -171,35 +171,4 @@ int main()
                              {"h", zc::deps::FUNCTION},
                              {"y", zc::deps::VARIABLE},});
   };
-
-  "AST creation speed"_test = []()
-  {
-    constexpr std::string_view static_expr = "2+ 3 -  cos(x) - 2 + 3 * 2.5343E+12-34234+2-4 * 34 / 634534           + 45.4E+2";
-    constexpr size_t static_expr_size = static_expr.size();
-    constexpr auto duration = nanoseconds(2s);
-
-    constexpr size_t max_random_padding = 10;
-    size_t dummy = 0;
-    std::string expr(static_expr);
-    expr.reserve(static_expr.size() + max_random_padding);
-
-    size_t i = 0;
-    size_t iterations = loop_call_for(duration, [&]{
-      // resize with variable number of extra spaces
-      // just to fool the compiler so it thinks each call to this function is unique
-      i = (i + 1) % max_random_padding;
-      expr.resize(static_expr_size + i, ' ');
-
-      auto exp_ast = tokenize(expr).and_then(make_ast{expr});
-
-      dummy += exp_ast->dyn_data.index();
-    });
-
-    // the absolute value doesn't mean anything really, but we can compare between performance improvements
-    std::cout << "AST creation time: "
-              << duration_cast<nanoseconds>(duration/iterations).count() << "ns"
-              << std::endl;
-    std::cout << "dummy: " << dummy << std::endl;
-
-  };
 }

@@ -138,8 +138,8 @@ Error messages when expressions have faulty syntax or semantics are expressed th
 Two namespaces are offered, that express the underlying representation of the parsed math objects
 - `zc::fast`: using the abstract syntax tree representation (AST)
 - `zc::rpn`: using reverse polish notation (RPN) / postfix notation in a flat representation in memory.
-
-The `rpn` representation should has faster evaluation but is generated from an `ast` representation, therefore it has slower parsing time (TODO: needs a benchmark).
+  - Generated from the `fast` representation, but the time taken by the extra step is negligible (see results of the test "AST/FAST/RPN creation speed")
+  - Has faster evaluation
 
 #### Benchmarks
 There is for now one benchmark defined in the tests, called "parametric function benchmark" in the file [test/function_test.cpp](test/function_test.cpp), that computes the average evaluation time of the function `f(x) = 3*cos(t*x) + 2*sin(x/t) + 4`, where `t` is a global constant, in `ast` vs `rpn` vs `c++`.

@@ -54,5 +54,4 @@ int main()
 
     expect(bool(rpn_expr == expected_rpn)) << "Expected: " << expected_rpn << "Answer: " << rpn_expr;
   };
-
 }
