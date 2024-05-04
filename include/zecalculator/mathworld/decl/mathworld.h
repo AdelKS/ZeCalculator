@@ -148,6 +148,21 @@ public:
 
 protected:
 
+  /// @brief returns a handle to a new math object
+  /// @note  the variant within contains the Unknown alternative
+  DynMathObject<type>& add(size_t slot);
+
+  /// @brief Add new object with given definition, see 'redefine()' for more information
+  template <class InterpretAs = DynMathObject<type>>
+    requires (tuple_contains_v<MathEqObjects<type>, InterpretAs>
+              or std::is_same_v<DynMathObject<type>, InterpretAs>)
+  DynMathObject<type>& add(std::string definition, size_t slot);
+
+  /// @brief add cpp function
+  template <size_t args_num>
+    requires (args_num <= max_func_args)
+  DynMathObject<type>& add(std::string name, CppMathFunctionPtr<args_num> cpp_f, size_t slot);
+
   /// @brief checks that this object has actually been allocated in this world
   bool sanity_check(const DynMathObject<type>& obj);
 

@@ -103,12 +103,17 @@ bool MathWorld<type>::contains(std::string_view name) const
 template <parsing::Type type>
 DynMathObject<type>& MathWorld<type>::add()
 {
-  size_t id = math_objects.next_free_slot();
-  [[maybe_unused]] size_t new_id = math_objects.emplace(tl::unexpected(Error::empty_expression()), MathWorldObjectHandle<type>{id, this});
-  assert(id == new_id); // should  be the same
-  // TODO: fix this approach: calling next_free_slot then making sure it's the same
+  return add(math_objects.next_free_slot());
+}
 
-  return math_objects[id];
+template <parsing::Type type>
+DynMathObject<type>& MathWorld<type>::add(size_t slot)
+{
+  math_objects.push(DynMathObject<type>(tl::unexpected(Error::empty_expression()),
+                                        MathWorldObjectHandle<type>{slot, this}),
+                    slot);
+
+  return math_objects[slot];
 }
 
 template <parsing::Type type>
@@ -116,6 +121,15 @@ template <class InterpretAs>
   requires (tuple_contains_v<MathEqObjects<type>, InterpretAs>
             or std::is_same_v<DynMathObject<type>, InterpretAs>)
 DynMathObject<type>& MathWorld<type>::add(std::string definition)
+{
+  return add<InterpretAs>(definition, math_objects.next_free_slot());
+}
+
+template <parsing::Type type>
+template <class InterpretAs>
+  requires (tuple_contains_v<MathEqObjects<type>, InterpretAs>
+            or std::is_same_v<DynMathObject<type>, InterpretAs>)
+DynMathObject<type>& MathWorld<type>::add(std::string definition, size_t slot)
 {
  /**
   *  0. Example: def = "f(x) = cos(x)"
@@ -133,7 +147,7 @@ DynMathObject<type>& MathWorld<type>::add(std::string definition)
   *  4. Any step can fail, in which case the member variable 'm' is an Error instance
   **/
 
-  auto& obj = add();
+  auto& obj = add(slot);
 
   MathEqObject<type> math_expr_obj(obj, definition);
 
@@ -281,7 +295,15 @@ template <size_t args_num>
   requires (args_num <= max_func_args)
 DynMathObject<type>& MathWorld<type>::add(std::string name, CppMathFunctionPtr<args_num> cpp_f)
 {
-  auto& obj = add();
+  return add<args_num>(std::move(name), cpp_f, math_objects.next_free_slot());
+}
+
+template <parsing::Type type>
+template <size_t args_num>
+  requires (args_num <= max_func_args)
+DynMathObject<type>& MathWorld<type>::add(std::string name, CppMathFunctionPtr<args_num> cpp_f, size_t slot)
+{
+  auto& obj = add(slot);
 
   if (inventory.contains(name))
   {
@@ -305,11 +327,11 @@ DynMathObject<type>& MathWorld<type>::redefine(DynMathObject<type>& obj, std::st
   if (not sanity_check(obj))
     throw  std::runtime_error("Object not registered in this world");
 
-  size_t slot = obj.slot;
+  const size_t slot = obj.slot;
   erase(obj);
-  auto& new_obj = add<InterpretAs>(definition);
-  assert(new_obj.slot == slot);
-  return new_obj;
+  auto& new_obj = add<InterpretAs>(definition, slot);
+  assert(&new_obj == &obj);
+  return obj;
 }
 
 template <parsing::Type type>
