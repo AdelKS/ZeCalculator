@@ -1,17 +1,18 @@
 subdir('src')
 
 test_sources = files(
+    'ast_test.cpp',
     'evaluation_test.cpp',
     'expression_test.cpp',
+    'fast_test.cpp',
     'function_test.cpp',
     'global_variable_test.cpp',
     'math_world_test.cpp',
-    'tokenizer_test.cpp',
     'readme_example_test.cpp',
     'rpn_test.cpp',
     'sequence_test.cpp',
-    'fast_test.cpp',
-    'ast_test.cpp',
+    'tokenizer_test.cpp',
+    'utils.cpp',
 )
 
 foreach test_src: test_sources

@@ -67,6 +67,24 @@ public:
     }
   }
 
+  void push(T val, size_t slot)
+  {
+    if (size() <= slot)
+    {
+      const size_t old_size = size();
+      this->resize(slot+1);
+
+      free_slots.reserve(free_slots.size() + (slot - old_size + 1));
+      for (size_t i = slot - 1 ; i != old_size - 1 ; i--)
+        free_slots.push_back(i);
+    }
+
+    if (auto it = std::ranges::find(free_slots, slot); it != free_slots.end())
+      free_slots.erase(it);
+
+    Parent::operator[](slot).emplace(std::move(val));
+  }
+
   template <class... U>
   size_t emplace(U&&... args)
   {
