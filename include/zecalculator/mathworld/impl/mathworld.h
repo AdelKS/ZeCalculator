@@ -43,7 +43,7 @@ template <parsing::Type type>
 const DynMathObject<type>* MathWorld<type>::get(std::string_view name) const
 {
   auto it = inventory.find(name);
-  return it != inventory.end() ? it->second : nullptr;
+  return it != inventory.end() ? &math_objects[it->second] : nullptr;
 }
 
 template <parsing::Type type>
@@ -282,8 +282,8 @@ DynMathObject<type>& MathWorld<type>::add(std::string definition, size_t slot)
     return obj;
   }
 
-  inventory[math_expr_obj.name.substr] = &obj;
-  object_names[&obj] = math_expr_obj.name.substr;
+  inventory[math_expr_obj.name.substr] = slot;
+  object_names.push(math_expr_obj.name.substr, slot);
 
   rebind_direct_revdeps_of(math_expr_obj.name.substr);
 
@@ -311,8 +311,8 @@ DynMathObject<type>& MathWorld<type>::add(std::string name, CppMathFunctionPtr<a
     return obj;
   }
 
-  object_names[&obj] = name;
-  inventory[name] = &obj;
+  object_names.push(name, slot);
+  inventory[name] = slot;
 
   obj = CppFunction<type, args_num>({name, obj}, cpp_f);
   return obj;
@@ -411,43 +411,48 @@ tl::expected<Ok, UnregisteredObject> MathWorld<type>::erase(ObjectType& obj)
       or std::get_if<ObjectType>(&math_objects[obj.slot].value()) != &obj)
     return tl::unexpected(UnregisteredObject{});
 
-  return erase(math_objects[obj.slot]);
+  return erase(obj.slot);
 }
 
 template <parsing::Type type>
 tl::expected<Ok, UnregisteredObject> MathWorld<type>::erase(DynMathObject<type>& obj)
 {
-  size_t slot = obj.slot;
-
   if (not sanity_check(obj))
     return tl::unexpected(UnregisteredObject{});
 
-  const auto name_node = object_names.extract(&math_objects[slot]);
-  if (bool(name_node))
-  {
-    // extract "name" from the inventory and just throw it away
-    auto node = inventory.extract(name_node.mapped());
-
-    // the inventory *should* have a valid node
-    assert(bool(node));
-
-    // functions could be depending on 'name' so re-parse them
-    rebind_direct_revdeps_of(name_node.mapped());
-  }
-
-  // remove math object
-  math_objects.free(slot);
-
-  return Ok{};
+  return erase(obj.slot);
 }
 
 template <parsing::Type type>
 tl::expected<Ok, UnregisteredObject> MathWorld<type>::erase(const std::string& name)
 {
-  DynMathObject<type>* dyn_obj = get(name);
-  if (not dyn_obj)
+  auto it = inventory.find(name);
+  if (it != inventory.end())
+    return erase(it->second);
+  else return tl::unexpected(UnregisteredObject{});
+}
+
+template <parsing::Type type>
+tl::expected<Ok, UnregisteredObject> MathWorld<type>::erase(size_t slot)
+{
+  if (not math_objects.is_assigned(slot))
     return tl::unexpected(UnregisteredObject{});
-  else return erase(*dyn_obj);
+
+  if (object_names.is_assigned(slot))
+  {
+    const std::string name = object_names[slot];
+
+    const size_t erased_num = inventory.erase(name);
+    assert(erased_num);
+
+    object_names.free(slot);
+
+    rebind_direct_revdeps_of(name);
+  }
+
+  math_objects.free(slot);
+
+  return Ok{};
 }
 
 } // namespace zc

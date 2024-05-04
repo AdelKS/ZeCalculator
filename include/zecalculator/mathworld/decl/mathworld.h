@@ -140,6 +140,11 @@ public:
   /// @brief delete object given by name
   /// @returns Ok if the deletion was successful, UnregisteredObject otherwise
   ///          when no registered object has that given name
+  tl::expected<Ok, UnregisteredObject> erase(size_t slot);
+
+    /// @brief delete object given by name
+  /// @returns Ok if the deletion was successful, UnregisteredObject otherwise
+  ///          when no registered object has that given name
   tl::expected<Ok, UnregisteredObject> erase(const std::string& name);
 
   /// @brief maximum recursion depth to reach before returning an error
@@ -169,11 +174,11 @@ protected:
   /// @brief parse all Function-based object that directly depends on obj_name
   void rebind_direct_revdeps_of(const std::string& obj_name);
 
-  /// @brief maps an object name to its type and ID (index within the container that holds it)
-  name_map<DynMathObject<type>*> inventory;
+  /// @brief maps an object name to its slot
+  name_map<size_t> inventory;
 
   /// @brief two uses: tracks 1. all objects handled by this world, 2. their name if they have one (empty otherwise)
-  std::unordered_map<const DynMathObject<type>*, std::string> object_names;
+  SlottedDeque<std::string> object_names;
 
   SlottedDeque<DynMathObject<type>> math_objects;
 
