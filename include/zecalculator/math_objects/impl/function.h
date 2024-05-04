@@ -92,10 +92,6 @@ std::unordered_map<std::string, deps::ObjectType> Function<type, args_num>::depe
     std::visit(
       [&]<class T>(const T& val) {
 
-        if constexpr (utils::is_any_of<T, GlobalConstant<type>, GlobalVariable<type>>)
-          deps.insert({val.get_name(), deps::ObjectType::VARIABLE});
-        else deps.insert({val.get_name(), deps::ObjectType::FUNCTION});
-
         if constexpr (requires { val.direct_dependencies(); })
         {
           const auto new_deps = val.direct_dependencies();
