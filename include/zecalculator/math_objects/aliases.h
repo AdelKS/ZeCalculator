@@ -32,12 +32,8 @@ using CppBinaryFunction = CppFunction<type, 2>;
 
 namespace fast {
 
-  template <size_t args_num>
-  using Function = zc::Function<parsing::Type::FAST, args_num>;
-
+  using Function = zc::Function<parsing::Type::FAST>;
   using Sequence = zc::Sequence<parsing::Type::FAST>;
-  using Expression = zc::Expression<parsing::Type::FAST>;
-  using GlobalVariable = zc::GlobalVariable<parsing::Type::FAST>;
 
   template <size_t args_num>
   using CppFunction = zc::CppFunction<parsing::Type::FAST, args_num>;
@@ -55,12 +51,8 @@ namespace fast {
 
 namespace rpn {
 
-  template <size_t args_num>
-  using Function = zc::Function<parsing::Type::RPN, args_num>;
-
+  using Function = zc::Function<parsing::Type::RPN>;
   using Sequence = zc::Sequence<parsing::Type::RPN>;
-  using Expression = zc::Expression<parsing::Type::RPN>;
-  using GlobalVariable = zc::GlobalVariable<parsing::Type::RPN>;
 
   template <size_t args_num>
   using CppFunction = zc::CppFunction<parsing::Type::RPN, args_num>;

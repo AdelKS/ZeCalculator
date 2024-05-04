@@ -239,13 +239,13 @@ int main()
 
       MathWorld<type> world;
       auto& t = world.add("t = 1").template value_as<GlobalConstant<type>>();
-      auto& f = world.add("f(x) =3*cos(t*x) + 2*sin(x/t) + 4").template value_as<Function<type, 1>>();
+      auto& f = world.add("f(x) =3*cos(t*x) + 2*sin(x/t) + 4").template value_as<Function<type>>();
 
       double x = 0;
       double res = 0;
       size_t iterations =
         loop_call_for(duration, [&]{
-          res += f({x}).value();
+          res += f(x).value();
           x++;
           t.set_fast(t.value()+1);
       });
@@ -300,7 +300,7 @@ int main()
 
     // add a function named "f", note that the constant "my_constant" is only defined after
     world.add("my_constant = 3.0");
-    Function<type, 1>& f = world.add("f( x)  = x + my_constant + cos(math::pi)").template value_as<Function<type, 1>>();
+    Function<type>& f = world.add("f( x)  = x + my_constant + cos(math::pi)").template value_as<Function<type>>();
 
     using namespace std::string_literals;
 

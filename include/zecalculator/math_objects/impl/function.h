@@ -31,17 +31,15 @@
 
 namespace zc {
 
-template <parsing::Type type, size_t args_num>
-Function<type, args_num>::Function(MathEqObject<type> base,
-                                   std::array<parsing::tokens::Text, args_num> vars)
-  : MathEqObject<type>(std::move(base)),
-    vars(std::move(vars))
+template <parsing::Type type>
+Function<type>::Function(MathEqObject<type> base, std::vector<parsing::tokens::Text> vars)
+  : MathEqObject<type>(std::move(base)), vars(std::move(vars))
 {
   rebind();
 }
 
-template <parsing::Type type, size_t args_num>
-void Function<type, args_num>::rebind()
+template <parsing::Type type>
+void Function<type>::rebind()
 {
   if constexpr (type == parsing::Type::FAST)
     bound_rhs = parsing::make_fast<type>{this->m_equation, *this->mathworld}(this->rhs);
@@ -49,22 +47,22 @@ void Function<type, args_num>::rebind()
     bound_rhs = parsing::make_fast<type>{this->m_equation, *this->mathworld}(this->rhs).transform(parsing::make_RPN);
 }
 
-template <parsing::Type type, size_t args_num>
-Function<type, args_num>::operator bool () const
+template <parsing::Type type>
+Function<type>::operator bool () const
 {
   return bool(bound_rhs);
 }
 
-template <parsing::Type type, size_t args_num>
-std::optional<Error> Function<type, args_num>::error() const
+template <parsing::Type type>
+std::optional<Error> Function<type>::error() const
 {
   if (not bound_rhs)
     return bound_rhs.error();
   else return {};
 }
 
-template <parsing::Type type, size_t args_num>
-std::unordered_map<std::string, deps::ObjectType> Function<type, args_num>::dependencies() const
+template <parsing::Type type>
+std::unordered_map<std::string, deps::ObjectType> Function<type>::dependencies() const
 {
   std::unordered_map<std::string, deps::ObjectType> deps = this->direct_dependencies();
   std::unordered_set<std::string> explored_deps = {this->name.substr};
@@ -107,12 +105,12 @@ std::unordered_map<std::string, deps::ObjectType> Function<type, args_num>::depe
   return deps;
 }
 
-template <parsing::Type type, size_t args_num>
-tl::expected<double, Error> Function<type, args_num>::evaluate(
+template <parsing::Type type>
+tl::expected<double, Error> Function<type>::evaluate(
   std::span<const double> args, size_t current_recursion_depth) const
 {
-  // the library should always get this right
-  assert(args.size() == args_num);
+  if (this->args_num() != args.size()) [[unlikely]]
+    return tl::unexpected(Error::cpp_incorrect_argnum());
 
   if (this->mathworld->max_recursion_depth < current_recursion_depth) [[unlikely]]
     return tl::unexpected(Error::recursion_depth_overflow());
@@ -122,48 +120,33 @@ tl::expected<double, Error> Function<type, args_num>::evaluate(
   return zc::evaluate(bound_rhs.value(), args, current_recursion_depth);
 }
 
-template <parsing::Type type, size_t args_num>
-tl::expected<double, Error> Function<type, args_num>::evaluate(const std::array<double, args_num>& args) const
-  requires (args_num >= 1)
+template <parsing::Type type>
+tl::expected<double, Error> Function<type>::evaluate(std::span<const double> args) const
 {
   // this function is user called, so the recursion depth is zero
   return evaluate(args, 0);
 }
 
-template <parsing::Type type, size_t args_num>
-tl::expected<double, Error> Function<type, args_num>::evaluate(std::span<const double, args_num> args) const
-  requires (args_num >= 1)
-{
-  // this function is user called, so the recursion depth is zero
-  return evaluate(args, 0);
-}
-
-template <parsing::Type type, size_t args_num>
-tl::expected<double, Error> Function<type, args_num>::operator()(const std::array<double, args_num>& args) const
-  requires (args_num >= 1)
+template <parsing::Type type>
+tl::expected<double, Error> Function<type>::operator()(std::span<const double> args) const
 {
   return evaluate(args, 0);
 }
 
-template <parsing::Type type, size_t args_num>
-tl::expected<double, Error> Function<type, args_num>::operator()(std::span<const double, args_num> args) const
-  requires (args_num >= 1)
+template <parsing::Type type>
+template <class... DBL>
+  requires (std::is_convertible_v<DBL, double> and ...)
+tl::expected<double, Error> Function<type>::evaluate(DBL... val) const
 {
-  return evaluate(args, 0);
+  return evaluate(std::array<double, sizeof...(DBL)>{double(val)...}, 0);
 }
 
-template <parsing::Type type, size_t args_num>
-tl::expected<double, Error> Function<type, args_num>::evaluate() const
-  requires (args_num == 0)
+template <parsing::Type type>
+template <class... DBL>
+  requires (std::is_convertible_v<DBL, double> and ...)
+tl::expected<double, Error> Function<type>::operator()(DBL... val) const
 {
-  return evaluate({}, 0);
-}
-
-template <parsing::Type type, size_t args_num>
-tl::expected<double, Error> Function<type, args_num>::operator()() const
-  requires (args_num == 0)
-{
-  return evaluate({}, 0);
+  return evaluate(std::array<double, sizeof...(DBL)>{double(val)...}, 0);
 }
 
 } // namespace zc

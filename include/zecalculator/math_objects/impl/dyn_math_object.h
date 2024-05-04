@@ -51,11 +51,12 @@ tl::expected<double, Error> DynMathObject<type>::evaluate(DBL... val) const
           return tl::unexpected(Error::cpp_incorrect_argnum());
         else return cpp_f(val...);
       },
-      [&]<size_t args_num>(const Function<type, args_num>& f) -> Ret
+      [&](const Function<type>& f) -> Ret
       {
-        if constexpr (sizeof...(val) != args_num)
+        if (sizeof...(val) != f.args_num()) [[unlikely]]
           return tl::unexpected(Error::cpp_incorrect_argnum());
-        else if constexpr (sizeof...(val) != 0)
+
+        if constexpr (sizeof...(val) != 0)
           return f(std::array{double(val)...});
         else return f();
       },

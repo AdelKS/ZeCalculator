@@ -25,23 +25,11 @@
 
 namespace zc {
 
-template <parsing::Type, size_t>
+template <parsing::Type>
 class Function;
 
 template <parsing::Type>
 class Sequence;
-
-/// @brief a class that represents a general expression
-/// @note  an expression is a function that does not have any input
-template <parsing::Type type>
-using Expression = Function<type, 0>;
-
-/// @brief there's not mathematical difference between a global variable
-///        and a simple mathematical expression. It just makes more sense
-///        when we add one to a math world: a global variable is an expression
-///        that has a name
-template <parsing::Type type>
-using GlobalVariable = Function<type, 0>;
 
 template <parsing::Type type>
 class GlobalConstant;

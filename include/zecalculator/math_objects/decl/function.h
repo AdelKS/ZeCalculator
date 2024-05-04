@@ -66,7 +66,7 @@ inline constexpr bool is_function_v = is_function<T>::value;
 /// @brief class representing a function
 /// @tparam type: representation type (AST, RPN)
 /// @tparam args_num: number of arguments the function receives
-template <parsing::Type type, size_t args_num>
+template <parsing::Type type>
 class Function: public MathEqObject<type>
 {
 public:
@@ -75,7 +75,7 @@ public:
   Function& operator = (Function&& f) = default;
 
   /// @brief returns the number of input variables, if they are valid
-  static constexpr size_t argument_size() { return args_num; };
+  size_t args_num() const { return vars.size(); };
 
   /// @brief gives all the Functions and Variables this function (recursively) depends on
   /// @note  uses only the function's expression (no name lookup is done in
@@ -89,35 +89,23 @@ public:
   /// @brief returns the parsing error, if there is any
   std::optional<Error> error() const;
 
-  /// @brief evaluation on a given math world with the given input
-  tl::expected<double, Error> evaluate(const std::array<double, args_num>& args) const
-    requires (args_num >= 1);
+  tl::expected<double, Error> evaluate(std::span<const double> args) const;
+  tl::expected<double, Error> operator()(std::span<const double> args) const;
 
-  /// @brief evaluation on a given math world with the given input
-  /// @note operator style
-  tl::expected<double, Error> operator()(const std::array<double, args_num>& args) const
-    requires (args_num >= 1);
+  template <class... DBL>
+    requires (std::is_convertible_v<DBL, double> and ...)
+  tl::expected<double, Error> evaluate(DBL... val) const;
 
-  // span version
-  tl::expected<double, Error> evaluate(std::span<const double, args_num> args) const
-    requires (args_num >= 1);
-
-  tl::expected<double, Error> operator()(std::span<const double, args_num> args) const
-    requires (args_num >= 1);
-
-  /// @brief evaluation on a given math world with the given input
-  tl::expected<double, Error> evaluate() const
-    requires (args_num == 0);
-
-  tl::expected<double, Error> operator()() const
-    requires (args_num == 0);
+  template <class... DBL>
+    requires (std::is_convertible_v<DBL, double> and ...)
+  tl::expected<double, Error> operator()(DBL... val) const;
 
 
 protected:
 
   // constructor reserved for MathWorld when using add() function
   Function(MathEqObject<type> base,
-           std::array<parsing::tokens::Text, args_num> vars);
+           std::vector<parsing::tokens::Text> vars);
 
   /// @brief rebind math object names to actual objects in the math world
   /// @note this function is called when function names changed etc...
@@ -128,7 +116,7 @@ protected:
                                        size_t current_recursion_depth) const;
 
   /// @brief variable names, as views on the function's 'm_definition' (part of parent MathObject class)
-  std::array<parsing::tokens::Text, args_num> vars;
+  std::vector<parsing::tokens::Text> vars;
 
   /// @brief binding of the AST 'left_expr' (parent MathObject class) to 'mathWorld'
   tl::expected<parsing::Parsing<type>, Error> bound_rhs = tl::unexpected(Error::empty_expression());
@@ -142,7 +130,7 @@ protected:
   friend class MathWorld;
 };
 
-template <parsing::Type type, size_t args_num>
-struct is_function<Function<type, args_num>>: std::true_type {};
+template <parsing::Type type>
+struct is_function<Function<type>>: std::true_type {};
 
 }

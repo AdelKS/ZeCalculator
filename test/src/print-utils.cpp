@@ -44,9 +44,9 @@ void shared_node_printer(std::ostream& os,
 
   std::visit(
     zc::utils::overloaded{
-      [&]<size_t args_num>(const Function<world_type, args_num>* f)
+      [&](const Function<world_type>* f)
       {
-        os << "Function<" << args_num << "> "
+        os << "Function<" << f->args_num() << "> "
           << f->get_name();
       },
       [&](const Sequence<world_type>* u)

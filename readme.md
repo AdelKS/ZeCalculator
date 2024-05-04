@@ -29,7 +29,7 @@ using namespace std;
 
 int main()
 {
-rpn::MathWorld world;
+  rpn::MathWorld world;
 
   // Notes about adding a math object to a math world:
   // - Each added object exists only within the math world that creates it
@@ -45,7 +45,7 @@ rpn::MathWorld world;
   rpn::DynMathObject& obj1 = world.add("f(x) = x + my_constant + cos(math::pi)");
 
   // the expected should hold a variant whose alternative is a single variable function
-  assert(obj1.holds<rpn::Function<1>>());
+  assert(obj1.holds<rpn::Function>());
 
   // if we try to evaluate the function, we get an Error object
   assert(obj1(1.0).error() == Error::undefined_variable(parsing::tokens::Text("my_constant", 11), "f(x) = x + my_constant + cos(math::pi)"));
@@ -75,7 +75,7 @@ rpn::MathWorld world;
   world.redefine(obj1, "h(u, v) = u + v + my_constant + g(v)");
 
   // the equation should be parsed as a two-argument function
-  assert(obj1.holds<rpn::Function<2>>());
+  assert(obj1.holds<rpn::Function>());
 
   // evaluate function again and get the new value
   assert(obj1(1, 3).value() == 16);
@@ -88,7 +88,7 @@ rpn::MathWorld world;
   // - "value_as" as a wrapper to std::get<>(expected::value), can throw for two different reasons
   //   - the expected has an error
   //   - the alternative asked is not the actual one held by the variant
-  rpn::Function<2>& func = obj1.value_as<rpn::Function<2>>();
+  rpn::Function& func = obj1.value_as<rpn::Function>();
   rpn::GlobalConstant& my_constant = obj2.value_as<rpn::GlobalConstant>();
 
   // each specific math object has extra public methods that may prove useful
@@ -108,7 +108,7 @@ rpn::MathWorld world;
   my_constant = 5.0;
 
   // Function objects can also be evaluated
-  assert(func({1, 1}).value() == 14);
+  assert(func(std::array{1., 1.}).value() == 14);
 
   return 0;
 }
@@ -167,7 +167,7 @@ The current results are (AMD Ryzen 5950X, `-march=native -O3` compile flags)
 
       MathWorld<type> world;
       auto& t = world.add("t = 1").template value_as<GlobalConstant<type>>();
-      auto& f = world.add("f(x) =3*cos(t*x) + 2*sin(x/t) + 4").template value_as<Function<type, 1>>();
+      auto& f = world.add("f(x) =3*cos(t*x) + 2*sin(x/t) + 4").template value_as<Function<type>>();
 
       double x = 0;
       auto begin = high_resolution_clock::now();

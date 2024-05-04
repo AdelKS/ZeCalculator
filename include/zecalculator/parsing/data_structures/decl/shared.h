@@ -73,9 +73,7 @@ namespace parsing {
                               const CppFunction<world_type, 1> *,
                               const CppFunction<world_type, 2> *,
                               const zc::GlobalConstant<world_type> *,
-                              const Function<world_type, 0> *,
-                              const Function<world_type, 1> *,
-                              const Function<world_type, 2> *,
+                              const Function<world_type> *,
                               const Sequence<world_type> *>;
 
   } // namespace shared

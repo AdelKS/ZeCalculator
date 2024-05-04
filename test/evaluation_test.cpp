@@ -125,9 +125,9 @@ int main()
     MathWorld<type> world;
     world.add("x  =   2.0");
 
-    Function<type, 1>& fun = world.add("f(x) = cos(x) + x").template value_as<Function<type, 1>>();
+    Function<type>& fun = world.add("f(x) = cos(x) + x").template value_as<Function<type>>();
 
-    const double res = fun({1.0}).value();
+    const double res = fun(1.0).value();
 
     const double expected_res = std::cos(1.0) + 1.0;
 

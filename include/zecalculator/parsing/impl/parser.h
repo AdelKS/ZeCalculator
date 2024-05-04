@@ -307,9 +307,11 @@ struct VariableVisiter
   {
     return T{&global_constant};
   }
-  Ret operator()(const zc::GlobalVariable<world_type>& global_variable)
+  Ret operator()(const Function<world_type>& f)
   {
-    return T{&global_variable};
+    if (f.args_num() != 0) [[unlikely]]
+      return tl::unexpected(Error::wrong_object_type(var_txt_token, expression));
+    else return T{&f};
   }
   Ret operator()(auto&&)
   {
@@ -335,10 +337,9 @@ struct FunctionVisiter
 
     return T{&f, std::move(subnodes)};
   }
-  template <size_t args_num>
-  Ret operator()(const zc::Function<world_type, args_num>& f)
+  Ret operator()(const zc::Function<world_type>& f)
   {
-    if (subnodes.size() != args_num) [[unlikely]]
+    if (subnodes.size() != f.args_num()) [[unlikely]]
       return tl::unexpected(Error::mismatched_fun_args(func.args_token(), expression));
 
     return T{&f, std::move(subnodes)};

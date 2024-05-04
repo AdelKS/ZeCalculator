@@ -31,9 +31,7 @@ namespace zc {
 /// @brief contains all the math objects that are defined through an equation
 template <parsing::Type type>
 using MathEqObjects = std::tuple<GlobalConstant<type>,
-                                 Function<type, 0>,
-                                 Function<type, 1>,
-                                 Function<type, 2>,
+                                 Function<type>,
                                  Sequence<type>>;
 
 template <parsing::Type type>

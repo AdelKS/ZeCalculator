@@ -46,6 +46,9 @@ int main()
     // TODO: make function be able to call itself at instantiation within a math world
 
     expect(not fib.error());
+
+    expect(bool(fib(0))) << [&]{ return fib(0).error(); } << fatal;
+
     expect(fib(0).value() == 0.0_d);
     expect(fib(1).value() == 1.0_d);
     expect(fib(2).value() == 1.0_d);

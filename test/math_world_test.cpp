@@ -68,8 +68,8 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    auto& f = world.add("f(x) = cos(x)").template value_as<Function<type, 1>>();
-    auto& g = world.add("g(x) = f(x)+1").template value_as<Function<type, 1>>();
+    auto& f = world.add("f(x) = cos(x)").template value_as<Function<type>>();
+    auto& g = world.add("g(x) = f(x)+1").template value_as<Function<type>>();
 
     // no issues expected with parsing of 'f' nor 'g'
     expect(not bool(f.error()));
@@ -84,7 +84,7 @@ int main()
     expect(bool(g.error()) and g.error()->type == Error::UNDEFINED_FUNCTION and g.error()->token.substr == "f");
 
     // add a new function
-    auto& h = world.add("h(x) = 1+x").template value_as<Function<type, 1>>();
+    auto& h = world.add("h(x) = 1+x").template value_as<Function<type>>();
 
     // no issues expected with 'h'
     expect(not bool(h.error()));
@@ -102,7 +102,7 @@ int main()
     world1.add("f(x) = cos(x)");
 
     MathWorld<type> world2;
-    auto& g = world2.template add<Function<type, 1>>("g(x) = sin(x)+1");
+    auto& g = world2.template add<Function<type>>("g(x) = sin(x)+1");
 
     // cannot erase 'g' in 'world1'
     expect(not bool(world1.erase(g)));
@@ -114,8 +114,8 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    Function<type, 1>& f = world.add("f(x)=cos(x)").template value_as<Function<type, 1>>();
-    Function<type, 1>& g = world.add("g(x)= f(x)+1").template value_as<Function<type, 1>>();
+    Function<type>& f = world.add("f(x)=cos(x)").template value_as<Function<type>>();
+    Function<type>& g = world.add("g(x)= f(x)+1").template value_as<Function<type>>();
 
     // no issues expected with parsing of 'f' nor 'g'
     expect(not bool(f.error()));

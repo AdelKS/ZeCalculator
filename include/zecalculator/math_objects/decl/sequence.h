@@ -43,9 +43,9 @@ inline constexpr bool is_sequence_v = is_sequence<T>::value;
 
 /// @brief a class that represents a Sequence of single argument
 template <parsing::Type type>
-class Sequence: public zc::Function<type, 1>
+class Sequence: public zc::Function<type>
 {
-  using Parent = Function<type, 1>;
+  using Parent = Function<type>;
 
 public:
 
@@ -58,10 +58,14 @@ public:
   /// @brief evaluates the sequence at the given index
   /// @note evaluation modifies the state of the sequence, as values get saved within
   ///       the instance, and a locking mechanism is triggered to detect ill-formed seqs
-  tl::expected<double, Error> evaluate(double index) const;
+  template <class DBL>
+    requires std::is_constructible_v<DBL, double>
+  tl::expected<double, Error> evaluate(DBL index) const;
 
   /// @brief operator version of evaluate
-  tl::expected<double, Error> operator () (double index) const;
+  template <class DBL>
+    requires std::is_constructible_v<DBL, double>
+  tl::expected<double, Error> operator () (DBL index) const;
 
 protected:
 
@@ -73,10 +77,6 @@ protected:
 
   template <parsing::Type>
   friend struct eval::Evaluator;
-
-  // hide functions that are not needed from Function
-  using Parent::evaluate;
-  using Parent::operator();
 
   // index of the first value
   int first_val_index = 0;

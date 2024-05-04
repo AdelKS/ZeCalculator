@@ -58,8 +58,7 @@ struct Evaluator
   auto operator () (zc::parsing::shared::node::Divide) -> RetType;
   auto operator () (zc::parsing::shared::node::Power) -> RetType;
 
-  template <size_t args_num>
-  auto operator () (const zc::Function<type, args_num>*) -> RetType;
+  auto operator () (const zc::Function<type>*) -> RetType;
 
   auto operator () (const zc::Sequence<type>*) -> RetType;
 

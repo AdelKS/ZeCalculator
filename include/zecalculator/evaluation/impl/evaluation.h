@@ -85,8 +85,7 @@ auto Evaluator<type>::operator () (zc::parsing::shared::node::Power) -> RetType
 }
 
 template <parsing::Type type>
-template <size_t args_num>
-auto Evaluator<type>::operator()(const zc::Function<type, args_num>* f) -> RetType
+auto Evaluator<type>::operator()(const zc::Function<type>* f) -> RetType
 {
   if (f->mathworld->max_recursion_depth < current_recursion_depth)
   {
@@ -98,6 +97,8 @@ auto Evaluator<type>::operator()(const zc::Function<type, args_num>* f) -> RetTy
       return false;
     }
   }
+
+  const size_t args_num = f->args_num();
 
   if constexpr (type == parsing::Type::FAST)
     assert(subnodes.size() == args_num);

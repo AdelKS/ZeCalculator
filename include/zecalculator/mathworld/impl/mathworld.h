@@ -199,49 +199,37 @@ DynMathObject<type>& MathWorld<type>::add(std::string definition, size_t slot)
 
     if (is_global_var_def)
     {
-      obj = GlobalVariable<type>(math_expr_obj, {});
+      obj = Function<type>(math_expr_obj, {});
     }
     else // is_function_def
     {
       const std::vector<parsing::AST>& args = math_expr_obj.lhs.func_data().subnodes;
+
+      std::vector<parsing::tokens::Text> var_name_tokens;
+      var_name_tokens.reserve(args.size());
 
       // setting up the text that contains all the args
       parsing::tokens::Text args_txt = math_expr_obj.lhs.args_token();
 
       // the arguments of the function call in the left hand-side must all be regular variables
       for (const auto& arg: args)
+      {
         if (not arg.is_var())
         {
           obj = tl::unexpected(Error::unexpected(arg.name, definition));
           return obj;
         }
-
-      auto var_name_tokens = args | std::views::transform(&parsing::AST::name);
+        var_name_tokens.push_back(arg.name);
+      }
 
       auto var_name_strs = var_name_tokens | std::views::transform(&parsing::tokens::Text::substr);
 
       // override 'rhs' with input variables of the function properly marked
       math_expr_obj.rhs = parsing::mark_input_vars{var_name_strs}(math_expr_obj.rhs);
 
-      // override 'obj' handle as a function
-      bool valid_args_num = false;
-      auto add_function = [&]<size_t args_num>(std::integral_constant<size_t, args_num>)
-      {
-        if (args_num != args.size())
-          return;
-
-        valid_args_num = true;
-        obj = Function<type, args_num>(math_expr_obj, utils::to_array<args_num, parsing::tokens::Text>(var_name_tokens));
-      };
-      utils::for_int_seq(add_function, std::make_index_sequence<max_func_args + 1>());
-
-      if (not valid_args_num)
-      {
-        obj = tl::unexpected(Error::mismatched_fun_args(args_txt, definition));
-        return obj;
-      }
-
-      if constexpr(zc::is_sequence_v<InterpretAs>)
+      if constexpr (not zc::is_sequence_v<InterpretAs>)
+        obj = Function<type>(math_expr_obj, std::move(var_name_tokens));
+      else
       {
         if (args.size() != 1)
         {
@@ -249,7 +237,7 @@ DynMathObject<type>& MathWorld<type>::add(std::string definition, size_t slot)
           return obj;
         }
 
-        obj = Sequence(Function<type, 1>(math_expr_obj, {args.front().name}));
+        obj = Sequence(Function<type>(math_expr_obj, std::move(var_name_tokens)));
       }
     }
   }

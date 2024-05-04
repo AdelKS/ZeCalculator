@@ -41,7 +41,7 @@ int main()
     GlobalConstant<type>& r = world.add("r = " + std::to_string(cpp_r)).template value_as<GlobalConstant<type>>();
     world.add("g(x) = sin(3 * math::pi * x) + r");
     world.add("k = 3*g(3)");
-    Function<type, 2>& f = world.add("f(x, y)=cos(math::pi * x) * y + k*g(x) + r").template value_as<Function<type, 2>>();
+    Function<type>& f = world.add("f(x, y)=cos(math::pi * x) * y + k*g(x) + r").template value_as<Function<type>>();
 
 
     r = cpp_r;
@@ -60,12 +60,8 @@ int main()
 
     double x = 7, y = 8;
 
-    auto eval = f({x, y});
-    if (not eval)
-    {
-      auto error = eval.error();
-      std::cout << error << std::endl;
-    }
+    auto eval = f(x, y);
+    expect(bool(eval)) << [&]{ return eval.error(); } << fatal;
 
     auto* dyn_k = world.get("k");
     expect(dyn_k && (*dyn_k)().value() == cpp_k());
@@ -78,7 +74,11 @@ int main()
     cpp_r = 10;
     r = cpp_r;
 
-    expect(f({x, y}).value() == cpp_f(x, y));
+    auto res = f(x, y);
+
+    expect(bool(res)) << [&]{ return res.error(); } << fatal;
+
+    expect(*res == cpp_f(x, y));
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 }

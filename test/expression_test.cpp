@@ -42,8 +42,8 @@ int main()
     world.add("f( x, y)  = x + y");
     world.add("t = " + std::to_string(t));
 
-    GlobalVariable<type>& expr
-      = world.add("test_var = cos(math::pi * t) + 2 + f(3, 4)").template value_as<GlobalVariable<type>>();
+    Function<type>& expr
+      = world.add("test_var = cos(math::pi * t) + 2 + f(3, 4)").template value_as<Function<type>>();
 
     auto cpp_f = [](double x, double y) {
       return x + y;
