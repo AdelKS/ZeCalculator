@@ -414,7 +414,7 @@ tl::expected<Ok, UnregisteredObject> MathWorld<type>::erase(DynMathObject<type>&
   }
 
   // remove math object
-  math_objects.pop(slot);
+  math_objects.free(slot);
 
   return Ok{};
 }

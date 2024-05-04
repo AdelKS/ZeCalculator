@@ -104,10 +104,14 @@ public:
   }
 
   ///@brief frees the slot 'slot'
-  void pop(const size_t slot)
+  void free(const size_t slot)
   {
-    Parent::operator[](slot).reset();
-    free_slots.push_back(slot);
+    if (slot < size())
+    {
+      Parent::operator[](slot).reset();
+      if (std::ranges::find(free_slots, slot) == free_slots.end())
+        free_slots.push_back(slot);
+    }
   }
 
   /// @brief returns if slot is taken and assigned
