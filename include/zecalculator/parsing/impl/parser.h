@@ -36,7 +36,7 @@
 
 #include <cmath>
 #include <optional>
-#include <ranges>
+#include <stack>
 #include <stdexcept>
 #include <string_view>
 #include <utility>

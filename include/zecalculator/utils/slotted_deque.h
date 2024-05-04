@@ -20,10 +20,10 @@
 **
 ****************************************************************************/
 
-#include <deque>
 #include <cstddef>
+#include <deque>
 #include <optional>
-#include <stack>
+#include <vector>
 
 namespace zc {
 
@@ -46,7 +46,7 @@ public:
   {
     if (free_slots.empty())
       return size();
-    else return free_slots.top();
+    else return free_slots.back();
   }
 
   /// @brief finds the a free slot, puts 'val' in it, then returns the slot index
@@ -60,8 +60,8 @@ public:
     }
     else
     {
-      const size_t slot = free_slots.top();
-      free_slots.pop();
+      const size_t slot = free_slots.back();
+      free_slots.pop_back();
       Parent::operator[](slot).emplace(std::move(val));
       return slot;
     }
@@ -78,8 +78,8 @@ public:
     }
     else
     {
-      const size_t slot = free_slots.top();
-      free_slots.pop();
+      const size_t slot = free_slots.back();
+      free_slots.pop_back();
       Parent::operator[](slot).emplace(std::forward<U>(args)...);
       return slot;
     }
@@ -89,7 +89,7 @@ public:
   void pop(const size_t slot)
   {
     Parent::operator[](slot).reset();
-    free_slots.push(slot);
+    free_slots.push_back(slot);
   }
 
   /// @brief returns if slot is taken and assigned
@@ -128,7 +128,7 @@ public:
   using Parent::cend;
 
 protected:
-  std::stack<size_t> free_slots;
+  std::vector<size_t> free_slots;
 };
 
 }
