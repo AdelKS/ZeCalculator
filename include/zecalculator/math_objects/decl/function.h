@@ -77,12 +77,6 @@ public:
   /// @brief returns the number of input variables, if they are valid
   static constexpr size_t argument_size() { return args_num; };
 
-  /// @brief gives the Functions and Variables this function directly depends on
-  /// @note  uses only the function's expression (no name lookup is done in
-  ///        the MathWorld the function belongs to)
-  /// @note  undefined functions & variables in the math world will still be listed
-  const std::unordered_map<std::string, deps::ObjectType>& direct_dependencies() const;
-
   /// @brief gives all the Functions and Variables this function (recursively) depends on
   /// @note  uses only the function's expression (no name lookup is done in
   ///        the MathWorld the function belongs to)
@@ -135,9 +129,6 @@ protected:
 
   /// @brief variable names, as views on the function's 'm_definition' (part of parent MathObject class)
   std::array<parsing::tokens::Text, args_num> vars;
-
-  /// @brief object names this function directly depends on
-  std::unordered_map<std::string, deps::ObjectType> direct_deps;
 
   /// @brief binding of the AST 'left_expr' (parent MathObject class) to 'mathWorld'
   tl::expected<parsing::Parsing<type>, Error> bound_rhs = tl::unexpected(Error::empty_expression());

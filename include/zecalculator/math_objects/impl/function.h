@@ -35,8 +35,7 @@ template <parsing::Type type, size_t args_num>
 Function<type, args_num>::Function(MathEqObject<type> base,
                                    std::array<parsing::tokens::Text, args_num> vars)
   : MathEqObject<type>(std::move(base)),
-    vars(std::move(vars)),
-    direct_deps(parsing::direct_dependencies(this->rhs))
+    vars(std::move(vars))
 {
   rebind();
 }
@@ -65,15 +64,9 @@ std::optional<Error> Function<type, args_num>::error() const
 }
 
 template <parsing::Type type, size_t args_num>
-const std::unordered_map<std::string, deps::ObjectType>& Function<type, args_num>::direct_dependencies() const
-{
-  return direct_deps;
-}
-
-template <parsing::Type type, size_t args_num>
 std::unordered_map<std::string, deps::ObjectType> Function<type, args_num>::dependencies() const
 {
-  std::unordered_map<std::string, deps::ObjectType> deps = direct_dependencies();
+  std::unordered_map<std::string, deps::ObjectType> deps = this->direct_dependencies();
   std::unordered_set<std::string> explored_deps = {this->name.substr};
 
   std::unordered_set<std::string> to_explore;
