@@ -28,10 +28,11 @@
 #include <zecalculator/external/expected.h>
 #include <zecalculator/math_objects/decl/math_eq_object.h>
 #include <zecalculator/mathworld/decl/mathworld.h>
+#include <zecalculator/parsing/data_structures/decl/ast.h>
 #include <zecalculator/parsing/data_structures/decl/fast.h>
 #include <zecalculator/parsing/data_structures/decl/rpn.h>
-#include <zecalculator/parsing/data_structures/decl/ast.h>
 #include <zecalculator/parsing/data_structures/decl/utils.h>
+#include <zecalculator/parsing/data_structures/deps.h>
 #include <zecalculator/parsing/decl/parser.h>
 #include <zecalculator/parsing/types.h>
 #include <zecalculator/utils/name_map.h>

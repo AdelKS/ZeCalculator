@@ -22,10 +22,11 @@
 
 #include <zecalculator/error.h>
 #include <zecalculator/mathworld/decl/mathworld.h>
+#include <zecalculator/parsing/data_structures/decl/ast.h>
 #include <zecalculator/parsing/data_structures/decl/fast.h>
 #include <zecalculator/parsing/data_structures/decl/rpn.h>
-#include <zecalculator/parsing/data_structures/decl/ast.h>
 #include <zecalculator/parsing/data_structures/decl/utils.h>
+#include <zecalculator/parsing/data_structures/deps.h>
 #include <zecalculator/parsing/data_structures/token.h>
 
 #include <span>
@@ -40,13 +41,6 @@
 */
 
 namespace zc {
-
-namespace deps {
-  /// @brief used to know the type of the dependency when querying deps
-  enum ObjectType {VARIABLE, FUNCTION};
-
-  using Deps = std::unordered_map<std::string, ObjectType>;
-} // namespace deps
 
 namespace parsing {
 
