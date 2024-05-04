@@ -193,81 +193,94 @@ DynMathObject<type>& MathWorld<type>::add(std::string definition, size_t slot)
   // "var = 13.24213 (a number)"
   const bool is_global_constant_def = (math_expr_obj.lhs.is_var() and math_expr_obj.rhs.is_number());
 
-  if (is_function_def or is_global_var_def)
-  {
-    math_expr_obj.name = math_expr_obj.lhs.name;
-
-    if (is_global_var_def)
-    {
-      obj = Function<type>(math_expr_obj, {});
-    }
-    else // is_function_def
-    {
-      const std::vector<parsing::AST>& args = math_expr_obj.lhs.func_data().subnodes;
-
-      std::vector<parsing::tokens::Text> var_name_tokens;
-      var_name_tokens.reserve(args.size());
-
-      // setting up the text that contains all the args
-      parsing::tokens::Text args_txt = math_expr_obj.lhs.args_token();
-
-      // the arguments of the function call in the left hand-side must all be regular variables
-      for (const auto& arg: args)
-      {
-        if (not arg.is_var())
-        {
-          obj = tl::unexpected(Error::unexpected(arg.name, definition));
-          return obj;
-        }
-        var_name_tokens.push_back(arg.name);
-      }
-
-      auto var_name_strs = var_name_tokens | std::views::transform(&parsing::tokens::Text::substr);
-
-      // override 'rhs' with input variables of the function properly marked
-      math_expr_obj.rhs = parsing::mark_input_vars{var_name_strs}(math_expr_obj.rhs);
-
-      if constexpr (not zc::is_sequence_v<InterpretAs>)
-        obj = Function<type>(math_expr_obj, std::move(var_name_tokens));
-      else
-      {
-        if (args.size() != 1)
-        {
-          obj = tl::unexpected(Error::mismatched_fun_args(args_txt, definition));
-          return obj;
-        }
-
-        obj = Sequence(Function<type>(math_expr_obj, std::move(var_name_tokens)));
-      }
-    }
-  }
-  else if (is_global_constant_def)
-  {
-    math_expr_obj.name = math_expr_obj.lhs.name;
-    obj = GlobalConstant<type>(math_expr_obj,
-                               parsing::Token(math_expr_obj.rhs.number_data().value,
-                                              math_expr_obj.rhs.name));
-  }
-  else
+  // first equation sanity check
+  if (not is_function_def and not is_global_var_def and not is_global_constant_def) [[unlikely]]
   {
     obj = tl::unexpected(Error::unexpected(math_expr_obj.lhs.name, definition));
     return obj;
   }
 
+  // second sanity check:
+  // if the left side of the equation is a function call
+  // it should only contain variables in each of its arguments, e.g. "f(x, y)"
+  // and not e.g. "f(x^2 + 1, x + y)"
+  if (is_function_def)
+    for (const auto& arg: math_expr_obj.lhs.func_data().subnodes)
+      if (not arg.is_var())
+      {
+        obj = tl::unexpected(Error::unexpected(arg.name, definition));
+        return obj;
+      }
+
+  // third sanity check: type checks
   if constexpr (not std::is_same_v<InterpretAs, DynMathObject<type>>)
   {
-    if (not obj.template holds<InterpretAs>())
+    if ( (is_function_def or is_global_var_def) )
     {
-      // caller of function asked for interpreting the object as another type
-      obj = tl::unexpected(Error::wrong_object_type(math_expr_obj.name, definition));
+      const std::vector<parsing::AST>& args = math_expr_obj.lhs.func_data().subnodes;
+
+      if (not is_function_v<InterpretAs>
+          or (zc::is_sequence_v<InterpretAs> and args.size() == 0)) [[unlikely]]
+      {
+        obj = tl::unexpected(Error::wrong_object_type(math_expr_obj.lhs.name, definition));
+        return obj;
+      }
+      else if ( zc::is_sequence_v<InterpretAs> and args.size() != 1 )
+      {
+        obj = tl::unexpected(Error::mismatched_fun_args(math_expr_obj.lhs.args_token(), definition));
+        return obj;
+      }
+    }
+    else if (is_global_constant_def and not std::is_same_v<InterpretAs, GlobalConstant<type>>)
+    {
+      obj = tl::unexpected(Error::wrong_object_type(math_expr_obj.lhs.name, definition));
       return obj;
     }
   }
 
+  math_expr_obj.name = math_expr_obj.lhs.name;
+
+  // fourth sanity check: name check
   if (inventory.contains(math_expr_obj.name.substr))
   {
     obj = tl::unexpected(Error::name_already_taken(math_expr_obj.name, definition));
     return obj;
+  }
+
+  std::vector<parsing::tokens::Text> arg_names;
+
+  if (is_function_def)
+  {
+    // fill 'arg_names'
+    const std::vector<parsing::AST>& args = math_expr_obj.lhs.func_data().subnodes;
+
+    arg_names.reserve(args.size());
+
+    // the arguments of the function call in the left hand-side must all be regular variables
+    for (const auto& arg: args)
+      arg_names.push_back(arg.name);
+
+    // mark input vars in 'rhs'
+    auto var_name_strs = arg_names | std::views::transform(&parsing::tokens::Text::substr);
+
+    // mark function's input variables in 'rhs'
+    math_expr_obj.rhs = parsing::mark_input_vars{var_name_strs}(math_expr_obj.rhs);
+  }
+
+  // now that we checked that everything is fine, we can assign the object
+  if (is_function_def or is_global_var_def)
+  {
+    if constexpr (not zc::is_sequence_v<InterpretAs>)
+      obj = Function<type>(math_expr_obj, std::move(arg_names));
+    else
+      obj = Sequence(Function<type>(math_expr_obj, std::move(arg_names)));
+  }
+  else
+  {
+    assert(is_global_constant_def);
+    obj = GlobalConstant<type>(math_expr_obj,
+                               parsing::Token(math_expr_obj.rhs.number_data().value,
+                                              math_expr_obj.rhs.name));
   }
 
   inventory[math_expr_obj.name.substr] = slot;
