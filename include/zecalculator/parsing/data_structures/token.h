@@ -30,7 +30,6 @@
 #include <variant>
 
 #include <zecalculator/external/expected.h>
-#include <zecalculator/utils/substr_info.h>
 #include <zecalculator/utils/tuple.h>
 #include <zecalculator/utils/utils.h>
 

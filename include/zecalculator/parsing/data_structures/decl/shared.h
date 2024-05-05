@@ -27,8 +27,6 @@
 
 namespace zc {
 
-struct SubstrInfo;
-
 namespace parsing {
   namespace shared {
     namespace node {

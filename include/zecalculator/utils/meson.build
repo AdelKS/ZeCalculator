@@ -5,7 +5,6 @@ if not meson.is_subproject()
       'non_unique_ptr.h',
       'refs.h',
       'slotted_deque.h',
-      'substr_info.h',
       'tuple.h',
       'utils.h',
     ),
