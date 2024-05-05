@@ -349,18 +349,38 @@ DynMathObject<type>& MathWorld<type>::redefine(DynMathObject<type>& obj,
 }
 
 template <parsing::Type type>
-void MathWorld<type>::rebind_direct_revdeps_of(const std::string& name)
+deps::Deps MathWorld<type>::direct_revdeps(std::string_view name) const
 {
-  for (std::optional<DynMathObject<type>>& o: math_objects)
+  deps::Deps direct_rev_deps;
+  for (const std::optional<DynMathObject<type>>& o: math_objects)
   {
     if (o and o->has_value())
       std::visit(
-        [&]<class T>(T& obj) {
+        [&]<class T>(const T& obj) {
           if constexpr (is_function_v<T>)
-            if (obj.direct_dependencies().contains(name))
-              obj.rebind();
+            if (auto deps = obj.direct_dependencies().contains(name))
+              direct_rev_deps.insert({obj.get_name(), deps::FUNCTION});
         },
         **o);
+  }
+  return direct_rev_deps;
+}
+
+template <parsing::Type type>
+void MathWorld<type>::rebind_direct_revdeps_of(const std::string& name)
+{
+  const auto direct_rev_deps = direct_revdeps(name);
+  for (auto&&[obj_name, obj_type]: direct_rev_deps)
+  {
+    if (DynMathObject<type>* obj = get(obj_name))
+      if (obj->has_value())
+        std::visit(
+          [&]<class T>(T& v)
+          {
+            if constexpr (is_function_v<T>)
+              v.rebind();
+          },
+          **obj);
   }
 }
 

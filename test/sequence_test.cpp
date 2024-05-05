@@ -45,7 +45,7 @@ int main()
     fib.set_first_values(std::vector{0., 1.});
     // TODO: make function be able to call itself at instantiation within a math world
 
-    expect(not fib.error());
+    expect(not fib.error()) << fib.error() << fatal;
 
     expect(bool(fib(0))) << [&]{ return fib(0).error(); } << fatal;
 

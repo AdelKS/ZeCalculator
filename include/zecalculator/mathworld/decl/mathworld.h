@@ -132,6 +132,9 @@ public:
     requires(tuple_contains_v<MathObjects<type>, ObjectType>)
   tl::expected<Ok, UnregisteredObject> erase(ObjectType& obj);
 
+  /// @brief return the direct reverse dependencies, aka objects that depend directly on 'name'
+  deps::Deps direct_revdeps(std::string_view name) const;
+
   /// @brief delete object given by pointer
   /// @returns Ok if the deletion was successful, UnregisteredObject otherwise
   ///          when the pointed-to object is not handled by this instance of MathWorld
