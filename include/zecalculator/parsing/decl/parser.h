@@ -106,13 +106,6 @@ struct make_fast
 /// @brief transforms a syntax tree to a flat Reverse Polish / postfix notation representation
 RPN make_RPN(const FAST<Type::RPN>& tree);
 
-/// @brief gives the Function and Variable names in these tokens
-///        variable names in `input_vars` will be filter out
-template <std::ranges::viewable_range Range = std::array<std::string, 0>>
-  requires std::is_convertible_v<std::ranges::range_value_t<Range>, std::string_view>
-deps::Deps direct_dependencies(const std::vector<parsing::Token>& tokens,
-                               const Range& input_vars = {});
-
 /// @brief gives the Function and Variable names that intervene in this AST
 deps::Deps direct_dependencies(const AST& ast);
 

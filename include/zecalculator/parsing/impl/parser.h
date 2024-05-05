@@ -650,25 +650,6 @@ inline RPN make_RPN(const FAST<Type::RPN>& tree)
   return res;
 }
 
-template <std::ranges::viewable_range Range>
-  requires std::is_convertible_v<std::ranges::range_value_t<Range>, std::string_view>
-deps::Deps direct_dependencies(const std::vector<parsing::Token>& tokens, const Range& input_vars)
-{
-  deps::Deps deps;
-
-  for (const parsing::Token& tok: tokens)
-  {
-    if (tok.type == tokens::FUNCTION)
-      deps.insert({tok.substr, deps::ObjectType::FUNCTION});
-    if (tok.type == tokens::VARIABLE)
-      if (std::ranges::find(input_vars, tok.substr) == input_vars.end())
-        deps.insert({tok.substr, deps::ObjectType::VARIABLE});
-  }
-
-  return deps;
-}
-
-
 /// @brief appends dependencies of 'ast' in 'deps'
 struct direct_dependency_saver
 {
