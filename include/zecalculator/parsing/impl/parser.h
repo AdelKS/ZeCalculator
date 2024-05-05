@@ -403,9 +403,9 @@ tl::expected<FAST<type>, Error> make_fast<type>::operator () (const AST& ast)
           {
             auto* dyn_obj = math_world.get(ast.name.substr);
             if (not dyn_obj) [[unlikely]]
-              return tl::unexpected(Error::undefined_function(ast.name.substr, expression));
+              return tl::unexpected(Error::undefined_function(ast.name, expression));
             if (not dyn_obj->has_value()) [[unlikely]]
-              return tl::unexpected(Error::object_in_invalid_state(ast.name.substr, expression));
+              return tl::unexpected(Error::object_in_invalid_state(ast.name, expression));
             else return std::visit(FunctionVisiter<type>{expression, ast, std::move(operands)}, **dyn_obj);
           }
           default:
@@ -444,8 +444,8 @@ tl::expected<AST, Error> make_ast<Range>::operator () (std::span<const parsing::
 
   auto get_current_sub_expr = [&](){
     const auto& end_token = tokens.back();
-    size_t start = tokens.front().substr_info->begin;
-    size_t end = end_token.substr_info->begin + end_token.substr_info->size;
+    size_t start = tokens.front().substr_info.begin;
+    size_t end = end_token.substr_info.begin + end_token.substr_info.size;
 
     return tokens::Text(expression.substr(start, end - start), expression);
   };

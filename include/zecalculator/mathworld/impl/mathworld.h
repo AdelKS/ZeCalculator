@@ -240,14 +240,14 @@ DynMathObject<type>& MathWorld<type>::add(std::string definition, size_t slot)
     }
   }
 
-  math_expr_obj.name = math_expr_obj.lhs.name.substr;
-
   // fourth sanity check: name check
-  if (inventory.contains(math_expr_obj.name))
+  if (inventory.contains(math_expr_obj.lhs.name.substr))
   {
-    obj = tl::unexpected(Error::name_already_taken(math_expr_obj.name, definition));
+    obj = tl::unexpected(Error::name_already_taken(math_expr_obj.lhs.name, definition));
     return obj;
   }
+
+  math_expr_obj.name = math_expr_obj.lhs.name.substr;
 
   std::vector<parsing::tokens::Text> arg_names;
 
@@ -316,7 +316,7 @@ DynMathObject<type>& MathWorld<type>::add(std::string name, CppMathFunctionPtr<a
 
   if (inventory.contains(name))
   {
-    obj = tl::unexpected(Error::name_already_taken(parsing::tokens::Text(name), ""));
+    obj = tl::unexpected(Error::name_already_taken(name));
     return obj;
   }
 

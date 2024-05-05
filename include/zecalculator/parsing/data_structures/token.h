@@ -43,12 +43,6 @@ struct Text
 {
   Text() = default;
 
-  Text(std::string_view name) : substr(name)
-  {}
-
-  Text(std::string name) : substr(std::move(name))
-  {}
-
   Text(std::string_view substr, std::string_view original_expr)
     : substr(std::string(substr)), substr_info(SubstrInfo::from_views(substr, original_expr))
   {}
@@ -61,7 +55,7 @@ struct Text
     : substr(std::string(name)), substr_info(SubstrInfo{begin, size})
   {}
 
-  Text(std::string_view name, std::optional<SubstrInfo> substr_info)
+  Text(std::string_view name, SubstrInfo substr_info)
     : substr(std::string(name)), substr_info(substr_info)
   {}
 
@@ -72,25 +66,10 @@ struct Text
   /// @brief information about the location of the token within the original expression
   /// @example token '+' in '2+2*2' will have: begin=1, size=1
   /// @note the SubstrInfo cannot be known sometimes
-  std::optional<SubstrInfo> substr_info = {};
+  SubstrInfo substr_info = {};
 
   bool operator == (const Text& other) const = default;
 };
-
-Text operator + (const Text& t1, const Text& t2)
-{
-  std::string name;
-  std::optional<SubstrInfo> opt_substr_info;
-  if (t1.substr_info and t2.substr_info)
-  {
-    opt_substr_info = *t1.substr_info + *t2.substr_info;
-
-    if (t1.substr_info->begin + t1.substr_info->size == t2.substr_info->begin)
-      name = t1.substr + t2.substr;
-  }
-
-  return Text(name, opt_substr_info);
-}
 
 enum Type: size_t
 {
