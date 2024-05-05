@@ -77,12 +77,6 @@ public:
   /// @brief returns the number of input variables, if they are valid
   size_t args_num() const { return vars.size(); };
 
-  /// @brief gives all the Functions and Variables this function (recursively) depends on
-  /// @note  uses only the function's expression (no name lookup is done in
-  ///        the MathWorld the function belongs to)
-  /// @note  undefined functions & variables in the math world will still be listed
-  deps::Deps dependencies() const;
-
   /// @brief tests if the function is valid, i.e. has a valid expression and input vars
   operator bool () const;
 

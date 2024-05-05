@@ -311,23 +311,4 @@ int main()
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 
-  "dependencies"_test = []<class StructType>()
-  {
-    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
-
-    MathWorld<type> world;
-
-    // add a function named "f", note that the constant "my_constant" is only defined after
-    world.add("f(x, y ) = 1 + x + y + cos(x)");
-    world.add("g( x) = 1 + x + sin(x)*f(x, x)");
-    world.add("h(x) =  1 + x + 2*g(x)");
-    Sequence<type>& seq = world.template add<Sequence<type>>("u(n) = 1 + h(n) + u(n-1) + 3*u(n-1)").template value_as<Sequence<type>>();
-
-    auto t = deps::ObjectType::FUNCTION;
-
-    expect(seq.dependencies()
-           == deps::Deps{{"u", t}, {"f", t}, {"h", t}, {"g", t}, {"sin", t}, {"cos", t}});
-
-  } | std::tuple<FAST_TEST, RPN_TEST>{};
-
 }

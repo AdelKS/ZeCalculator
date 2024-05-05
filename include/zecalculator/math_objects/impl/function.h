@@ -62,50 +62,6 @@ std::optional<Error> Function<type>::error() const
 }
 
 template <parsing::Type type>
-deps::Deps Function<type>::dependencies() const
-{
-  deps::Deps deps = this->direct_dependencies();
-  std::unordered_set<std::string> explored_deps = {this->name};
-
-  std::unordered_set<std::string> to_explore;
-
-  auto add_dep_to_explore = [&](const std::pair<std::string,  deps::ObjectType>& dep) {
-    if (dep.second == deps::ObjectType::FUNCTION and not explored_deps.contains(dep.first))
-      to_explore.insert(dep.first);
-  };
-
-  for (auto&& dep: deps)
-    add_dep_to_explore(dep);
-
-  while (not to_explore.empty())
-  {
-    // pop a node out and only keep the name
-    std::string name = to_explore.extract(to_explore.begin()).value();
-    explored_deps.insert(name);
-
-    const auto* dyn_obj = this->mathworld->get(name);
-    if (not dyn_obj or not *dyn_obj)
-      continue;
-
-    std::visit(
-      [&]<class T>(const T& val) {
-
-        if constexpr (requires { val.direct_dependencies(); })
-        {
-          const auto new_deps = val.direct_dependencies();
-          for (auto&& dep: new_deps)
-          {
-            deps.insert(dep);
-            add_dep_to_explore(dep);
-          }
-        }
-      },
-      **dyn_obj);
-  }
-  return deps;
-}
-
-template <parsing::Type type>
 tl::expected<double, Error> Function<type>::evaluate(
   std::span<const double> args, size_t current_recursion_depth) const
 {
