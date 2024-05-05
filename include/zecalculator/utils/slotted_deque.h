@@ -30,16 +30,16 @@ namespace zc {
 /// @brief a vector of T, where each element keeps its index
 ///        during its whole lifetime
 template <class T>
-class SlottedDeque: protected std::deque<std::optional<T>>
+class SlottedDeque
 {
-  using Parent = std::deque<std::optional<T>>;
 
 public:
   SlottedDeque() = default;
 
-  using iterator = Parent::iterator;
-  using const_iterator = Parent::const_iterator;
-  using Parent::size;
+  size_t size() const
+  {
+    return opt_vals.size();
+  }
 
   /// @brief returns the next free slot
   size_t next_free_slot() const
@@ -55,14 +55,14 @@ public:
     if (free_slots.empty())
     {
       const size_t slot = size();
-      Parent::push_back(std::move(val));
+      opt_vals.push_back(std::move(val));
       return slot;
     }
     else
     {
       const size_t slot = free_slots.back();
       free_slots.pop_back();
-      Parent::operator[](slot).emplace(std::move(val));
+      opt_vals[slot].emplace(std::move(val));
       return slot;
     }
   }
@@ -72,7 +72,7 @@ public:
     if (size() <= slot)
     {
       const size_t old_size = size();
-      this->resize(slot+1);
+      opt_vals.resize(slot+1);
 
       free_slots.reserve(free_slots.size() + (slot - old_size + 1));
       for (size_t i = slot - 1 ; i != old_size - 1 ; i--)
@@ -82,7 +82,7 @@ public:
     if (auto it = std::ranges::find(free_slots, slot); it != free_slots.end())
       free_slots.erase(it);
 
-    Parent::operator[](slot).emplace(std::move(val));
+    opt_vals[slot].emplace(std::move(val));
   }
 
   template <class... U>
@@ -91,14 +91,14 @@ public:
     if (free_slots.empty())
     {
       const size_t slot = size();
-      Parent::emplace_back(std::in_place_t{}, std::forward<U>(args)...);
+      opt_vals.emplace_back(std::in_place_t{}, std::forward<U>(args)...);
       return slot;
     }
     else
     {
       const size_t slot = free_slots.back();
       free_slots.pop_back();
-      Parent::operator[](slot).emplace(std::forward<U>(args)...);
+      opt_vals[slot].emplace(std::forward<U>(args)...);
       return slot;
     }
   }
@@ -108,49 +108,155 @@ public:
   {
     if (slot < size())
     {
-      Parent::operator[](slot).reset();
+      opt_vals[slot].reset();
       if (std::ranges::find(free_slots, slot) == free_slots.end())
         free_slots.push_back(slot);
     }
   }
 
   /// @brief returns if slot is taken and assigned
-  bool is_assigned(size_t slot)
+  bool is_assigned(size_t slot) const
   {
-    return slot < size() and Parent::operator [] (slot);
+    return slot < size() and opt_vals[slot];
   }
 
   /// @brief returns the element T at 'slot', bounds checked
   const T& at(size_t slot) const
   {
-    return Parent::at(slot).value();
+    if (not is_assigned(slot))
+      throw std::range_error("Accessing unassigned slot");
+
+    return *opt_vals[slot];
   }
 
   /// @brief returns the element T at 'slot', bounds checked
   T& at(size_t slot)
   {
-    return Parent::at(slot).value();
+    if (not is_assigned(slot))
+      throw std::range_error("Accessing unassigned slot");
+
+    return *opt_vals[slot];
   }
 
   /// @brief returns the element T at 'slot'
   const T& operator [] (size_t slot) const
   {
-    return *Parent::operator [] (slot);
+    return *opt_vals[slot];
   }
 
     /// @brief returns the element T at 'slot'
   T& operator [] (size_t slot)
   {
-    return *Parent::operator [] (slot);
+    return *opt_vals[slot];
   }
 
-  using Parent::begin;
-  using Parent::end;
-  using Parent::cbegin;
-  using Parent::cend;
+
+  // iterator stuff
+
+  template <bool is_const>
+  struct iter
+  {
+    /// @brief moves to the next assigned value within the SlottedDeque
+    void operator++()
+    {
+      current_slot++;
+      while (current_slot != container->size() and not container->is_assigned(current_slot))
+        current_slot++;
+    }
+
+    const T& operator*() const
+      requires (is_const)
+    {
+      assert(container->is_assigned(current_slot));
+      return (*container)[current_slot];
+    }
+
+    T& operator*()
+      requires (not is_const)
+    {
+      assert(container->is_assigned(current_slot));
+      return (*container)[current_slot];
+    }
+
+    const T* operator->() const
+      requires (is_const)
+    {
+      assert(container->is_assigned(current_slot));
+      return &((*container)[current_slot]);
+    }
+
+    T* operator->()
+      requires (not is_const)
+    {
+      assert(container->is_assigned(current_slot));
+      return &((*container)[current_slot]);
+    }
+
+    bool operator == (const iter<is_const>& other) const
+    {
+      assert(container == other.container);
+      return current_slot == other.current_slot;
+    }
+
+  protected:
+    using DequeType = std::conditional_t<is_const, const SlottedDeque<T>*, SlottedDeque<T>*>;
+
+    iter(size_t current_slot, DequeType container) : current_slot(current_slot), container(container) {}
+
+    size_t current_slot;
+    DequeType container;
+
+    friend class SlottedDeque<T>;
+  };
+
+  using iterator = iter<false>;
+  using const_iterator = iter<true>;
+
+  iterator begin()
+  {
+    return iterator(first_assigned_slot(), this);
+  }
+
+  const_iterator begin() const
+  {
+    return const_iterator(first_assigned_slot(), this);
+  }
+
+  const_iterator cbegin() const
+  {
+    return const_iterator(first_assigned_slot(), this);
+  }
+
+  iterator end()
+  {
+    return iterator(size(), this);
+  }
+
+  const_iterator end() const
+  {
+    return const_iterator(size(), this);
+  }
+
+  const_iterator cend() const
+  {
+    return const_iterator(size(), this);
+  }
+
 
 protected:
+
+  /// @brief returns the first assigned slot, or the size of the container if there's none
+  size_t first_assigned_slot() const
+  {
+    size_t current_slot = 0;
+    while (current_slot != size() and not is_assigned(current_slot))
+      current_slot++;
+
+    return current_slot;
+  }
+
   std::vector<size_t> free_slots;
+  std::deque<std::optional<T>> opt_vals;
 };
 
 }

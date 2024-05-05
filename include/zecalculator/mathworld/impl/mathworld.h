@@ -365,16 +365,16 @@ template <parsing::Type type>
 deps::Deps MathWorld<type>::direct_revdeps(std::string_view name) const
 {
   deps::Deps direct_rev_deps;
-  for (const std::optional<DynMathObject<type>>& o: math_objects)
+  for (const DynMathObject<type>& o: math_objects)
   {
-    if (o and o->has_value())
+    if (o.has_value())
       std::visit(
         [&]<class T>(const T& obj) {
           if constexpr (is_function_v<T>)
             if (auto deps = obj.direct_dependencies().contains(name))
               direct_rev_deps.insert({obj.get_name(), deps::FUNCTION});
         },
-        **o);
+        *o);
   }
   return direct_rev_deps;
 }
