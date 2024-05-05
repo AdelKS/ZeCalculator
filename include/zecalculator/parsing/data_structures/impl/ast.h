@@ -96,12 +96,9 @@ namespace zc {
 
         tokens::Text args_token;
         // remove the function name and the opening parenthesis and the last parenthesis
-        args_token.substr_info = SubstrInfo{.begin = func_data().full_expr.substr_info.begin
-                                                     + name.substr.size() + 1,
-                                            .size = func_data().full_expr.substr_info.size
-                                                    - name.substr.size() - 2};
+        args_token.begin = func_data().full_expr.begin + name.substr.size() + 1;
         args_token.substr = func_data().full_expr.substr.substr(name.substr.size() + 1,
-                                                                args_token.substr_info.size);
+                                                                func_data().full_expr.substr.size() - name.substr.size() - 2);
         return args_token;
       }
 

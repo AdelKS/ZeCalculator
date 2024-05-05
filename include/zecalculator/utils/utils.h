@@ -22,6 +22,7 @@
 
 #include <type_traits>
 #include <utility>
+#include <stdexcept>
 #include <cassert>
 
 namespace zc {
@@ -78,6 +79,16 @@ namespace utils {
     };
     return make_array(std::make_index_sequence<size>());
   }
+
+  /// @brief returns the begin index of 'substr' in 'full_str'
+  inline size_t begin_index(std::string_view substr, std::string_view full_str)
+  {
+    if (not(full_str.data() <= substr.data()
+            and substr.data() + substr.size() <= full_str.data() + full_str.size())) [[unlikely]]
+      throw std::runtime_error("substring and full string are not related");
+
+    return size_t(substr.data() - full_str.data());
+  };
 
 } // namespace internal
 } // namespace zc

@@ -48,7 +48,7 @@ int main()
   assert(obj1.holds<rpn::Function>());
 
   // if we try to evaluate the function, we get an Error object
-  assert(obj1(1.0).error() == Error::undefined_variable(parsing::tokens::Text("my_constant", 11), "f(x) = x + my_constant + cos(math::pi)"));
+  assert(obj1(1.0).error() == Error::undefined_variable(parsing::tokens::Text{"my_constant", 11}, "f(x) = x + my_constant + cos(math::pi)"));
 
   // Add a global constant called "my_constant" with an initial value of 3.0
   rpn::DynMathObject& obj2 = world.add("my_constant = 3.0");

@@ -43,12 +43,12 @@ int main()
 
     AST expected_node = ast::Node::make_func(
       AST::Func::OP_ADD,
-      tokens::Text("+", 1),
-      tokens::Text(expression, 0),
+      tokens::Text{"+", 1},
+      tokens::Text{expression, 0},
       {ast::Node::make_number(tokens::Text{"2", 0}, 2.0),
        ast::Node::make_func(AST::Func::OP_MULTIPLY,
-                            tokens::Text("*", 3),
-                            tokens::Text("2*2", 2),
+                            tokens::Text{"*", 3},
+                            tokens::Text{"2*2", 2},
                             {ast::Node::make_number(tokens::Text{"2", 2}, 2.0),
                              ast::Node::make_number(tokens::Text{"2", 4}, 2.0)})});
 
@@ -67,8 +67,8 @@ int main()
     expect(bool(expect_node)) << expect_node << fatal;
 
     AST expected_node = AST::make_func(AST::Func::OP_MULTIPLY,
-                                         tokens::Text("*", 3),
-                                         tokens::Text(expression, 0),
+                                         tokens::Text{"*", 3},
+                                         tokens::Text{expression, 0},
                                          {AST::make_number(tokens::Text{"2", 1}, 2.0),
                                           AST::make_number(tokens::Text{"2", 5}, 2.0)});
 
@@ -88,21 +88,21 @@ int main()
 
     AST expected_node = AST::make_func(
       AST::Func::OP_ADD,
-      tokens::Text("+", 15),
-      tokens::Text(expression, 0),
+      tokens::Text{"+", 15},
+      tokens::Text{expression, 0},
       {AST::make_func(AST::Func::FUNCTION,
-                        tokens::Text("cos", 1),
-                        tokens::Text("cos(sin(x)+1)", 1),
+                        tokens::Text{"cos", 1},
+                        tokens::Text{"cos(sin(x)+1)", 1},
                         {AST::make_func(AST::Func::OP_ADD,
-                                          tokens::Text("+", 11),
-                                          tokens::Text("sin(x)+1", 5),
+                                          tokens::Text{"+", 11},
+                                          tokens::Text{"sin(x)+1", 5},
                                           {AST::make_func(AST::Func::FUNCTION,
-                                                            tokens::Text("sin", 5),
-                                                            tokens::Text("sin(x)", 5),
-                                                            {AST::make_input_var(tokens::Text("x", 9),
+                                                            tokens::Text{"sin", 5},
+                                                            tokens::Text{"sin(x)", 5},
+                                                            {AST::make_input_var(tokens::Text{"x", 9},
                                                                                  0)}),
-                                           AST::make_number(tokens::Text("1", 12), 1.0)})}),
-       AST::make_number(tokens::Text("1", 16), 1.0)});
+                                           AST::make_number(tokens::Text{"1", 12}, 1.0)})}),
+       AST::make_number(tokens::Text{"1", 16}, 1.0)});
 
     expect(*expect_node == expected_node) << *expect_node;
 
@@ -135,20 +135,20 @@ int main()
 
     AST expected_node = AST::make_func(
       AST::Func::OP_ADD,
-      tokens::Text("+", 13),
-      tokens::Text(expression, 0),
+      tokens::Text{"+", 13},
+      tokens::Text{expression, 0},
       {AST::make_func(AST::Func::OP_ADD,
-                        tokens::Text("+", 6),
-                        tokens::Text("cos(x)+sin(x)", 0),
+                        tokens::Text{"+", 6},
+                        tokens::Text{"cos(x)+sin(x)", 0},
                         {AST::make_func(AST::Func::FUNCTION,
-                                          tokens::Text("cos", 0),
-                                          tokens::Text("cos(x)", 0),
-                                          {AST::make_input_var(tokens::Text("x", 4), 0)}),
+                                          tokens::Text{"cos", 0},
+                                          tokens::Text{"cos(x)", 0},
+                                          {AST::make_input_var(tokens::Text{"x", 4}, 0)}),
                          AST::make_func(AST::Func::FUNCTION,
-                                          tokens::Text("sin", 7),
-                                          tokens::Text("sin(x)", 7),
-                                          {AST::make_input_var(tokens::Text("x", 11), 0)})}),
-       AST::make_number(tokens::Text("1", 14), 1.0)});
+                                          tokens::Text{"sin", 7},
+                                          tokens::Text{"sin(x)", 7},
+                                          {AST::make_input_var(tokens::Text{"x", 11}, 0)})}),
+       AST::make_number(tokens::Text{"1", 14}, 1.0)});
 
     expect(*expect_node == expected_node) << *expect_node;
 

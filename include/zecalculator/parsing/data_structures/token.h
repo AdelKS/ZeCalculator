@@ -25,7 +25,6 @@
 #include <cstdint>
 #include <optional>
 #include <ranges>
-#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <variant>
@@ -33,6 +32,7 @@
 #include <zecalculator/external/expected.h>
 #include <zecalculator/utils/substr_info.h>
 #include <zecalculator/utils/tuple.h>
+#include <zecalculator/utils/utils.h>
 
 namespace zc {
 namespace parsing {
@@ -41,32 +41,18 @@ namespace tokens {
 
 struct Text
 {
-  Text() = default;
 
-  Text(std::string_view substr, std::string_view original_expr)
-    : substr(std::string(substr)), substr_info(SubstrInfo::from_views(substr, original_expr))
-  {}
-
-  Text(std::string_view name, size_t begin)
-    : substr(std::string(name)), substr_info(SubstrInfo{begin, name.size()})
-  {}
-
-  Text(std::string_view name, size_t begin, size_t size)
-    : substr(std::string(name)), substr_info(SubstrInfo{begin, size})
-  {}
-
-  Text(std::string_view name, SubstrInfo substr_info)
-    : substr(std::string(name)), substr_info(substr_info)
-  {}
+  static Text from_views(std::string_view substr, std::string_view full_str)
+  {
+    return Text{.substr = std::string(substr), .begin = utils::begin_index(substr, full_str)};
+  };
 
   /// @brief name of the token, can different from what appears in the expressions
   /// @example '+' is replaced with 'internal::plus' (a valid function name)
   std::string substr = {};
 
-  /// @brief information about the location of the token within the original expression
-  /// @example token '+' in '2+2*2' will have: begin=1, size=1
-  /// @note the SubstrInfo cannot be known sometimes
-  SubstrInfo substr_info = {};
+  ///@brief begin position of 'substr' in the original string
+  size_t begin = 0;
 
   bool operator == (const Text& other) const = default;
 };
@@ -149,34 +135,34 @@ inline constexpr std::optional<Operator> get_operator_description(const char ch)
 struct Token: tokens::Text
 {
   Token(tokens::Type type, tokens::Text text)
-    : tokens::Text(std::move(text)), type(type)
+    : tokens::Text{std::move(text)}, type(type)
   {}
 
   Token(double value, tokens::Text text)
-    : tokens::Text(std::move(text)), type(tokens::NUMBER), value(value)
+    : tokens::Text{std::move(text)}, type(tokens::NUMBER), value(value)
   {}
 
   static Token OpeningParenthesis(std::string_view name, size_t start) {
-    return Token(tokens::OPENING_PARENTHESIS, Text(name, start));
+    return Token(tokens::OPENING_PARENTHESIS, Text{std::string(name), start});
   }
 
   static Token Function(std::string_view name, size_t start) {
-    return Token(tokens::FUNCTION, Text(name, start));
+    return Token(tokens::FUNCTION, Text{std::string(name), start});
   }
 
   static Token FunctionCallStart(std::string_view name, size_t start) {
-    return Token(tokens::FUNCTION_CALL_START, Text(name, start));
+    return Token(tokens::FUNCTION_CALL_START, Text{std::string(name), start});
   }
 
   static Token Variable(std::string_view name, size_t start) {
-    return Token(tokens::VARIABLE, Text(name, start));
+    return Token(tokens::VARIABLE, Text{std::string(name), start});
   }
   static Token FunctionCallEnd(std::string_view name, size_t start) {
-    return Token(tokens::FUNCTION_CALL_END, Text(name, start));
+    return Token(tokens::FUNCTION_CALL_END, Text{std::string(name), start});
   }
 
   static Token Number(double value, std::string_view name, size_t start) {
-    return Token(value, Text(name, start));
+    return Token(value, Text{std::string(name), start});
   }
 
   static Token Number(double value, tokens::Text token) {
@@ -184,40 +170,40 @@ struct Token: tokens::Text
   }
 
   static Token Separator(std::string_view name, size_t start) {
-    return Token(tokens::SEPARATOR, Text(name, start));
+    return Token(tokens::SEPARATOR, Text{std::string(name), start});
   }
 
   static Token ClosingParenthesis(std::string_view name, size_t start) {
-    return Token(tokens::CLOSING_PARENTHESIS, Text(name, start));
+    return Token(tokens::CLOSING_PARENTHESIS, Text{std::string(name), start});
   }
 
   static Token Assign(std::string_view name, size_t start) {
-    return Token(tokens::OP_ASSIGN, Text(name, start));
+    return Token(tokens::OP_ASSIGN, Text{std::string(name), start});
   }
 
   static Token Add(std::string_view name, size_t start) {
-    return Token(tokens::OP_ADD, Text(name, start));
+    return Token(tokens::OP_ADD, Text{std::string(name), start});
   }
 
   static Token Subtract(std::string_view name, size_t start) {
-    return Token(tokens::OP_SUBTRACT, Text(name, start));
+    return Token(tokens::OP_SUBTRACT, Text{std::string(name), start});
   }
 
   static Token Multiply(std::string_view name, size_t start) {
-    return Token(tokens::OP_MULTIPLY, Text(name, start));
+    return Token(tokens::OP_MULTIPLY, Text{std::string(name), start});
   }
 
   static Token Divide(std::string_view name, size_t start) {
-    return Token(tokens::OP_DIVIDE, Text(name, start));
+    return Token(tokens::OP_DIVIDE, Text{std::string(name), start});
   }
 
   static Token Power(std::string_view name, size_t start) {
-    return Token(tokens::OP_POWER, Text(name, start));
+    return Token(tokens::OP_POWER, Text{std::string(name), start});
   }
 
   static Token EndOfExpression(size_t pos)
   {
-    return Token(tokens::END_OF_EXPRESSION, Text("", pos));
+    return Token(tokens::END_OF_EXPRESSION, Text{"", pos});
   }
 
   tokens::Type type = tokens::UNKNOWN;
@@ -229,11 +215,6 @@ template <class... U>
 inline tokens::Text text_token(const std::variant<U...>& token)
 {
   return std::visit([](const auto& tk) -> tokens::Text { return tk; }, token);
-}
-
-inline std::optional<SubstrInfo> substr_info(const Token& token)
-{
-  return token.substr_info;
 }
 
 }

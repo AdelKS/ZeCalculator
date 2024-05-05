@@ -112,7 +112,7 @@ int main()
 
     expect(error
            == zc::Error::undefined_variable(parsing::Token(parsing::tokens::VARIABLE,
-                                                           parsing::tokens::Text("my_constant1", 9)),
+                                                           parsing::tokens::Text{"my_constant1", 9}),
                                             expression))
       << error;
 
@@ -144,7 +144,7 @@ int main()
     auto error = world.evaluate("2 + cos").error();
 
     expect(error.type == Error::WRONG_OBJECT_TYPE);
-    expect(error.token.substr_info == SubstrInfo{.begin = 4, .size = 3});
+    expect(error.token == parsing::tokens::Text{"cos", 4});
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 
@@ -157,7 +157,7 @@ int main()
 
     auto error = world.evaluate("7 + g(3)").error();
     expect(error.type == Error::WRONG_OBJECT_TYPE);
-    expect(error.token.substr_info == SubstrInfo{.begin = 4, .size = 1});
+    expect(error.token == parsing::tokens::Text{"g", 4});
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 

@@ -113,7 +113,7 @@ inline tl::expected<std::vector<Token>, Error> tokenize(std::string_view express
         const auto& [double_opt_val, processed_char_num] = *double_val;
         const std::string_view val_str_v(it, processed_char_num);
         // parsing successful
-        parsing.emplace_back(double_opt_val, tokens::Text(val_str_v, orig_expr));
+        parsing.emplace_back(double_opt_val, tokens::Text::from_views(val_str_v, orig_expr));
         it += processed_char_num;
 
         openingParenthesis = value = numberSign = false;
@@ -121,11 +121,11 @@ inline tl::expected<std::vector<Token>, Error> tokenize(std::string_view express
       }
       else
         return tl::unexpected(Error::wrong_format(
-          Token(std::nan(""), tokens::Text(char_v, orig_expr)), std::string(expression)));
+          Token(std::nan(""), tokens::Text::from_views(char_v, orig_expr)), std::string(expression)));
     }
     else if (auto opt_op = tokens::get_operator_description(*it))
     {
-      auto&& char_txt = tokens::Text(char_v, orig_expr);
+      auto&& char_txt = tokens::Text::from_views(char_v, orig_expr);
       if (ope)
       {
         parsing.emplace_back(opt_op->type, char_txt);
@@ -138,7 +138,7 @@ inline tl::expected<std::vector<Token>, Error> tokenize(std::string_view express
     }
     else if (*it == '(')
     {
-      auto&& pth_txt = tokens::Text(char_v, orig_expr);
+      auto&& pth_txt = tokens::Text::from_views(char_v, orig_expr);
       if (openingParenthesis)
       {
         if (not parsing.empty() and parsing.back().type == tokens::FUNCTION)
@@ -160,7 +160,7 @@ inline tl::expected<std::vector<Token>, Error> tokenize(std::string_view express
     }
     else if (*it == ')')
     {
-      auto&& pth_txt = tokens::Text(char_v, orig_expr);
+      auto&& pth_txt = tokens::Text::from_views(char_v, orig_expr);
       if (closingParenthesis and not last_opened_pth.empty())
       {
         if (last_opened_pth.top() == FUNCTION_CALL_PTH)
@@ -180,7 +180,7 @@ inline tl::expected<std::vector<Token>, Error> tokenize(std::string_view express
       it++;
     else if (is_argument_separator(*it))
     {
-      auto&& sep_txt = tokens::Text(char_v, orig_expr);
+      auto&& sep_txt = tokens::Text::from_views(char_v, orig_expr);
       if (not last_opened_pth.empty() and last_opened_pth.top() == FUNCTION_CALL_PTH)
         parsing.emplace_back(tokens::SEPARATOR, sep_txt);
       else return tl::unexpected(Error::unexpected(sep_txt, std::string(expression)));
@@ -204,7 +204,7 @@ inline tl::expected<std::vector<Token>, Error> tokenize(std::string_view express
         while (it != expression.cend() and
                not is_seperator(*it)) { it++; }
 
-        auto&& token_txt = tokens::Text(std::string_view(token_begin, it), orig_expr);
+        auto&& token_txt = tokens::Text::from_views(std::string_view(token_begin, it), orig_expr);
 
         // skip spaces after the function name or variable name
         while (it != expression.cend() and
@@ -226,13 +226,13 @@ inline tl::expected<std::vector<Token>, Error> tokenize(std::string_view express
           openingParenthesis = true;
         }
       }
-      else return tl::unexpected(Error::unexpected(tokens::Text(char_v, orig_expr), std::string(expression)));
+      else return tl::unexpected(Error::unexpected(tokens::Text::from_views(char_v, orig_expr), std::string(expression)));
     }
   }
 
   if (not last_opened_pth.empty())
   {
-    auto&& expr_cend_txt = tokens::Text(std::string_view(it, 0), orig_expr);
+    auto&& expr_cend_txt = tokens::Text::from_views(std::string_view(it, 0), orig_expr);
     if (last_opened_pth.top() == FUNCTION_CALL_PTH)
       return tl::unexpected(Error::missing(expr_cend_txt, std::string(expression)));
     else return tl::unexpected(Error::missing(expr_cend_txt, std::string(expression)));
@@ -240,7 +240,7 @@ inline tl::expected<std::vector<Token>, Error> tokenize(std::string_view express
 
   if (not canEnd)
   {
-    auto&& expr_cend_txt = tokens::Text(std::string_view(it, 0), orig_expr);
+    auto&& expr_cend_txt = tokens::Text::from_views(std::string_view(it, 0), orig_expr);
     return tl::unexpected(Error::unexpected(expr_cend_txt, std::string(expression)));
   }
 
@@ -444,10 +444,10 @@ tl::expected<AST, Error> make_ast<Range>::operator () (std::span<const parsing::
 
   auto get_current_sub_expr = [&](){
     const auto& end_token = tokens.back();
-    size_t start = tokens.front().substr_info.begin;
-    size_t end = end_token.substr_info.begin + end_token.substr_info.size;
+    size_t start = tokens.front().begin;
+    size_t end = end_token.begin + end_token.substr.size();
 
-    return tokens::Text(expression.substr(start, end - start), expression);
+    return tokens::Text{std::string(expression.substr(start, end - start)), start};
   };
 
   tokens::Text current_sub_expr = get_current_sub_expr();

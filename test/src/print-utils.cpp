@@ -8,7 +8,7 @@ namespace std {
 
 std::ostream& operator<<(std::ostream& os, const zc::parsing::tokens::Text& txt_token)
 {
-  os << txt_token.substr << " at " << txt_token.substr_info.begin << " ";
+  os << txt_token.substr << " at " << txt_token.begin << " ";
   return os;
 }
 
@@ -133,7 +133,7 @@ void syntax_node_print_helper(std::ostream& os, const zc::parsing::AST& node, si
         else
           os << padding_str << magic_enum::enum_name(func.type);
 
-        os << " at " << node.name.substr_info.begin
+        os << " at " << node.name.begin
             << " subexpr: " << func.full_expr << " {" << std::endl;
         for (auto &&operand : func.subnodes)
           syntax_node_print_helper(os, operand, padding + 2);

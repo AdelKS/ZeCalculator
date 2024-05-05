@@ -41,7 +41,7 @@ int main()
     expect(not bool(parsing)
            and parsing.error()
                  == Error::unexpected(Token(tokens::END_OF_EXPRESSION,
-                                            tokens::Text("", SubstrInfo{8, 0})),
+                                            tokens::Text{"", 8}),
                                       expression))
       << parsing;
   };
@@ -209,18 +209,17 @@ int main()
       expect(*parsing == expected_parsing);
   };
 
-  "SubstrInfo"_test = []()
+  "Token data"_test = []()
   {
     static constexpr std::string_view str = "2+cos(3)";
     auto parsing = tokenize(str);
 
-    expect(bool(parsing)) << parsing;
+    expect(bool(parsing)) << [&]{ return parsing.error(); } << fatal;
 
-    const auto substrinfo = substr_info(parsing.value()[2]);
+    const auto& token = parsing.value()[2];
 
-    expect(substrinfo.value().substr(str) == "cos");
-    expect(substrinfo.value().substr_before(str) == "2+");
-    expect(substrinfo.value().substr_after(str) == "(3)");
+    expect(token.substr == "cos");
+    expect(token.begin == 2);
   };
 
   "missing function closing pth"_test = []()

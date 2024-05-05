@@ -33,10 +33,8 @@ template <parsing::Type type>
 GlobalConstant<type>& GlobalConstant<type>::set(double val)
 {
   std::string val_str = std::to_string(val);
-  SubstrInfo& substr_info = m_value.substr_info;
-  this->m_equation.replace(substr_info.begin, substr_info.size, val_str);
+  this->m_equation.replace(m_value.begin, m_value.substr.size(), val_str);
 
-  substr_info.size = val_str.size();
   m_value.substr = val_str;
   m_value.value = val;
 

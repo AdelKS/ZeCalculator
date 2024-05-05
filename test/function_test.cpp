@@ -225,7 +225,7 @@ int main()
     tl::expected<double, Error> res = world.evaluate(var_expr);
 
     expect(not res.has_value());
-    expect(res.error() == Error::mismatched_fun_args(parsing::tokens::Text("1, 2, 3", 6), var_expr))
+    expect(res.error() == Error::mismatched_fun_args(parsing::tokens::Text{"1, 2, 3", 6}, var_expr))
       << res.error();
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
