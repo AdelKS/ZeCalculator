@@ -65,7 +65,7 @@ template <parsing::Type type>
 deps::Deps Function<type>::dependencies() const
 {
   deps::Deps deps = this->direct_dependencies();
-  std::unordered_set<std::string> explored_deps = {this->name.substr};
+  std::unordered_set<std::string> explored_deps = {this->name};
 
   std::unordered_set<std::string> to_explore;
 

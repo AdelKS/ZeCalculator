@@ -50,9 +50,9 @@ public:
 protected:
 
   MathObject(MathWorldObjectHandle<type> obj_handle);
-  MathObject(parsing::tokens::Text name, MathWorldObjectHandle<type> obj_handle);
+  MathObject(std::string name, MathWorldObjectHandle<type> obj_handle);
 
-  parsing::tokens::Text name;
+  std::string name;
 
   template <parsing::Type>
   friend class MathWorld;

@@ -240,10 +240,10 @@ DynMathObject<type>& MathWorld<type>::add(std::string definition, size_t slot)
     }
   }
 
-  math_expr_obj.name = math_expr_obj.lhs.name;
+  math_expr_obj.name = math_expr_obj.lhs.name.substr;
 
   // fourth sanity check: name check
-  if (inventory.contains(math_expr_obj.name.substr))
+  if (inventory.contains(math_expr_obj.name))
   {
     obj = tl::unexpected(Error::name_already_taken(math_expr_obj.name, definition));
     return obj;
@@ -291,10 +291,10 @@ DynMathObject<type>& MathWorld<type>::add(std::string definition, size_t slot)
                                               math_expr_obj.rhs.name));
   }
 
-  inventory[math_expr_obj.name.substr] = slot;
-  object_names.push(math_expr_obj.name.substr, slot);
+  inventory[math_expr_obj.name] = slot;
+  object_names.push(math_expr_obj.name, slot);
 
-  rebind_direct_revdeps_of(math_expr_obj.name.substr);
+  rebind_direct_revdeps_of(math_expr_obj.name);
 
   return obj;
 }
