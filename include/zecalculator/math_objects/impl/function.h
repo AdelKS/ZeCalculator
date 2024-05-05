@@ -62,9 +62,9 @@ std::optional<Error> Function<type>::error() const
 }
 
 template <parsing::Type type>
-std::unordered_map<std::string, deps::ObjectType> Function<type>::dependencies() const
+deps::Deps Function<type>::dependencies() const
 {
-  std::unordered_map<std::string, deps::ObjectType> deps = this->direct_dependencies();
+  deps::Deps deps = this->direct_dependencies();
   std::unordered_set<std::string> explored_deps = {this->name.substr};
 
   std::unordered_set<std::string> to_explore;

@@ -97,15 +97,14 @@ int main()
   // We can query the direct (or all) dependencies of Function based objects
   // the methods returns a map that gives the names and the type of dep
   assert(bool(func.direct_dependencies()
-              == std::unordered_map{std::pair(std::string("my_constant"), deps::VARIABLE),
-                                    {"g", deps::FUNCTION}}));
+              == deps::Deps{{"my_constant", deps::VARIABLE}, {"g", deps::FUNCTION}}));
 
   // overwrite the value of the global constant
   // without needing to redefine it through a full equation (which will require parsing etc...)
   my_constant = 5.0;
 
   // Function objects can also be evaluated
-  assert(func(std::array{1., 1.}).value() == 14);
+  assert(func(1., 1.).value() == 14);
 
   return 0;
 }

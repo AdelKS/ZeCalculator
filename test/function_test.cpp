@@ -288,7 +288,7 @@ int main()
     seq.set_first_values(Vals{0});
 
     constexpr auto t = deps::ObjectType::FUNCTION;
-    expect(seq.direct_dependencies() == std::unordered_map{std::pair{std::string("u"), t}, {"f", t}, {"cos", t}}); // "u" and "f"
+    expect(seq.direct_dependencies() == deps::Deps{{"u", t}, {"f", t}, {"cos", t}}); // "u" and "f"
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 
@@ -305,9 +305,9 @@ int main()
     using namespace std::string_literals;
 
     expect(f.direct_dependencies()
-           == std::unordered_map{std::pair(std::string("my_constant"), deps::VARIABLE),
-                                 {"cos", deps::FUNCTION},
-                                 {"math::pi", deps::VARIABLE}}); // "u" and "f"
+           == deps::Deps{{"my_constant", deps::VARIABLE},
+                         {"cos", deps::FUNCTION},
+                         {"math::pi", deps::VARIABLE}}); // "u" and "f"
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 
@@ -325,7 +325,8 @@ int main()
 
     auto t = deps::ObjectType::FUNCTION;
 
-    expect(seq.dependencies() == std::unordered_map{std::pair{std::string("u"), t}, {"f", t}, {"h", t}, {"g", t}, {"sin", t}, {"cos", t}});
+    expect(seq.dependencies()
+           == deps::Deps{{"u", t}, {"f", t}, {"h", t}, {"g", t}, {"sin", t}, {"cos", t}});
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 

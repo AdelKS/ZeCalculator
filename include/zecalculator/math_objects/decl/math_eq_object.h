@@ -44,7 +44,7 @@ public:
   /// @brief gives the Functions and Variables this object directly depends on
   /// @note  uses only the function's expression (no name lookup is done in the MathWorld)
   /// @note  undefined functions & variables in the math world will still be listed
-  std::unordered_map<std::string, deps::ObjectType> direct_dependencies() const;
+  deps::Deps direct_dependencies() const;
 
 protected:
   MathEqObject(MathObject<type> math_obj, std::string equation);

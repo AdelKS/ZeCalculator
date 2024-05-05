@@ -81,7 +81,7 @@ public:
   /// @note  uses only the function's expression (no name lookup is done in
   ///        the MathWorld the function belongs to)
   /// @note  undefined functions & variables in the math world will still be listed
-  std::unordered_map<std::string, deps::ObjectType> dependencies() const;
+  deps::Deps dependencies() const;
 
   /// @brief tests if the function is valid, i.e. has a valid expression and input vars
   operator bool () const;

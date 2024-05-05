@@ -20,13 +20,13 @@
 **
 ****************************************************************************/
 
-#include <unordered_map>
+#include <zecalculator/utils/name_map.h>
 
 namespace zc {
 namespace deps {
   /// @brief used to know the type of the dependency when querying deps
   enum ObjectType {VARIABLE, FUNCTION};
 
-  using Deps = std::unordered_map<std::string, ObjectType>;
+  using Deps = name_map<ObjectType>;
 } // namespace deps
 } // namespace zc

@@ -22,6 +22,7 @@
 
 #include <zecalculator/math_objects/decl/math_eq_object.h>
 #include <zecalculator/parsing/data_structures/impl/ast.h>
+#include <zecalculator/parsing/impl/parser.h>
 
 namespace zc {
 
@@ -31,7 +32,7 @@ MathEqObject<type>::MathEqObject(MathObject<type> math_obj, std::string equation
 {}
 
 template <parsing::Type type>
-std::unordered_map<std::string, deps::ObjectType> MathEqObject<type>::direct_dependencies() const
+deps::Deps MathEqObject<type>::direct_dependencies() const
 {
   return parsing::direct_dependencies(rhs);
 };
