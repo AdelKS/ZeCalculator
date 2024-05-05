@@ -185,6 +185,17 @@ protected:
 
   SlottedDeque<DynMathObject<type>> math_objects;
 
+  struct EqFunction
+  {
+    MathEqObject<type> eq_obj;
+
+    enum Type {FUNCTION, SEQUENCE};
+    Type obj_type;
+  };
+
+  /// @brief internal intermediary representation of math objects defined through an equation, as a function
+  SlottedDeque<EqFunction> eq_functions;
+
 };
 
 }

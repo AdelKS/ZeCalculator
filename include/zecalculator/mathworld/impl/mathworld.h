@@ -147,6 +147,8 @@ DynMathObject<type>& MathWorld<type>::add(std::string definition, size_t slot)
   *  4. Any step can fail, in which case the member variable 'm' is an Error instance
   **/
 
+  eq_functions.free(slot);
+
   auto& obj = add(slot);
 
   MathEqObject<type> math_expr_obj(obj, definition);
@@ -271,9 +273,15 @@ DynMathObject<type>& MathWorld<type>::add(std::string definition, size_t slot)
   if (is_function_def or is_global_var_def)
   {
     if constexpr (not zc::is_sequence_v<InterpretAs>)
+    {
       obj = Function<type>(math_expr_obj, std::move(arg_names));
+      eq_functions.push({math_expr_obj, EqFunction::FUNCTION}, slot);
+    }
     else
+    {
       obj = Sequence(Function<type>(math_expr_obj, std::move(arg_names)));
+      eq_functions.push({math_expr_obj, EqFunction::SEQUENCE}, slot);
+    }
   }
   else
   {
@@ -471,6 +479,7 @@ tl::expected<Ok, UnregisteredObject> MathWorld<type>::erase(size_t slot)
     rebind_direct_revdeps_of(name);
   }
 
+  eq_functions.free(slot);
   math_objects.free(slot);
 
   return Ok{};
