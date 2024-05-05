@@ -30,7 +30,9 @@ std::ostream& operator << (std::ostream& os, const zc::parsing::AST& node);
 
 std::ostream& operator<<(std::ostream &, const zc::parsing::tokens::Text&);
 
-std::ostream& operator << (std::ostream& os, zc::deps::ObjectType type);
+std::ostream& operator << (std::ostream& os, zc::deps::Dep::ObjectType type);
+
+std::ostream& operator << (std::ostream& os, const zc::deps::Dep& dep);
 
 
 std::ostream& operator << (std::ostream& os, const zc::Error& err);

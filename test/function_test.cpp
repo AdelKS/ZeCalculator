@@ -287,8 +287,9 @@ int main()
     auto& seq = world.template add<Sequence<type>>("u(n) = 1 + f(1, 1) + f(2, 2) + u(n-1) + 3*u(n-1) + cos(n)").template value_as<Sequence<type>>();
     seq.set_first_values(Vals{0});
 
-    constexpr auto t = deps::ObjectType::FUNCTION;
-    expect(seq.direct_dependencies() == deps::Deps{{"u", t}, {"f", t}, {"cos", t}}); // "u" and "f"
+    constexpr auto t = deps::Dep::FUNCTION;
+    expect(seq.direct_dependencies()
+           == deps::Deps{{"u", {t, {31, 42}}}, {"f", {t, {11, 21}}}, {"cos", {t, {51}}}});
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 
@@ -305,9 +306,9 @@ int main()
     using namespace std::string_literals;
 
     expect(f.direct_dependencies()
-           == deps::Deps{{"my_constant", deps::VARIABLE},
-                         {"cos", deps::FUNCTION},
-                         {"math::pi", deps::VARIABLE}}); // "u" and "f"
+           == deps::Deps{{"my_constant", {deps::Dep::VARIABLE, {13}}},
+                         {"cos", {deps::Dep::FUNCTION, {27}}},
+                         {"math::pi", {deps::Dep::VARIABLE, {31}}}}); // "u" and "f"
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 

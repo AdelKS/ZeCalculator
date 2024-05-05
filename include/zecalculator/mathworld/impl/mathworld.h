@@ -379,8 +379,15 @@ deps::Deps MathWorld<type>::direct_revdeps(std::string_view name) const
       std::visit(
         [&]<class T>(const T& obj) {
           if constexpr (is_function_v<T>)
-            if (auto deps = obj.direct_dependencies().contains(name))
-              direct_rev_deps.insert({obj.get_name(), deps::FUNCTION});
+          {
+            auto deps = obj.direct_dependencies();
+            if (auto it = deps.find(name); it != deps.end())
+            {
+              deps::Dep& dep = direct_rev_deps[obj.get_name()];
+              dep.type = deps::Dep::FUNCTION;
+              dep.indexes = it->second.indexes;
+            }
+          }
         },
         *o);
   }

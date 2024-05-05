@@ -19,6 +19,7 @@
 ****************************************************************************/
 
 #include <zecalculator/zecalculator.h>
+#include <zecalculator/test-utils/print-utils.h>
 
 using namespace zc;
 using namespace tl;
@@ -97,7 +98,8 @@ int main()
   // We can query the direct (or all) dependencies of Function based objects
   // the methods returns a map that gives the names and the type of dep
   assert(bool(func.direct_dependencies()
-              == deps::Deps{{"my_constant", deps::VARIABLE}, {"g", deps::FUNCTION}}));
+              == deps::Deps{{"my_constant", {deps::Dep::VARIABLE, {18}}},
+                            {"g", {deps::Dep::FUNCTION, {32}}}}));
 
   // overwrite the value of the global constant
   // without needing to redefine it through a full equation (which will require parsing etc...)

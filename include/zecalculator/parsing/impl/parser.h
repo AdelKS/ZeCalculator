@@ -662,7 +662,11 @@ struct direct_dependency_saver
                         {
                           // we don't register operators
                           if (func.type == AST::Func::FUNCTION)
-                            deps.insert({ast.name.substr, deps::ObjectType::FUNCTION});
+                          {
+                            deps::Dep& dep = deps[ast.name.substr];
+                            dep.type = deps::Dep::FUNCTION;
+                            dep.indexes.push_back(ast.name.begin);
+                          }
 
                           std::ranges::for_each(func.subnodes, std::ref(*this));
                         },
@@ -674,7 +678,9 @@ struct direct_dependency_saver
                         },
                         [&](AST::Variable)
                         {
-                          deps.insert({ast.name.substr, deps::ObjectType::VARIABLE});
+                          deps::Dep& dep = deps[ast.name.substr];
+                          dep.type = deps::Dep::VARIABLE;
+                          dep.indexes.push_back(ast.name.begin);
                         }},
       ast.dyn_data);
     return *this;

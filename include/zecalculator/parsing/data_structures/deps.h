@@ -21,12 +21,23 @@
 ****************************************************************************/
 
 #include <zecalculator/utils/name_map.h>
+#include <vector>
 
 namespace zc {
 namespace deps {
-  /// @brief used to know the type of the dependency when querying deps
-  enum ObjectType {VARIABLE, FUNCTION};
 
-  using Deps = name_map<ObjectType>;
+  struct Dep
+  {
+    /// @brief used to know the type of the dependency when querying deps
+    enum ObjectType {VARIABLE, FUNCTION};
+    ObjectType type;
+
+    /// @brief indexes at which the dependency token appear within the full expression
+    std::vector<size_t> indexes;
+
+    bool operator == (const Dep&) const = default;
+  };
+
+  using Deps = name_map<Dep>;
 } // namespace deps
 } // namespace zc
