@@ -103,7 +103,11 @@ auto Evaluator<type>::operator()(const zc::Function<type>* f) -> RetType
   if constexpr (type == parsing::Type::FAST)
     assert(subnodes.size() == args_num);
 
-  auto exp_res = f->evaluate({(subnodes.end() - args_num), args_num}, current_recursion_depth + 1);
+  assert(f->bound_rhs);
+
+  auto exp_res = zc::evaluate(*(f->bound_rhs),
+                              {(subnodes.end() - args_num), args_num},
+                              current_recursion_depth + 1);
 
   if constexpr (type == parsing::Type::FAST)
   {
