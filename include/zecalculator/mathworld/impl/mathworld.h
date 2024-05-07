@@ -20,12 +20,15 @@
 **
 ****************************************************************************/
 
-#include "zecalculator/parsing/data_structures/decl/ast.h"
-#include "zecalculator/parsing/data_structures/token.h"
-#include <ranges>
-#include <zecalculator/mathworld/decl/mathworld.h>
 #include <zecalculator/math_objects/impl/dyn_math_object.h>
+#include <zecalculator/mathworld/decl/mathworld.h>
+#include <zecalculator/parsing/data_structures/decl/ast.h>
+#include <zecalculator/parsing/data_structures/token.h>
 #include <zecalculator/parsing/parser.h>
+
+#include <cassert>
+#include <stack>
+#include <unordered_set>
 
 namespace zc {
 
@@ -249,39 +252,30 @@ DynMathObject<type>& MathWorld<type>::add(std::string definition, size_t slot)
 
   math_expr_obj.name = math_expr_obj.lhs.name.substr;
 
-  std::vector<parsing::tokens::Text> arg_names;
+  std::vector<std::string> var_names;
 
   if (is_function_def)
   {
     // fill 'arg_names'
     const std::vector<parsing::AST>& args = math_expr_obj.lhs.func_data().subnodes;
 
-    arg_names.reserve(args.size());
+    var_names.reserve(args.size());
 
     // the arguments of the function call in the left hand-side must all be regular variables
     for (const auto& arg: args)
-      arg_names.push_back(arg.name);
-
-    // mark input vars in 'rhs'
-    auto var_name_strs = arg_names | std::views::transform(&parsing::tokens::Text::substr);
+      var_names.push_back(arg.name.substr);
 
     // mark function's input variables in 'rhs'
-    math_expr_obj.rhs = parsing::mark_input_vars{var_name_strs}(math_expr_obj.rhs);
+    math_expr_obj.rhs = parsing::mark_input_vars{var_names}(math_expr_obj.rhs);
   }
 
   // now that we checked that everything is fine, we can assign the object
   if (is_function_def or is_global_var_def)
   {
     if constexpr (not zc::is_sequence_v<InterpretAs>)
-    {
-      obj = Function<type>(math_expr_obj, std::move(arg_names));
-      eq_functions.push({math_expr_obj, EqFunction::FUNCTION}, slot);
-    }
+      eq_functions.push({math_expr_obj, var_names.size(), EqFunction::FUNCTION}, slot);
     else
-    {
-      obj = Sequence(Function<type>(math_expr_obj, std::move(arg_names)));
-      eq_functions.push({math_expr_obj, EqFunction::SEQUENCE}, slot);
-    }
+      eq_functions.push({math_expr_obj, var_names.size(), EqFunction::SEQUENCE}, slot);
   }
   else
   {
@@ -289,14 +283,121 @@ DynMathObject<type>& MathWorld<type>::add(std::string definition, size_t slot)
     obj = GlobalConstant<type>(math_expr_obj,
                                parsing::Token(math_expr_obj.rhs.number_data().value,
                                               math_expr_obj.rhs.name));
+
+    inventory[math_expr_obj.name] = slot;
+    object_names.push(math_expr_obj.name, slot);
   }
 
-  inventory[math_expr_obj.name] = slot;
-  object_names.push(math_expr_obj.name, slot);
-
-  rebind_direct_revdeps_of(math_expr_obj.name);
+  rebind_functions();
 
   return obj;
+}
+
+template <parsing::Type type>
+void MathWorld<type>::rebind_functions()
+{
+  for (const EqFunction& eq_f: eq_functions)
+  {
+    const size_t slot = eq_f.eq_obj.slot;
+    if (not math_objects.is_assigned(slot) or not math_objects[slot].has_value())
+    {
+      if (eq_f.obj_type == EqFunction::FUNCTION)
+        math_objects.push(DynMathObject<type>(Function<type>(eq_f.eq_obj, eq_f.args_num),
+                                              MathWorldObjectHandle<type>{slot, this}),
+                          slot);
+      else
+        math_objects.push(DynMathObject<type>(Sequence<type>(
+                                                Function<type>(eq_f.eq_obj, eq_f.args_num)),
+                                              MathWorldObjectHandle<type>{slot, this}),
+                          slot);
+
+      inventory[eq_f.eq_obj.name] = slot;
+      object_names.push(eq_f.eq_obj.name, slot);
+    }
+  }
+
+  auto get_final_representation = [this](const EqFunction& eqf)
+  {
+    if constexpr (type == parsing::Type::FAST)
+      return parsing::make_fast<type>{eqf.eq_obj.m_equation, *this}(eqf.eq_obj.rhs);
+    else
+      return parsing::make_fast<type>{eqf.eq_obj.m_equation, *this}(eqf.eq_obj.rhs).transform(parsing::make_RPN);
+  };
+
+  std::stack<std::string> invalid_functions;
+
+  for (EqFunction& eq_f: eq_functions)
+  {
+    const size_t slot = eq_f.eq_obj.slot;
+
+    // should be assigned in the previous loop
+    assert(math_objects[slot].has_value());
+
+    std::visit(
+      utils::overloaded{
+        [&]<class T>(T& f)
+        {
+          constexpr bool func_or_seq = std::is_same_v<T, Function<type>> or std::is_same_v<T, Sequence<type>>;
+
+          // on runtime, we should only match against functions and sequences
+          assert(func_or_seq);
+
+          // at compile time, we don't care about anything else
+          if constexpr (func_or_seq)
+          {
+            // if it's a valid function or sequence,
+            // they must have a slot in 'eq_functions'
+            assert(eq_functions.is_assigned(slot));
+
+            if (auto exp_rhs = get_final_representation(eq_f))
+              f.bound_rhs = std::move(*exp_rhs);
+            else
+            {
+              assert(eq_f.eq_obj.name == f.name);
+              invalid_functions.push(eq_f.eq_obj.name);
+              math_objects[slot] = tl::unexpected(std::move(exp_rhs.error()));
+            }
+          }
+        },
+      },
+      *math_objects[slot]
+    );
+  }
+
+  std::unordered_set<std::string> covered_invalid_functions;
+
+  while(not invalid_functions.empty())
+  {
+    std::string invalid_func_name = invalid_functions.top();
+    covered_invalid_functions.insert(invalid_func_name);
+    invalid_functions.pop();
+
+    if (auto it = inventory.find(invalid_func_name); it != inventory.end())
+    {
+      object_names.free(it->second);
+      inventory.erase(it);
+    }
+
+    auto revdeps = direct_revdeps(invalid_func_name);
+    for (auto&& [affected_func_name, info]: revdeps)
+    {
+      if(DynMathObject<type>* obj = get(affected_func_name))
+      {
+        // if these are revdeps, they can only be functions
+        // because they have an expression that calls our invalid function
+        assert(obj->template holds<Function<type>>() or obj->template holds<Sequence<type>>());
+
+        assert(eq_functions.is_assigned(obj->slot));
+
+        *obj = tl::unexpected(
+          Error::object_in_invalid_state(parsing::tokens::Text{.substr = invalid_func_name,
+                                                               .begin = info.indexes.front()},
+                                         eq_functions[obj->slot].eq_obj.m_equation));
+
+        invalid_functions.push(affected_func_name);
+      }
+    }
+  }
 }
 
 template <parsing::Type type>
@@ -395,24 +496,6 @@ deps::Deps MathWorld<type>::direct_revdeps(std::string_view name) const
 }
 
 template <parsing::Type type>
-void MathWorld<type>::rebind_direct_revdeps_of(const std::string& name)
-{
-  const auto direct_rev_deps = direct_revdeps(name);
-  for (auto&&[obj_name, obj_type]: direct_rev_deps)
-  {
-    if (DynMathObject<type>* obj = get(obj_name))
-      if (obj->has_value())
-        std::visit(
-          [&]<class T>(T& v)
-          {
-            if constexpr (is_function_v<T>)
-              v.rebind();
-          },
-          **obj);
-  }
-}
-
-template <parsing::Type type>
 tl::expected<double, Error> MathWorld<type>::evaluate(std::string expr)
 {
   if (expr.empty()) [[unlikely]]
@@ -482,12 +565,12 @@ tl::expected<Ok, UnregisteredObject> MathWorld<type>::erase(size_t slot)
     assert(erased_num);
 
     object_names.free(slot);
-
-    rebind_direct_revdeps_of(name);
   }
 
   eq_functions.free(slot);
   math_objects.free(slot);
+
+  rebind_functions();
 
   return Ok{};
 }

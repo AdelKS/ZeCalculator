@@ -68,12 +68,11 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    auto& f = world.add("f(x) = cos(x)").template value_as<Function<type>>();
-    auto& g = world.add("g(x) = f(x)+1").template value_as<Function<type>>();
+    auto& f = world.add("f(x) = cos(x)");
+    auto& g = world.add("g(x) = f(x)+1");
 
-    // no issues expected with parsing of 'f' nor 'g'
-    expect(not bool(f.error()));
-    expect(not bool(g.error()));
+    expect(f.has_value()) << [&]{ return f.error(); } << fatal;
+    expect(g.has_value()) << [&]{ return g.error(); } << fatal;
 
     expect(bool(world.erase(f)));
 
@@ -81,16 +80,37 @@ int main()
     expect(not bool(world.erase(f)));
 
     // after erasing 'f', 'g' must have been re-parsed and get an undefined function error on f
-    expect(bool(g.error()) and g.error()->type == Error::UNDEFINED_FUNCTION and g.error()->token.substr == "f");
+    expect(not g.has_value()) << fatal;
+    expect(g.error().type == Error::UNDEFINED_FUNCTION
+           and g.error().token.substr == "f") << g.error();
 
-    // add a new function
-    auto& h = world.add("h(x) = 1+x").template value_as<Function<type>>();
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
 
-    // no issues expected with 'h'
-    expect(not bool(h.error()));
+  "invalidity chain"_test = []<class StructType>()
+  {
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
-    // 'h' must be built where 'f' was built before
-    expect(&h == &f);
+    MathWorld<type> world;
+    auto& f = world.add("f(x) = g(x)+1");
+
+    expect(not f.has_value()) << fatal;
+    expect(f.error().type == Error::UNDEFINED_FUNCTION
+           and f.error().token == parsing::tokens::Text{.substr = "g", .begin = 7});
+
+    auto& g = world.add("g(x) = z(x)+1");
+
+    expect(not f.has_value()) << fatal;
+    expect(f.error().type == Error::OBJECT_INVALID_STATE
+           and f.error().token == parsing::tokens::Text{.substr = "g", .begin = 7});
+
+    expect(not g.has_value()) << fatal;
+    expect(g.error().type == Error::UNDEFINED_FUNCTION
+           and g.error().token == parsing::tokens::Text{.substr = "z", .begin = 7});
+
+    auto& z = world.add("z(x) = f(x)+1");
+
+    auto res = z(1);
+    expect(not res and res.error() == Error::recursion_depth_overflow());
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 
@@ -114,12 +134,12 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    Function<type>& f = world.add("f(x)=cos(x)").template value_as<Function<type>>();
-    Function<type>& g = world.add("g(x)= f(x)+1").template value_as<Function<type>>();
+    auto& f = world.add("f(x)=cos(x)");
+    auto& g = world.add("g(x)= f(x)+1");
 
     // no issues expected with parsing of 'f' nor 'g'
-    expect(not bool(f.error()));
-    expect(not bool(g.error()));
+    expect(f.has_value()) << [&]{ return f.error(); } << fatal;
+    expect(g.has_value()) << [&]{ return g.error(); } << fatal;
 
     // "cos" is part of the default constructed math world
     expect(bool(world.erase("cos")));
@@ -128,7 +148,7 @@ int main()
     expect(not bool(world.erase("cos")));
 
     // after erasing 'cos', 'f' must have been reparsed and get an undefined function error on 'cos
-    expect(bool(f.error()) and f.error()->type == Error::UNDEFINED_FUNCTION and f.error()->token.substr == "cos");
+    expect(not f.has_value() and f.error().type == Error::UNDEFINED_FUNCTION and f.error().token.substr == "cos");
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 

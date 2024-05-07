@@ -75,13 +75,7 @@ public:
   Function& operator = (Function&& f) = default;
 
   /// @brief returns the number of input variables, if they are valid
-  size_t args_num() const { return vars.size(); };
-
-  /// @brief tests if the function is valid, i.e. has a valid expression and input vars
-  operator bool () const;
-
-  /// @brief returns the parsing error, if there is any
-  std::optional<Error> error() const;
+  size_t args_num() const { return argument_number; };
 
   tl::expected<double, Error> evaluate(std::span<const double> args) const;
   tl::expected<double, Error> operator()(std::span<const double> args) const;
@@ -98,22 +92,16 @@ public:
 protected:
 
   // constructor reserved for MathWorld when using add() function
-  Function(MathEqObject<type> base,
-           std::vector<parsing::tokens::Text> vars);
-
-  /// @brief rebind math object names to actual objects in the math world
-  /// @note this function is called when function names changed etc...
-  void rebind();
+  Function(MathEqObject<type> base, size_t argument_number);
 
   /// @note version that tracks the current recursion depth
   tl::expected<double, Error> evaluate(std::span<const double> args,
                                        size_t current_recursion_depth) const;
 
-  /// @brief variable names, as views on the function's 'm_definition' (part of parent MathObject class)
-  std::vector<parsing::tokens::Text> vars;
-
   /// @brief binding of the AST 'left_expr' (parent MathObject class) to 'mathWorld'
-  tl::expected<parsing::Parsing<type>, Error> bound_rhs = tl::unexpected(Error::empty_expression());
+  std::optional<parsing::Parsing<type>> bound_rhs = {};
+
+  size_t argument_number;
 
   template <parsing::Type>
   friend struct eval::Evaluator;

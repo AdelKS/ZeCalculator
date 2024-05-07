@@ -44,14 +44,18 @@ int main()
   // - (re)defining objects within a math world can potentially modify every other objects
   rpn::DynMathObject& obj1 = world.add("f(x) = x + my_constant + cos(math::pi)");
 
-  // the expected should hold a variant whose alternative is a single variable function
-  assert(obj1.holds<rpn::Function>());
-
-  // if we try to evaluate the function, we get an Error object
-  assert(obj1(1.0).error() == Error::undefined_variable(parsing::tokens::Text{"my_constant", 11}, "f(x) = x + my_constant + cos(math::pi)"));
+  // the expected should hold an error since 'my_constant' is undefined at this point
+  assert(not obj1.has_value()
+         and obj1.error()
+               == Error::undefined_variable(parsing::tokens::Text{"my_constant", 11},
+                                            "f(x) = x + my_constant + cos(math::pi)"));
 
   // Add a global constant called "my_constant" with an initial value of 3.0
   rpn::DynMathObject& obj2 = world.add("my_constant = 3.0");
+
+  // now that 'my_constant' is defined, 'obj1' gets modified to properly hold a function
+  // Note that defining an object in the MathWorld may affect any other object
+  assert(obj1.holds<rpn::Function>());
 
   // We can evaluate 'obj1'
   // note: we could also do it when 'my_constant' was undefined,
@@ -93,21 +97,18 @@ int main()
 
   // each specific math object has extra public methods that may prove useful
 
-  // functions can be in error state if one of its direct dependencies are undefined
-  // e.g. "f(x) = cos(x) + g(x)" but "g(x)" is undefined
-  assert(not func.error());
-
   // We can query the direct (or all) dependencies of Function based objects
   // the methods returns a map that gives the names and the type of dep
   assert(bool(func.direct_dependencies()
-              == deps::Deps{{"my_constant", deps::VARIABLE}, {"g", deps::FUNCTION}}));
+              == deps::Deps{{"my_constant", {deps::Dep::VARIABLE, {18}}},
+                            {"g", {deps::Dep::FUNCTION, {32}}}}));
 
   // overwrite the value of the global constant
   // without needing to redefine it through a full equation (which will require parsing etc...)
   my_constant = 5.0;
 
   // Function objects can also be evaluated
-  assert(func(std::array{1., 1.}).value() == 14);
+  assert(func(1., 1.).value() == 14);
 
   return 0;
 }

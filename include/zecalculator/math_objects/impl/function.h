@@ -27,39 +27,12 @@
 #include <zecalculator/parsing/data_structures/impl/shared.h>
 #include <zecalculator/parsing/impl/parser.h>
 
-#include <unordered_set>
-
 namespace zc {
 
 template <parsing::Type type>
-Function<type>::Function(MathEqObject<type> base, std::vector<parsing::tokens::Text> vars)
-  : MathEqObject<type>(std::move(base)), vars(std::move(vars))
-{
-  rebind();
-}
-
-template <parsing::Type type>
-void Function<type>::rebind()
-{
-  if constexpr (type == parsing::Type::FAST)
-    bound_rhs = parsing::make_fast<type>{this->m_equation, *this->mathworld}(this->rhs);
-  else
-    bound_rhs = parsing::make_fast<type>{this->m_equation, *this->mathworld}(this->rhs).transform(parsing::make_RPN);
-}
-
-template <parsing::Type type>
-Function<type>::operator bool () const
-{
-  return bool(bound_rhs);
-}
-
-template <parsing::Type type>
-std::optional<Error> Function<type>::error() const
-{
-  if (not bound_rhs)
-    return bound_rhs.error();
-  else return {};
-}
+Function<type>::Function(MathEqObject<type> base, size_t argument_number)
+  : MathEqObject<type>(std::move(base)), argument_number(argument_number)
+{}
 
 template <parsing::Type type>
 tl::expected<double, Error> Function<type>::evaluate(
@@ -70,10 +43,13 @@ tl::expected<double, Error> Function<type>::evaluate(
 
   if (this->mathworld->max_recursion_depth < current_recursion_depth) [[unlikely]]
     return tl::unexpected(Error::recursion_depth_overflow());
-  else if (not bool(*this)) [[unlikely]]
-    return tl::unexpected(*error());
 
-  return zc::evaluate(bound_rhs.value(), args, current_recursion_depth);
+  // 'bound_rhs' should always have a value
+  // except  in the brief moment where MathWorld is rebinding
+  // function objects in 'rebind_functions()'
+  assert(bound_rhs);
+
+  return zc::evaluate(*bound_rhs, args, current_recursion_depth);
 }
 
 template <parsing::Type type>

@@ -38,14 +38,12 @@ int main()
     MathWorld<type> world;
     auto& obj = world.template add<Sequence<type>>("fib(n) = fib(n-1) + fib(n-2)");
 
-    expect(bool(obj));
+    expect(bool(obj)) << [&] { return obj.error(); } << fatal;
 
     auto& fib = obj.template value_as<Sequence<type>>();
 
     fib.set_first_values(std::vector{0., 1.});
     // TODO: make function be able to call itself at instantiation within a math world
-
-    expect(not fib.error()) << fib.error() << fatal;
 
     expect(bool(fib(0))) << [&]{ return fib(0).error(); } << fatal;
 

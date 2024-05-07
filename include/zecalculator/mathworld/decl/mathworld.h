@@ -174,8 +174,9 @@ protected:
   /// @brief checks that this object has actually been allocated in this world
   bool sanity_check(const DynMathObject<type>& obj);
 
-  /// @brief parse all Function-based object that directly depends on obj_name
-  void rebind_direct_revdeps_of(const std::string& obj_name);
+  /// @brief go through all the eq_functions whose corresponding DynMathObject is
+  ///        in error state and try rebind it to see if it's good.
+  void rebind_functions();
 
   /// @brief maps an object name to its slot
   name_map<size_t> inventory;
@@ -188,6 +189,8 @@ protected:
   struct EqFunction
   {
     MathEqObject<type> eq_obj;
+
+    size_t args_num;
 
     enum Type {FUNCTION, SEQUENCE};
     Type obj_type;
