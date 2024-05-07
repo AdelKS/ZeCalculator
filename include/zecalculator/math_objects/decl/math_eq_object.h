@@ -50,7 +50,10 @@ protected:
   MathEqObject(MathObject<type> math_obj, std::string equation);
 
   MathEqObject(const MathEqObject&) = default;
+  MathEqObject(MathEqObject&&) = default;
+
   MathEqObject& operator = (const MathEqObject&) = default;
+  MathEqObject& operator = (MathEqObject&&) = default;
 
   /// @brief full function definition
   /// @note needs to be in the format "[function signature] = [expression]" or "[variable name] = [expression]"
