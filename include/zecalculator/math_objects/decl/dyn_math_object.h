@@ -40,9 +40,11 @@ template <parsing::Type type>
 using MathObjectsVariant = to_variant_t<MathObjects<type>>;
 
 template <parsing::Type type>
-struct DynMathObject: tl::expected<MathObjectsVariant<type>, Error>, MathWorldObjectHandle<type>
+struct DynMathObject: tl::expected<MathObjectsVariant<type>, Error>
 {
-  DynMathObject(tl::expected<MathObjectsVariant<type>, Error> exp_variant, MathWorldObjectHandle<type> handle);
+  size_t slot;
+
+  DynMathObject(tl::expected<MathObjectsVariant<type>, Error> exp_variant, size_t slot);
 
   using tl::expected<MathObjectsVariant<type>, Error>::operator =;
 

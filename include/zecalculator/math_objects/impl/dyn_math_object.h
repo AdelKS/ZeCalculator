@@ -30,8 +30,8 @@
 namespace zc {
 
 template <parsing::Type type>
-DynMathObject<type>::DynMathObject(tl::expected<MathObjectsVariant<type>, Error> exp_variant, MathWorldObjectHandle<type> handle)
-  : tl::expected<MathObjectsVariant<type>, Error>(std::move(exp_variant)), MathWorldObjectHandle<type>(std::move(handle))
+DynMathObject<type>::DynMathObject(tl::expected<MathObjectsVariant<type>, Error> exp_variant, size_t slot)
+  : tl::expected<MathObjectsVariant<type>, Error>(std::move(exp_variant)), slot(slot)
 {}
 
 template <parsing::Type type>

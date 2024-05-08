@@ -112,9 +112,7 @@ DynMathObject<type>& MathWorld<type>::add()
 template <parsing::Type type>
 DynMathObject<type>& MathWorld<type>::add(size_t slot)
 {
-  math_objects.push(DynMathObject<type>(tl::unexpected(Error::empty_expression()),
-                                        MathWorldObjectHandle<type>{slot, this}),
-                    slot);
+  math_objects.push(DynMathObject<type>(tl::unexpected(Error::empty_expression()), slot), slot);
 
   return math_objects[slot];
 }
@@ -304,13 +302,12 @@ void MathWorld<type>::rebind_functions()
     if (not math_objects.is_assigned(slot) or not math_objects[slot].has_value())
     {
       if (eq_f.obj_type == EqFunction::FUNCTION)
-        math_objects.push(DynMathObject<type>(Function<type>(eq_f.eq_obj, eq_f.args_num),
-                                              MathWorldObjectHandle<type>{slot, this}),
+        math_objects.push(DynMathObject<type>(Function<type>(eq_f.eq_obj, eq_f.args_num), slot),
                           slot);
       else
         math_objects.push(DynMathObject<type>(Sequence<type>(
                                                 Function<type>(eq_f.eq_obj, eq_f.args_num)),
-                                              MathWorldObjectHandle<type>{slot, this}),
+                                              slot),
                           slot);
 
       inventory[eq_f.eq_obj.name] = slot;
@@ -452,9 +449,7 @@ DynMathObject<type>& MathWorld<type>::redefine(DynMathObject<type>& obj, std::st
 template <parsing::Type type>
 bool MathWorld<type>::sanity_check(const DynMathObject<type>& obj) const
 {
-  return obj.mathworld == this
-        and math_objects.is_assigned(obj.slot)
-        and &math_objects[obj.slot] == &obj;
+  return math_objects.is_assigned(obj.slot) and &math_objects[obj.slot] == &obj;
 }
 
 template <parsing::Type type>

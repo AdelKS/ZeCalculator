@@ -31,16 +31,6 @@ namespace eval {
   struct Evaluator;
 }
 
-/// @brief struct that gives enough information to identify an object within a mathworld
-template <parsing::Type type>
-struct MathWorldObjectHandle
-{
-  size_t slot;
-
-  // non-owning pointer to the mathworld that contains this object
-  MathWorld<type>* mathworld;
-};
-
 class MathObject
 {
 public:
