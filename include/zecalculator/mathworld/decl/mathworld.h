@@ -22,9 +22,11 @@
 
 #include <zecalculator/error.h>
 #include <zecalculator/math_objects/builtin.h>
+#include <zecalculator/math_objects/decl/dyn_math_object.h>
 #include <zecalculator/math_objects/global_constant.h>
 #include <zecalculator/math_objects/object_list.h>
-#include <zecalculator/math_objects/decl/dyn_math_object.h>
+#include <zecalculator/parsing/data_structures/ast.h>
+#include <zecalculator/parsing/data_structures/deps.h>
 #include <zecalculator/utils/name_map.h>
 #include <zecalculator/utils/refs.h>
 #include <zecalculator/utils/slotted_deque.h>
@@ -190,18 +192,26 @@ protected:
 
   SlottedDeque<DynMathObject<type>> math_objects;
 
-  struct EqFunction
+  /// @brief internal representation for objects defined through an equation
+  struct EqObject
   {
-    MathEqObject<type> eq_obj;
+    enum Category {UNINITIALIZED, FUNCTION, SEQUENCE, GLOBAL_CONSTANT};
+    Category cat = UNINITIALIZED;
 
-    size_t args_num;
+    /// @brief equation
+    std::string equation = {};
 
-    enum Type {FUNCTION, SEQUENCE};
-    Type obj_type;
+    std::string name = {};
+
+    /// @brief the left side to the equal sign in the equation
+    parsing::AST lhs = {};
+
+    /// @brief the right side to the equal sign in the equation
+    parsing::AST rhs = {};
   };
 
   /// @brief internal intermediary representation of math objects defined through an equation, as a function
-  SlottedDeque<EqFunction> eq_functions;
+  SlottedDeque<EqObject> eq_objects;
 
 };
 

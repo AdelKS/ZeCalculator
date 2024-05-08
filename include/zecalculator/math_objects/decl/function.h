@@ -20,13 +20,10 @@
 
 #pragma once
 
-#include <string>
-#include <optional>
 #include <span>
 
 #include <zecalculator/error.h>
 #include <zecalculator/external/expected.h>
-#include <zecalculator/math_objects/decl/math_eq_object.h>
 #include <zecalculator/mathworld/decl/mathworld.h>
 #include <zecalculator/parsing/data_structures/decl/ast.h>
 #include <zecalculator/parsing/data_structures/decl/fast.h>

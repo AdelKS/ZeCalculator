@@ -104,6 +104,7 @@ namespace zc {
         Number& number_data();
 
         tokens::Text args_token() const;
+        size_t args_num() const;
 
         bool operator == (const Node&) const = default;
       };

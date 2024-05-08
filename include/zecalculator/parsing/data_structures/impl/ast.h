@@ -102,6 +102,13 @@ namespace zc {
         return args_token;
       }
 
+      inline size_t Node::args_num() const
+      {
+        if (is_func())
+          return func_data().subnodes.size();
+        else return 0;
+      }
+
       inline bool Node::is_func() const
       {
         return std::holds_alternative<Func>(dyn_data);
