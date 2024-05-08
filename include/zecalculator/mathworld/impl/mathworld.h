@@ -445,7 +445,7 @@ DynMathObject<type>& MathWorld<type>::redefine(DynMathObject<type>& obj, std::st
 }
 
 template <parsing::Type type>
-bool MathWorld<type>::sanity_check(const DynMathObject<type>& obj)
+bool MathWorld<type>::sanity_check(const DynMathObject<type>& obj) const
 {
   return obj.mathworld == this
         and math_objects.is_assigned(obj.slot)

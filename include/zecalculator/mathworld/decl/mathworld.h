@@ -168,7 +168,7 @@ protected:
   DynMathObject<type>& add(std::string name, CppMathFunctionPtr<args_num> cpp_f, size_t slot);
 
   /// @brief checks that this object has actually been allocated in this world
-  bool sanity_check(const DynMathObject<type>& obj);
+  bool sanity_check(const DynMathObject<type>& obj) const;
 
   /// @brief go through all the eq_functions whose corresponding DynMathObject is
   ///        in error state and try rebind it to see if it's good.
