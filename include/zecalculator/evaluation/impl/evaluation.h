@@ -87,17 +87,6 @@ auto Evaluator<type>::operator () (zc::parsing::shared::node::Power) -> RetType
 template <parsing::Type type>
 auto Evaluator<type>::operator()(const zc::Function<type>* f) -> RetType
 {
-  if (f->mathworld->max_recursion_depth < current_recursion_depth)
-  {
-    if constexpr (type == parsing::Type::FAST)
-      return RetType(tl::unexpected(Error::recursion_depth_overflow()));
-    else
-    {
-      error = Error::recursion_depth_overflow();
-      return false;
-    }
-  }
-
   const size_t args_num = f->args_num();
 
   if constexpr (type == parsing::Type::FAST)
@@ -133,17 +122,6 @@ auto Evaluator<type>::operator()(const zc::Function<type>* f) -> RetType
 template <parsing::Type type>
 auto Evaluator<type>::operator()(const zc::Sequence<type>* u) -> RetType
 {
-  if (u->mathworld->max_recursion_depth < current_recursion_depth)
-  {
-    if constexpr (type == parsing::Type::FAST)
-      return tl::unexpected(Error::recursion_depth_overflow());
-    else
-    {
-      error = Error::recursion_depth_overflow();
-      return false;
-    }
-  }
-
   if constexpr (type == parsing::Type::FAST)
     assert(subnodes.size() == 1);
 
@@ -245,6 +223,9 @@ inline tl::expected<double, Error> evaluate(const parsing::FAST<parsing::Type::F
                                             std::span<const double> input_vars,
                                             size_t current_recursion_depth)
 {
+  if (eval::max_recursion_depth < current_recursion_depth) [[unlikely]]
+    return tl::unexpected(Error::recursion_depth_overflow());
+
   std::vector<double> subnodes;
   subnodes.reserve(tree.subnodes.size());
   for (const auto& subnode : tree.subnodes)
@@ -287,6 +268,9 @@ inline tl::expected<double, Error> evaluate(const parsing::RPN& rpn,
                                             std::span<const double> input_vars,
                                             size_t current_recursion_depth)
 {
+  if (eval::max_recursion_depth < current_recursion_depth) [[unlikely]]
+    return tl::unexpected(Error::recursion_depth_overflow());
+
   eval::Evaluator<parsing::Type::RPN> stateful_evaluator{.input_vars = input_vars,
                                                          .current_recursion_depth
                                                          = current_recursion_depth};

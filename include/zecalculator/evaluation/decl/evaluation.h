@@ -30,6 +30,9 @@
 namespace zc {
 namespace eval {
 
+/// @brief maximum recursion depth to reach before returning an error
+inline size_t max_recursion_depth = 20;
+
 template <parsing::Type type>
 struct Evaluator
 {

@@ -150,10 +150,6 @@ public:
   ///          when no registered object has that given name
   tl::expected<Ok, UnregisteredObject> erase(const std::string& name);
 
-  /// @brief maximum recursion depth to reach before returning an error
-  size_t max_recursion_depth = 20;
-
-
 protected:
 
   /// @brief returns a handle to a new math object

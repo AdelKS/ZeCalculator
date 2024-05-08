@@ -28,8 +28,6 @@ template <parsing::Type type>
 tl::expected<double, Error> Sequence<type>::evaluate(double index,
                                                      size_t current_recursion_depth) const
 {
-  if (this->mathworld->max_recursion_depth < current_recursion_depth) [[unlikely]]
-    return tl::unexpected(Error::recursion_depth_overflow());
   // round double to nearest integer
   int integer_index = std::lround(index);
 

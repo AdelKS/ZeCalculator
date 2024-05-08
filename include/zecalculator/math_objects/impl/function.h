@@ -41,9 +41,6 @@ tl::expected<double, Error> Function<type>::evaluate(
   if (this->args_num() != args.size()) [[unlikely]]
     return tl::unexpected(Error::cpp_incorrect_argnum());
 
-  if (this->mathworld->max_recursion_depth < current_recursion_depth) [[unlikely]]
-    return tl::unexpected(Error::recursion_depth_overflow());
-
   // 'bound_rhs' should always have a value
   // except  in the brief moment where MathWorld is rebinding
   // function objects in 'rebind_functions()'
