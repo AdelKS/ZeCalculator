@@ -288,7 +288,7 @@ int main()
     seq.set_first_values(Vals{0});
 
     constexpr auto t = deps::Dep::FUNCTION;
-    expect(seq.direct_dependencies()
+    expect(world.direct_dependencies("u")
            == deps::Deps{{"u", {t, {31, 42}}}, {"f", {t, {11, 21}}}, {"cos", {t, {51}}}});
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
@@ -301,11 +301,11 @@ int main()
 
     // add a function named "f", note that the constant "my_constant" is only defined after
     world.add("my_constant = 3.0");
-    Function<type>& f = world.add("f( x)  = x + my_constant + cos(math::pi)").template value_as<Function<type>>();
+    auto& f = world.add("f( x)  = x + my_constant + cos(math::pi)");
 
     using namespace std::string_literals;
 
-    expect(f.direct_dependencies()
+    expect(world.direct_dependencies(f)
            == deps::Deps{{"my_constant", {deps::Dep::VARIABLE, {13}}},
                          {"cos", {deps::Dep::FUNCTION, {27}}},
                          {"math::pi", {deps::Dep::VARIABLE, {31}}}}); // "u" and "f"

@@ -471,6 +471,32 @@ DynMathObject<type>& MathWorld<type>::redefine(DynMathObject<type>& obj,
 }
 
 template <parsing::Type type>
+deps::Deps MathWorld<type>::direct_dependencies(const DynMathObject<type>& obj) const
+{
+  if (not sanity_check(obj)) [[unlikely]]
+    throw std::runtime_error("Object doesn't belong to math world");
+
+  return direct_dependencies(obj.slot);
+}
+
+template <parsing::Type type>
+deps::Deps MathWorld<type>::direct_dependencies(std::string_view name) const
+{
+  if(auto* obj = get(name))
+    return direct_dependencies(*obj);
+  else return deps::Deps();
+}
+
+template <parsing::Type type>
+deps::Deps MathWorld<type>::direct_dependencies(size_t slot) const
+{
+  if (not eq_functions.is_assigned(slot))
+    return deps::Deps();
+
+  return parsing::direct_dependencies(eq_functions[slot].eq_obj.rhs);
+}
+
+template <parsing::Type type>
 deps::Deps MathWorld<type>::direct_revdeps(std::string_view name) const
 {
   deps::Deps direct_rev_deps;
@@ -481,7 +507,7 @@ deps::Deps MathWorld<type>::direct_revdeps(std::string_view name) const
         [&]<class T>(const T& obj) {
           if constexpr (is_function_v<T>)
           {
-            auto deps = obj.direct_dependencies();
+            auto deps = direct_dependencies(o.slot);
             if (auto it = deps.find(name); it != deps.end())
             {
               deps::Dep& dep = direct_rev_deps[obj.get_name()];

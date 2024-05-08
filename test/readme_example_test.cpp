@@ -97,7 +97,7 @@ int main()
 
   // We can query the direct (or all) dependencies of Function based objects
   // the methods returns a map that gives the names and the type of dep
-  assert(bool(func.direct_dependencies()
+  assert(bool(world.direct_dependencies(obj1)
               == deps::Deps{{"my_constant", {deps::Dep::VARIABLE, {18}}},
                             {"g", {deps::Dep::FUNCTION, {32}}}}));
 

@@ -41,11 +41,6 @@ class MathEqObject: public MathObject<type>
 public:
   const std::string& equation() const { return m_equation; };
 
-  /// @brief gives the Functions and Variables this object directly depends on
-  /// @note  uses only the function's expression (no name lookup is done in the MathWorld)
-  /// @note  undefined functions & variables in the math world will still be listed
-  deps::Deps direct_dependencies() const;
-
 protected:
   MathEqObject(MathObject<type> math_obj, std::string equation);
 

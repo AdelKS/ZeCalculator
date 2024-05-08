@@ -31,9 +31,4 @@ MathEqObject<type>::MathEqObject(MathObject<type> math_obj, std::string equation
   : MathObject<type>(std::move(math_obj)), m_equation(equation)
 {}
 
-template <parsing::Type type>
-deps::Deps MathEqObject<type>::direct_dependencies() const
-{
-  return parsing::direct_dependencies(rhs);
-};
 }
