@@ -25,26 +25,14 @@
 namespace zc {
 
 template <parsing::Type type>
-GlobalConstant<type>::GlobalConstant(MathEqObject<type> math_expr_obj, parsing::Token m_value)
-  : MathEqObject<type>(std::move(math_expr_obj)), m_value(std::move(m_value))
+GlobalConstant<type>::GlobalConstant(MathObject obj, double m_value)
+  : MathObject(std::move(obj)), m_value(m_value)
 {}
 
 template <parsing::Type type>
 GlobalConstant<type>& GlobalConstant<type>::set(double val)
 {
-  std::string val_str = std::to_string(val);
-  this->m_equation.replace(m_value.begin, m_value.substr.size(), val_str);
-
-  m_value.substr = val_str;
-  m_value.value = val;
-
-  return *this;
-}
-
-template <parsing::Type type>
-GlobalConstant<type>& GlobalConstant<type>::set_fast(double val)
-{
-  m_value.value = val;
+  m_value = val;
 
   return *this;
 }
@@ -52,7 +40,7 @@ GlobalConstant<type>& GlobalConstant<type>::set_fast(double val)
 template <parsing::Type type>
 bool GlobalConstant<type>::operator == (double val) const
 {
-  return m_value.value == val;
+  return m_value == val;
 }
 
 template <parsing::Type type>
@@ -65,35 +53,35 @@ GlobalConstant<type>& GlobalConstant<type>::operator = (double val)
 template <parsing::Type type>
 GlobalConstant<type>& GlobalConstant<type>::operator += (double val)
 {
-  set(m_value.value + val);
+  set(m_value + val);
   return *this;
 }
 
 template <parsing::Type type>
 GlobalConstant<type>& GlobalConstant<type>::operator -= (double val)
 {
-  set(m_value.value - val);
+  set(m_value - val);
   return *this;
 }
 
 template <parsing::Type type>
 GlobalConstant<type>& GlobalConstant<type>::operator *= (double val)
 {
-  set(m_value.value * val);
+  set(m_value * val);
   return *this;
 }
 
 template <parsing::Type type>
 GlobalConstant<type>& GlobalConstant<type>::operator /= (double val)
 {
-  set(m_value.value / val);
+  set(m_value / val);
   return *this;
 }
 
 template <parsing::Type type>
 double GlobalConstant<type>::value() const
 {
-  return m_value.value;
+  return m_value;
 }
 
 }

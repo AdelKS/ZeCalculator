@@ -43,14 +43,8 @@ double CppFunction<type, args_num>::operator()(DBL... val) const
 
 template <parsing::Type type, size_t args_num>
   requires(args_num > 0)
-constexpr CppFunction<type, args_num>::CppFunction(MathWorldObjectHandle<type> obj_handle)
-  : MathObject<type>(obj_handle)
-{}
-
-template <parsing::Type type, size_t args_num>
-  requires(args_num > 0)
-constexpr CppFunction<type, args_num>::CppFunction(MathObject<type> obj, CppMathFunctionPtr<args_num> ptr)
-  : MathObject<type>(std::move(obj)), f_ptr(ptr)
+CppFunction<type, args_num>::CppFunction(MathObject obj, CppMathFunctionPtr<args_num> ptr)
+  : MathObject(std::move(obj)), f_ptr(ptr)
 {}
 
 } // namespace zc

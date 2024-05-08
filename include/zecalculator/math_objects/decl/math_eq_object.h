@@ -36,13 +36,13 @@ template <parsing::Type type>
 class Unknown;
 
 template <parsing::Type type>
-class MathEqObject: public MathObject<type>
+class MathEqObject: public MathObject
 {
 public:
   const std::string& equation() const { return m_equation; };
 
 protected:
-  MathEqObject(MathObject<type> math_obj, std::string equation);
+  MathEqObject(MathObject math_obj, std::string equation);
 
   MathEqObject(const MathEqObject&) = default;
   MathEqObject(MathEqObject&&) = default;

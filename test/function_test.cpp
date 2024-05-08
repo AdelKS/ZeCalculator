@@ -247,7 +247,7 @@ int main()
         loop_call_for(duration, [&]{
           res += f(x).value();
           x++;
-          t.set_fast(t.value()+1);
+          t += 1;
       });
       std::cout << "Avg zc::Function<" << data_type_str_v << "> eval time: "
                 << duration_cast<nanoseconds>(duration / iterations).count() << "ns"

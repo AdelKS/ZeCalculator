@@ -30,16 +30,12 @@ template <parsing::Type type>
 class MathWorld;
 
 template <parsing::Type type>
-class GlobalConstant: public MathEqObject<type>
+class GlobalConstant: public MathObject
 {
 public:
 
   /// @brief changes the value stored along with the equation with the new value
   GlobalConstant& set(double val);
-
-  /// @brief changes the value stored, leaves the equation unchanged and outdated
-  /// @note only used for benchmarks to avoid measuring the string operations
-  GlobalConstant& set_fast(double val);
 
   GlobalConstant& operator = (double val);
 
@@ -54,9 +50,9 @@ public:
   double value() const;
 
 protected:
-  GlobalConstant(MathEqObject<type> math_expr_obj, parsing::Token m_value);
+  GlobalConstant(MathObject, double m_value);
 
-  parsing::Token m_value;
+  double m_value;
 
   template <parsing::Type>
   friend class MathWorld;

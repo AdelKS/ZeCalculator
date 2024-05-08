@@ -67,7 +67,7 @@ inline constexpr bool is_function_v = is_function<T>::value;
 /// @tparam type: representation type (AST, RPN)
 /// @tparam args_num: number of arguments the function receives
 template <parsing::Type type>
-class Function: public MathEqObject<type>
+class Function: public MathObject
 {
 public:
 
@@ -92,7 +92,7 @@ public:
 protected:
 
   // constructor reserved for MathWorld when using add() function
-  Function(MathEqObject<type> base, size_t argument_number);
+  Function(MathObject base, size_t argument_number);
 
   /// @note version that tracks the current recursion depth
   tl::expected<double, Error> evaluate(std::span<const double> args,

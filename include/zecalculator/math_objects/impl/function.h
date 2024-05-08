@@ -30,8 +30,8 @@
 namespace zc {
 
 template <parsing::Type type>
-Function<type>::Function(MathEqObject<type> base, size_t argument_number)
-  : MathEqObject<type>(std::move(base)), argument_number(argument_number)
+Function<type>::Function(MathObject base, size_t argument_number)
+  : MathObject(std::move(base)), argument_number(argument_number)
 {}
 
 template <parsing::Type type>

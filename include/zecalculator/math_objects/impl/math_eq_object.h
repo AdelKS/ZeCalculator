@@ -27,8 +27,8 @@
 namespace zc {
 
 template <parsing::Type type>
-MathEqObject<type>::MathEqObject(MathObject<type> math_obj, std::string equation)
-  : MathObject<type>(std::move(math_obj)), m_equation(equation)
+MathEqObject<type>::MathEqObject(MathObject math_obj, std::string equation)
+  : MathObject(std::move(math_obj)), m_equation(equation)
 {}
 
 }

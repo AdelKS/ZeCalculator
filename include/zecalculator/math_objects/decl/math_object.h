@@ -41,16 +41,14 @@ struct MathWorldObjectHandle
   MathWorld<type>* mathworld;
 };
 
-template <parsing::Type type>
-class MathObject: protected MathWorldObjectHandle<type>
+class MathObject
 {
 public:
-  const std::string& get_name() const;
+  const std::string& get_name() const { return name; };
 
 protected:
-
-  MathObject(MathWorldObjectHandle<type> obj_handle);
-  MathObject(std::string name, MathWorldObjectHandle<type> obj_handle);
+  MathObject(std::string name) : name(std::move(name))
+  {}
 
   std::string name;
 

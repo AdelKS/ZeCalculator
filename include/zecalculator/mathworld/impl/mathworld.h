@@ -154,7 +154,7 @@ DynMathObject<type>& MathWorld<type>::add(std::string definition, size_t slot)
 
   auto& obj = add(slot);
 
-  MathEqObject<type> math_expr_obj(obj, definition);
+  MathEqObject<type> math_expr_obj(MathObject(""), definition);
 
   // sanity checks
   if (not sanity_check(obj))
@@ -280,9 +280,7 @@ DynMathObject<type>& MathWorld<type>::add(std::string definition, size_t slot)
   else
   {
     assert(is_global_constant_def);
-    obj = GlobalConstant<type>(math_expr_obj,
-                               parsing::Token(math_expr_obj.rhs.number_data().value,
-                                              math_expr_obj.rhs.name));
+    obj = GlobalConstant<type>(math_expr_obj.name, math_expr_obj.rhs.number_data().value);
 
     inventory[math_expr_obj.name] = slot;
     object_names.push(math_expr_obj.name, slot);
@@ -296,9 +294,13 @@ DynMathObject<type>& MathWorld<type>::add(std::string definition, size_t slot)
 template <parsing::Type type>
 void MathWorld<type>::rebind_functions()
 {
-  for (const EqFunction& eq_f: eq_functions)
+  for (size_t slot = 0 ; slot != eq_functions.size() ; slot++)
   {
-    const size_t slot = eq_f.eq_obj.slot;
+    if (not eq_functions.is_assigned(slot))
+      continue;
+
+    const EqFunction& eq_f = eq_functions[slot];
+
     if (not math_objects.is_assigned(slot) or not math_objects[slot].has_value())
     {
       if (eq_f.obj_type == EqFunction::FUNCTION)
@@ -326,9 +328,12 @@ void MathWorld<type>::rebind_functions()
 
   std::stack<std::string> invalid_functions;
 
-  for (EqFunction& eq_f: eq_functions)
+  for (size_t slot = 0 ; slot != eq_functions.size() ; slot++)
   {
-    const size_t slot = eq_f.eq_obj.slot;
+    if (not eq_functions.is_assigned(slot))
+      continue;
+
+    const EqFunction& eq_f = eq_functions[slot];
 
     // should be assigned in the previous loop
     assert(math_objects[slot].has_value());
@@ -424,7 +429,7 @@ DynMathObject<type>& MathWorld<type>::add(std::string name, CppMathFunctionPtr<a
   object_names.push(name, slot);
   inventory[name] = slot;
 
-  obj = CppFunction<type, args_num>({name, obj}, cpp_f);
+  obj = CppFunction<type, args_num>(name, cpp_f);
   return obj;
 }
 

@@ -24,20 +24,4 @@
 
 namespace zc {
 
-template <parsing::Type type>
-MathObject<type>::MathObject(MathWorldObjectHandle<type> obj_handle)
-  : MathWorldObjectHandle<type>(obj_handle)
-{}
-
-template <parsing::Type type>
-MathObject<type>::MathObject(std::string name, MathWorldObjectHandle<type> obj_handle)
-  : MathWorldObjectHandle<type>(obj_handle), name(std::move(name))
-{}
-
-template <parsing::Type type>
-const std::string& MathObject<type>::get_name() const
-{
-  return name;
-}
-
 }

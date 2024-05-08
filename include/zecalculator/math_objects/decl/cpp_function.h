@@ -37,7 +37,7 @@ using CppMathFunctionPtr = typename utils::math_func_signature_t<args_num>;
 
 template <parsing::Type type, size_t args_num>
   requires (args_num > 0)
-class CppFunction: public MathObject<type>
+class CppFunction: public MathObject
 {
 public:
 
@@ -51,8 +51,7 @@ public:
 
 protected:
 
-  constexpr CppFunction(MathWorldObjectHandle<type> obj_handle);
-  constexpr CppFunction(MathObject<type> obj, CppMathFunctionPtr<args_num> ptr);
+  CppFunction(MathObject obj, CppMathFunctionPtr<args_num> ptr);
 
   CppMathFunctionPtr<args_num> f_ptr = nullptr;
 
