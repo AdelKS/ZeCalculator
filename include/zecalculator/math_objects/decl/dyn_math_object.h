@@ -42,12 +42,6 @@ using MathObjectsVariant = to_variant_t<MathObjects<type>>;
 template <parsing::Type type>
 struct DynMathObject: tl::expected<MathObjectsVariant<type>, Error>
 {
-  size_t slot;
-
-  DynMathObject(tl::expected<MathObjectsVariant<type>, Error> exp_variant, size_t slot);
-
-  using tl::expected<MathObjectsVariant<type>, Error>::operator =;
-
   template <class... DBL>
     requires (std::is_convertible_v<DBL, double> and ...)
   tl::expected<double, Error> operator () (DBL... val) const;
@@ -72,6 +66,15 @@ struct DynMathObject: tl::expected<MathObjectsVariant<type>, Error>
   template <class T>
     requires (tuple_contains_v<MathObjects<type>, T> or std::is_same_v<T, Error>)
   bool holds() const;
+
+protected:
+  size_t slot;
+
+  DynMathObject(tl::expected<MathObjectsVariant<type>, Error> exp_variant, size_t slot);
+
+  using tl::expected<MathObjectsVariant<type>, Error>::operator =;
+
+  friend MathWorld<type>;
 };
 
 } // namespace zc
