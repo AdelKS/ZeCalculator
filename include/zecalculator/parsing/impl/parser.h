@@ -537,10 +537,11 @@ tl::expected<AST, Error> make_ast<Range>::operator () (std::span<const parsing::
               res = tl::unexpected(left_hand_side.error());
               return;
             }
-            else if (op != tokens::Type::SEPARATOR and left_hand_side->is_func()
+            else if (op != tokens::Type::SEPARATOR and op != tokens::Type::OP_ASSIGN
+                     and left_hand_side->is_func()
                      and left_hand_side->func_data().type == AST::Func::SEPARATOR) [[unlikely]]
             {
-              // only separators can have separators as subnodes
+              // only separators and assignment can have separators as subnodes
               res = tl::unexpected(Error::unexpected(left_hand_side->name, std::string(expression)));
               return ;
             }
@@ -552,7 +553,8 @@ tl::expected<AST, Error> make_ast<Range>::operator () (std::span<const parsing::
               res = tl::unexpected(right_hand_side.error());
               return;
             }
-            else if (op != tokens::Type::SEPARATOR and right_hand_side->is_func()
+            else if (op != tokens::Type::SEPARATOR and op != tokens::Type::OP_ASSIGN
+                     and right_hand_side->is_func()
                      and right_hand_side->func_data().type == AST::Func::SEPARATOR) [[unlikely]]
             {
               // only separators can have separators as subnodes
@@ -624,24 +626,28 @@ inline AST flatten_separators(const AST& tree)
         for (const AST& subnode: func.subnodes)
           subnodes.push_back(flatten_separators(subnode));
 
-        std::vector<AST> final_subnodes;
-        final_subnodes.reserve(subnodes.size());
-
-        for (AST& n: subnodes)
+        if (func.type == AST::Func::FUNCTION or func.type == AST::Func::SEPARATOR)
         {
-          if (n.is_func() and n.func_data().type == AST::Func::SEPARATOR)
-          {
-            auto& nodes = n.func_data().subnodes;
-            final_subnodes.reserve(final_subnodes.size() + nodes.size());
-            std::ranges::move(nodes, std::back_inserter(final_subnodes));
-          }
-          else final_subnodes.push_back(std::move(n));
-        }
+          std::vector<AST> final_subnodes;
+          final_subnodes.reserve(subnodes.size());
 
-        return AST::make_func(func.type,
-                              tree.name,
-                              func.full_expr,
-                              std::move(final_subnodes));
+          for (AST& n: subnodes)
+          {
+            if (n.is_func() and n.func_data().type == AST::Func::SEPARATOR)
+            {
+              auto& nodes = n.func_data().subnodes;
+              final_subnodes.reserve(final_subnodes.size() + nodes.size());
+              std::ranges::move(nodes, std::back_inserter(final_subnodes));
+            }
+            else final_subnodes.push_back(std::move(n));
+          }
+
+          return AST::make_func(func.type, tree.name, func.full_expr, std::move(final_subnodes));
+        }
+        else
+          return AST::make_func(func.type, tree.name, func.full_expr, std::move(subnodes));
+
+
       },
       [&](const AST::InputVariable&) -> AST
       {

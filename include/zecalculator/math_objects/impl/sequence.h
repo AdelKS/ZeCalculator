@@ -1,41 +1,29 @@
 #pragma once
 
 #include <zecalculator/math_objects/decl/sequence.h>
+#include <zecalculator/evaluation/impl/evaluation.h>
 
 namespace zc {
 
 template <parsing::Type type>
-Sequence<type>::Sequence(Parent parent) : Parent(std::move(parent))
+Sequence<type>::Sequence(MathObject obj) : MathObject(std::move(obj))
 {}
-
-template <parsing::Type type>
-void Sequence<type>::set_first_values(std::vector<double> first_vals)
-{
-  values = std::move(first_vals);
-}
-
-template <parsing::Type type>
-void Sequence<type>::set_first_val_index(int index)
-{
-  first_val_index = index;
-  values.clear();
-}
-
-template <parsing::Type type>
-constexpr int Sequence<type>::get_first_val_index() const { return first_val_index; };
 
 template <parsing::Type type>
 tl::expected<double, Error> Sequence<type>::evaluate(double index,
                                                      size_t current_recursion_depth) const
 {
   // round double to nearest integer
-  int integer_index = std::lround(index);
+  long integer_index = std::lround(index);
 
-  if (integer_index < first_val_index) [[unlikely]]
+  assert(values.size() != 0);
+
+  if (integer_index < 0) [[unlikely]]
     return std::nan("");
-  else if (size_t(integer_index - first_val_index) < values.size())
-    return values[size_t(integer_index - first_val_index)];
-  else return Parent::evaluate(std::array{double(integer_index)}, current_recursion_depth);
+
+  const auto& parsing = size_t(integer_index) < values.size() ? values[integer_index] : values.back();
+
+  return zc::evaluate(parsing, std::array{double(integer_index)}, current_recursion_depth);
 }
 
 template <parsing::Type type>

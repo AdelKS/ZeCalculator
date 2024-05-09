@@ -172,7 +172,7 @@ int main()
     expect(not bool(world.evaluate("cos(,3)")));
     expect(not bool(world.evaluate("sin(3;3)")));
 
-    auto& obj = world.add("f(x) = 3, 5");
+    auto& obj = world.template add<Function<type>>("f(x) = 3, 5"); // otherwise it gets recognized as a sequence
     expect(not obj.has_value()) << fatal;
     expect(obj.error().token == parsing::tokens::Text{",", 8});
     expect(obj.error().type == Error::UNEXPECTED);

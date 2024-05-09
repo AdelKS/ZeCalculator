@@ -43,17 +43,9 @@ inline constexpr bool is_sequence_v = is_sequence<T>::value;
 
 /// @brief a class that represents a Sequence of single argument
 template <parsing::Type type>
-class Sequence: public zc::Function<type>
+class Sequence: public MathObject
 {
-  using Parent = Function<type>;
-
 public:
-
-  void set_first_values(std::vector<double> first_vals);
-
-  void set_first_val_index(int index);
-
-  constexpr int get_first_val_index() const;
 
   /// @brief evaluates the sequence at the given index
   /// @note evaluation modifies the state of the sequence, as values get saved within
@@ -70,7 +62,7 @@ public:
 protected:
 
   // constructor reserved for MathWorld when using add() function
-  Sequence(Parent parent);
+  Sequence(MathObject obj);
 
   /// @brief evaluation with recursion depth tracking
   tl::expected<double, Error> evaluate(double index, size_t current_recursion_depth) const;
@@ -78,11 +70,10 @@ protected:
   template <parsing::Type>
   friend struct eval::Evaluator;
 
-  // index of the first value
-  int first_val_index = 0;
-
-  // first values of the sequence
-  std::vector<double> values;
+  /// @brief first values of the sequence
+  /// @note the last value is the "default" expression
+  /// @example Fibonacci: values = {parsing_of("1"), parsing_of("1"), parsing_of("u(n-1) + u(n-2)")}
+  std::vector<parsing::Parsing<type>> values;
 
   template <parsing::Type>
   friend class MathWorld;

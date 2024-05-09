@@ -301,12 +301,11 @@ int main()
 
     // add a function named "f", note that the constant "my_constant" is only defined after
     world.add("f(x, y) = 1 + x + y");
-    auto& seq = world.template add<Sequence<type>>("u(n) = 1 + f(1, 1) + f(2, 2) + u(n-1) + 3*u(n-1) + cos(n)").template value_as<Sequence<type>>();
-    seq.set_first_values(Vals{0});
+    auto& seq = world.add("u(n) = 0 ; 1 + f(1, 1) + f(2, 2) + u(n-1) + 3*u(n-1) + cos(n)");
 
     constexpr auto t = deps::Dep::FUNCTION;
-    expect(world.direct_dependencies("u")
-           == deps::Deps{{"u", {t, {31, 42}}}, {"f", {t, {11, 21}}}, {"cos", {t, {51}}}});
+    expect(world.direct_dependencies(seq)
+           == deps::Deps{{"u", {t, {35, 46}}}, {"f", {t, {15, 25}}}, {"cos", {t, {55}}}});
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 
