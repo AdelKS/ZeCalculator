@@ -39,6 +39,7 @@ int main()
 
     auto expect_tree = tokenize(expression)
                          .and_then(make_ast{expression})
+                         .transform(flatten_separators)
                          .and_then(make_fast<Type::RPN>{expression, world});
 
     expect(bool(expect_tree)) << expect_tree << fatal;

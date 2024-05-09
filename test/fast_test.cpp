@@ -40,6 +40,7 @@ int main()
 
     auto expect_node = tokenize(expression)
                          .and_then(make_ast{expression})
+                         .transform(flatten_separators)
                          .and_then(make_fast<type>{expression, world});
 
     expect(bool(expect_node)) << expect_node << fatal;
@@ -64,6 +65,7 @@ int main()
 
     auto expect_node = tokenize(expression)
                          .and_then(make_ast{expression, std::array{"x"}})
+                         .transform(flatten_separators)
                          .and_then(make_fast<type>{expression, world});
 
     expect(bool(expect_node)) << expect_node << fatal;

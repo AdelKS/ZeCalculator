@@ -37,7 +37,8 @@ int main()
   {
     std::string expression = "2+2*2";
 
-    auto expect_node = tokenize(expression).and_then(make_ast{expression});
+    auto expect_node
+      = tokenize(expression).and_then(make_ast{expression}).transform(flatten_separators);
 
     expect(bool(expect_node)) << expect_node << fatal;
 

@@ -161,6 +161,24 @@ int main()
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 
+  "random separators"_test = []<class StructType>()
+  {
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
+
+    MathWorld<type> world;
+
+    expect(not bool(world.evaluate("7 + (3, 5)")));
+    expect(not bool(world.evaluate("7 , (3, 5)")));
+    expect(not bool(world.evaluate("cos(,3)")));
+    expect(not bool(world.evaluate("sin(3;3)")));
+
+    auto& obj = world.add("f(x) = 3, 5");
+    expect(not obj.has_value()) << fatal;
+    expect(obj.error().token == parsing::tokens::Text{",", 8});
+    expect(obj.error().type == Error::UNEXPECTED);
+
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
+
   "AST/FAST/RPN creation speed"_test = []<class StructType>()
   {
     constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;

@@ -159,7 +159,9 @@ DynMathObject<type>& MathWorld<type>::add(std::string definition, size_t slot)
     return math_objects[slot];
   };
 
-  auto ast = parsing::tokenize(definition).and_then(parsing::make_ast{definition});
+  auto ast = parsing::tokenize(definition)
+               .and_then(parsing::make_ast{definition})
+               .transform(parsing::flatten_separators);
   if (not ast)
     return assign_alternative(tl::unexpected(ast.error()));
 
@@ -533,11 +535,13 @@ tl::expected<double, Error> MathWorld<type>::evaluate(std::string expr)
   if constexpr (type == parsing::Type::FAST)
     return parsing::tokenize(expr)
       .and_then(parsing::make_ast{expr})
+      .transform(parsing::flatten_separators)
       .and_then(parsing::make_fast<type>{expr, *this})
       .and_then(evaluate);
   else
     return parsing::tokenize(expr)
       .and_then(parsing::make_ast{expr})
+      .transform(parsing::flatten_separators)
       .and_then(parsing::make_fast<type>{expr, *this})
       .transform(parsing::make_RPN)
       .and_then(evaluate);

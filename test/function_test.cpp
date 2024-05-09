@@ -230,6 +230,23 @@ int main()
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 
+  "multi variable function"_test = []<class StructType>()
+  {
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
+
+    MathWorld<type> world;
+
+    // add a function named "f", note that the constant "my_constant" is only defined after
+    auto& f = world.add("f(u, v, w, x, y, z) = 1 + u + v + w + x + y + z");
+
+    expect(f.has_value()) << fatal;
+
+    auto res = f(1, 1, 1, 1, 1, 1);
+    expect(bool(res)) << fatal;
+    expect(res.value() == 7_i);
+
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
+
   "parametric function benchmark"_test = []<class StructType>()
   {
     constexpr auto duration = nanoseconds(500ms);

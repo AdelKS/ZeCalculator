@@ -44,6 +44,7 @@ namespace zc {
             OP_MULTIPLY = tokens::OP_MULTIPLY,
             OP_DIVIDE = tokens::OP_DIVIDE,
             OP_POWER = tokens::OP_POWER,
+            SEPARATOR = tokens::SEPARATOR,
           };
 
           Type type;

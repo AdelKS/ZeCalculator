@@ -83,12 +83,16 @@ struct Operator
   Type type;
 };
 
-inline constexpr std::array operators = {Operator{'=', 0, OP_ASSIGN},
-                                         Operator{'+', 1, OP_ADD},
-                                         Operator{'-', 1, OP_SUBTRACT},
-                                         Operator{'*', 2, OP_MULTIPLY},
-                                         Operator{'/', 2, OP_DIVIDE},
-                                         Operator{'^', 3, OP_POWER},};
+inline constexpr std::array operators = {
+  Operator{'=', 0, OP_ASSIGN},
+  Operator{',', 1, SEPARATOR},
+  Operator{';', 1, SEPARATOR},
+  Operator{'+', 2, OP_ADD},
+  Operator{'-', 2, OP_SUBTRACT},
+  Operator{'*', 3, OP_MULTIPLY},
+  Operator{'/', 3, OP_DIVIDE},
+  Operator{'^', 4, OP_POWER},
+};
 
 inline constexpr uint8_t max_priority = std::ranges::max(operators | std::views::transform(&Operator::priority));
 

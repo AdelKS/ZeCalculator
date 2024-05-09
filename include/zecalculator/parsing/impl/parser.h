@@ -72,7 +72,7 @@ inline tl::expected<std::vector<Token>, Error> tokenize(std::string_view express
       truth_table.fill(false);
       for (const auto& op: tokens::operators)
         truth_table[uint8_t(op.token)] = true;
-      for (char sep: std::array{' ', '(', ')', ';', ','})
+      for (char sep: std::array{' ', '(', ')'})
         truth_table[uint8_t(sep)] = true;
       return truth_table;
     }();
@@ -83,11 +83,6 @@ inline tl::expected<std::vector<Token>, Error> tokenize(std::string_view express
   auto is_digit = [](unsigned char ch)
   {
     return std::isdigit(ch);
-  };
-
-  auto is_argument_separator = [](const char ch)
-  {
-    return ch == ',' or ch == ';';
   };
 
   bool openingParenthesis = true, numberSign = true, value = true, canEnd = false,
@@ -178,17 +173,6 @@ inline tl::expected<std::vector<Token>, Error> tokenize(std::string_view express
     else if (*it == ' ')
       // spaces are skipped
       it++;
-    else if (is_argument_separator(*it))
-    {
-      auto&& sep_txt = tokens::Text::from_views(char_v, orig_expr);
-      if (not last_opened_pth.empty() and last_opened_pth.top() == FUNCTION_CALL_PTH)
-        parsing.emplace_back(tokens::SEPARATOR, sep_txt);
-      else return tl::unexpected(Error::unexpected(sep_txt, std::string(expression)));
-
-      openingParenthesis = numberSign = value = true;
-      canEnd = ope = closingParenthesis = false;
-      it++;
-    }
     else
     {
       if (value)
@@ -408,6 +392,9 @@ tl::expected<FAST<type>, Error> make_fast<type>::operator () (const AST& ast)
               return tl::unexpected(Error::object_in_invalid_state(ast.name, expression));
             else return std::visit(FunctionVisiter<type>{expression, ast, std::move(operands)}, **dyn_obj);
           }
+          case AST::Func::SEPARATOR:
+            return tl::unexpected(Error::unexpected(ast.name, expression));
+
           default:
             [[unlikely]] throw std::runtime_error("Problem in ZeCalculator library");
         }
@@ -499,36 +486,14 @@ tl::expected<AST, Error> make_ast<Range>::operator () (std::span<const parsing::
            and (tokens.begin() + 1)->type == tokens::FUNCTION_CALL_START
            and tokens.back().type == tokens::FUNCTION_CALL_END)
   {
-    /// @todo needs changing to support multi-argument functions
-    /// @note here we expect functions that receive that receive a single argument
-    auto non_pth_wrapped_args = get_non_pth_enclosed_tokens(
-      std::span(tokens.begin() + 2, tokens.end() - 1), expression);
+    auto subnode = (*this)(std::span(tokens.begin()+2, tokens.end()-1));
 
-    if (not non_pth_wrapped_args.has_value())
-      return tl::unexpected(non_pth_wrapped_args.error());
-
-    // add the FunctionCallEnd token so we handle it in the loop
-    non_pth_wrapped_args->push_back(tokens.end()-1);
-
-    auto last_non_coma_token_it = tokens.begin()+2;
-    std::vector<AST> subnodes;
-    for (auto tokenIt: *non_pth_wrapped_args)
-    {
-      if (tokenIt->type == tokens::SEPARATOR or
-          tokenIt->type == tokens::FUNCTION_CALL_END)
-      {
-        auto expected_func_argument = (*this)(std::span(last_non_coma_token_it, tokenIt));
-        if (not expected_func_argument.has_value())
-          return expected_func_argument;
-        else subnodes.push_back(std::move(expected_func_argument.value()));
-        last_non_coma_token_it = tokenIt+1;
-      }
-    }
-
-    return AST::make_func(AST::Func::FUNCTION,
-                          tokens.front(),
-                          current_sub_expr,
-                          std::move(subnodes));
+    if (bool(subnode))
+      return AST::make_func(AST::Func::FUNCTION,
+                            tokens.front(),
+                            current_sub_expr,
+                            {std::move(*subnode)});
+    else return tl::unexpected(std::move(subnode.error()));
   }
 
   // there are tokens that are not within parentheses
@@ -572,13 +537,28 @@ tl::expected<AST, Error> make_ast<Range>::operator () (std::span<const parsing::
               res = tl::unexpected(left_hand_side.error());
               return;
             }
-            else subnodes.push_back(std::move(left_hand_side.value()));
+            else if (op != tokens::Type::SEPARATOR and left_hand_side->is_func()
+                     and left_hand_side->func_data().type == AST::Func::SEPARATOR) [[unlikely]]
+            {
+              // only separators can have separators as subnodes
+              res = tl::unexpected(Error::unexpected(left_hand_side->name, std::string(expression)));
+              return ;
+            }
+            else subnodes.push_back(std::move(*left_hand_side));
 
             auto right_hand_side = (*this)(std::span(tok + 1, tokens.end()));
             if (not right_hand_side.has_value()) [[unlikely]]
             {
               res = tl::unexpected(right_hand_side.error());
               return;
+            }
+            else if (op != tokens::Type::SEPARATOR and right_hand_side->is_func()
+                     and right_hand_side->func_data().type == AST::Func::SEPARATOR) [[unlikely]]
+            {
+              // only separators can have separators as subnodes
+              res = tl::unexpected(
+                Error::unexpected(right_hand_side->name, std::string(expression)));
+              return ;
             }
             else subnodes.push_back(std::move(right_hand_side.value()));
 
@@ -628,6 +608,52 @@ AST mark_input_vars<Range>::operator () (const AST& tree)
         if (it != input_vars.end())
           return AST::make_input_var(tree.name, std::distance(input_vars.begin(), it));
         else return AST::make_var(tree.name);
+      }
+    },
+    tree.dyn_data);
+}
+
+/// @brief transform nested two-argument separator nodes into a single separator nodes with many subnodes
+inline AST flatten_separators(const AST& tree)
+{
+  return std::visit(
+    utils::overloaded{
+      [&](const AST::Func& func) -> AST
+      {
+        std::vector<AST> subnodes;
+        for (const AST& subnode: func.subnodes)
+          subnodes.push_back(flatten_separators(subnode));
+
+        std::vector<AST> final_subnodes;
+        final_subnodes.reserve(subnodes.size());
+
+        for (AST& n: subnodes)
+        {
+          if (n.is_func() and n.func_data().type == AST::Func::SEPARATOR)
+          {
+            auto& nodes = n.func_data().subnodes;
+            final_subnodes.reserve(final_subnodes.size() + nodes.size());
+            std::ranges::move(nodes, std::back_inserter(final_subnodes));
+          }
+          else final_subnodes.push_back(std::move(n));
+        }
+
+        return AST::make_func(func.type,
+                              tree.name,
+                              func.full_expr,
+                              std::move(final_subnodes));
+      },
+      [&](const AST::InputVariable&) -> AST
+      {
+        return tree;
+      },
+      [&](const AST::Number&) -> AST
+      {
+        return tree;
+      },
+      [&](AST::Variable) -> AST
+      {
+        return tree;
       }
     },
     tree.dyn_data);

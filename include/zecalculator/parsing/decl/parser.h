@@ -87,6 +87,8 @@ struct mark_input_vars
   AST operator () (const AST& tree);
 };
 
+/// @brief transform nested two-argument separator nodes into a single separator nodes with many subnodes
+AST flatten_separators(const AST& tree);
 
 // user deduction guide for clang-16 that is stupid
 template <class T>
