@@ -42,6 +42,13 @@ int main()
   // - (re)defining objects within a math world can potentially modify every other objects
   rpn::DynMathObject& obj1 = world.add("f(x) = x + my_constant + cos(math::pi)");
 
+  // We can query the direct dependencies of any object
+  // but only Function and Sequence instances with a valid equation return a non-empty set
+  assert(bool(world.direct_dependencies(obj1)
+              == deps::Deps{{"my_constant", {deps::Dep::VARIABLE, {11}}},
+                            {"cos", {deps::Dep::FUNCTION, {25}}},
+                            {"math::pi", {deps::Dep::VARIABLE, {29}}}}));
+
   // the expected should hold an error since 'my_constant' is undefined at this point
   assert(not obj1.has_value()
          and obj1.error()
@@ -53,6 +60,7 @@ int main()
 
   // now that 'my_constant' is defined, 'obj1' gets modified to properly hold a function
   // Note that defining an object in the MathWorld may affect any other object
+  // -> Redefining objects is NOT thread-safe
   assert(obj1.holds<rpn::Function>());
 
   // We can evaluate 'obj1'
@@ -71,16 +79,15 @@ int main()
   // add a single argument function 'g' to the world
   world.add("g(z) = 2*z + my_constant");
 
-  // redefine what 'obj1' is
-  // - a function of two variables, with different names now
-  // - calls the function 'g'
-  world.redefine(obj1, "h(u, v) = u + v + my_constant + g(v)");
+  // redefine what 'obj1' using a new equation
+  // - Now it's the Fibonacci sequence called 'u'
+  world.redefine(obj1, "u(n) = 0 ; 1 ; u(n-1) + u(n-2)");
 
-  // the equation should be parsed as a two-argument function
-  assert(obj1.holds<rpn::Function>());
+  // should hold a Sequence now
+  assert(obj1.holds<rpn::Sequence>());
 
   // evaluate function again and get the new value
-  assert(obj1(1, 3).value() == 16);
+  assert(obj1(10).value() == 55);
 
   // ======================================================================================
 
@@ -90,23 +97,10 @@ int main()
   // - "value_as" as a wrapper to std::get<>(expected::value), can throw for two different reasons
   //   - the expected has an error
   //   - the alternative asked is not the actual one held by the variant
-  rpn::Function& func = obj1.value_as<rpn::Function>();
-  rpn::GlobalConstant& my_constant = obj2.value_as<rpn::GlobalConstant>();
+  [[maybe_unused]] rpn::Sequence& u = obj1.value_as<rpn::Sequence>();
+  [[maybe_unused]] rpn::GlobalConstant& my_constant = obj2.value_as<rpn::GlobalConstant>();
 
   // each specific math object has extra public methods that may prove useful
-
-  // We can query the direct (or all) dependencies of Function based objects
-  // the methods returns a map that gives the names and the type of dep
-  assert(bool(world.direct_dependencies(obj1)
-              == deps::Deps{{"my_constant", {deps::Dep::VARIABLE, {18}}},
-                            {"g", {deps::Dep::FUNCTION, {32}}}}));
-
-  // overwrite the value of the global constant
-  // without needing to redefine it through a full equation (which will require parsing etc...)
-  my_constant = 5.0;
-
-  // Function objects can also be evaluated
-  assert(func(1., 1.).value() == 14);
 
   return 0;
 }
