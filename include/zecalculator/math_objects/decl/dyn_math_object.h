@@ -24,6 +24,7 @@
 #include <zecalculator/external/expected.h>
 #include <zecalculator/math_objects/decl/math_object.h>
 #include <zecalculator/math_objects/object_list.h>
+#include <zecalculator/math_objects/decl/eq_object.h>
 #include <zecalculator/parsing/types.h>
 
 namespace zc {
@@ -69,6 +70,9 @@ struct DynMathObject: tl::expected<MathObjectsVariant<type>, Error>
 
 protected:
   size_t slot;
+
+  /// @brief non-empty when a syntactically correct equation gets assigned
+  std::optional<EqObject> opt_eq_object;
 
   DynMathObject(tl::expected<MathObjectsVariant<type>, Error> exp_variant, size_t slot);
 

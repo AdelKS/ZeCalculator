@@ -148,8 +148,8 @@ DynMathObject<type>& MathWorld<type>::add(std::string definition, size_t slot)
   *  4. Any step can fail, in which case the member variable 'm' is an Error instance
   **/
 
-  eq_objects.free(slot);
   math_objects.free(slot);
+  DynMathObject<type>& dyn_obj = add(slot);
 
   EqObject eq_obj {.equation = definition};
 
@@ -290,51 +290,46 @@ DynMathObject<type>& MathWorld<type>::add(std::string definition, size_t slot)
     assign_alternative(GlobalConstant<type>(eq_obj.name, eq_obj.rhs.number_data().value));
 
     inventory[eq_obj.name] = slot;
-    object_names.push(eq_obj.name, slot);
   }
 
-  eq_objects.push(std::move(eq_obj), slot);
+  dyn_obj.opt_eq_object = std::move(eq_obj);
 
   rebind_functions();
 
-  assert(math_objects.is_assigned(slot));
-
-  return math_objects[slot];
+  return dyn_obj;
 }
 
 template <parsing::Type type>
 void MathWorld<type>::rebind_functions()
 {
   std::vector<size_t> func_slots;
-  std::ranges::copy_if(std::views::iota(0ul, eq_objects.size()),
+  std::ranges::copy_if(std::views::iota(0ul, math_objects.size()),
                        std::back_inserter(func_slots),
                        [&](size_t slot)
                        {
-                         return eq_objects.is_assigned(slot)
-                                and (eq_objects[slot].cat == EqObject::FUNCTION
-                                     or eq_objects[slot].cat == EqObject::SEQUENCE);
+                         return math_objects.is_assigned(slot) and math_objects[slot].opt_eq_object
+                                and (math_objects[slot].opt_eq_object->cat == EqObject::FUNCTION
+                                     or math_objects[slot].opt_eq_object->cat == EqObject::SEQUENCE);
                        });
 
   for (size_t slot: func_slots)
   {
-    const EqObject& obj = eq_objects[slot];
+    DynMathObject<type>& dyn_obj = math_objects[slot];
+
+    assert(dyn_obj.opt_eq_object);
+
+    const EqObject& eq_obj = *dyn_obj.opt_eq_object;
 
     if (not math_objects.is_assigned(slot) or not math_objects[slot].has_value())
     {
-      if (obj.cat == EqObject::FUNCTION)
-        math_objects.push(DynMathObject<type>(Function<type>(obj.name,
-                                                             obj.lhs.args_num()),
-                                              slot),
-                          slot);
-      else
-      {
-        assert(obj.cat == EqObject::SEQUENCE);
+      assert(eq_obj.cat == EqObject::SEQUENCE or eq_obj.cat == EqObject ::FUNCTION);
 
-        math_objects.push(DynMathObject<type>(Sequence<type>(obj.name), slot), slot);
-      }
+      if (eq_obj.cat == EqObject::FUNCTION and not dyn_obj.template holds<Function<type>>())
+        dyn_obj = Function<type>(eq_obj.name, eq_obj.lhs.args_num());
+      else if (eq_obj.cat == EqObject::SEQUENCE and not dyn_obj.template holds<Function<type>>())
+        dyn_obj = Sequence<type>(eq_obj.name);
 
-      inventory[obj.name] = slot;
-      object_names.push(obj.name, slot);
+      inventory[eq_obj.name] = slot;
     }
   }
 
@@ -350,55 +345,59 @@ void MathWorld<type>::rebind_functions()
 
   for (size_t slot: func_slots)
   {
-    const EqObject& obj = eq_objects[slot];
+    DynMathObject<type>& dyn_obj = math_objects[slot];
+
+    assert(dyn_obj.opt_eq_object);
+
+    const EqObject& eq_obj = *dyn_obj.opt_eq_object;
 
     // should be assigned in the previous loop
-    assert(math_objects[slot].has_value());
+    assert(dyn_obj.has_value());
 
     std::visit(
       utils::overloaded{
         [&](Function<type>& f)
         {
-          assert(obj.name == f.name);
+          assert(eq_obj.name == f.name);
 
-          if (auto exp_rhs = get_final_representation(obj.equation, obj.rhs))
+          if (auto exp_rhs = get_final_representation(eq_obj.equation, eq_obj.rhs))
             f.bound_rhs = std::move(*exp_rhs);
           else
           {
-            invalid_functions.push(obj.name);
-            math_objects[slot] = tl::unexpected(std::move(exp_rhs.error()));
+            invalid_functions.push(eq_obj.name);
+            dyn_obj = tl::unexpected(std::move(exp_rhs.error()));
           }
         },
         [&](Sequence<type>& u)
         {
-          assert(obj.name == u.name);
+          assert(eq_obj.name == u.name);
           std::vector<const parsing::AST*> seq_ast_values;
 
-          if (obj.rhs.is_func() and obj.rhs.func_data().type == parsing::AST::Func::SEPARATOR)
+          if (eq_obj.rhs.is_func() and eq_obj.rhs.func_data().type == parsing::AST::Func::SEPARATOR)
           {
             // sequence defined with first values
-            seq_ast_values.reserve(obj.rhs.func_data().subnodes.size());
-            std::ranges::transform(obj.rhs.func_data().subnodes,
+            seq_ast_values.reserve(eq_obj.rhs.func_data().subnodes.size());
+            std::ranges::transform(eq_obj.rhs.func_data().subnodes,
                                    std::back_inserter(seq_ast_values),
                                    [](auto&& val){ return &val; });
           }
           // sequence defined without first values
-          else seq_ast_values.push_back(&obj.rhs);
+          else seq_ast_values.push_back(&eq_obj.rhs);
 
           u.values.reserve(seq_ast_values.size());
           for (const parsing::AST* ast: seq_ast_values)
-            if (auto exp_rhs = get_final_representation(obj.equation, *ast))
+            if (auto exp_rhs = get_final_representation(eq_obj.equation, *ast))
               u.values.push_back(std::move(*exp_rhs));
             else
             {
-              invalid_functions.push(obj.name);
-              math_objects[slot] = tl::unexpected(std::move(exp_rhs.error()));
+              invalid_functions.push(eq_obj.name);
+              dyn_obj = tl::unexpected(std::move(exp_rhs.error()));
               break;
             }
         },
         [](auto&&) { assert(false); /* we are not supposed to ever hit here */}
       },
-      *math_objects[slot]
+      *dyn_obj
     );
   }
 
@@ -411,10 +410,7 @@ void MathWorld<type>::rebind_functions()
     invalid_functions.pop();
 
     if (auto it = inventory.find(invalid_func_name); it != inventory.end())
-    {
-      object_names.free(it->second);
       inventory.erase(it);
-    }
 
     auto revdeps = direct_revdeps(invalid_func_name);
     for (auto&& [affected_func_name, info]: revdeps)
@@ -425,12 +421,12 @@ void MathWorld<type>::rebind_functions()
         // because they have an expression that calls our invalid function
         assert(obj->template holds<Function<type>>() or obj->template holds<Sequence<type>>());
 
-        assert(eq_objects.is_assigned(obj->slot));
+        assert(obj->opt_eq_object);
 
         *obj = tl::unexpected(
           Error::object_in_invalid_state(parsing::tokens::Text{.substr = invalid_func_name,
                                                                .begin = info.indexes.front()},
-                                         eq_objects[obj->slot].equation));
+                                         obj->opt_eq_object->equation));
 
         invalid_functions.push(affected_func_name);
       }
@@ -459,7 +455,6 @@ DynMathObject<type>& MathWorld<type>::add(std::string name, CppMathFunctionPtr<a
     return obj;
   }
 
-  object_names.push(name, slot);
   inventory[name] = slot;
 
   obj = CppFunction<type, args_num>(name, cpp_f);
@@ -526,10 +521,10 @@ deps::Deps MathWorld<type>::direct_dependencies(std::string_view name) const
 template <parsing::Type type>
 deps::Deps MathWorld<type>::direct_dependencies(size_t slot) const
 {
-  if (not eq_objects.is_assigned(slot))
+  if (not math_objects.is_assigned(slot) or not math_objects[slot].opt_eq_object)
     return deps::Deps();
 
-  return parsing::direct_dependencies(eq_objects[slot].rhs);
+  return parsing::direct_dependencies(math_objects[slot].opt_eq_object->rhs);
 }
 
 template <parsing::Type type>
@@ -621,17 +616,12 @@ tl::expected<Ok, UnregisteredObject> MathWorld<type>::erase(size_t slot)
   if (not math_objects.is_assigned(slot))
     return tl::unexpected(UnregisteredObject{});
 
-  if (object_names.is_assigned(slot))
+  if (std::string name = math_objects[slot].get_name(); not name.empty())
   {
-    const std::string name = object_names[slot];
-
-    const size_t erased_num = inventory.erase(name);
+    size_t erased_num = inventory.erase(name);
     assert(erased_num);
-
-    object_names.free(slot);
   }
 
-  eq_objects.free(slot);
   math_objects.free(slot);
 
   rebind_functions();

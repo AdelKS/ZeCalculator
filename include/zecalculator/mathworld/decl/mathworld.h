@@ -187,31 +187,7 @@ protected:
   /// @brief maps an object name to its slot
   name_map<size_t> inventory;
 
-  /// @brief two uses: tracks 1. all objects handled by this world, 2. their name if they have one (empty otherwise)
-  SlottedDeque<std::string> object_names;
-
   SlottedDeque<DynMathObject<type>> math_objects;
-
-  /// @brief internal representation for objects defined through an equation
-  struct EqObject
-  {
-    enum Category {UNINITIALIZED, FUNCTION, SEQUENCE, GLOBAL_CONSTANT};
-    Category cat = UNINITIALIZED;
-
-    /// @brief equation
-    std::string equation = {};
-
-    std::string name = {};
-
-    /// @brief the left side to the equal sign in the equation
-    parsing::AST lhs = {};
-
-    /// @brief the right side to the equal sign in the equation
-    parsing::AST rhs = {};
-  };
-
-  /// @brief internal intermediary representation of math objects defined through an equation, as a function
-  SlottedDeque<EqObject> eq_objects;
 
 };
 
