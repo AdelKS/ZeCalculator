@@ -45,7 +45,7 @@ tl::expected<double, Error> DynMathObject<type>::evaluate(DBL... val) const
 
   return std::visit(
     utils::overloaded{
-      [&]<size_t args_num>(const CppFunction<type, args_num>& cpp_f) -> Ret
+      [&]<size_t args_num>(const CppFunction<args_num>& cpp_f) -> Ret
       {
         if constexpr (sizeof...(val) != args_num)
           return tl::unexpected(Error::cpp_incorrect_argnum());

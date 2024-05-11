@@ -34,7 +34,7 @@ class Sequence;
 template <parsing::Type type>
 class GlobalConstant;
 
-template <parsing::Type, size_t args_num>
+template <size_t args_num>
   requires (args_num > 0)
 class CppFunction;
 

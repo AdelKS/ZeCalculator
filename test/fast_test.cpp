@@ -73,9 +73,9 @@ int main()
     using T = FAST<type>;
 
     FAST<type> expected_node = T{shared::node::Add{},
-                                 {T{world.template get<zc::CppFunction<type, 1>>("cos"),
+                                 {T{world.template get<zc::CppFunction<1>>("cos"),
                                     {T{shared::node::Add{},
-                                       {T{world.template get<zc::CppFunction<type, 1>>("sin"),
+                                       {T{world.template get<zc::CppFunction<1>>("sin"),
                                           {T{shared::node::InputVariable{0}}}},
                                         T{shared::node::Number{1.0}}}}}},
                                   T{shared::node::Number{1.0}}}};

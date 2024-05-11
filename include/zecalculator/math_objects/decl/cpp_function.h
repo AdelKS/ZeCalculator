@@ -35,7 +35,7 @@ class MathWorld;
 template <size_t args_num>
 using CppMathFunctionPtr = typename utils::math_func_signature_t<args_num>;
 
-template <parsing::Type type, size_t args_num>
+template <size_t args_num>
   requires (args_num > 0)
 class CppFunction: public MathObject
 {

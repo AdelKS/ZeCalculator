@@ -70,7 +70,7 @@ struct Evaluator
   auto operator () (const zc::parsing::shared::node::Number&) -> RetType;
 
   template <size_t args_num>
-  auto operator () (const zc::CppFunction<type, args_num>*) -> RetType;
+  auto operator () (const zc::CppFunction<args_num>*) -> RetType;
 
   auto operator () (const zc::GlobalConstant<type>*) -> RetType;
 

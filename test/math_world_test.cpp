@@ -36,7 +36,7 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    CppUnaryFunction<type>* cppFunc = world.template get<CppUnaryFunction<type>>("sqrt");
+    CppUnaryFunction* cppFunc = world.template get<CppUnaryFunction>("sqrt");
     expect(cppFunc != nullptr and (*cppFunc)(4) == 2);
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};

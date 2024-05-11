@@ -51,7 +51,7 @@ void shared_node_printer(std::ostream& os,
       {
         os << "Sequence " << u->get_name();
       },
-      [&]<size_t args_num>(const CppFunction<world_type, args_num>* f)
+      [&]<size_t args_num>(const CppFunction<args_num>* f)
       {
         os << "CppFunction<" << args_num << "> "
            << f->get_name();

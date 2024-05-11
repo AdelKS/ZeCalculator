@@ -457,7 +457,7 @@ DynMathObject<type>& MathWorld<type>::add(std::string name, CppMathFunctionPtr<a
 
   inventory[name] = slot;
 
-  obj = CppFunction<type, args_num>(name, cpp_f);
+  obj = CppFunction<args_num>(name, cpp_f);
   return obj;
 }
 

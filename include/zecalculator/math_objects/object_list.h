@@ -35,10 +35,7 @@ using MathEqObjects = std::tuple<GlobalConstant<type>,
                                  Sequence<type>>;
 
 template <parsing::Type type>
-using MathObjects = tuple_type_cat_t<MathEqObjects<type>,
-                                     std::tuple<
-                                     CppFunction<type, 1>,
-                                     CppFunction<type, 2>>>;
+using MathObjects = tuple_type_cat_t<MathEqObjects<type>, std::tuple<CppFunction<1>, CppFunction<2>>>;
 
 /// @brief maximum number of arguments functions can take
 /// @todo template the rest of the code to take this as input

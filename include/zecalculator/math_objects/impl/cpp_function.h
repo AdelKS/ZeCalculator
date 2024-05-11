@@ -25,25 +25,25 @@
 
 namespace zc {
 
-template <parsing::Type type, size_t args_num>
+template <size_t args_num>
   requires(args_num > 0)
-constexpr void CppFunction<type, args_num>::set(CppMathFunctionPtr<args_num> ptr)
+constexpr void CppFunction<args_num>::set(CppMathFunctionPtr<args_num> ptr)
 {
   f_ptr = ptr;
 }
 
-template <parsing::Type type, size_t args_num>
+template <size_t args_num>
   requires(args_num > 0)
 template <class... DBL>
   requires((std::is_convertible_v<DBL, double> and ...) and sizeof...(DBL) == args_num)
-double CppFunction<type, args_num>::operator()(DBL... val) const
+double CppFunction<args_num>::operator()(DBL... val) const
 {
   return f_ptr(val...);
 }
 
-template <parsing::Type type, size_t args_num>
+template <size_t args_num>
   requires(args_num > 0)
-CppFunction<type, args_num>::CppFunction(MathObject obj, CppMathFunctionPtr<args_num> ptr)
+CppFunction<args_num>::CppFunction(MathObject obj, CppMathFunctionPtr<args_num> ptr)
   : MathObject(std::move(obj)), f_ptr(ptr)
 {}
 

@@ -24,19 +24,13 @@
 
 namespace zc {
 
-template <parsing::Type type>
-using CppUnaryFunction = CppFunction<type, 1>;
-
-template <parsing::Type type>
-using CppBinaryFunction = CppFunction<type, 2>;
+using CppUnaryFunction = CppFunction<1>;
+using CppBinaryFunction = CppFunction<2>;
 
 namespace fast {
 
   using Function = zc::Function<parsing::Type::FAST>;
   using Sequence = zc::Sequence<parsing::Type::FAST>;
-
-  template <size_t args_num>
-  using CppFunction = zc::CppFunction<parsing::Type::FAST, args_num>;
 
   using CppUnaryFunction = CppFunction<1>;
   using CppBinaryFunction = CppFunction<2>;
@@ -53,12 +47,6 @@ namespace rpn {
 
   using Function = zc::Function<parsing::Type::RPN>;
   using Sequence = zc::Sequence<parsing::Type::RPN>;
-
-  template <size_t args_num>
-  using CppFunction = zc::CppFunction<parsing::Type::RPN, args_num>;
-
-  using CppUnaryFunction = CppFunction<1>;
-  using CppBinaryFunction = CppFunction<2>;
 
   using GlobalConstant = zc::GlobalConstant<parsing::Type::RPN>;
 
