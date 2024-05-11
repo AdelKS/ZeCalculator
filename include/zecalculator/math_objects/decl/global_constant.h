@@ -28,7 +28,6 @@ namespace zc {
 template <parsing::Type type>
 class MathWorld;
 
-template <parsing::Type type>
 class GlobalConstant: public MathObject
 {
 public:

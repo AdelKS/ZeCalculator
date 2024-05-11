@@ -35,8 +35,6 @@ namespace fast {
   using CppUnaryFunction = CppFunction<1>;
   using CppBinaryFunction = CppFunction<2>;
 
-  using GlobalConstant = zc::GlobalConstant<parsing::Type::FAST>;
-
   using Unkown = zc::Unknown<parsing::Type::FAST>;
 
   using DynMathObject = zc::DynMathObject<parsing::Type::FAST>;
@@ -47,8 +45,6 @@ namespace rpn {
 
   using Function = zc::Function<parsing::Type::RPN>;
   using Sequence = zc::Sequence<parsing::Type::RPN>;
-
-  using GlobalConstant = zc::GlobalConstant<parsing::Type::RPN>;
 
   using Unkown = zc::Unknown<parsing::Type::RPN>;
 

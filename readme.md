@@ -159,7 +159,7 @@ The current results are (AMD Ryzen 5950X, `-march=native -O3` compile flags)
     constexpr std::string_view data_type_str_v = std::is_same_v<StructType, FAST_TEST> ? "FAST" : "RPN";
 
     MathWorld<type> world;
-    auto& t = world.add("t = 1").template value_as<GlobalConstant<type>>();
+    auto& t = world.add("t = 1").template value_as<GlobalConstant>();
     auto& f = world.add("f(x) =3*cos(t*x) + 2*sin(x/t) + 4").template value_as<Function<type>>();
 
     double x = 0;

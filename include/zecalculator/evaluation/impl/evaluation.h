@@ -173,7 +173,7 @@ auto Evaluator<type>::operator()(const zc::CppFunction<args_num>* cpp_f) -> RetT
 }
 
 template <parsing::Type type>
-auto Evaluator<type>::operator()(const zc::GlobalConstant<type>* node) -> RetType
+auto Evaluator<type>::operator()(const zc::GlobalConstant* node) -> RetType
 {
   double res = node->value();
 

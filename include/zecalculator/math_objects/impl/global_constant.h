@@ -24,62 +24,53 @@
 
 namespace zc {
 
-template <parsing::Type type>
-GlobalConstant<type>::GlobalConstant(MathObject obj, double m_value)
+inline GlobalConstant::GlobalConstant(MathObject obj, double m_value)
   : MathObject(std::move(obj)), m_value(m_value)
 {}
 
-template <parsing::Type type>
-GlobalConstant<type>& GlobalConstant<type>::set(double val)
+inline GlobalConstant& GlobalConstant::set(double val)
 {
   m_value = val;
 
   return *this;
 }
 
-template <parsing::Type type>
-bool GlobalConstant<type>::operator == (double val) const
+inline bool GlobalConstant::operator == (double val) const
 {
   return m_value == val;
 }
 
-template <parsing::Type type>
-GlobalConstant<type>& GlobalConstant<type>::operator = (double val)
+inline GlobalConstant& GlobalConstant::operator = (double val)
 {
   set(val);
   return *this;
 }
 
-template <parsing::Type type>
-GlobalConstant<type>& GlobalConstant<type>::operator += (double val)
+inline GlobalConstant& GlobalConstant::operator += (double val)
 {
   set(m_value + val);
   return *this;
 }
 
-template <parsing::Type type>
-GlobalConstant<type>& GlobalConstant<type>::operator -= (double val)
+inline GlobalConstant& GlobalConstant::operator -= (double val)
 {
   set(m_value - val);
   return *this;
 }
 
-template <parsing::Type type>
-GlobalConstant<type>& GlobalConstant<type>::operator *= (double val)
+inline GlobalConstant& GlobalConstant::operator *= (double val)
 {
   set(m_value * val);
   return *this;
 }
 
-template <parsing::Type type>
-GlobalConstant<type>& GlobalConstant<type>::operator /= (double val)
+inline GlobalConstant& GlobalConstant::operator /= (double val)
 {
   set(m_value / val);
   return *this;
 }
 
-template <parsing::Type type>
-double GlobalConstant<type>::value() const
+inline double GlobalConstant::value() const
 {
   return m_value;
 }

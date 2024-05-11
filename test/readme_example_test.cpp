@@ -98,7 +98,7 @@ int main()
   //   - the expected has an error
   //   - the alternative asked is not the actual one held by the variant
   [[maybe_unused]] rpn::Sequence& u = obj1.value_as<rpn::Sequence>();
-  [[maybe_unused]] rpn::GlobalConstant& my_constant = obj2.value_as<rpn::GlobalConstant>();
+  [[maybe_unused]] GlobalConstant& my_constant = obj2.value_as<GlobalConstant>();
 
   // each specific math object has extra public methods that may prove useful
 

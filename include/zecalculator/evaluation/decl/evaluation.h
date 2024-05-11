@@ -72,7 +72,7 @@ struct Evaluator
   template <size_t args_num>
   auto operator () (const zc::CppFunction<args_num>*) -> RetType;
 
-  auto operator () (const zc::GlobalConstant<type>*) -> RetType;
+  auto operator () (const zc::GlobalConstant*) -> RetType;
 
 };
 

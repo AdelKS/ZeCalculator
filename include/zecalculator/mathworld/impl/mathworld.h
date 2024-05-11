@@ -39,7 +39,7 @@ MathWorld<type>::MathWorld()
     add(cpp_f);
 
   for (auto&& equation: builtin_global_constants)
-    add<GlobalConstant<type>>(std::string(equation));
+    add<GlobalConstant>(std::string(equation));
 }
 
 template <parsing::Type type>
@@ -236,7 +236,7 @@ DynMathObject<type>& MathWorld<type>::add(std::string definition, size_t slot)
       assert(is_function_def and is_sequence_def and not is_global_var_def
              and not is_global_constant_def);
     }
-    else if constexpr (std::is_same_v<InterpretAs, GlobalConstant<type>>)
+    else if constexpr (std::is_same_v<InterpretAs, GlobalConstant>)
     {
       if (is_function_def)
         return assign_alternative(
@@ -287,7 +287,7 @@ DynMathObject<type>& MathWorld<type>::add(std::string definition, size_t slot)
     assert(is_global_constant_def);
     eq_obj.cat = EqObject::GLOBAL_CONSTANT;
 
-    assign_alternative(GlobalConstant<type>(eq_obj.name, eq_obj.rhs.number_data().value));
+    assign_alternative(GlobalConstant(eq_obj.name, eq_obj.rhs.number_data().value));
 
     inventory[eq_obj.name] = slot;
   }

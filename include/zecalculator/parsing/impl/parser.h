@@ -287,7 +287,7 @@ struct VariableVisiter
   std::string expression;
   const tokens::Text& var_txt_token;
 
-  Ret operator()(const GlobalConstant<world_type>& global_constant)
+  Ret operator()(const GlobalConstant& global_constant)
   {
     return T{&global_constant};
   }

@@ -141,7 +141,7 @@ int main()
     expect(f(1).value() == cpp_f_1(1.0));
     expect((*f_obj)(1) == cpp_f_1(1.0));
 
-    cst.template value_as<GlobalConstant<type>>() = 5.0;
+    cst.template value_as<GlobalConstant>() = 5.0;
     cpp_cst = 5.0;
 
     expect(f(1).value() == cpp_f_1(1.0));
@@ -255,7 +255,7 @@ int main()
       constexpr std::string_view data_type_str_v = std::is_same_v<StructType, FAST_TEST> ? "FAST" : "RPN";
 
       MathWorld<type> world;
-      auto& t = world.add("t = 1").template value_as<GlobalConstant<type>>();
+      auto& t = world.add("t = 1").template value_as<GlobalConstant>();
       auto& f = world.add("f(x) =3*cos(t*x) + 2*sin(x/t) + 4").template value_as<Function<type>>();
 
       double x = 0;

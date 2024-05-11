@@ -65,7 +65,7 @@ void shared_node_printer(std::ostream& os,
       {
         os << "InputVariable: index: " << v.index;
       },
-      [&](const GlobalConstant<world_type> *c)
+      [&](const GlobalConstant *c)
       {
         os << "GlobalConstant " << c->get_name()
           << " value: " << c->value();

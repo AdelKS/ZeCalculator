@@ -70,7 +70,7 @@ namespace parsing {
                               node::InputVariable,
                               const CppFunction<1> *,
                               const CppFunction<2> *,
-                              const zc::GlobalConstant<world_type> *,
+                              const zc::GlobalConstant *,
                               const Function<world_type> *,
                               const Sequence<world_type> *>;
 

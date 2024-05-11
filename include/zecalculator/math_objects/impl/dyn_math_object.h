@@ -56,7 +56,7 @@ tl::expected<double, Error> DynMathObject<type>::evaluate(DBL... val) const
         // argument size test done within Function's code
         return f(val...);
       },
-      [&](const GlobalConstant<type>& cst) -> Ret
+      [&](const GlobalConstant& cst) -> Ret
       {
         if constexpr (sizeof...(val) != 0)
           return tl::unexpected(Error::cpp_incorrect_argnum());

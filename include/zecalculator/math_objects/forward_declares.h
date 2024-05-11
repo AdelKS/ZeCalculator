@@ -31,7 +31,6 @@ class Function;
 template <parsing::Type>
 class Sequence;
 
-template <parsing::Type type>
 class GlobalConstant;
 
 template <size_t args_num>
