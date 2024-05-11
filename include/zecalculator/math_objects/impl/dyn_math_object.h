@@ -60,7 +60,7 @@ tl::expected<double, Error> DynMathObject<type>::evaluate(DBL... val) const
       {
         if constexpr (sizeof...(val) != 0)
           return tl::unexpected(Error::cpp_incorrect_argnum());
-        else return cst.value();
+        else return cst.value;
       },
       [&](const Sequence<type>& u) -> Ret
       {

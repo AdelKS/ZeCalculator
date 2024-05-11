@@ -68,7 +68,7 @@ void shared_node_printer(std::ostream& os,
       [&](const GlobalConstant *c)
       {
         os << "GlobalConstant " << c->get_name()
-          << " value: " << c->value();
+          << " value: " << c->value;
       },
       [&](const Number &n)
       {

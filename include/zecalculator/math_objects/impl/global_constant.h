@@ -24,55 +24,8 @@
 
 namespace zc {
 
-inline GlobalConstant::GlobalConstant(MathObject obj, double m_value)
-  : MathObject(std::move(obj)), m_value(m_value)
+inline GlobalConstant::GlobalConstant(std::string name, double value)
+  : MathObject(std::move(name)), value(value)
 {}
-
-inline GlobalConstant& GlobalConstant::set(double val)
-{
-  m_value = val;
-
-  return *this;
-}
-
-inline bool GlobalConstant::operator == (double val) const
-{
-  return m_value == val;
-}
-
-inline GlobalConstant& GlobalConstant::operator = (double val)
-{
-  set(val);
-  return *this;
-}
-
-inline GlobalConstant& GlobalConstant::operator += (double val)
-{
-  set(m_value + val);
-  return *this;
-}
-
-inline GlobalConstant& GlobalConstant::operator -= (double val)
-{
-  set(m_value - val);
-  return *this;
-}
-
-inline GlobalConstant& GlobalConstant::operator *= (double val)
-{
-  set(m_value * val);
-  return *this;
-}
-
-inline GlobalConstant& GlobalConstant::operator /= (double val)
-{
-  set(m_value / val);
-  return *this;
-}
-
-inline double GlobalConstant::value() const
-{
-  return m_value;
-}
 
 }

@@ -141,7 +141,7 @@ int main()
     expect(f(1).value() == cpp_f_1(1.0));
     expect((*f_obj)(1) == cpp_f_1(1.0));
 
-    cst.template value_as<GlobalConstant>() = 5.0;
+    cst.template value_as<GlobalConstant>().value = 5.0;
     cpp_cst = 5.0;
 
     expect(f(1).value() == cpp_f_1(1.0));
@@ -264,7 +264,7 @@ int main()
         loop_call_for(duration, [&]{
           res += f(x).value();
           x++;
-          t += 1;
+          t.value += 1;
       });
       std::cout << "Avg zc::Function<" << data_type_str_v << "> eval time: "
                 << duration_cast<nanoseconds>(duration / iterations).count() << "ns"

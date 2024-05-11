@@ -24,36 +24,12 @@
 #include <zecalculator/error.h>
 
 namespace zc {
-
-template <parsing::Type type>
-class MathWorld;
-
 class GlobalConstant: public MathObject
 {
 public:
+  GlobalConstant(std::string name, double m_value);
 
-  /// @brief changes the value stored along with the equation with the new value
-  GlobalConstant& set(double val);
-
-  GlobalConstant& operator = (double val);
-
-  bool operator == (double val) const;
-
-  /// @brief perform operation if there's a value, do nothing otherwise
-  GlobalConstant& operator += (double val);
-  GlobalConstant& operator -= (double val);
-  GlobalConstant& operator /= (double val);
-  GlobalConstant& operator *= (double val);
-
-  double value() const;
-
-protected:
-  GlobalConstant(MathObject, double m_value);
-
-  double m_value;
-
-  template <parsing::Type>
-  friend class MathWorld;
+  double value;
 };
 
 }

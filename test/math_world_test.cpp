@@ -46,10 +46,9 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    auto& c1 = world.add("my_constant1 = 0").template value_as<GlobalConstant>();
+    auto& c1 = world.add("my_constant1 = 42").template value_as<GlobalConstant>();
 
-    c1 = 2.0;
-    expect(c1 == 2.0);
+    expect(c1.value == 42.0);
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 
