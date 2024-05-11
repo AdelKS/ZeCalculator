@@ -27,13 +27,6 @@ namespace zc {
 
 template <size_t args_num>
   requires(args_num > 0)
-constexpr void CppFunction<args_num>::set(CppMathFunctionPtr<args_num> ptr)
-{
-  f_ptr = ptr;
-}
-
-template <size_t args_num>
-  requires(args_num > 0)
 template <class... DBL>
   requires((std::is_convertible_v<DBL, double> and ...) and sizeof...(DBL) == args_num)
 double CppFunction<args_num>::operator()(DBL... val) const
@@ -43,8 +36,9 @@ double CppFunction<args_num>::operator()(DBL... val) const
 
 template <size_t args_num>
   requires(args_num > 0)
-CppFunction<args_num>::CppFunction(MathObject obj, CppMathFunctionPtr<args_num> ptr)
-  : MathObject(std::move(obj)), f_ptr(ptr)
-{}
+std::string_view CppFunction<args_num>::get_name() const
+{
+  return name;
+}
 
 } // namespace zc

@@ -103,7 +103,7 @@ public:
   /// @brief add cpp function
   template <size_t args_num>
     requires (args_num <= max_func_args)
-  DynMathObject<type>& add(std::string name, CppMathFunctionPtr<args_num> cpp_f);
+  DynMathObject<type>& add(CppFunction<args_num> cpp_f);
 
   /// @brief redefine 'obj' with 'definition' and intepret the definition as 'InterpretAs' type
   /// @note the default 'DynMathObject<type>>' type means "auto", i.e. try to guess the object type
@@ -119,7 +119,7 @@ public:
   /// @brief redefine math object as cpp function
   template <size_t args_num>
     requires (args_num <= max_func_args)
-  DynMathObject<type>& redefine(DynMathObject<type>& obj, std::string name, CppMathFunctionPtr<args_num> cpp_f);
+  DynMathObject<type>& redefine(DynMathObject<type>& obj, CppFunction<args_num> cpp_f);
 
   /// @brief says if an object with the given name exists within the world
   bool contains(std::string_view name) const;
@@ -175,7 +175,7 @@ protected:
   /// @brief add cpp function
   template <size_t args_num>
     requires (args_num <= max_func_args)
-  DynMathObject<type>& add(std::string name, CppMathFunctionPtr<args_num> cpp_f, size_t slot);
+  DynMathObject<type>& add(CppFunction<args_num> cpp_f, size_t slot);
 
   /// @brief checks that this object has actually been allocated in this world
   bool sanity_check(const DynMathObject<type>& obj) const;

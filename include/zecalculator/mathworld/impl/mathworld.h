@@ -35,8 +35,8 @@ namespace zc {
 template <parsing::Type type>
 MathWorld<type>::MathWorld()
 {
-  for (auto&& [name, f_ptr]: builtin_unary_functions)
-    add<1>(std::string(name), f_ptr);
+  for (auto&& cpp_f: builtin_unary_functions)
+    add(cpp_f);
 
   for (auto&& equation: builtin_global_constants)
     add<GlobalConstant<type>>(std::string(equation));
@@ -437,27 +437,28 @@ void MathWorld<type>::rebind_functions()
 template <parsing::Type type>
 template <size_t args_num>
   requires (args_num <= max_func_args)
-DynMathObject<type>& MathWorld<type>::add(std::string name, CppMathFunctionPtr<args_num> cpp_f)
+DynMathObject<type>& MathWorld<type>::add(CppFunction<args_num> cpp_f)
 {
-  return add<args_num>(std::move(name), cpp_f, math_objects.next_free_slot());
+  return add(cpp_f, math_objects.next_free_slot());
 }
 
 template <parsing::Type type>
 template <size_t args_num>
   requires (args_num <= max_func_args)
-DynMathObject<type>& MathWorld<type>::add(std::string name, CppMathFunctionPtr<args_num> cpp_f, size_t slot)
+DynMathObject<type>& MathWorld<type>::add(CppFunction<args_num> cpp_f, size_t slot)
 {
   auto& obj = add(slot);
 
-  if (inventory.contains(name))
+  if (inventory.contains(cpp_f.name))
   {
-    obj = tl::unexpected(Error::name_already_taken(name));
+    obj = tl::unexpected(Error::name_already_taken(std::string(cpp_f.name)));
     return obj;
   }
 
-  inventory[name] = slot;
+  inventory[std::string(cpp_f.name)] = slot;
 
-  obj = CppFunction<args_num>(name, cpp_f);
+  obj = cpp_f;
+
   return obj;
 }
 
@@ -487,15 +488,14 @@ template <parsing::Type type>
 template <size_t args_num>
   requires (args_num <= max_func_args)
 DynMathObject<type>& MathWorld<type>::redefine(DynMathObject<type>& obj,
-                                               std::string name,
-                                               CppMathFunctionPtr<args_num> cpp_f)
+                                               CppFunction<args_num> cpp_f)
 {
   if (not sanity_check(obj))
     throw std::runtime_error("Object not in this world");
 
   size_t slot = obj.slot;
   erase(obj);
-  DynMathObject<type>& new_obj = add(name, cpp_f);
+  DynMathObject<type>& new_obj = add(cpp_f);
   assert(new_obj.slot == slot);
 
   return new_obj;
