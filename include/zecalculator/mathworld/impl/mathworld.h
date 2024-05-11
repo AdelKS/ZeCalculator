@@ -541,7 +541,7 @@ deps::Deps MathWorld<type>::direct_revdeps(std::string_view name) const
             auto deps = direct_dependencies(o.slot);
             if (auto it = deps.find(name); it != deps.end())
             {
-              deps::Dep& dep = direct_rev_deps[obj.get_name()];
+              deps::Dep& dep = direct_rev_deps[std::string(obj.get_name())];
               dep.type = deps::Dep::FUNCTION;
               dep.indexes = it->second.indexes;
             }
@@ -616,10 +616,11 @@ tl::expected<Ok, UnregisteredObject> MathWorld<type>::erase(size_t slot)
   if (not math_objects.is_assigned(slot))
     return tl::unexpected(UnregisteredObject{});
 
-  if (std::string name = math_objects[slot].get_name(); not name.empty())
+  if (std::string_view name = math_objects[slot].get_name(); not name.empty())
   {
-    size_t erased_num = inventory.erase(name);
-    assert(erased_num);
+    auto it = inventory.find(name);
+    assert(it != inventory.end());
+    inventory.erase(it);
   }
 
   math_objects.free(slot);

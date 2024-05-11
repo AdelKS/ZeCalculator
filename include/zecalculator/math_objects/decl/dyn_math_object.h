@@ -52,7 +52,7 @@ struct DynMathObject: tl::expected<MathObjectsVariant<type>, Error>
   tl::expected<double, Error> evaluate(DBL... val) const;
 
   /// @brief returns the name of the object, if it's valid, otherwise empty string
-  std::string get_name() const;
+  std::string_view get_name() const;
 
   /// @brief gets the value of the expected (the variant) as a specific alternative
   template <class T>

@@ -34,7 +34,7 @@ namespace eval {
 class MathObject
 {
 public:
-  const std::string& get_name() const { return name; };
+  std::string_view get_name() const { return name; };
 
 protected:
   MathObject(std::string name) : name(std::move(name))
