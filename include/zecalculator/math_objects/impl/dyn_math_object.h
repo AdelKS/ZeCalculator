@@ -53,12 +53,8 @@ tl::expected<double, Error> DynMathObject<type>::evaluate(DBL... val) const
       },
       [&](const Function<type>& f) -> Ret
       {
-        if (sizeof...(val) != f.args_num()) [[unlikely]]
-          return tl::unexpected(Error::cpp_incorrect_argnum());
-
-        if constexpr (sizeof...(val) != 0)
-          return f(std::array{double(val)...});
-        else return f();
+        // argument size test done within Function's code
+        return f(val...);
       },
       [&](const GlobalConstant<type>& cst) -> Ret
       {
