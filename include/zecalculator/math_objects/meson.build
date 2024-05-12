@@ -8,6 +8,7 @@ if not meson.is_subproject()
       'builtin.h',
       'cpp_function.h',
       'dyn_math_object.h',
+      'eq_object.h',
       'forward_declares.h',
       'function.h',
       'global_constant.h',

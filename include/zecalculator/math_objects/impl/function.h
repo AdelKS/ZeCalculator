@@ -34,6 +34,11 @@ Function<type>::Function(MathObject base, size_t argument_number)
 {}
 
 template <parsing::Type type>
+Function<type>::Function(MathObject base, size_t argument_number, parsing::Parsing<type> parsing)
+  : MathObject(std::move(base)), bound_rhs(std::move(parsing)), argument_number(argument_number)
+{}
+
+template <parsing::Type type>
 tl::expected<double, Error> Function<type>::evaluate(
   std::span<const double> args, size_t current_recursion_depth) const
 {

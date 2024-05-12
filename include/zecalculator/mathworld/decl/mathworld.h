@@ -35,11 +35,17 @@
 
 #include <string>
 #include <string_view>
+#include <unordered_set>
 
 namespace zc {
 
 template <parsing::Type type>
 class MathWorld;
+
+namespace parsing {
+  template <Type type>
+  struct make_fast;
+}
 
 namespace fast {
   using MathWorld = zc::MathWorld<parsing::Type::FAST>;
@@ -135,24 +141,41 @@ public:
 
 protected:
 
-  /// @brief object at 'slot' changed name
+  /// @brief object at 'slot' changed name, became invalid / deleted, or got a new name
   /// @note 'old_name' may be empty, in which case it's a new name
   /// @note 'new_name' may be empty, in which case the object got deleted or is in an invalid state
-  void name_change(size_t slot, std::string_view old_name, std::string_view new_name);
+  void object_updated(size_t slot,
+                      bool is_eq_object_now,
+                      std::string old_name,
+                      std::string new_name);
 
   /// @brief checks that this object has actually been allocated in this world
   bool sanity_check(const DynMathObject<type>& obj) const;
 
-  /// @brief go through all the eq_functions whose corresponding DynMathObject is
-  ///        in error state and try rebind it to see if it's good.
-  void rebind_functions();
+  /// @brief return all the DynMathObjects (not necessarily in a valid state) that have an EqObject depend on 'names'
+  std::unordered_set<DynMathObject<type>*>
+    dependent_eq_objects(const std::unordered_set<std::string>& names);
+
+  /// @brief go through all functions that depend on 'old_name' or 'new_name' and rebind them
+  void rebind_dependent_functions(const std::unordered_set<std::string>& names);
+
+  /// @brief get DynMathObject that has an assigned eq_object (not necessarily in valid state)
+  const DynMathObject<type>* eq_object_get(std::string_view name) const;
+
+  DynMathObject<type>* eq_object_get(std::string_view name);
 
   /// @brief maps an object name to its slot
   name_map<size_t> inventory;
 
+  /// @brief object names defined through equations
+  name_map<size_t> eq_object_inventory;
+
   SlottedDeque<DynMathObject<type>> math_objects;
 
   friend DynMathObject<type>;
+
+  template <parsing::Type>
+  friend struct parsing::make_fast;
 
 };
 

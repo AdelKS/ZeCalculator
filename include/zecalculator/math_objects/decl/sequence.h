@@ -66,6 +66,7 @@ protected:
 
   // constructor reserved for MathWorld when using add() function
   Sequence(MathObject obj);
+  Sequence(MathObject obj, std::vector<parsing::Parsing<type>> values);
 
   /// @brief evaluation with recursion depth tracking
   tl::expected<double, Error> evaluate(double index, size_t current_recursion_depth) const;
@@ -81,8 +82,7 @@ protected:
   template <parsing::Type>
   friend class MathWorld;
 
-  template <parsing::Type>
-  friend class DynMathObject;
+  friend struct EqObject;
 
 };
 

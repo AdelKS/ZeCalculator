@@ -21,13 +21,13 @@
 ****************************************************************************/
 
 #include <zecalculator/math_objects/impl/dyn_math_object.h>
+#include <zecalculator/math_objects/impl/eq_object.h>
 #include <zecalculator/mathworld/decl/mathworld.h>
 #include <zecalculator/parsing/data_structures/decl/ast.h>
 #include <zecalculator/parsing/data_structures/token.h>
 #include <zecalculator/parsing/parser.h>
 
 #include <cassert>
-#include <stack>
 #include <unordered_set>
 
 namespace zc {
@@ -50,9 +50,22 @@ const DynMathObject<type>* MathWorld<type>::get(std::string_view name) const
 }
 
 template <parsing::Type type>
+const DynMathObject<type>* MathWorld<type>::eq_object_get(std::string_view name) const
+{
+  auto it = eq_object_inventory.find(name);
+  return it != eq_object_inventory.end() ? &math_objects[it->second] : nullptr;
+}
+
+template <parsing::Type type>
 DynMathObject<type>* MathWorld<type>::get(std::string_view name)
 {
   return const_cast<DynMathObject<type>*>(std::as_const(*this).get(name));
+}
+
+template <parsing::Type type>
+DynMathObject<type>* MathWorld<type>::eq_object_get(std::string_view name)
+{
+  return const_cast<DynMathObject<type>*>(std::as_const(*this).eq_object_get(name));
 }
 
 template <parsing::Type type>
@@ -108,110 +121,79 @@ DynMathObject<type>& MathWorld<type>::new_object()
 {
   size_t slot = math_objects.next_free_slot();
 
-  math_objects.push(DynMathObject<type>(tl::unexpected(Error::empty_expression()), slot, this), slot);
+  math_objects.push(DynMathObject<type>(tl::unexpected(Error::empty_expression()), slot, *this), slot);
 
   return math_objects[slot];
 }
 
 template <parsing::Type type>
-void MathWorld<type>::rebind_functions()
+std::unordered_set<DynMathObject<type>*>
+  MathWorld<type>::dependent_eq_objects(const std::unordered_set<std::string>& names)
 {
-  std::vector<size_t> func_slots;
-  std::ranges::copy_if(std::views::iota(0ul, math_objects.size()),
-                       std::back_inserter(func_slots),
-                       [&](size_t slot)
-                       {
-                         return math_objects.is_assigned(slot) and math_objects[slot].opt_eq_object
-                                and (math_objects[slot].opt_eq_object->cat == EqObject::FUNCTION
-                                     or math_objects[slot].opt_eq_object->cat == EqObject::SEQUENCE);
-                       });
+  std::unordered_set<DynMathObject<type>*> dep_eq_objs;
 
-  for (size_t slot: func_slots)
+  std::unordered_set<std::string> dep_names;
+
+  for(const std::string& name: names)
+    for(auto&& [dep_name, info]: direct_revdeps(name))
+      dep_names.insert(dep_name);
+
+  std::unordered_set<std::string> explored_deps;
+
+  while(not dep_names.empty())
   {
-    DynMathObject<type>& dyn_obj = math_objects[slot];
+    std::string name = *dep_names.begin();
+    dep_names.erase(dep_names.begin());
 
-    assert(dyn_obj.opt_eq_object);
+    explored_deps.insert(name);
 
-    const EqObject& eq_obj = *dyn_obj.opt_eq_object;
-
-    if (not math_objects.is_assigned(slot) or not math_objects[slot].has_value())
+    if (DynMathObject<type>* obj = eq_object_get(name))
     {
-      if (eq_obj.cat == EqObject::FUNCTION)
-        dyn_obj.as_expected() = Function<type>(eq_obj.name, eq_obj.lhs.args_num());
-      else if (eq_obj.cat == EqObject::SEQUENCE)
-        dyn_obj.as_expected() = Sequence<type>(eq_obj.name);
-      else assert(false);
+      // should have an EqObject assigned of Function/Sequence type
+      // otherwise it cannot depend on anything
+      assert(obj->has_function_eq_obj());
+      dep_eq_objs.insert(obj);
+    }
 
-      inventory[eq_obj.name] = slot;
+    for(auto&& [dep_name, info]: direct_revdeps(name))
+      if (not explored_deps.contains(dep_name))
+        dep_names.insert(dep_name);
+  }
+
+  return dep_eq_objs;
+}
+
+template <parsing::Type type>
+void MathWorld<type>::rebind_dependent_functions(const std::unordered_set<std::string>& names)
+{
+  std::unordered_set<DynMathObject<type>*> dep_eq_objs = dependent_eq_objects(names);
+
+  for (DynMathObject<type>* dyn_obj: dep_eq_objs)
+  {
+    assert(dyn_obj);
+    assert(dyn_obj->opt_eq_object);
+
+    const EqObject& eq_obj = *dyn_obj->opt_eq_object;
+
+    /// activate if in error state, because its EqObject is actually valid
+    /// the function/sequence freshly created does not have a parsing
+    if (not dyn_obj->has_value())
+    {
+      assert(not inventory.contains(eq_obj.name));
+      assert(bool(dyn_obj->opt_eq_object));
+
+      dyn_obj->as_expected() = dyn_obj->opt_eq_object->template to_expected_unbound<type>();
+      inventory[eq_obj.name] = dyn_obj->slot;
     }
   }
 
-  auto get_final_representation = [this](const std::string& eq, const parsing::AST& ast)
-  {
-    if constexpr (type == parsing::Type::FAST)
-      return parsing::make_fast<type>{eq, *this}(ast);
-    else
-      return parsing::make_fast<type>{eq, *this}(ast).transform(parsing::make_RPN);
-  };
-
   std::unordered_set<std::string> invalid_functions;
 
-  for (size_t slot: func_slots)
+  for (DynMathObject<type>* dyn_obj: dep_eq_objs)
   {
-    DynMathObject<type>& dyn_obj = math_objects[slot];
-
-    assert(dyn_obj.opt_eq_object);
-
-    const EqObject& eq_obj = *dyn_obj.opt_eq_object;
-
-    // should be assigned in the previous loop
-    assert(dyn_obj.has_value());
-
-    std::visit(
-      utils::overloaded{
-        [&](Function<type>& f)
-        {
-          assert(eq_obj.name == f.name);
-
-          if (auto exp_rhs = get_final_representation(eq_obj.equation, eq_obj.rhs))
-            f.bound_rhs = std::move(*exp_rhs);
-          else
-          {
-            invalid_functions.insert(eq_obj.name);
-            dyn_obj.as_expected() = tl::unexpected(std::move(exp_rhs.error()));
-          }
-        },
-        [&](Sequence<type>& u)
-        {
-          assert(eq_obj.name == u.name);
-          std::vector<const parsing::AST*> seq_ast_values;
-
-          if (eq_obj.rhs.is_func() and eq_obj.rhs.func_data().type == parsing::AST::Func::SEPARATOR)
-          {
-            // sequence defined with first values
-            seq_ast_values.reserve(eq_obj.rhs.func_data().subnodes.size());
-            std::ranges::transform(eq_obj.rhs.func_data().subnodes,
-                                   std::back_inserter(seq_ast_values),
-                                   [](auto&& val){ return &val; });
-          }
-          // sequence defined without first values
-          else seq_ast_values.push_back(&eq_obj.rhs);
-
-          u.values.reserve(seq_ast_values.size());
-          for (const parsing::AST* ast: seq_ast_values)
-            if (auto exp_rhs = get_final_representation(eq_obj.equation, *ast))
-              u.values.push_back(std::move(*exp_rhs));
-            else
-            {
-              invalid_functions.insert(eq_obj.name);
-              dyn_obj.as_expected() = tl::unexpected(std::move(exp_rhs.error()));
-              break;
-            }
-        },
-        [](auto&&) { assert(false); /* we are not supposed to ever hit here */}
-      },
-      *dyn_obj
-    );
+    dyn_obj->as_expected() = dyn_obj->opt_eq_object->template to_expected<type>(*this);
+    if (not dyn_obj->has_value())
+      invalid_functions.insert(dyn_obj->opt_eq_object->name);
   }
 
   std::unordered_set<std::string> covered_invalid_functions;
@@ -269,17 +251,24 @@ deps::Deps MathWorld<type>::direct_dependencies(const DynMathObject<type>& obj) 
 }
 
 template <parsing::Type type>
-void MathWorld<type>::name_change(size_t slot, std::string_view old_name, std::string_view new_name)
+void MathWorld<type>::object_updated(size_t slot,
+                                     bool is_eq_object_now,
+                                     std::string old_name,
+                                     std::string new_name)
 {
   if (not old_name.empty())
   {
-    auto it = inventory.find(old_name);
-    assert(it != inventory.end());
-    inventory.erase(it);
+    inventory.erase(old_name);
+    eq_object_inventory.erase(old_name);
   }
 
-  if (not new_name.empty())
-    inventory[std::string(new_name)] = slot;
+  if (is_eq_object_now and not new_name.empty())
+    eq_object_inventory[new_name] = slot;
+
+  if (not new_name.empty() and math_objects[slot].has_value())
+    inventory[new_name] = slot;
+
+  rebind_dependent_functions({old_name, new_name});
 }
 
 template <parsing::Type type>
@@ -303,23 +292,18 @@ template <parsing::Type type>
 deps::Deps MathWorld<type>::direct_revdeps(std::string_view name) const
 {
   deps::Deps direct_rev_deps;
-  for (const DynMathObject<type>& o: math_objects)
+  for (auto&& [obj_name, slot]: eq_object_inventory)
   {
-    if (o.has_value())
-      std::visit(
-        [&]<class T>(const T& obj) {
-          if constexpr (is_function_v<T>)
-          {
-            auto deps = direct_dependencies(o.slot);
-            if (auto it = deps.find(name); it != deps.end())
-            {
-              deps::Dep& dep = direct_rev_deps[std::string(obj.get_name())];
-              dep.type = deps::Dep::FUNCTION;
-              dep.indexes = it->second.indexes;
-            }
-          }
-        },
-        *o);
+    assert(math_objects[slot].opt_eq_object);
+    assert(math_objects[slot].opt_eq_object->name == obj_name);
+
+    auto deps = direct_dependencies(slot);
+    if (auto it = deps.find(name); it != deps.end())
+    {
+      deps::Dep& dep = direct_rev_deps[obj_name];
+      dep.type = deps::Dep::FUNCTION;
+      dep.indexes = it->second.indexes;
+    }
   }
   return direct_rev_deps;
 }
@@ -388,16 +372,14 @@ tl::expected<Ok, UnregisteredObject> MathWorld<type>::erase(size_t slot)
   if (not math_objects.is_assigned(slot))
     return tl::unexpected(UnregisteredObject{});
 
-  if (std::string_view name = math_objects[slot].get_name(); not name.empty())
-  {
-    auto it = inventory.find(name);
-    assert(it != inventory.end());
-    inventory.erase(it);
-  }
+  std::string name(math_objects[slot].get_name());
 
   math_objects.free(slot);
 
-  rebind_functions();
+  if (auto it = eq_object_inventory.find(name); it != eq_object_inventory.end())
+    eq_object_inventory.erase(it);
+
+  object_updated(slot, false, name, "");
 
   return Ok{};
 }

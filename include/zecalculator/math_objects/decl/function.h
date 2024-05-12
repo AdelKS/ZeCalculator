@@ -93,6 +93,7 @@ protected:
 
   // constructor reserved for MathWorld when using add() function
   Function(MathObject base, size_t argument_number);
+  Function(MathObject base, size_t argument_number, parsing::Parsing<type> parsing);
 
   /// @note version that tracks the current recursion depth
   tl::expected<double, Error> evaluate(std::span<const double> args,
@@ -111,8 +112,7 @@ protected:
   template <parsing::Type>
   friend class MathWorld;
 
-  template <parsing::Type>
-  friend class DynMathObject;
+  friend struct EqObject;
 };
 
 template <parsing::Type type>

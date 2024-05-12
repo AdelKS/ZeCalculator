@@ -10,6 +10,11 @@ Sequence<type>::Sequence(MathObject obj) : MathObject(std::move(obj))
 {}
 
 template <parsing::Type type>
+Sequence<type>::Sequence(MathObject obj, std::vector<parsing::Parsing<type>> values)
+  : MathObject(std::move(obj)), values(std::move(values))
+{}
+
+template <parsing::Type type>
 tl::expected<double, Error> Sequence<type>::evaluate(double index,
                                                      size_t current_recursion_depth) const
 {

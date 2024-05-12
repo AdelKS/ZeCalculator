@@ -30,7 +30,7 @@
 namespace zc {
 
 template <parsing::Type type>
-DynMathObject<type>::DynMathObject(tl::expected<MathObjectsVariant<type>, Error> exp_variant, size_t slot, MathWorld<type>* mathworld)
+DynMathObject<type>::DynMathObject(tl::expected<MathObjectsVariant<type>, Error> exp_variant, size_t slot, MathWorld<type>& mathworld)
   : tl::expected<MathObjectsVariant<type>, Error>(std::move(exp_variant)), slot(slot), mathworld(mathworld)
 {}
 
@@ -99,7 +99,7 @@ DynMathObject<type>& DynMathObject<type>::operator = (CppFunction<args_num> cpp_
 {
   opt_eq_object.reset();
 
-  if (mathworld->contains(cpp_f.get_name())) [[unlikely]]
+  if (mathworld.contains(cpp_f.get_name())) [[unlikely]]
     return assign_error(Error::name_already_taken(std::string(cpp_f.get_name())));
   else return assign_object(std::move(cpp_f), {});
 }
@@ -109,7 +109,7 @@ DynMathObject<type>& DynMathObject<type>::operator = (GlobalConstant cst)
 {
   opt_eq_object.reset();
 
-  if (mathworld->contains(cst.get_name())) [[unlikely]]
+  if (mathworld.contains(cst.get_name())) [[unlikely]]
     return assign_error(Error::name_already_taken(std::string(cst.get_name())));
   else return assign_object(std::move(cst), {});
 
@@ -240,7 +240,7 @@ DynMathObject<type>& DynMathObject<type>::assign(std::string definition, EqObjec
   std::string old_name(get_name());
 
   // fourth sanity check: name check
-  if (eq_obj.name != old_name and mathworld->contains(eq_obj.name))
+  if (eq_obj.name != old_name and mathworld.contains(eq_obj.name))
     return assign_error(Error::name_already_taken(eq_obj.lhs.name, definition));
 
   std::vector<std::string> var_names;
@@ -262,46 +262,42 @@ DynMathObject<type>& DynMathObject<type>::assign(std::string definition, EqObjec
 
   // now that we checked that everything is fine, we can assign the object
   if (is_sequence_def or cat == EqObject::SEQUENCE)
-  {
     eq_obj.cat = EqObject::SEQUENCE;
-    // given that we move 'eq_obj', and that 'u' depends on it, define it first
-    auto u = Sequence<type>(eq_obj.name);
-    assign_object(std::move(u), std::move(eq_obj));
-  }
+
   else if (is_function_def or is_global_var_def)
-  {
     eq_obj.cat = EqObject::FUNCTION;
-    auto f = Function<type>(eq_obj.name, eq_obj.lhs.args_num());
-    assign_object(std::move(f), std::move(eq_obj));
-  }
+
   else
   {
     assert(is_global_constant_def);
     eq_obj.cat = EqObject::GLOBAL_CONSTANT;
-    auto cst = GlobalConstant(eq_obj.name, eq_obj.rhs.number_data().value);
-    assign_object(std::move(cst), std::move(eq_obj));
   }
+
+  assign_object(eq_obj.to_expected(mathworld), eq_obj);
 
   return *this;
 }
 
 template <parsing::Type type>
-DynMathObject<type>& DynMathObject<type>::assign_error(Error error)
+DynMathObject<type>& DynMathObject<type>::assign_error(Error error, std::optional<EqObject> new_opt_eq_obj)
 {
-  mathworld->name_change(slot, get_name(), "");
-  as_expected() = tl::unexpected(std::move(error));
-  mathworld->rebind_functions();
-  return *this;
+  return assign_object(tl::unexpected(std::move(error)), std::move(new_opt_eq_obj));
 }
 
 template <parsing::Type type>
 template <class T>
 DynMathObject<type>& DynMathObject<type>::assign_object(T&& obj, std::optional<EqObject> new_opt_eq_obj)
 {
+  std::string old_name(get_name());
+  auto old_eq_object = opt_eq_object;
   opt_eq_object = std::move(new_opt_eq_obj);
-  mathworld->name_change(slot, get_name(), obj.get_name());
   as_expected() = std::forward<T>(obj);
-  mathworld->rebind_functions();
+
+  mathworld.object_updated(slot,
+                           bool(opt_eq_object),
+                           old_eq_object ? old_eq_object->name : old_name,
+                           opt_eq_object ? opt_eq_object->name : std::string(get_name()));
+
   return *this;
 }
 
@@ -351,6 +347,13 @@ std::string_view DynMathObject<type>::get_name() const
   if (bool(*this))
     return std::visit([](const auto& val){ return val.get_name(); }, **this);
   else return std::string_view();
+}
+
+template <parsing::Type type>
+bool DynMathObject<type>::has_function_eq_obj() const
+{
+  return opt_eq_object
+         and (opt_eq_object->cat == EqObject::FUNCTION or opt_eq_object->cat == EqObject::SEQUENCE);
 }
 
 }

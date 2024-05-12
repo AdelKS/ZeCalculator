@@ -37,9 +37,6 @@ namespace parsing {
   struct make_fast;
 }
 
-template <parsing::Type type>
-using MathObjectsVariant = to_variant_t<MathObjects<type>>;
-
 template <class T>
 struct As { std::string str; };
 
@@ -100,19 +97,22 @@ public:
 
 protected:
   size_t slot;
-  MathWorld<type>* const mathworld;
+  MathWorld<type>& mathworld;
 
   /// @brief non-empty when a syntactically correct equation gets assigned
   std::optional<EqObject> opt_eq_object;
 
-  DynMathObject(tl::expected<MathObjectsVariant<type>, Error> exp_variant, size_t slot, MathWorld<type>* mathworld);
+  DynMathObject(tl::expected<MathObjectsVariant<type>, Error> exp_variant, size_t slot, MathWorld<type>& mathworld);
 
   DynMathObject<type>& assign(std::string definition, EqObject::Category cat);
 
-  DynMathObject<type>& assign_error(Error error);
+  DynMathObject<type>& assign_error(Error error, std::optional<EqObject> new_opt_eq_obj = {});
 
   template <class T>
   DynMathObject<type>& assign_object(T&& obj, std::optional<EqObject> new_opt_eq_obj);
+
+  /// @brief true if has an assigned 'opt_eq_object' with a function/sequence within
+  bool has_function_eq_obj() const;
 
   friend MathWorld<type>;
 };
