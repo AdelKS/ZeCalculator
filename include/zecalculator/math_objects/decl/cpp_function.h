@@ -33,17 +33,6 @@ namespace zc {
 template <parsing::Type type>
 class MathWorld;
 
-/// @brief function signature of the type double (*) (double, double, ...) [args_num doubles as input]
-template <size_t args_num>
-struct CppMathFunctionPtr
-{
-  typename utils::math_func_signature_t<args_num> ptr;
-};
-
-template <class... DBL>
-  requires (std::is_same_v<DBL, double> and ...)
-CppMathFunctionPtr(double(*)(DBL...)) -> CppMathFunctionPtr<sizeof...(DBL)>;
-
 template <size_t args_num>
   requires (args_num > 0)
 struct CppFunction
@@ -60,7 +49,8 @@ struct CppFunction
   bool operator == (const CppFunction&) const = default;
 };
 
-template <size_t args_num>
-CppFunction(std::string_view, CppMathFunctionPtr<args_num>) -> CppFunction<args_num>;
+template <class... DBL>
+  requires (std::is_same_v<DBL, double> and ...)
+CppFunction(std::string_view, double(*)(DBL...)) -> CppFunction<sizeof...(DBL)>;
 
 } // namespace zc
