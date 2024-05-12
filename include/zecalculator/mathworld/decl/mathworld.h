@@ -104,12 +104,10 @@ public:
   bool contains(std::string_view name) const;
 
   /// @brief gives the Functions and Variables the equation of this object directly depends on
-  /// @note  uses only the equation (no name lookup is done in the MathWorld)
-  /// @note  undefined functions & variables in the math world will still be listed
+  /// @note  uses only the equation of objects defined through an equation
+  ///        -> undefined functions & variables in the math world will still be listed
   /// @note  return an empty container for objects not defined with an equation
-  deps::Deps direct_dependencies(const DynMathObject<type>& obj) const;
   deps::Deps direct_dependencies(std::string_view name) const;
-  deps::Deps direct_dependencies(size_t slot) const;
 
   /// @brief evaluates a given expression within this world
   tl::expected<double, Error> evaluate(std::string expr);

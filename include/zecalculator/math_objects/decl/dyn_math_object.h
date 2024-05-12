@@ -22,9 +22,10 @@
 
 #include <zecalculator/error.h>
 #include <zecalculator/external/expected.h>
+#include <zecalculator/math_objects/decl/eq_object.h>
 #include <zecalculator/math_objects/decl/math_object.h>
 #include <zecalculator/math_objects/object_list.h>
-#include <zecalculator/math_objects/decl/eq_object.h>
+#include <zecalculator/parsing/data_structures/deps.h>
 #include <zecalculator/parsing/types.h>
 
 namespace zc {
@@ -88,6 +89,12 @@ public:
   template <class T>
     requires (tuple_contains_v<MathObjects<type>, T> or std::is_same_v<T, Error>)
   bool holds() const;
+
+  /// @brief gives the Functions and Variables the equation of this object directly depends on
+  /// @note  uses only the equation this object is defined with
+  ///        -> undefined functions & variables in the math world will still be listed
+  /// @note  return an empty container when not defined through an equation
+  deps::Deps direct_dependencies() const;
 
   /// @brief no pun intended
   tl::expected<MathObjectsVariant<type>, Error>& as_expected();

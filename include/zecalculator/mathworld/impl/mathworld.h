@@ -242,15 +242,6 @@ bool MathWorld<type>::sanity_check(const DynMathObject<type>& obj) const
 }
 
 template <parsing::Type type>
-deps::Deps MathWorld<type>::direct_dependencies(const DynMathObject<type>& obj) const
-{
-  if (not sanity_check(obj)) [[unlikely]]
-    throw std::runtime_error("Object doesn't belong to math world");
-
-  return direct_dependencies(obj.slot);
-}
-
-template <parsing::Type type>
 void MathWorld<type>::object_updated(size_t slot,
                                      bool is_eq_object_now,
                                      std::string old_name,
@@ -275,17 +266,8 @@ template <parsing::Type type>
 deps::Deps MathWorld<type>::direct_dependencies(std::string_view name) const
 {
   if(auto* obj = get(name))
-    return direct_dependencies(*obj);
+    return obj->direct_dependencies();
   else return deps::Deps();
-}
-
-template <parsing::Type type>
-deps::Deps MathWorld<type>::direct_dependencies(size_t slot) const
-{
-  if (not math_objects.is_assigned(slot) or not math_objects[slot].opt_eq_object)
-    return deps::Deps();
-
-  return parsing::direct_dependencies(math_objects[slot].opt_eq_object->rhs);
 }
 
 template <parsing::Type type>
@@ -297,7 +279,7 @@ deps::Deps MathWorld<type>::direct_revdeps(std::string_view name) const
     assert(math_objects[slot].opt_eq_object);
     assert(math_objects[slot].opt_eq_object->name == obj_name);
 
-    auto deps = direct_dependencies(slot);
+    auto deps = math_objects[slot].direct_dependencies();
     if (auto it = deps.find(name); it != deps.end())
     {
       deps::Dep& dep = direct_rev_deps[obj_name];

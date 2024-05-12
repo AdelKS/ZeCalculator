@@ -356,4 +356,13 @@ bool DynMathObject<type>::has_function_eq_obj() const
          and (opt_eq_object->cat == EqObject::FUNCTION or opt_eq_object->cat == EqObject::SEQUENCE);
 }
 
+template <parsing::Type type>
+deps::Deps DynMathObject<type>::direct_dependencies() const
+{
+  if (not opt_eq_object)
+    return deps::Deps();
+
+  return parsing::direct_dependencies(opt_eq_object->rhs);
+}
+
 }

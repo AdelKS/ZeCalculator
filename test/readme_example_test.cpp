@@ -45,7 +45,7 @@ int main()
 
   // We can query the direct dependencies of any object: name, type, and where in the equation
   // Note: only Function and Sequence instances with a valid equation return a non-empty set
-  assert(bool(world.direct_dependencies(obj1)
+  assert(bool(obj1.direct_dependencies()
               == deps::Deps{{"my_constant", {deps::Dep::VARIABLE, {11}}},
                             {"cos", {deps::Dep::FUNCTION, {25}}},
                             {"math::pi", {deps::Dep::VARIABLE, {29}}}}));
