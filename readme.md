@@ -11,18 +11,21 @@
 - Handle elegantly wrong math expressions
   - No exceptions (only used when the user does something wrong)
   - Give meaningful error messages: what went wrong, on what part of the equation
-- Has little dependencies for easy packaging
-- Fast repetitive evaluation of math objects, once the user has properly defined every math object.
+- Has no dependencies for easy packaging
+- Fast repetitive evaluation of math objects.
 - Know dependencies between objects (which object calls which other objects)
 
-### Example code
+#### Example code
 
 ```c++
 #include <zecalculator/zecalculator.h>
+#include <zecalculator/test-utils/print-utils.h>
 
 using namespace zc;
 using namespace tl;
 using namespace std;
+
+double square(double x) { return x * x; }
 
 int main()
 {
@@ -36,7 +39,7 @@ int main()
   //   - the error expresses what went wrong in adding the object / parsing the equation
   rpn::DynMathObject& obj1 = world.new_object();
 
-  // Add a one parameter function named "f"
+  // Assign a one parameter function named "f"
   // Note that 'my_constant' is only defined later
   // - this function's state will be updated once 'my_constant' is defined
   // - (re)defining objects within a math world can potentially modify every other objects
@@ -55,13 +58,14 @@ int main()
                == Error::undefined_variable(parsing::tokens::Text{"my_constant", 11},
                                             "f(x) = x + my_constant + cos(math::pi)"));
 
-  // Add a global constant called "my_constant" with an initial value of 3.0
   rpn::DynMathObject& obj2 = world.new_object();
+
+  // Assign a global constant called "my_constant" with an initial value of 3.0
   obj2 = "my_constant = 3.0";
 
   // now that 'my_constant' is defined, 'obj1' gets modified to properly hold a function
-  // Note that defining an object in the MathWorld may affect any other object
-  // -> Redefining objects is NOT thread-safe
+  // Note that assigning to an object in the MathWorld may affect any other object
+  // -> Assigning to objects is NOT thread-safe
   assert(obj1.holds<rpn::Function>());
 
   // We can evaluate 'obj1'
@@ -80,12 +84,12 @@ int main()
   // add a single argument function 'g' to the world
   world.new_object() = "g(z) = 2*z + my_constant";
 
-  // redefine what 'obj1' using a new equation
+  // assign a new equation to 'obj1'
   // - Now it's the Fibonacci sequence called 'u'
-  // - we can force the parser to parse it as a sequence
+  // - we can force the parser to interpret it as a sequence
   //   - unneeded here, just for demo
-  //   - the object will contain an error if the forced parsing fails
-  //     - even if the equation is a valid e.g. GlobalConstant expression
+  //   - the object will contain an error if the equation doesn't fit with the type asked for
+  //     - even if the equation is a valid e.g. a GlobalConstant expression
   obj1 = As<rpn::Sequence>{"u(n) = 0 ; 1 ; u(n-1) + u(n-2)"};
 
   // should hold a Sequence now
@@ -93,6 +97,12 @@ int main()
 
   // evaluate function again and get the new value
   assert(obj1(10).value() == 55);
+
+  // C++ double(double...) functions can also be registered in a world
+  auto& obj3 = world.new_object();
+  obj3 = CppFunction{"square", square};
+
+  assert(world.evaluate("square(2)").value() == 4.);
 
   // ======================================================================================
 
@@ -113,31 +123,73 @@ int main()
 
 More examples of what the library can do are in the [test](./test/) folder.
 
-#### Interface
+#### Documentation
 
-Math objects belong to a [zc::MathWorld](./include/zecalculator/mathworld/decl/mathworld.h)
-- Within a "math world", objects can "see" each other in their expressions
-- Every instance of `MathWorld` is based on a `default world` that contains the usual functions and constants.
-- Stores its objects in a container of [zc::DynMathObject](./include/zecalculator/math_objects/decl/dyn_math_object.h)
-  - Does not invalidate references to existing contained objects when growing/shrinking
-  - When adding an object, the math world returns a [zc::DynMathObject&](./include/zecalculator/math_objects/decl/dyn_math_object.h), and that can be used as a "permanent handle"
-- [zc::DynMathObject&](./include/zecalculator/math_objects/decl/dyn_math_object.h)
-  - Publicly inherits `tl::expected<std::variant<...>, zc::Error>`, where `std::variant<...>` contains all the possible math object types supported by the library.
-     - Underlying objects can be accessed using the [expected](https://en.cppreference.com/w/cpp/utility/expected) class it inherits or its `value_as` helper method.
-  - Can be redefined through its owning math world `zc::MathWorld::redefine(zc::DynMathObject&, std::string equation)`
-     - Note: redefining the object has been put in the math world because it can potentially modify all the other objects
-  - Can be evaluated using its method `evaluate(double...)` or `operator () (double...)`
-- C++ functions can be added
+Classes within header files are fully documented.
 
-Error messages when expressions have faulty syntax or semantics are expressed through the [zc::Error](include/zecalculator/error.h) class:
-  - If it is known, gives what part of the equation raised the error.
-  - If it is known, gives the type of error.
-
-Two namespaces are offered, that express the underlying representation of the parsed math objects
-- `zc::fast`: using the abstract syntax tree representation (AST)
-- `zc::rpn`: using reverse polish notation (RPN) / postfix notation in a flat representation in memory.
-  - Generated from the `fast` representation, but the time taken by the extra step is negligible (see results of the test "AST/FAST/RPN creation speed")
-  - Has faster evaluation
+Overview:
+1. The entry-point class is [MathWorld](./include/zecalculator/mathworld/decl/mathworld.h)
+    ```c++
+    rpn::MathWorld mathworld;
+    ```
+   - Within the same `MathWorld` instance, objects can "see" and "talk" to each other.
+   - Every instance of `MathWorld` is filled with the usual functions and constants, see [builtin.h](./include/zecalculator/math_objects/builtin.h).
+   - Stores its objects in a container of [zc::DynMathObject](./include/zecalculator/math_objects/decl/dyn_math_object.h)
+     - Does not invalidate references to unaffected `zc::DynMathObject` instances it contains when growing/shrinking
+     - When adding an object, the math world returns a [zc::DynMathObject&](./include/zecalculator/math_objects/decl/dyn_math_object.h), and that can be used as a "permanent handle"
+        ```c++
+        rpn::DynMathObject& obj = mathworld.new_object();
+        ```
+2. [DynMathObject](./include/zecalculator/math_objects/decl/dyn_math_object.h) is essentially (inherits) an `std::expected<std::variant<alternative...>, zc::Error>`
+    - Has the `std::expected` public methods
+      - `bool has_value()` to know if it's currently holding an `std::variant`
+      - `zc::Error error()` to retrieve the error, when it's in an error state
+      - `std::variant<alternative...>& value()` to retrieve the variant (with check)
+      - `std::variant<alternative...>& operator * ()` to retrieve the variant (without check)
+    - Some extra helper methods
+      - `bool holds<T>` to know if it's in a good state, and the variant holds the alternative `T`
+      - `T& value_as<T>` to retrieve a specific alternative of the variant
+    - Can be assigned, using `operator =`, equations or math objects.
+      - [CppFunction](./include/zecalculator/math_objects/decl/cpp_function.h)
+        ```c++
+        double square(double x) { return x * x; }
+        // ...
+        obj = zc::CppFunction{"square", square};
+        ```
+      - [Function](./include/zecalculator/math_objects/decl/function.h)
+        ```c++
+        // automatic type deduction
+        obj = "f(x) = cos(x)";
+        // or force type
+        obj = As<rpn::Function>{"f(x) = cos(x)"};
+        ```
+      - [Sequence](./include/zecalculator/math_objects/decl/sequence.h)
+        ```c++
+        // needs forcing the type, automatic type deduction would otherwise deduce a zc::Function
+        obj = As<rpn::Sequence>{"u(n) = n"};
+        // or sequence with first values, the last expression is the generic expression
+        obj = "fibonacci(n) = 0 ; 1 ; fibonacci(n-1) + fibonacci(n-2)"
+        ```
+      - [GlobalConstant](./include/zecalculator/math_objects/decl/global_constant.h)
+        ```c++
+        // defined through an equation of type "name = number"
+        obj = "pi = 3.14";
+        // or assigned directly without the need of parsing
+        obj = zc::GlobalConstant{"pi", 3.14};
+        ```
+    - Can be evaluated
+      ```c++
+      tl::expected<double, zc::Error> res1 = obj(1.0);
+      tl::expected<double, zc::Error> res2 = obj.evaluate(12.0);
+      ```
+3. Error messages when expressions have faulty syntax or semantics are expressed through the [zc::Error](include/zecalculator/error.h) class:
+   - If it is known, gives what part of the equation raised the error with the `token` member, of the type [zc::tokens::Text](./include/zecalculator/parsing/data_structures/token.h)
+   - If it is known, gives the type of error.
+4. Two namespaces are offered, that express the underlying representation of the parsed math objects
+   - `zc::fast::`: using the abstract syntax tree representation (AST)
+   - `zc::rpn::`: using reverse polish notation (RPN) / postfix notation in a flat representation in memory.
+     - Generated from the `fast` representation, but the time taken by the extra step is negligible (see results of the test "AST/FAST/RPN creation speed")
+     - Has faster evaluation
 
 #### Benchmarks
 There is for now one benchmark defined in the tests, called "parametric function benchmark" in the file [test/function_test.cpp](test/function_test.cpp), that computes the average evaluation time of the function `f(x) = 3*cos(t*x) + 2*sin(x/t) + 4`, where `t` is a global constant, in `ast` vs `rpn` vs `c++`.
