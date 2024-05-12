@@ -32,17 +32,18 @@ int main()
   // - Each added object exists only within the math world that creates it
   // - Adding a math object returns a DynMathObject reference that is essentially an expected<variant, error>
   //   with some helper functions.
-  //   - the variant contains all the possible objects: function, sequence, global constant, global variable, cpp function
-  //   - the error expresses what went wrong in parsing the equation
+  //   - the variant contains all the possible objects: function, sequence, global constant, cpp function
+  //   - the error expresses what went wrong in adding the object / parsing the equation
+  rpn::DynMathObject& obj1 = world.new_object();
 
   // Add a one parameter function named "f"
   // Note that 'my_constant' is only defined later
   // - this function's state will be updated once 'my_constant' is defined
   // - (re)defining objects within a math world can potentially modify every other objects
-  rpn::DynMathObject& obj1 = world.add("f(x) = x + my_constant + cos(math::pi)");
+  obj1 = "f(x) = x + my_constant + cos(math::pi)";
 
-  // We can query the direct dependencies of any object
-  // but only Function and Sequence instances with a valid equation return a non-empty set
+  // We can query the direct dependencies of any object: name, type, and where in the equation
+  // Note: only Function and Sequence instances with a valid equation return a non-empty set
   assert(bool(world.direct_dependencies(obj1)
               == deps::Deps{{"my_constant", {deps::Dep::VARIABLE, {11}}},
                             {"cos", {deps::Dep::FUNCTION, {25}}},
@@ -55,7 +56,8 @@ int main()
                                             "f(x) = x + my_constant + cos(math::pi)"));
 
   // Add a global constant called "my_constant" with an initial value of 3.0
-  rpn::DynMathObject& obj2 = world.add("my_constant = 3.0");
+  rpn::DynMathObject& obj2 = world.new_object();
+  obj2 = "my_constant = 3.0";
 
   // now that 'my_constant' is defined, 'obj1' gets modified to properly hold a function
   // Note that defining an object in the MathWorld may affect any other object
@@ -76,11 +78,15 @@ int main()
   assert(eval.value() == 3);
 
   // add a single argument function 'g' to the world
-  world.add("g(z) = 2*z + my_constant");
+  world.new_object() = "g(z) = 2*z + my_constant";
 
   // redefine what 'obj1' using a new equation
   // - Now it's the Fibonacci sequence called 'u'
-  world.redefine(obj1, "u(n) = 0 ; 1 ; u(n-1) + u(n-2)");
+  // - we can force the parser to parse it as a sequence
+  //   - unneeded here, just for demo
+  //   - the object will contain an error if the forced parsing fails
+  //     - even if the equation is a valid e.g. GlobalConstant expression
+  obj1 = As<rpn::Sequence>{"u(n) = 0 ; 1 ; u(n-1) + u(n-2)"};
 
   // should hold a Sequence now
   assert(obj1.holds<rpn::Sequence>());
@@ -97,7 +103,7 @@ int main()
   //   - the expected has an error
   //   - the alternative asked is not the actual one held by the variant
   [[maybe_unused]] rpn::Sequence& u = obj1.value_as<rpn::Sequence>();
-  [[maybe_unused]] rpn::GlobalConstant& my_constant = obj2.value_as<rpn::GlobalConstant>();
+  [[maybe_unused]] GlobalConstant& my_constant = obj2.value_as<GlobalConstant>();
 
   // each specific math object has extra public methods that may prove useful
 

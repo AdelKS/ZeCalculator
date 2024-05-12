@@ -36,7 +36,7 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    auto& fib = world.add("fib(n) = 0 ; 1 ; fib(n-1) + fib(n-2)");
+    auto& fib = world.new_object() = "fib(n) = 0 ; 1 ; fib(n-1) + fib(n-2)";
 
     expect(bool(fib)) << [&] { return fib.error(); } << fatal;
 
@@ -59,7 +59,7 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    auto& bad = world.add("bad(n) = bad(n+10) + bad(n+20)");
+    auto& bad = world.new_object() = "bad(n) = bad(n+10) + bad(n+20)";
 
     expect(bad(0).error() == Error::recursion_depth_overflow());
 

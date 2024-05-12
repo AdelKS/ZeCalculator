@@ -26,6 +26,9 @@ namespace zc {
 template <parsing::Type type>
 class MathWorld;
 
+template <parsing::Type type>
+class DynMathObject;
+
 namespace eval {
   template <parsing::Type>
   struct Evaluator;
@@ -34,16 +37,20 @@ namespace eval {
 class MathObject
 {
 public:
+  MathObject(std::string name) : name(std::move(name))
+  {}
+
   std::string_view get_name() const { return name; };
 
 protected:
-  MathObject(std::string name) : name(std::move(name))
-  {}
 
   std::string name;
 
   template <parsing::Type>
   friend class MathWorld;
+
+  template <parsing::Type>
+  friend class DynMathObject;
 
 };
 

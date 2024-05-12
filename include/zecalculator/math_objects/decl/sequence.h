@@ -33,6 +33,9 @@ namespace zc {
 template <parsing::Type type>
 class MathWorld;
 
+template <parsing::Type type>
+class DynMathObject;
+
 using Vals = std::vector<double>;
 
 template <class T>
@@ -77,6 +80,9 @@ protected:
 
   template <parsing::Type>
   friend class MathWorld;
+
+  template <parsing::Type>
+  friend class DynMathObject;
 
 };
 

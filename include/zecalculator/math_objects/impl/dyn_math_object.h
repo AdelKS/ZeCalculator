@@ -30,8 +30,8 @@
 namespace zc {
 
 template <parsing::Type type>
-DynMathObject<type>::DynMathObject(tl::expected<MathObjectsVariant<type>, Error> exp_variant, size_t slot)
-  : tl::expected<MathObjectsVariant<type>, Error>(std::move(exp_variant)), slot(slot)
+DynMathObject<type>::DynMathObject(tl::expected<MathObjectsVariant<type>, Error> exp_variant, size_t slot, MathWorld<type>* mathworld)
+  : tl::expected<MathObjectsVariant<type>, Error>(std::move(exp_variant)), slot(slot), mathworld(mathworld)
 {}
 
 template <parsing::Type type>
@@ -71,6 +71,238 @@ tl::expected<double, Error> DynMathObject<type>::evaluate(DBL... val) const
     },
     **this
   );
+}
+
+template <parsing::Type type>
+template <class T>
+  requires tuple_contains_v<MathEqObjects<type>, T>
+DynMathObject<type>& DynMathObject<type>::operator = (As<T> eq)
+{
+  if constexpr (std::is_same_v<T, Function<type>>)
+    return assign(std::move(eq.str), EqObject::FUNCTION);
+  else if constexpr (std::is_same_v<T, Sequence<type>>)
+    return assign(std::move(eq.str), EqObject::SEQUENCE);
+  else if constexpr (std::is_same_v<T, GlobalConstant>)
+    return assign(std::move(eq.str), EqObject::GLOBAL_CONSTANT);
+  else static_assert(utils::dependent_false_v<T>, "case not handled");
+}
+
+template <parsing::Type type>
+DynMathObject<type>& DynMathObject<type>::operator = (std::string eq)
+{
+  return assign(std::move(eq), EqObject::AUTO);
+}
+
+template <parsing::Type type>
+template <size_t args_num>
+DynMathObject<type>& DynMathObject<type>::operator = (CppFunction<args_num> cpp_f)
+{
+  opt_eq_object.reset();
+
+  if (mathworld->contains(cpp_f.get_name())) [[unlikely]]
+    return assign_error(Error::name_already_taken(std::string(cpp_f.get_name())));
+  else return assign_object(std::move(cpp_f), {});
+}
+
+template <parsing::Type type>
+DynMathObject<type>& DynMathObject<type>::operator = (GlobalConstant cst)
+{
+  opt_eq_object.reset();
+
+  if (mathworld->contains(cst.get_name())) [[unlikely]]
+    return assign_error(Error::name_already_taken(std::string(cst.get_name())));
+  else return assign_object(std::move(cst), {});
+
+  return *this;
+}
+
+template <parsing::Type type>
+tl::expected<MathObjectsVariant<type>, Error>& DynMathObject<type>::as_expected()
+{
+  return *this;
+}
+
+template <parsing::Type type>
+const tl::expected<MathObjectsVariant<type>, Error>& DynMathObject<type>::as_expected() const
+{
+  return *this;
+}
+
+template <parsing::Type type>
+DynMathObject<type>& DynMathObject<type>::assign(std::string definition, EqObject::Category cat)
+{
+/**
+  *  0. Example: def = "f(x) = cos(x)"
+  *  1. Tokenize the definition: ['f', '(', 'x', ')', '=', 'cos', '(', 'x', ')']
+  *  2. Make AST representation of the definition
+  *         =
+  *        / \
+  *       f  cos
+  *      /     \
+  *     x       x
+  *  3. Extract information
+  *    - Function name
+  *    - Variable name(s)
+  *    - Expression
+  *  4. Any step can fail, in which case the member variable 'm' is an Error instance
+  **/
+
+  EqObject eq_obj {.cat = cat, .equation = definition};
+
+  auto ast = parsing::tokenize(definition)
+               .and_then(parsing::make_ast{definition})
+               .transform(parsing::flatten_separators);
+  if (not ast)
+    return assign_error(ast.error());
+
+  // the root node of the tree must be the equal sign
+  if (not (ast->is_func() and ast->func_data().type == parsing::AST::Func::OP_ASSIGN))
+    return assign_error(Error::not_math_object_definition());
+
+
+  auto& funcop_data = ast->func_data();
+
+  assert(funcop_data.subnodes.size() == 2);
+
+  eq_obj.lhs = std::move(funcop_data.subnodes[0]);
+  eq_obj.rhs = std::move(funcop_data.subnodes[1]);
+
+  funcop_data.subnodes.clear();
+
+  // "f(x) = ...."
+  const bool is_function_def = (eq_obj.lhs.is_func()
+                                and eq_obj.lhs.func_data().type
+                                      == parsing::AST::Func::FUNCTION);
+
+  const bool is_sequence_def = is_function_def and eq_obj.rhs.is_func()
+                               and eq_obj.rhs.func_data().type == parsing::AST::Func::SEPARATOR;
+
+  // "var = complex expression that is not a number"
+  const bool is_global_var_def = (eq_obj.lhs.is_var()
+                                 and not eq_obj.rhs.is_number());
+
+  // "var = 13.24213 (a number)"
+  const bool is_global_constant_def = (eq_obj.lhs.is_var() and eq_obj.rhs.is_number());
+
+  // first equation sanity check
+  if (not is_function_def and not is_global_var_def and not is_global_constant_def) [[unlikely]]
+    return assign_error(Error::unexpected(eq_obj.lhs.name, definition));
+
+  // second sanity check:
+  // if the left side of the equation is a function call
+  // it should only contain variables in each of its arguments, e.g. "f(x, y)"
+  // and not e.g. "f(x^2 + 1, x + y)"
+  if (is_function_def)
+    for (const auto& arg: eq_obj.lhs.func_data().subnodes)
+      if (not arg.is_var())
+        return assign_error(Error::unexpected(arg.name, definition));
+
+
+  // third sanity check: type checks
+  if (cat != EqObject::AUTO)
+  {
+    if (cat == EqObject::FUNCTION)
+    {
+      if (is_sequence_def)
+        // user asked for a function, but right hand side looks like a sequence def
+        // cannot have Separators on the right hand side for functions
+        return assign_error(Error::unexpected(eq_obj.rhs.name, definition));
+
+      if (is_global_var_def)
+        return assign_error(Error::wrong_object_type(eq_obj.lhs.name, definition));
+
+      // better to have a too restricted assert than not
+      assert(is_function_def and not is_sequence_def and not is_global_var_def
+             and not is_global_constant_def);
+    }
+    else if (cat == EqObject::SEQUENCE)
+    {
+      if (is_global_var_def)
+        return assign_error(Error::wrong_object_type(eq_obj.lhs.name, definition));
+
+      assert(is_function_def and is_sequence_def and not is_global_var_def
+             and not is_global_constant_def);
+    }
+    else if (cat == EqObject::GLOBAL_CONSTANT)
+    {
+      if (is_function_def)
+        return assign_error(Error::wrong_object_type(eq_obj.lhs.name, definition));
+      if (is_global_var_def)
+        return assign_error(Error::wrong_object_type(eq_obj.rhs.name, definition));
+      assert(is_global_constant_def and not is_global_var_def and not is_function_def
+             and not is_sequence_def);
+    }
+    else [[unlikely]] assert(false);
+  }
+
+  eq_obj.name = eq_obj.lhs.name.substr;
+
+  std::string old_name(get_name());
+
+  // fourth sanity check: name check
+  if (eq_obj.name != old_name and mathworld->contains(eq_obj.name))
+    return assign_error(Error::name_already_taken(eq_obj.lhs.name, definition));
+
+  std::vector<std::string> var_names;
+
+  if (is_function_def)
+  {
+    // fill 'arg_names'
+    const std::vector<parsing::AST>& args = eq_obj.lhs.func_data().subnodes;
+
+    var_names.reserve(args.size());
+
+    // the arguments of the function call in the left hand-side must all be regular variables
+    for (const auto& arg: args)
+      var_names.push_back(arg.name.substr);
+
+    // mark function's input variables in 'rhs'
+    eq_obj.rhs = parsing::mark_input_vars{var_names}(eq_obj.rhs);
+  }
+
+  // now that we checked that everything is fine, we can assign the object
+  if (is_sequence_def or cat == EqObject::SEQUENCE)
+  {
+    eq_obj.cat = EqObject::SEQUENCE;
+    // given that we move 'eq_obj', and that 'u' depends on it, define it first
+    auto u = Sequence<type>(eq_obj.name);
+    assign_object(std::move(u), std::move(eq_obj));
+  }
+  else if (is_function_def or is_global_var_def)
+  {
+    eq_obj.cat = EqObject::FUNCTION;
+    auto f = Function<type>(eq_obj.name, eq_obj.lhs.args_num());
+    assign_object(std::move(f), std::move(eq_obj));
+  }
+  else
+  {
+    assert(is_global_constant_def);
+    eq_obj.cat = EqObject::GLOBAL_CONSTANT;
+    auto cst = GlobalConstant(eq_obj.name, eq_obj.rhs.number_data().value);
+    assign_object(std::move(cst), std::move(eq_obj));
+  }
+
+  return *this;
+}
+
+template <parsing::Type type>
+DynMathObject<type>& DynMathObject<type>::assign_error(Error error)
+{
+  mathworld->name_change(slot, get_name(), "");
+  as_expected() = tl::unexpected(std::move(error));
+  mathworld->rebind_functions();
+  return *this;
+}
+
+template <parsing::Type type>
+template <class T>
+DynMathObject<type>& DynMathObject<type>::assign_object(T&& obj, std::optional<EqObject> new_opt_eq_obj)
+{
+  opt_eq_object = std::move(new_opt_eq_obj);
+  mathworld->name_change(slot, get_name(), obj.get_name());
+  as_expected() = std::forward<T>(obj);
+  mathworld->rebind_functions();
+  return *this;
 }
 
 template <parsing::Type type>

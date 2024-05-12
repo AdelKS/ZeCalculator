@@ -18,7 +18,7 @@
 **
 ****************************************************************************/
 
-#include "zecalculator/parsing/data_structures/token.h"
+#include <zecalculator/parsing/data_structures/token.h>
 #include <zecalculator/zecalculator.h>
 
 // testing specific headers
@@ -26,6 +26,8 @@
 #include <zecalculator/test-utils/print-utils.h>
 #include <zecalculator/test-utils/structs.h>
 #include <zecalculator/test-utils/utils.h>
+
+#include <numbers>
 
 using namespace zc;
 
@@ -94,8 +96,8 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    world.add("my_constant1 = 2.0");
-    world.add("my_constant2 = 3.0");
+    world.new_object() = "my_constant1 = 2.0";
+    world.new_object() = "my_constant2 = 3.0";
 
     expect(world.evaluate("my_constant1 + my_constant2").value() == 5.0_d);
   } | std::tuple<FAST_TEST, RPN_TEST>{};
@@ -123,9 +125,9 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    world.add("x  =   2.0");
+    world.new_object() = "x  =   2.0";
 
-    Function<type>& fun = world.add("f(x) = cos(x) + x").template value_as<Function<type>>();
+    Function<type>& fun = (world.new_object() = "f(x) = cos(x) + x").template value_as<Function<type>>();
 
     const double res = fun(1.0).value();
 
@@ -153,7 +155,7 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    world.add("g = 3");
+    world.new_object() = "g = 3";
 
     auto error = world.evaluate("7 + g(3)").error();
     expect(error.type == Error::WRONG_OBJECT_TYPE);
@@ -172,7 +174,7 @@ int main()
     expect(not bool(world.evaluate("cos(,3)")));
     expect(not bool(world.evaluate("sin(3;3)")));
 
-    auto& obj = world.template add<Function<type>>("f(x) = 3, 5"); // otherwise it gets recognized as a sequence
+    auto& obj = world.new_object() = As<Function<type>>{"f(x) = 3, 5"}; // otherwise it gets recognized as a sequence
     expect(not obj.has_value()) << fatal;
     expect(obj.error().token == parsing::tokens::Text{",", 8});
     expect(obj.error().type == Error::UNEXPECTED);

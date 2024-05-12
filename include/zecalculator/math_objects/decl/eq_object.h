@@ -9,8 +9,8 @@ namespace zc {
 /// @brief internal representation for objects defined through an equation
 struct EqObject
 {
-  enum Category {UNINITIALIZED, FUNCTION, SEQUENCE, GLOBAL_CONSTANT};
-  Category cat = UNINITIALIZED;
+  enum Category {AUTO, FUNCTION, SEQUENCE, GLOBAL_CONSTANT};
+  Category cat;
 
   /// @brief equation
   std::string equation = {};

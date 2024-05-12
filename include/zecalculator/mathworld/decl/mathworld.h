@@ -91,35 +91,8 @@ public:
   const ObjectType& get(size_t id) const;
 
   /// @brief returns a handle to a new math object
-  /// @note  the variant within contains the Unknown alternative
-  DynMathObject<type>& add();
-
-  /// @brief Add new object with given definition, see 'redefine()' for more information
-  template <class InterpretAs = DynMathObject<type>>
-    requires (tuple_contains_v<MathEqObjects<type>, InterpretAs>
-              or std::is_same_v<DynMathObject<type>, InterpretAs>)
-  DynMathObject<type>& add(std::string definition);
-
-  /// @brief add cpp function
-  template <size_t args_num>
-    requires (args_num <= max_func_args)
-  DynMathObject<type>& add(CppFunction<args_num> cpp_f);
-
-  /// @brief redefine 'obj' with 'definition' and intepret the definition as 'InterpretAs' type
-  /// @note the default 'DynMathObject<type>>' type means "auto", i.e. try to guess the object type
-  /// @returns the same reference: the variant within may contain a different alternative
-  /// @example in auto, definition := "y = 1.2" returns a DynMathObject that contains a GlobalConstant
-  /// @example in auto, definition := "y = f(1.2)" returns a DynMathObject that contains a a GlobalVariable
-  /// @example in auto, definition := "y(x) = cos(x)" returns a DynMathObject that contains a a Function
-  template <class InterpretAs = DynMathObject<type>>
-    requires (tuple_contains_v<MathEqObjects<type>, InterpretAs>
-              or std::is_same_v<DynMathObject<type>, InterpretAs>)
-  DynMathObject<type>& redefine(DynMathObject<type>& obj, std::string definition);
-
-  /// @brief redefine math object as cpp function
-  template <size_t args_num>
-    requires (args_num <= max_func_args)
-  DynMathObject<type>& redefine(DynMathObject<type>& obj, CppFunction<args_num> cpp_f);
+  /// @note  the expected within is in error state
+  DynMathObject<type>& new_object();
 
   /// @brief says if an object with the given name exists within the world
   bool contains(std::string_view name) const;
@@ -162,20 +135,10 @@ public:
 
 protected:
 
-  /// @brief returns a handle to a new math object
-  /// @note  the variant within contains the Unknown alternative
-  DynMathObject<type>& add(size_t slot);
-
-  /// @brief Add new object with given definition, see 'redefine()' for more information
-  template <class InterpretAs = DynMathObject<type>>
-    requires (tuple_contains_v<MathEqObjects<type>, InterpretAs>
-              or std::is_same_v<DynMathObject<type>, InterpretAs>)
-  DynMathObject<type>& add(std::string definition, size_t slot);
-
-  /// @brief add cpp function
-  template <size_t args_num>
-    requires (args_num <= max_func_args)
-  DynMathObject<type>& add(CppFunction<args_num> cpp_f, size_t slot);
+  /// @brief object at 'slot' changed name
+  /// @note 'old_name' may be empty, in which case it's a new name
+  /// @note 'new_name' may be empty, in which case the object got deleted or is in an invalid state
+  void name_change(size_t slot, std::string_view old_name, std::string_view new_name);
 
   /// @brief checks that this object has actually been allocated in this world
   bool sanity_check(const DynMathObject<type>& obj) const;
@@ -188,6 +151,8 @@ protected:
   name_map<size_t> inventory;
 
   SlottedDeque<DynMathObject<type>> math_objects;
+
+  friend DynMathObject<type>;
 
 };
 

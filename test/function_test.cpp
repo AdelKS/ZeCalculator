@@ -26,6 +26,8 @@
 #include <zecalculator/test-utils/structs.h>
 #include <zecalculator/test-utils/utils.h>
 
+#include <numbers>
+
 using namespace zc;
 
 int main()
@@ -37,7 +39,7 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    auto& f = world.add("f(omega,t) = cos(omega * t) + omega * t");
+    auto& f = world.new_object() = "f(omega,t) = cos(omega * t) + omega * t";
 
     const double omega = 2;
     const double t = 3;
@@ -59,8 +61,8 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    world.add("x = 2.0");
-    auto& f = world.add("f(x) = cos(x) + x");
+    world.new_object() = "x = 2.0";
+    auto& f = world.new_object() = "f(x) = cos(x) + x";
 
     const double res = f(1.0).value();
     const double expected_res = std::cos(1.0) + 1.0;
@@ -81,11 +83,11 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    auto& f1 = world.add("");
-    auto& f2 = world.add("");
+    auto& f1 = world.new_object();
+    auto& f2 = world.new_object();
 
-    world.redefine(f2, "f2(x) = cos(x) + 2*x^2");
-    world.redefine(f1, "f1(x) = cos(x) + x + f2(2*x)");
+    f2 = "f2(x) = cos(x) + 2*x^2";
+    f1 = "f1(x) = cos(x) + x + f2(2*x)";
 
     expect(bool(f1));
     expect(bool(f2));
@@ -126,8 +128,8 @@ int main()
 
     MathWorld<type> world;
 
-    auto& cst = world.add("my_constant = 3.0");
-    auto& f = world.add("f(x) = x + my_constant + cos(math::pi)");
+    auto& cst = world.new_object() = "my_constant = 3.0";
+    auto& f = world.new_object() = "f(x) = x + my_constant + cos(math::pi)";
 
     auto* f_obj = world.get("f");
     expect(f_obj);
@@ -147,10 +149,10 @@ int main()
     expect(f(1).value() == cpp_f_1(1.0));
     expect((*f_obj)(1).value() == cpp_f_1(1.0));
 
-    world.add("g(z) = 2*z + my_constant");
+    world.new_object() = "g(z) = 2*z + my_constant";
 
     // override expression and variable name of f
-    world.redefine(f, "f(y) = y + my_constant + g(y)");
+    f = "f(y) = y + my_constant + g(y)";
 
     auto cpp_g = [&](double z)
     {
@@ -173,9 +175,9 @@ int main()
 
     MathWorld<type> world;
 
-    world.add("h(c,d) = c*d + c-d");
-    world.add("g(a,b) = h(a, a*b) + 3*a - b");
-    auto& f = world.add("f(x, y) = h(x, g(x, y)) + g(y, h(y, x))");
+    world.new_object() = "h(c,d) = c*d + c-d";
+    world.new_object() = "g(a,b) = h(a, a*b) + 3*a - b";
+    auto& f = world.new_object() = "f(x, y) = h(x, g(x, y)) + g(y, h(y, x))";
 
     auto cpp_h = [](double c, double d) {
       return c*d + c-d;
@@ -204,8 +206,8 @@ int main()
     MathWorld<type> world;
 
     // add a function named "f", note that the constant "my_constant" is only defined after
-    auto& fx = world.add("f.x(x) = 1 + x");
-    auto& fy = world.add("f.y = 2.0 + f.x(1)");
+    auto& fx = world.new_object() = "f.x(x) = 1 + x";
+    auto& fy = world.new_object() = "f.y = 2.0 + f.x(1)";
 
     expect(fx(1).value() == 2.0);
     expect(fy().value() == 4.0);
@@ -219,7 +221,7 @@ int main()
     MathWorld<type> world;
 
     // add a function named "f", note that the constant "my_constant" is only defined after
-    world.add("f(x, y) = 1 + x + y");
+    world.new_object() = "f(x, y) = 1 + x + y";
 
     std::string var_expr = "1 + f(1, 2, 3)";
     tl::expected<double, Error> res = world.evaluate(var_expr);
@@ -237,7 +239,7 @@ int main()
     MathWorld<type> world;
 
     // add a function named "f", note that the constant "my_constant" is only defined after
-    auto& f = world.add("f(u, v, w, x, y, z) = 1 + u + v + w + x + y + z");
+    auto& f = world.new_object() = "f(u, v, w, x, y, z) = 1 + u + v + w + x + y + z";
 
     expect(f.has_value()) << fatal;
 
@@ -255,8 +257,8 @@ int main()
       constexpr std::string_view data_type_str_v = std::is_same_v<StructType, FAST_TEST> ? "FAST" : "RPN";
 
       MathWorld<type> world;
-      auto& t = world.add("t = 1").template value_as<GlobalConstant>();
-      auto& f = world.add("f(x) =3*cos(t*x) + 2*sin(x/t) + 4").template value_as<Function<type>>();
+      auto& t = (world.new_object() = "t = 1").template value_as<GlobalConstant>();
+      auto& f = (world.new_object() = "f(x) =3*cos(t*x) + 2*sin(x/t) + 4").template value_as<Function<type>>();
 
       double x = 0;
       double res = 0;
@@ -300,8 +302,8 @@ int main()
     MathWorld<type> world;
 
     // add a function named "f", note that the constant "my_constant" is only defined after
-    world.add("f(x, y) = 1 + x + y");
-    auto& seq = world.add("u(n) = 0 ; 1 + f(1, 1) + f(2, 2) + u(n-1) + 3*u(n-1) + cos(n)");
+    world.new_object() = "f(x, y) = 1 + x + y";
+    auto& seq = world.new_object() = "u(n) = 0 ; 1 + f(1, 1) + f(2, 2) + u(n-1) + 3*u(n-1) + cos(n)";
 
     constexpr auto t = deps::Dep::FUNCTION;
     expect(world.direct_dependencies(seq)
@@ -316,8 +318,8 @@ int main()
     MathWorld<type> world;
 
     // add a function named "f", note that the constant "my_constant" is only defined after
-    world.add("my_constant = 3.0");
-    auto& f = world.add("f( x)  = x + my_constant + cos(math::pi)");
+    world.new_object() = "my_constant = 3.0";
+    auto& f = world.new_object() = "f( x)  = x + my_constant + cos(math::pi)";
 
     using namespace std::string_literals;
 

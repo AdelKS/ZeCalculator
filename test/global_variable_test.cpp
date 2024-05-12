@@ -25,6 +25,8 @@
 #include <zecalculator/test-utils/print-utils.h>
 #include <zecalculator/test-utils/structs.h>
 
+#include <numbers>
+
 using namespace zc;
 
 int main()
@@ -38,11 +40,12 @@ int main()
     double cpp_r = 3;
 
     MathWorld<type> world;
-    GlobalConstant& r = world.add("r = " + std::to_string(cpp_r)).template value_as<GlobalConstant>();
-    world.add("g(x) = sin(3 * math::pi * x) + r");
-    world.add("k = 3*g(3)");
-    Function<type>& f = world.add("f(x, y)=cos(math::pi * x) * y + k*g(x) + r").template value_as<Function<type>>();
-
+    GlobalConstant& r = (world.new_object() = ("r = " + std::to_string(cpp_r)))
+                          .template value_as<GlobalConstant>();
+    world.new_object() = "g(x) = sin(3 * math::pi * x) + r";
+    world.new_object() = "k = 3*g(3)";
+    Function<type>& f = (world.new_object() = "f(x, y)=cos(math::pi * x) * y + k*g(x) + r")
+                          .template value_as<Function<type>>();
 
     r.value = cpp_r;
 

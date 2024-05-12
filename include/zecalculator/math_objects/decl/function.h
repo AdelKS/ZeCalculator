@@ -45,6 +45,9 @@ namespace zc {
 template <parsing::Type type>
 class MathWorld;
 
+template <parsing::Type type>
+class DynMathObject;
+
 namespace eval {
   template <parsing::Type>
   struct Evaluator;
@@ -107,6 +110,9 @@ protected:
 
   template <parsing::Type>
   friend class MathWorld;
+
+  template <parsing::Type>
+  friend class DynMathObject;
 };
 
 template <parsing::Type type>

@@ -41,6 +41,6 @@ template <parsing::Type type>
 class Unknown;
 
 template <parsing::Type type>
-struct DynMathObject;
+class DynMathObject;
 
 }

@@ -25,6 +25,8 @@
 #include <zecalculator/test-utils/print-utils.h>
 #include <zecalculator/test-utils/structs.h>
 
+#include <numbers>
+
 using namespace zc;
 
 int main()
@@ -39,11 +41,11 @@ int main()
 
     MathWorld<type> world;
 
-    world.add("f( x, y)  = x + y");
-    world.add("t = " + std::to_string(t));
+    world.new_object() = "f( x, y)  = x + y";
+    world.new_object() = ("t = " + std::to_string(t));
 
-    Function<type>& expr
-      = world.add("test_var = cos(math::pi * t) + 2 + f(3, 4)").template value_as<Function<type>>();
+    Function<type>& expr = (world.new_object() = "test_var = cos(math::pi * t) + 2 + f(3, 4)")
+                             .template value_as<Function<type>>();
 
     auto cpp_f = [](double x, double y) {
       return x + y;
