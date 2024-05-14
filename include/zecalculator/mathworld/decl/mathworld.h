@@ -110,7 +110,7 @@ public:
   deps::Deps direct_dependencies(std::string_view name) const;
 
   /// @brief evaluates a given expression within this world
-  tl::expected<double, Error> evaluate(std::string expr);
+  tl::expected<double, Error> evaluate(std::string expr) const;
 
   /// @brief delete object given by pointer
   /// @returns Ok if the deletion was successful, UnregisteredObject otherwise
