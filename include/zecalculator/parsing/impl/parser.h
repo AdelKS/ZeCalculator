@@ -726,7 +726,7 @@ struct direct_dependency_saver
   }
 };
 
-deps::Deps direct_dependencies(const AST& ast)
+inline deps::Deps direct_dependencies(const AST& ast)
 {
   return std::move(direct_dependency_saver{}(ast).deps);
 }
