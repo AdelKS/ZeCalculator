@@ -217,10 +217,10 @@ DynMathObject<type>& DynMathObject<type>::assign(std::string definition, EqObjec
     }
     else if (cat == EqObject::SEQUENCE)
     {
-      if (is_global_var_def)
+      if (is_global_var_def or is_global_constant_def)
         return assign_error(Error::wrong_object_type(eq_obj.lhs.name, definition));
 
-      assert(is_function_def and is_sequence_def and not is_global_var_def
+      assert(is_function_def and not is_global_var_def
              and not is_global_constant_def);
     }
     else if (cat == EqObject::GLOBAL_CONSTANT)
