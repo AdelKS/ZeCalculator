@@ -222,6 +222,9 @@ inline tl::expected<std::vector<Token>, Error> tokenize(std::string_view express
     else return tl::unexpected(Error::missing(expr_cend_txt, std::string(expression)));
   }
 
+  if (parsing.empty())
+    return tl::unexpected(Error::empty_expression(std::string(expression)));
+
   if (not canEnd)
   {
     auto&& expr_cend_txt = tokens::Text::from_views(std::string_view(it, 0), orig_expr);

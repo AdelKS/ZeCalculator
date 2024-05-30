@@ -93,9 +93,9 @@ struct Error
     return Error {NOT_IMPLEMENTED, tokenTxt, std::move(expression)};
   }
 
-  static Error empty_expression()
+  static Error empty_expression(std::string expression = {})
   {
-    return Error {EMPTY_EXPRESSION};
+    return Error {.type = EMPTY_EXPRESSION, .expression = std::move(expression)};
   }
 
   static Error object_in_invalid_state(parsing::tokens::Text tokenTxt, std::string expression)

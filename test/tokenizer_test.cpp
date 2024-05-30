@@ -40,9 +40,7 @@ int main()
 
     expect(not bool(parsing)
            and parsing.error()
-                 == Error::unexpected(Token(tokens::END_OF_EXPRESSION,
-                                            tokens::Text{"", 8}),
-                                      expression))
+                 == Error::empty_expression(expression))
       << parsing;
   };
 
