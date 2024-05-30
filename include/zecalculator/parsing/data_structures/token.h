@@ -204,11 +204,6 @@ struct Token: tokens::Text
     return Token(tokens::OP_POWER, Text{std::string(name), start});
   }
 
-  static Token EndOfExpression(size_t pos)
-  {
-    return Token(tokens::END_OF_EXPRESSION, Text{"", pos});
-  }
-
   tokens::Type type = tokens::UNKNOWN;
 
   double value = std::nan("");

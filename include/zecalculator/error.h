@@ -41,6 +41,7 @@ struct Error
     UNDEFINED_FUNCTION,
     UNDEFINED_VARIABLE,
     UNEXPECTED,
+    UNEXPECTED_END_OF_EXPRESSION,
     UNKNOWN,
     WRONG_FORMAT,
     WRONG_OBJECT_TYPE, // object has been used as a different type as it actually is, example "2+cos" (where cos is a function used here as variable)
@@ -51,6 +52,11 @@ struct Error
   static Error unexpected(parsing::tokens::Text  token, std::string expression)
   {
     return Error {UNEXPECTED, token, std::move(expression)};
+  }
+
+  static Error unexpected_end_of_expression(std::string expression)
+  {
+    return Error {.type = UNEXPECTED_END_OF_EXPRESSION, .expression = std::move(expression)};
   }
 
   static Error wrong_format(parsing::tokens::Text  token, std::string expression)

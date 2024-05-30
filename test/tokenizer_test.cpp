@@ -247,7 +247,7 @@ int main()
 
     expect(not bool(parsing)) << parsing;
 
-    expect(parsing.error() == Error::unexpected(Token::EndOfExpression(2), std::string(str)))
+    expect(parsing.error() == Error::unexpected_end_of_expression(std::string(str)))
       << parsing.error();
   };
 
