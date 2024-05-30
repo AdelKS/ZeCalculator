@@ -434,7 +434,7 @@ tl::expected<AST, Error> make_ast<Range>::operator () (std::span<const parsing::
   using Ret = tl::expected<AST, Error>;
 
   if (tokens.empty()) [[unlikely]]
-    return tl::unexpected(Error::empty());
+    return tl::unexpected(Error::empty_expression());
 
   auto get_current_sub_expr = [&](){
     const auto& end_token = tokens.back();

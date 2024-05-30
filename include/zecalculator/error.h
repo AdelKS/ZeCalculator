@@ -33,7 +33,6 @@ struct Error
     CALLING_FUN_ARG_COUNT_MISMATCH,
     OBJECT_INVALID_STATE, // expression that contains a function who cannot return values
     EMPTY_EXPRESSION,
-    EMPTY,
     MISSING,
     NAME_ALREADY_TAKEN,
     NOT_IMPLEMENTED,
@@ -48,11 +47,6 @@ struct Error
     NOT_MATH_OBJECT_DEFINITION, // the parsed expression is not of the form "[func_call] = [expression]" or " [variable_name] = [expression]"
     CPP_INCORRECT_ARGNUM, // programmatically evaluating math object with incorrect number of arguments
   };
-
-  static Error empty()
-  {
-    return Error {EMPTY};
-  }
 
   static Error unexpected(parsing::tokens::Text  token, std::string expression)
   {
