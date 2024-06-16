@@ -102,8 +102,11 @@ public:
   /// @brief no pun intended
   const tl::expected<MathObjectsVariant<type>, Error>& as_expected() const;
 
+  /// @brief returns object's slot within its owning MathWorld
+  size_t get_slot() const { return slot; }
+
 protected:
-  size_t slot;
+  const size_t slot;
   MathWorld<type>& mathworld;
 
   /// @brief non-empty when a syntactically correct equation gets assigned
