@@ -144,12 +144,17 @@ public:
     return *opt_vals[slot];
   }
 
-    /// @brief returns the element T at 'slot'
+  /// @brief returns the element T at 'slot'
   T& operator [] (size_t slot)
   {
     return *opt_vals[slot];
   }
 
+  /// @brief clears the container
+  void clear()
+  {
+    opt_vals.clear();
+  }
 
   // iterator stuff
 
