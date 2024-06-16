@@ -28,7 +28,6 @@
 #include <zecalculator/parsing/parser.h>
 
 #include <cassert>
-#include <unordered_set>
 
 namespace zc {
 
@@ -40,6 +39,42 @@ MathWorld<type>::MathWorld()
 
   for (auto&& cst: builtin_global_constants)
     new_object() = cst;
+}
+
+template <parsing::Type type>
+MathWorld<type>::iterator MathWorld<type>::begin()
+{
+  return math_objects.begin();
+}
+
+template <parsing::Type type>
+MathWorld<type>::const_iterator MathWorld<type>::begin() const
+{
+  return math_objects.begin();
+}
+
+template <parsing::Type type>
+MathWorld<type>::const_iterator MathWorld<type>::cbegin() const
+{
+  return math_objects.cbegin();
+}
+
+template <parsing::Type type>
+MathWorld<type>::iterator MathWorld<type>::end()
+{
+  return math_objects.end();
+}
+
+template <parsing::Type type>
+MathWorld<type>::const_iterator MathWorld<type>::end() const
+{
+  return math_objects.end();
+}
+
+template <parsing::Type type>
+MathWorld<type>::const_iterator MathWorld<type>::cend() const
+{
+  return math_objects.cend();
 }
 
 template <parsing::Type type>

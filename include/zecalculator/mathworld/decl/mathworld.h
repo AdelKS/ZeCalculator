@@ -63,8 +63,18 @@ class MathWorld
 {
 public:
 
+  using iterator = SlottedDeque<DynMathObject<type>>::iterator;
+  using const_iterator = SlottedDeque<DynMathObject<type>>::const_iterator;
+
   /// @brief default constructor that defines the usual functions and global constants
   MathWorld();
+
+  iterator begin();
+  const_iterator begin() const;
+  const_iterator cbegin() const;
+  iterator end();
+  const_iterator end() const;
+  const_iterator cend() const;
 
   /// @brief get object from name, the underlying type is to be dynamically resolved at runtime
   /// @note const version
