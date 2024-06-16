@@ -76,6 +76,13 @@ public:
   const_iterator end() const;
   const_iterator cend() const;
 
+  /// @brief get DynMathObject from 'slot'
+  /// @note returns nullptr if 'slot' is out of bounds or unassigned
+  DynMathObject<type>* get(size_t slot);
+
+  /// @note const version
+  const DynMathObject<type>* get(size_t slot) const;
+
   /// @brief get DynMathObject from name
   /// @note returns nullptr if 'name' does not refer to any known object
   DynMathObject<type>* get(std::string_view name);

@@ -126,6 +126,19 @@ const ObjectType* MathWorld<type>::get(std::string_view name) const
   else return nullptr;
 }
 
+template <parsing::Type type>
+DynMathObject<type>* MathWorld<type>::get(size_t slot)
+{
+  return const_cast<DynMathObject<type>*>(std::as_const(*this).template get(slot));
+}
+
+template <parsing::Type type>
+const DynMathObject<type>* MathWorld<type>::get(size_t slot) const
+{
+  if (not math_objects.is_assigned(slot)) [[unlikely]]
+    return nullptr;
+  else return &math_objects[slot];
+}
 
 template <parsing::Type type>
 template <class ObjectType>
