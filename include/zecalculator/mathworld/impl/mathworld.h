@@ -130,18 +130,20 @@ const ObjectType* MathWorld<type>::get(std::string_view name) const
 template <parsing::Type type>
 template <class ObjectType>
   requires tuple_contains_v<MathObjects<type>, ObjectType>
-ObjectType& MathWorld<type>::get(size_t id)
+ObjectType* MathWorld<type>::get(size_t slot)
 {
-  return std::get<SlottedDeque<ObjectType>>(math_objects).at(id);
+  return const_cast<ObjectType*>(std::as_const(*this).template get<ObjectType>(slot));
 }
 
 
 template <parsing::Type type>
 template <class ObjectType>
   requires tuple_contains_v<MathObjects<type>, ObjectType>
-const ObjectType& MathWorld<type>::get(size_t id) const
+const ObjectType* MathWorld<type>::get(size_t slot) const
 {
-  return std::get<SlottedDeque<ObjectType>>(math_objects).at(id);
+  if (not math_objects.is_assigned(slot) or not math_objects[slot].template holds<ObjectType>()) [[unlikely]]
+    return nullptr;
+  else return &math_objects[slot].template value_as<ObjectType>();
 }
 
 

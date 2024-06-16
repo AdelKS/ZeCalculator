@@ -76,35 +76,35 @@ public:
   const_iterator end() const;
   const_iterator cend() const;
 
-  /// @brief get object from name, the underlying type is to be dynamically resolved at runtime
+  /// @brief get DynMathObject from name
+  /// @note returns nullptr if 'name' does not refer to any known object
+  DynMathObject<type>* get(std::string_view name);
+
   /// @note const version
   const DynMathObject<type>* get(std::string_view name) const;
 
-  /// @brief get object from name, the underlying type is to be dynamically resolved at runtime
-  DynMathObject<type>* get(std::string_view name);
-
-  /// @brief get object 'ObjectType' from name, if it exists, nullptr otherwise
+  /// @brief get object 'ObjectType' from name
+  /// @note  returns 'nullptr' if it does not exist
   template <class ObjectType>
     requires tuple_contains_v<MathObjects<type>, ObjectType>
   ObjectType* get(std::string_view name);
 
-  /// @brief get object 'ObjectType' from name, if it exists, nullptr otherwise
   /// @note const version
   template <class ObjectType>
     requires tuple_contains_v<MathObjects<type>, ObjectType>
   const ObjectType* get(std::string_view name) const;
 
-  /// @brief get object 'ObjectType' from id
-  /// @note ids are not unique, they live in different sets between ObjectTypes
+  /// @brief get object 'ObjectType' from 'slot'
+  /// @note returns nullptr if 'slot' is out-of-bounds or unassigned
+  ///          or the the object at that slot does not have the requested type
   template <class ObjectType>
     requires tuple_contains_v<MathObjects<type>, ObjectType>
-  ObjectType& get(size_t id);
+  ObjectType* get(size_t slot);
 
-  /// @brief get object 'ObjectType' from id
   /// @note const version
   template <class ObjectType>
     requires tuple_contains_v<MathObjects<type>, ObjectType>
-  const ObjectType& get(size_t id) const;
+  const ObjectType* get(size_t slot) const;
 
   /// @brief returns a handle to a new math object
   /// @note  the expected within is in error state
