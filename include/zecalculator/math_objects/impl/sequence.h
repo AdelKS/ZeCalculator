@@ -6,12 +6,13 @@
 namespace zc {
 
 template <parsing::Type type>
-Sequence<type>::Sequence(MathObject obj) : MathObject(std::move(obj))
+Sequence<type>::Sequence(MathObject obj, std::string equation)
+  : MathObject(std::move(obj)), equation(std::move(equation))
 {}
 
 template <parsing::Type type>
-Sequence<type>::Sequence(MathObject obj, std::vector<parsing::Parsing<type>> values)
-  : MathObject(std::move(obj)), values(std::move(values))
+Sequence<type>::Sequence(MathObject obj, std::string equation, std::vector<parsing::Parsing<type>> values)
+  : MathObject(std::move(obj)), equation(std::move(equation)), values(std::move(values))
 {}
 
 template <parsing::Type type>

@@ -13,7 +13,7 @@ tl::expected<MathObjectsVariant<type>, Error> EqObject::to_expected_unbound() co
     case EqObject::FUNCTION:
       return Function<type>(name, equation, lhs.args_num());
     case EqObject::SEQUENCE:
-      return Sequence<type>(name);
+      return Sequence<type>(name, equation);
     case EqObject::GLOBAL_CONSTANT:
       return GlobalConstant(name, rhs.number_data().value);
     default: [[unlikely]]
@@ -64,7 +64,7 @@ tl::expected<MathObjectsVariant<type>, Error> EqObject::to_expected(const MathWo
         else
           return tl::unexpected(std::move(exp_rhs.error()));
 
-      return Sequence<type>(name, std::move(values));
+      return Sequence<type>(name, equation, std::move(values));
     }
     case EqObject::GLOBAL_CONSTANT:
       return GlobalConstant(name, rhs.number_data().value);

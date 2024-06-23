@@ -50,6 +50,8 @@ class Sequence: public MathObject
 {
 public:
 
+  const std::string& get_equation() const { return equation; }
+
   /// @brief evaluates the sequence at the given index
   /// @note evaluation modifies the state of the sequence, as values get saved within
   ///       the instance, and a locking mechanism is triggered to detect ill-formed seqs
@@ -65,14 +67,16 @@ public:
 protected:
 
   // constructor reserved for MathWorld when using add() function
-  Sequence(MathObject obj);
-  Sequence(MathObject obj, std::vector<parsing::Parsing<type>> values);
+  Sequence(MathObject obj, std::string equation);
+  Sequence(MathObject obj, std::string equation, std::vector<parsing::Parsing<type>> values);
 
   /// @brief evaluation with recursion depth tracking
   tl::expected<double, Error> evaluate(double index, size_t current_recursion_depth) const;
 
   template <parsing::Type>
   friend struct eval::Evaluator;
+
+  std::string equation;
 
   /// @brief first values of the sequence
   /// @note the last value is the "default" expression
