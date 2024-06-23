@@ -11,7 +11,7 @@ tl::expected<MathObjectsVariant<type>, Error> EqObject::to_expected_unbound() co
   switch(cat)
   {
     case EqObject::FUNCTION:
-      return Function<type>(name, lhs.args_num());
+      return Function<type>(name, equation, lhs.args_num());
     case EqObject::SEQUENCE:
       return Sequence<type>(name);
     case EqObject::GLOBAL_CONSTANT:
@@ -37,7 +37,7 @@ tl::expected<MathObjectsVariant<type>, Error> EqObject::to_expected(const MathWo
     case EqObject::FUNCTION:
 
       if (auto exp_rhs = get_final_representation(equation, rhs))
-        return Function<type>(name, lhs.args_num(), std::move(*exp_rhs));
+        return Function<type>(name, equation, lhs.args_num(), std::move(*exp_rhs));
       else
         return tl::unexpected(std::move(exp_rhs.error()));
 

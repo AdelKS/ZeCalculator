@@ -29,13 +29,13 @@
 namespace zc {
 
 template <parsing::Type type>
-Function<type>::Function(MathObject base, size_t argument_number)
-  : MathObject(std::move(base)), argument_number(argument_number)
+Function<type>::Function(MathObject base, std::string equation, size_t argument_number)
+  : MathObject(std::move(base)), equation(std::move(equation)), argument_number(argument_number)
 {}
 
 template <parsing::Type type>
-Function<type>::Function(MathObject base, size_t argument_number, parsing::Parsing<type> parsing)
-  : MathObject(std::move(base)), bound_rhs(std::move(parsing)), argument_number(argument_number)
+Function<type>::Function(MathObject base, std::string equation, size_t argument_number, parsing::Parsing<type> parsing)
+  : MathObject(std::move(base)), bound_rhs(std::move(parsing)), equation(std::move(equation)), argument_number(argument_number)
 {}
 
 template <parsing::Type type>

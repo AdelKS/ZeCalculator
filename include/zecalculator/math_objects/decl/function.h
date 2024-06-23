@@ -77,6 +77,8 @@ public:
   /// @brief returns the number of input variables, if they are valid
   size_t args_num() const { return argument_number; };
 
+  const std::string get_equation() const { return equation; }
+
   tl::expected<double, Error> evaluate(std::span<const double> args) const;
   tl::expected<double, Error> operator()(std::span<const double> args) const;
 
@@ -92,8 +94,12 @@ public:
 protected:
 
   // constructor reserved for MathWorld when using add() function
-  Function(MathObject base, size_t argument_number);
-  Function(MathObject base, size_t argument_number, parsing::Parsing<type> parsing);
+  Function(MathObject base, std::string equation, size_t argument_number);
+
+  Function(MathObject base,
+           std::string equation,
+           size_t argument_number,
+           parsing::Parsing<type> parsing);
 
   /// @note version that tracks the current recursion depth
   tl::expected<double, Error> evaluate(std::span<const double> args,
@@ -101,6 +107,8 @@ protected:
 
   /// @brief binding of the AST 'left_expr' (parent MathObject class) to 'mathWorld'
   std::optional<parsing::Parsing<type>> bound_rhs = {};
+
+  std::string equation;
 
   size_t argument_number;
 
