@@ -365,4 +365,18 @@ deps::Deps DynMathObject<type>::direct_dependencies() const
   return parsing::direct_dependencies(opt_eq_object->rhs);
 }
 
+template <parsing::Type type>
+std::optional<std::string> DynMathObject<type>::get_equation() const
+{
+  if (opt_eq_object)
+    return opt_eq_object->equation;
+  else if (not this->has_value())
+  {
+    const Error& err = this->error();
+    if (not err.expression.empty())
+      return err.expression;
+  }
+  return {};
+}
+
 }

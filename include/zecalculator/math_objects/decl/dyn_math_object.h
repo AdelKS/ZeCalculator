@@ -105,6 +105,10 @@ public:
   /// @brief returns object's slot within its owning MathWorld
   size_t get_slot() const { return slot; }
 
+  /// @brief gets the expression assigned to the object, if there is one
+  /// @note  returns an expression even in error state, if due to an erroneous expression
+  std::optional<std::string> get_equation() const;
+
 protected:
   const size_t slot;
   MathWorld<type>& mathworld;
