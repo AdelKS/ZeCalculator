@@ -78,20 +78,24 @@ enum Type: size_t
 
 struct Operator
 {
+  enum Desc {BINARY_INFIX, UNARY_PREFIX};
+
   char token;
   uint8_t priority;
   Type type;
+  Desc desc;
+
 };
 
 inline constexpr std::array operators = {
-  Operator{'=', 0, OP_ASSIGN},
-  Operator{',', 1, SEPARATOR},
-  Operator{';', 1, SEPARATOR},
-  Operator{'+', 2, OP_ADD},
-  Operator{'-', 2, OP_SUBTRACT},
-  Operator{'*', 3, OP_MULTIPLY},
-  Operator{'/', 3, OP_DIVIDE},
-  Operator{'^', 4, OP_POWER},
+  Operator{'=', 0, OP_ASSIGN, Operator::BINARY_INFIX},
+  Operator{',', 1, SEPARATOR, Operator::BINARY_INFIX},
+  Operator{';', 1, SEPARATOR, Operator::BINARY_INFIX},
+  Operator{'+', 2, OP_ADD, Operator::BINARY_INFIX},
+  Operator{'-', 2, OP_SUBTRACT, Operator::BINARY_INFIX},
+  Operator{'*', 3, OP_MULTIPLY, Operator::BINARY_INFIX},
+  Operator{'/', 3, OP_DIVIDE, Operator::BINARY_INFIX},
+  Operator{'^', 4, OP_POWER, Operator::BINARY_INFIX},
 };
 
 inline constexpr uint8_t max_priority = std::ranges::max(operators | std::views::transform(&Operator::priority));
