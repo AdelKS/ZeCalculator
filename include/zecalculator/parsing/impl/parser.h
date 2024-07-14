@@ -520,12 +520,12 @@ tl::expected<AST, Error> make_ast<Range>::operator () (std::span<const parsing::
         if (res)
           break;
 
-        for (const tokens::Type op: tokens::get_operators<priority>())
+        for (const tokens::Operator op: tokens::get_operators<priority>())
         {
           if (res)
             break;
 
-          if (tok->type == op)
+          if (tok->type == op.type)
           {
             // since we are dealing with infix binary operators, they can't be
             // at either the very beginning or the very end of the token list
@@ -544,7 +544,7 @@ tl::expected<AST, Error> make_ast<Range>::operator () (std::span<const parsing::
               res = tl::unexpected(left_hand_side.error());
               return;
             }
-            else if (op != tokens::Type::SEPARATOR and op != tokens::Type::OP_ASSIGN
+            else if (op.type != tokens::Type::SEPARATOR and op.type != tokens::Type::OP_ASSIGN
                      and left_hand_side->is_func()
                      and left_hand_side->func_data().type == AST::Func::SEPARATOR) [[unlikely]]
             {
@@ -560,7 +560,7 @@ tl::expected<AST, Error> make_ast<Range>::operator () (std::span<const parsing::
               res = tl::unexpected(right_hand_side.error());
               return;
             }
-            else if (op != tokens::Type::SEPARATOR and op != tokens::Type::OP_ASSIGN
+            else if (op.type != tokens::Type::SEPARATOR and op.type != tokens::Type::OP_ASSIGN
                      and right_hand_side->is_func()
                      and right_hand_side->func_data().type == AST::Func::SEPARATOR) [[unlikely]]
             {
@@ -571,7 +571,10 @@ tl::expected<AST, Error> make_ast<Range>::operator () (std::span<const parsing::
             }
             else subnodes.push_back(std::move(right_hand_side.value()));
 
-            res = AST::make_func(AST::Func::Type(op), *tok, current_sub_expr, std::move(subnodes));
+            res = AST::make_func(AST::Func::Type(op.type),
+                                 *tok,
+                                 current_sub_expr,
+                                 std::move(subnodes));
           }
         }
       }

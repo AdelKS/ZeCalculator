@@ -112,12 +112,12 @@ consteval size_t operator_number(size_t priority)
 template <uint8_t priority>
 consteval auto get_operators()
 {
-  std::array<Type, operator_number(priority)> ops;
+  std::array<Operator, operator_number(priority)> ops;
   size_t i = 0;
   for (const auto& op: operators)
     if (op.priority == priority)
     {
-      ops[i] = op.type;
+      ops[i] = op;
       i++;
     }
 
