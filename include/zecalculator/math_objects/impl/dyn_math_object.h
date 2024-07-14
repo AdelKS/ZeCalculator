@@ -201,6 +201,8 @@ DynMathObject<type>& DynMathObject<type>::assign(std::string definition, EqObjec
   // third sanity check: type checks
   if (cat != EqObject::AUTO)
   {
+    eq_obj.cat = cat;
+
     if (cat == EqObject::FUNCTION)
     {
       if (is_sequence_def)
@@ -208,15 +210,16 @@ DynMathObject<type>& DynMathObject<type>::assign(std::string definition, EqObjec
         // cannot have Separators on the right hand side for functions
         return assign_error(Error::unexpected(eq_obj.rhs.name, definition));
 
-      if (is_global_var_def)
-        return assign_error(Error::wrong_object_type(eq_obj.lhs.name, definition));
-
-      // better to have a too restricted assert than not
-      assert(is_function_def and not is_sequence_def and not is_global_var_def
-             and not is_global_constant_def);
+      // a function def, global var def and global constant def can all be considered
+      // functions
+      assert((is_function_def or is_global_var_def or is_global_constant_def)
+             and not is_sequence_def);
     }
     else if (cat == EqObject::SEQUENCE)
     {
+      // global vars and constants cannot be considered sequences
+      // due to the strict requirement that sequences have are single
+      // argument functions. Whereas vars and constants are zero argument functions
       if (is_global_var_def or is_global_constant_def)
         return assign_error(Error::wrong_object_type(eq_obj.lhs.name, definition));
 
@@ -261,16 +264,19 @@ DynMathObject<type>& DynMathObject<type>::assign(std::string definition, EqObjec
   }
 
   // now that we checked that everything is fine, we can assign the object
-  if (is_sequence_def or cat == EqObject::SEQUENCE)
-    eq_obj.cat = EqObject::SEQUENCE;
-
-  else if (is_function_def or is_global_var_def)
-    eq_obj.cat = EqObject::FUNCTION;
-
-  else
+  if (cat == EqObject::Category::AUTO)
   {
-    assert(is_global_constant_def);
-    eq_obj.cat = EqObject::GLOBAL_CONSTANT;
+    if (is_sequence_def or cat == EqObject::SEQUENCE)
+      eq_obj.cat = EqObject::SEQUENCE;
+
+    else if (is_function_def or is_global_var_def)
+      eq_obj.cat = EqObject::FUNCTION;
+
+    else
+    {
+      assert(is_global_constant_def);
+      eq_obj.cat = EqObject::GLOBAL_CONSTANT;
+    }
   }
 
   assign_object(eq_obj.to_expected(mathworld), eq_obj);
