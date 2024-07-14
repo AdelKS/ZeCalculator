@@ -48,20 +48,24 @@ int main()
   {
     auto parsing = tokenize("+12.2E+3");
 
-    expect(bool(parsing) and parsing->size() == 1
-           and parsing->front().type == tokens::NUMBER
-           and parsing->front().value == 12.2E+3)
-      << parsing;
+    auto expected_parsing = std::vector<Token>({
+      Token::UnaryMinus("+", 0),
+      Token::Number(12.2E+3, "12.2E+3", 1),
+    });
+
+    expect(*parsing == expected_parsing) << *parsing;
   };
 
   "signed negative number"_test = []()
   {
     auto parsing = tokenize("-12.2E+3");
 
-    expect(bool(parsing) and parsing->size() == 1
-           and parsing->front().type == tokens::NUMBER
-           and parsing->front().value == -12.2E+3)
-      << parsing;
+    auto expected_parsing = std::vector<Token>({
+      Token::UnaryMinus("-", 0),
+      Token::Number(12.2E+3, "12.2E+3", 1),
+    });
+
+    expect(*parsing == expected_parsing) << *parsing;
   };
 
   "equal sign expression"_test = []()
@@ -141,14 +145,19 @@ int main()
     expect(*parsing == expected_parsing);
   };
 
-  "two operators"_test = []()
+  "multiply with negative number"_test = []()
   {
     std::string expression = "2*-1";
     auto parsing = tokenize(expression);
 
-    expect(not parsing and
-           parsing.error() == Error::unexpected(Token::Subtract("-", 2), expression))
-        << parsing;
+    auto expected_parsing = std::vector<Token>({
+      Token::Number(2., "2", 0),
+      Token::Multiply("*", 1),
+      Token::UnaryMinus("-", 2),
+      Token::Number(1., "1", 3),
+    });
+
+    expect(*parsing == expected_parsing);
   };
 
   "extra parenthesis"_test = []()

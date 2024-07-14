@@ -68,6 +68,8 @@ enum Type: size_t
   OP_MULTIPLY,
   OP_DIVIDE,
   OP_POWER,
+  OP_UNARY_PLUS,
+  OP_UNARY_MINUS,
   OPENING_PARENTHESIS,
   CLOSING_PARENTHESIS,
   FUNCTION_CALL_START,
@@ -95,7 +97,9 @@ inline constexpr std::array operators = {
   Operator{'-', 2, OP_SUBTRACT, Operator::BINARY_INFIX},
   Operator{'*', 3, OP_MULTIPLY, Operator::BINARY_INFIX},
   Operator{'/', 3, OP_DIVIDE, Operator::BINARY_INFIX},
-  Operator{'^', 4, OP_POWER, Operator::BINARY_INFIX},
+  Operator{'-', 4, OP_UNARY_MINUS, Operator::UNARY_PREFIX},
+  Operator{'+', 4, OP_UNARY_PLUS, Operator::UNARY_PREFIX},
+  Operator{'^', 5, OP_POWER, Operator::BINARY_INFIX},
 };
 
 inline constexpr uint8_t max_priority = std::ranges::max(operators | std::views::transform(&Operator::priority));
@@ -128,10 +132,19 @@ consteval auto get_operators()
   return ops;
 }
 
-inline constexpr std::optional<Operator> get_operator_description(const char ch)
+inline constexpr std::optional<Operator> as_binary_infix_operator(const char ch)
 {
   for(const auto& op: operators)
-    if (op.token == ch)
+    if (op.desc == Operator::BINARY_INFIX and op.token == ch)
+      return op;
+
+  return {};
+}
+
+inline constexpr std::optional<Operator> as_unary_prefix_operator(const char ch)
+{
+  for(const auto& op: operators)
+    if (op.desc == Operator::UNARY_PREFIX and op.token == ch)
       return op;
 
   return {};
@@ -202,6 +215,14 @@ struct Token: tokens::Text
 
   static Token Divide(std::string_view name, size_t start) {
     return Token(tokens::OP_DIVIDE, Text{std::string(name), start});
+  }
+
+  static Token UnaryMinus(std::string_view name, size_t start) {
+    return Token(tokens::OP_UNARY_MINUS, Text{std::string(name), start});
+  }
+
+  static Token UnaryPlus(std::string_view name, size_t start) {
+    return Token(tokens::OP_UNARY_MINUS, Text{std::string(name), start});
   }
 
   static Token Power(std::string_view name, size_t start) {

@@ -85,8 +85,8 @@ inline tl::expected<std::vector<Token>, Error> tokenize(std::string_view express
     return std::isdigit(ch);
   };
 
-  bool openingParenthesis = true, numberSign = true, value = true, canEnd = false,
-       ope = false, closingParenthesis = false;
+  bool openingParenthesis = true, unaryPrefixOp = true, value = true, canEnd = false,
+       binaryInfixOp = false, closingParenthesis = false;
 
   enum : bool { FUNCTION_CALL_PTH, NORMAL_PTH};
   std::stack<bool> last_opened_pth;
@@ -94,39 +94,54 @@ inline tl::expected<std::vector<Token>, Error> tokenize(std::string_view express
   auto it = expression.cbegin();
   while (it != expression.cend())
   {
-    const std::optional<char> next_char = (it+1 != expression.cend()) ? *(it+1) : std::optional<char>();
-
     // view on the single character pointed to by 'it'
     const std::string_view char_v = std::string_view(it, 1);
 
-    if (is_digit(*it) or (next_char and numberSign and (*it == '-' or *it == '+') and is_digit(*next_char)))
+    if (is_digit(*it))
     {
       auto double_val = to_double(std::string_view(it, expression.cend()));
 
       if (double_val)
       {
+        // parsing successful
+
         const auto& [double_opt_val, processed_char_num] = *double_val;
         const std::string_view val_str_v(it, processed_char_num);
-        // parsing successful
-        parsing.emplace_back(double_opt_val, tokens::Text::from_views(val_str_v, orig_expr));
-        it += processed_char_num;
 
-        openingParenthesis = value = numberSign = false;
-        ope = canEnd = closingParenthesis = true;
+        if (value)
+        {
+          parsing.emplace_back(double_opt_val, tokens::Text::from_views(val_str_v, orig_expr));
+          it += processed_char_num;
+        }
+        else
+          return tl::unexpected(Error::unexpected(tokens::Text::from_views(val_str_v, orig_expr),
+                                                  std::string(expression)));
+
+        openingParenthesis = value = unaryPrefixOp = false;
+        binaryInfixOp = canEnd = closingParenthesis = true;
       }
       else
         return tl::unexpected(Error::wrong_format(
           Token(std::nan(""), tokens::Text::from_views(char_v, orig_expr)), std::string(expression)));
     }
-    else if (auto opt_op = tokens::get_operator_description(*it))
+    else if (auto opt_op = tokens::as_unary_prefix_operator(*it); unaryPrefixOp and opt_op)
     {
       auto&& char_txt = tokens::Text::from_views(char_v, orig_expr);
-      if (ope)
+      parsing.emplace_back(opt_op->type, char_txt);
+
+      openingParenthesis = value = true;
+      binaryInfixOp = closingParenthesis = canEnd = unaryPrefixOp = false;
+      it++;
+    }
+    else if (auto opt_op = tokens::as_binary_infix_operator(*it))
+    {
+      auto&& char_txt = tokens::Text::from_views(char_v, orig_expr);
+      if (binaryInfixOp)
       {
         parsing.emplace_back(opt_op->type, char_txt);
 
-        openingParenthesis = value = true;
-        ope = numberSign = closingParenthesis = canEnd = false;
+        openingParenthesis = value = unaryPrefixOp = true;
+        binaryInfixOp = closingParenthesis = canEnd = false;
         it++;
       }
       else return tl::unexpected(Error::unexpected(char_txt, std::string(expression)));
@@ -147,8 +162,8 @@ inline tl::expected<std::vector<Token>, Error> tokenize(std::string_view express
           last_opened_pth.push(NORMAL_PTH);
         }
 
-        numberSign = value = openingParenthesis = true;
-        ope = closingParenthesis = canEnd = false;
+        unaryPrefixOp = value = openingParenthesis = true;
+        binaryInfixOp = closingParenthesis = canEnd = false;
         it++;
       }
       else return tl::unexpected(Error::unexpected(pth_txt, std::string(expression)));
@@ -164,8 +179,8 @@ inline tl::expected<std::vector<Token>, Error> tokenize(std::string_view express
 
         last_opened_pth.pop();
 
-        ope = canEnd = closingParenthesis = true;
-        value = numberSign = openingParenthesis = false;
+        binaryInfixOp = canEnd = closingParenthesis = true;
+        value = unaryPrefixOp = openingParenthesis = false;
         it++;
       }
       else return tl::unexpected(Error::unexpected(pth_txt, std::string(expression)));
@@ -199,14 +214,14 @@ inline tl::expected<std::vector<Token>, Error> tokenize(std::string_view express
           // can only be a variable when we reach the end of the expression
           parsing.emplace_back(tokens::VARIABLE, token_txt);
 
-          openingParenthesis = numberSign = value = false;
-          canEnd = ope = closingParenthesis = true;
+          openingParenthesis = unaryPrefixOp = value = false;
+          canEnd = binaryInfixOp = closingParenthesis = true;
         }
         else
         {
           parsing.emplace_back(tokens::FUNCTION, token_txt);
 
-          canEnd = closingParenthesis = ope = numberSign = value = false;
+          canEnd = closingParenthesis = binaryInfixOp = unaryPrefixOp = value = false;
           openingParenthesis = true;
         }
       }
@@ -383,6 +398,10 @@ tl::expected<FAST<type>, Error> make_fast<type>::operator () (const AST& ast)
             assert(func.subnodes.size() == 2);
             return FAST<type>{.node = shared::node::Power{}, .subnodes = std::move(operands)};
 
+          case AST::Func::OP_UNARY_MINUS:
+            assert(func.subnodes.size() == 1);
+            return FAST<type>{.node = shared::node::UnaryMinus{}, .subnodes = std::move(operands)};
+
           case AST::Func::FUNCTION:
           {
             auto* dyn_obj = math_world.get(ast.name.substr);
@@ -525,7 +544,17 @@ tl::expected<AST, Error> make_ast<Range>::operator () (std::span<const parsing::
           if (res)
             break;
 
-          if (tok->type == op.type)
+          if (tok->type != op.type)
+            continue;
+
+          auto right_hand_side = (*this)(std::span(tok + 1, tokens.end()));
+          if (not right_hand_side.has_value()) [[unlikely]]
+          {
+            res = tl::unexpected(right_hand_side.error());
+            return;
+          }
+
+          if (op.desc == parsing::tokens::Operator::BINARY_INFIX)
           {
             // since we are dealing with infix binary operators, they can't be
             // at either the very beginning or the very end of the token list
@@ -554,13 +583,7 @@ tl::expected<AST, Error> make_ast<Range>::operator () (std::span<const parsing::
             }
             else subnodes.push_back(std::move(*left_hand_side));
 
-            auto right_hand_side = (*this)(std::span(tok + 1, tokens.end()));
-            if (not right_hand_side.has_value()) [[unlikely]]
-            {
-              res = tl::unexpected(right_hand_side.error());
-              return;
-            }
-            else if (op.type != tokens::Type::SEPARATOR and op.type != tokens::Type::OP_ASSIGN
+            if (op.type != tokens::Type::SEPARATOR and op.type != tokens::Type::OP_ASSIGN
                      and right_hand_side->is_func()
                      and right_hand_side->func_data().type == AST::Func::SEPARATOR) [[unlikely]]
             {
@@ -575,6 +598,17 @@ tl::expected<AST, Error> make_ast<Range>::operator () (std::span<const parsing::
                                  *tok,
                                  current_sub_expr,
                                  std::move(subnodes));
+          }
+          else if (op.desc == parsing::tokens::Operator::UNARY_PREFIX
+                   and tok == non_pth_enclosed_tokens.front())
+          {
+            if (op.type == tokens::Type::OP_UNARY_PLUS)
+              // optimization: just skip entirely unary plus
+              res = std::move(*right_hand_side);
+            else res = AST::make_func(AST::Func::Type(op.type),
+                                 *tok,
+                                 current_sub_expr,
+                                 {std::move(*right_hand_side)});
           }
         }
       }

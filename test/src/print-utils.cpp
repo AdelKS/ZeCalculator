@@ -34,6 +34,7 @@ void shared_node_printer(std::ostream& os,
         zc::parsing::shared::node::Multiply,
         zc::parsing::shared::node::Divide,
         zc::parsing::shared::node::Power,
+        zc::parsing::shared::node::UnaryMinus,
         zc::parsing::shared::node::InputVariable,
         zc::parsing::shared::node::Number,
         zc::GlobalConstant;
@@ -56,11 +57,12 @@ void shared_node_printer(std::ostream& os,
         os << "CppFunction<" << args_num << "> "
            << f->get_name();
       },
-      [&](Add)      { os << "+ "; },
-      [&](Subtract) { os << "- "; },
-      [&](Multiply) { os << "× "; },
-      [&](Divide)   { os << "÷ "; },
-      [&](Power)    { os << "^ "; },
+      [&](Add)        { os << "+ "; },
+      [&](Subtract)   { os << "- "; },
+      [&](Multiply)   { os << "× "; },
+      [&](Divide)     { os << "÷ "; },
+      [&](Power)      { os << "^ "; },
+      [&](UnaryMinus) { os << "unary - "; },
       [&](const InputVariable &v)
       {
         os << "InputVariable: index: " << v.index;

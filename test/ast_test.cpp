@@ -79,6 +79,56 @@ int main()
 
   };
 
+  "power & unary minus"_test = []()
+  {
+    std::string expression = "1^-cos(x)";
+
+    auto expect_node = tokenize(expression).and_then(make_ast{expression});
+
+    expect(bool(expect_node)) << expect_node << fatal;
+
+    AST expected_node
+      = AST::make_func(AST::Func::OP_POWER,
+                       tokens::Text{"^", 1},
+                       tokens::Text{expression, 0},
+                       {AST::make_number(tokens::Text{"1", 0}, 1.),
+                        AST::make_func(AST::Func::OP_UNARY_MINUS,
+                                       tokens::Text{"-", 2},
+                                       tokens::Text{"-cos(x)", 2},
+                                       {AST::make_func(AST::Func::FUNCTION,
+                                                       tokens::Text{"cos", 3},
+                                                       tokens::Text{"cos(x)", 3},
+                                                       {AST::make_var(tokens::Text{"x", 7})})})});
+
+    expect(*expect_node == expected_node) << *expect_node;
+
+  };
+
+  "subtract & unary minus"_test = []()
+  {
+    std::string expression = "1--cos(x)";
+
+    auto expect_node = tokenize(expression).and_then(make_ast{expression});
+
+    expect(bool(expect_node)) << expect_node << fatal;
+
+    AST expected_node
+      = AST::make_func(AST::Func::OP_SUBTRACT,
+                       tokens::Text{"-", 1},
+                       tokens::Text{expression, 0},
+                       {AST::make_number(tokens::Text{"1", 0}, 1.),
+                        AST::make_func(AST::Func::OP_UNARY_MINUS,
+                                       tokens::Text{"-", 2},
+                                       tokens::Text{"-cos(x)", 2},
+                                       {AST::make_func(AST::Func::FUNCTION,
+                                                       tokens::Text{"cos", 3},
+                                                       tokens::Text{"cos(x)", 3},
+                                                       {AST::make_var(tokens::Text{"x", 7})})})});
+
+    expect(*expect_node == expected_node) << *expect_node;
+
+  };
+
   "function expression"_test = []()
   {
     std::string expression = "(cos(sin(x)+1))+1";

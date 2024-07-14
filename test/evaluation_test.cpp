@@ -81,6 +81,35 @@ int main()
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 
+  "unary minus evaluation"_test = []<class StructType>()
+  {
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST
+                                                                        : parsing::Type::RPN;
+
+    MathWorld<type> world;
+
+    expect(world.evaluate("2+-2").value() == 0.);
+    expect(world.evaluate("-2+-2").value() == -4.);
+    expect(world.evaluate("-2--2").value() == 0.);
+    expect(world.evaluate("2--2").value() == 4.);
+    expect(world.evaluate("2*-2").value() == -4.);
+    expect(world.evaluate("-2*-2").value() == 4.);
+    expect(world.evaluate("-2/-2").value() == 1.);
+    expect(world.evaluate("2/-2").value() == -1.);
+    expect(world.evaluate("2^-2").value() == 0.25);
+    expect(world.evaluate("-2^-2").value() == -0.25);
+    expect(world.evaluate("(-2)^-2").value() == 0.25);
+    expect(world.evaluate("-2^2").value() == -4.);
+
+    expect(world.evaluate("1--cos(math::pi)").value() == 0.);
+    expect(world.evaluate("-(2*cos(math::pi))^2").value() == -4.);
+    expect(world.evaluate("2--2*2").value() == 6.);
+    expect(world.evaluate("2-(-2)*2").value() == 6.);
+    expect(world.evaluate("2-(-(-cos(math::pi)))*2").value() == 4.);
+    expect(world.evaluate("0+-2^-2").value() == -0.25);
+
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
+
   "global constant expression evaluation"_test = []<class StructType>()
   {
     constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;

@@ -47,6 +47,10 @@ namespace parsing {
         bool operator == (const Power&) const = default;
       };
 
+      struct UnaryMinus {
+        bool operator == (const UnaryMinus&) const = default;
+      };
+
       struct Number {
         double value;
 
@@ -66,6 +70,7 @@ namespace parsing {
                               node::Multiply,
                               node::Divide,
                               node::Power,
+                              node::UnaryMinus,
                               node::Number,
                               node::InputVariable,
                               const CppFunction<1> *,

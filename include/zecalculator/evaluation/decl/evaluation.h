@@ -53,6 +53,9 @@ struct Evaluator
   template <class Op>
   auto handle_binary_operator(Op&&) -> RetType;
 
+  template <class Op>
+  auto handle_unary_operator(Op&&) -> RetType;
+
   void update_stack(double to_push, size_t values_consumed);
 
   auto operator () (zc::parsing::shared::node::Add) -> RetType;
@@ -60,6 +63,7 @@ struct Evaluator
   auto operator () (zc::parsing::shared::node::Multiply) -> RetType;
   auto operator () (zc::parsing::shared::node::Divide) -> RetType;
   auto operator () (zc::parsing::shared::node::Power) -> RetType;
+  auto operator () (zc::parsing::shared::node::UnaryMinus) -> RetType;
 
   auto operator () (const zc::Function<type>*) -> RetType;
 

@@ -45,6 +45,24 @@ auto Evaluator<type>::handle_binary_operator(Op&& op) -> RetType
 }
 
 template <parsing::Type type>
+template <class Op>
+auto Evaluator<type>::handle_unary_operator(Op&& op) -> RetType
+{
+  assert(subnodes.size() >= 1);
+
+  if constexpr (type == parsing::Type::FAST)
+    assert(subnodes.size() == 1);
+
+  if constexpr (type == parsing::Type::FAST)
+    return op(subnodes.back());
+  else
+  {
+    subnodes.back() = op(subnodes.back());
+    return true;
+  }
+}
+
+template <parsing::Type type>
 void Evaluator<type>::update_stack(double to_push, size_t values_consumed)
 {
   if constexpr (type == parsing::Type::RPN)
@@ -82,6 +100,12 @@ template <parsing::Type type>
 auto Evaluator<type>::operator () (zc::parsing::shared::node::Power) -> RetType
 {
   return handle_binary_operator([](double a, double b){ return std::pow(a, b); });
+}
+
+template <parsing::Type type>
+auto Evaluator<type>::operator () (zc::parsing::shared::node::UnaryMinus) -> RetType
+{
+  return handle_unary_operator([](double a){ return -a; });
 }
 
 template <parsing::Type type>
