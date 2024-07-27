@@ -350,7 +350,9 @@ bool DynMathObject<type>::holds() const
 template <parsing::Type type>
 std::string_view DynMathObject<type>::get_name() const
 {
-  if (bool(*this))
+  if (opt_eq_object)
+    return opt_eq_object->name;
+  else if (bool(*this))
     return std::visit([](const auto& val){ return val.get_name(); }, **this);
   else return std::string_view();
 }

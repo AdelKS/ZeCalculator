@@ -73,7 +73,8 @@ public:
     requires (std::is_convertible_v<DBL, double> and ...)
   tl::expected<double, Error> evaluate(DBL... val) const;
 
-  /// @brief returns the name of the object, if it's valid, otherwise empty string
+  /// @brief returns the name of the object
+  /// @note returns non-empty string only if this instance contains a syntactically valid equation or object
   std::string_view get_name() const;
 
   /// @brief gets the value of the expected (the variant) as a specific alternative

@@ -330,4 +330,16 @@ int main()
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 
+  "name of function in error state"_test = []<class StructType>()
+  {
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
+
+    MathWorld<type> world;
+
+    auto& f = world.new_object() = "f( x)  = cos(x) * g(X)";
+
+    expect(f.get_name() == "f");
+
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
+
 }
