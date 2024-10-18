@@ -169,5 +169,20 @@
               }
           ],
         },
+        {
+          "name": "utils_test",
+          "cwd": "${workspaceRoot}/build-zc-debug/",
+          "type": "cppdbg",
+          "request": "launch",
+          "program": "${workspaceRoot}/build-zc-debug/test/utils",
+          "preLaunchTask": "build",
+          "setupCommands": [
+              {
+                "description": "Enable pretty-printing for gdb",
+                "text": "-enable-pretty-printing",
+                "ignoreFailures": true
+              }
+          ],
+        },
     ],
 }
