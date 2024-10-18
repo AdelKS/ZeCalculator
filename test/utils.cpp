@@ -1,3 +1,4 @@
+#include <zecalculator/evaluation/object_cache.h>
 #include <zecalculator/zecalculator.h>
 
 // testing specific headers
@@ -24,4 +25,39 @@ int main()
     expect(sdeque.push(42) == 3);
   };
 
+  "ObjectCache test"_test = []()
+  {
+    eval::ObjectCache cache({1., 2., 3.}, {1., 2., 3.}, 4);
+    cache.insert(4., 4.);
+    cache.insert(4., 5.);
+    cache.insert(2.5, 6.);
+    cache.insert(0.5, 7.);
+    cache.insert(3., 8.);
+    cache.insert(4., 9.);
+    cache.insert(0., 10.);
+
+    std::vector vals = cache.get_cache().values();
+    std::ranges::sort(vals);
+
+    expect(vals == std::vector{7., 8., 9., 10.}) << cache.get_cache().values();
+    expect(cache.get_cache().keys() == std::vector{0., 0.5, 3., 4.}) << cache.get_cache().keys();
+
+    cache.set_buffer_size(6);
+    cache.insert(-1., 11.);
+    cache.insert(3.5, 12.);
+
+    vals = cache.get_cache().values();
+    std::ranges::sort(vals);
+
+    expect(vals == std::vector{7., 8., 9., 10., 11., 12.}) << cache.get_cache().values();
+    expect(cache.get_cache().keys() == std::vector{-1., 0., 0.5, 3., 3.5, 4.}) << cache.get_cache().keys();
+
+    cache.set_buffer_size(3);
+
+    vals = cache.get_cache().values();
+    std::ranges::sort(vals);
+
+    expect(vals == std::vector{10., 11., 12.}) << cache.get_cache().values();
+    expect(cache.get_cache().keys() == std::vector{-1., 0., 3.5}) << cache.get_cache().keys();
+  };
 }
