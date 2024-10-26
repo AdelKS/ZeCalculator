@@ -39,47 +39,16 @@ Function<type>::Function(MathObject base, std::string equation, size_t argument_
 {}
 
 template <parsing::Type type>
-tl::expected<double, Error> Function<type>::evaluate(
-  std::span<const double> args, size_t current_recursion_depth) const
+tl::expected<double, Error> Function<type>::evaluate(std::initializer_list<double> args) const
 {
-  if (this->args_num() != args.size()) [[unlikely]]
-    return tl::unexpected(Error::cpp_incorrect_argnum());
-
-  // 'bound_rhs' should always have a value
-  // except  in the brief moment where MathWorld is rebinding
-  // function objects in 'rebind_functions()'
   assert(bound_rhs);
-
-  return zc::evaluate(*bound_rhs, args, current_recursion_depth);
+  return zc::evaluate(*bound_rhs, std::span(args.begin(), args.size()));
 }
 
 template <parsing::Type type>
-tl::expected<double, Error> Function<type>::evaluate(std::span<const double> args) const
+tl::expected<double, Error> Function<type>::operator()(std::initializer_list<double> args) const
 {
-  // this function is user called, so the recursion depth is zero
-  return evaluate(args, 0);
-}
-
-template <parsing::Type type>
-tl::expected<double, Error> Function<type>::operator()(std::span<const double> args) const
-{
-  return evaluate(args, 0);
-}
-
-template <parsing::Type type>
-template <class... DBL>
-  requires (std::is_convertible_v<DBL, double> and ...)
-tl::expected<double, Error> Function<type>::evaluate(DBL... val) const
-{
-  return evaluate(std::array<double, sizeof...(DBL)>{double(val)...}, 0);
-}
-
-template <parsing::Type type>
-template <class... DBL>
-  requires (std::is_convertible_v<DBL, double> and ...)
-tl::expected<double, Error> Function<type>::operator()(DBL... val) const
-{
-  return evaluate(std::array<double, sizeof...(DBL)>{double(val)...}, 0);
+  return evaluate(args);
 }
 
 } // namespace zc

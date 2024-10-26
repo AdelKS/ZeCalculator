@@ -40,17 +40,17 @@ int main()
 
     expect(bool(fib)) << [&] { return fib.error(); } << fatal;
 
-    expect(bool(fib(0))) << [&]{ return fib(0).error(); } << fatal;
+    expect(bool(fib({0}))) << [&]{ return fib({0}).error(); } << fatal;
 
-    expect(fib(0).value() == 0.0_d);
-    expect(fib(1).value() == 1.0_d);
-    expect(fib(2).value() == 1.0_d);
-    expect(fib(3).value() == 2.0_d);
-    expect(fib(4).value() == 3.0_d);
-    expect(fib(10).value() == 55.0_d);
+    expect(fib({0}).value() == 0.0_d);
+    expect(fib({1}).value() == 1.0_d);
+    expect(fib({2}).value() == 1.0_d);
+    expect(fib({3}).value() == 2.0_d);
+    expect(fib({4}).value() == 3.0_d);
+    expect(fib({10}).value() == 55.0_d);
 
     auto* fib_obj = world.get("fib");
-    expect(fib_obj && (*fib_obj)(10).value() == 55.0_d);
+    expect(fib_obj && (*fib_obj)({10}).value() == 55.0_d);
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 
@@ -61,7 +61,7 @@ int main()
     MathWorld<type> world;
     auto& bad = world.new_object() = "bad(n) = bad(n+10) + bad(n+20)";
 
-    expect(bad(0).error() == Error::recursion_depth_overflow());
+    expect(bad({0}).error() == Error::recursion_depth_overflow());
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 }

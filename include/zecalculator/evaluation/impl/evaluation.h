@@ -179,15 +179,11 @@ auto Evaluator<type>::operator()(const zc::CppFunction<args_num>* cpp_f) -> RetT
   if constexpr (type == parsing::Type::FAST)
     assert(subnodes.size() == args_num);
 
-  auto unpack_compute = [&]<size_t... i>(std::integer_sequence<size_t, i...>)
-  {
-    size_t offset = 0;
-    if constexpr (type == parsing::Type::RPN)
-      offset = subnodes.size() - args_num;
+  size_t offset = 0;
+  if constexpr (type == parsing::Type::RPN)
+    offset = subnodes.size() - args_num;
 
-    return (*cpp_f)(subnodes[offset + i]...);
-  };
-  double res = unpack_compute(std::make_index_sequence<args_num>());
+  double res = (*cpp_f)(std::span<const double, args_num>(subnodes.begin() + offset, args_num));
 
   update_stack(res, args_num);
 

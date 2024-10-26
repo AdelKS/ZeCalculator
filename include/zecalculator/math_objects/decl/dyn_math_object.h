@@ -65,13 +65,8 @@ public:
   /// @note this method can potentially modify every other DynMathObject in the same MathWorld
   DynMathObject<type>& operator = (GlobalConstant cst);
 
-  template <class... DBL>
-    requires (std::is_convertible_v<DBL, double> and ...)
-  tl::expected<double, Error> operator () (DBL... val) const;
-
-  template <class... DBL>
-    requires (std::is_convertible_v<DBL, double> and ...)
-  tl::expected<double, Error> evaluate(DBL... val) const;
+  tl::expected<double, Error> operator () (std::initializer_list<double> vals = {}) const;
+  tl::expected<double, Error> evaluate(std::initializer_list<double> vals = {}) const;
 
   /// @brief returns the name of the object
   /// @note returns non-empty string only if this instance contains a syntactically valid equation or object

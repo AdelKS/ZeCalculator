@@ -33,17 +33,13 @@ tl::expected<double, Error> Sequence<type>::evaluate(double index,
 }
 
 template <parsing::Type type>
-template <class DBL>
-  requires std::is_constructible_v<DBL, double>
-tl::expected<double, Error> Sequence<type>::evaluate(DBL index) const
+tl::expected<double, Error> Sequence<type>::evaluate(double index) const
 {
   return Sequence<type>::evaluate(index, 0);
 }
 
 template <parsing::Type type>
-template <class DBL>
-  requires std::is_constructible_v<DBL, double>
-tl::expected<double, Error> Sequence<type>::operator ()(DBL index) const
+tl::expected<double, Error> Sequence<type>::operator ()(double index) const
 {
   return Sequence<type>::evaluate(index, 0);
 }

@@ -37,7 +37,7 @@ int main()
 
     MathWorld<type> world;
     CppUnaryFunction* cppFunc = world.template get<CppUnaryFunction>("sqrt");
-    expect(cppFunc != nullptr and (*cppFunc)(4) == 2);
+    expect(cppFunc != nullptr and (*cppFunc)({4}) == 2);
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 
@@ -108,7 +108,7 @@ int main()
 
     auto& z = world.new_object() = "z(x) = f(x)+1";
 
-    auto res = z(1);
+    auto res = z({1});
     expect(not res and res.error() == Error::recursion_depth_overflow());
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};

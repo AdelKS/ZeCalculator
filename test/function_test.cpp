@@ -45,14 +45,14 @@ int main()
     const double t = 3;
 
     // note: the order of the arguments is important
-    const double res = f(omega, t).value();
+    const double res = f({omega, t}).value();
     const double expected_res = std::cos(omega * t) + omega * t;
 
     expect(res == expected_res);
 
     // dynamic object tests
     auto* obj = world.get("f");
-    expect(obj && (*obj)(omega, t).value() == expected_res);
+    expect(obj && (*obj)({omega, t}).value() == expected_res);
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 
@@ -64,7 +64,7 @@ int main()
     world.new_object() = "x = 2.0";
     auto& f = world.new_object() = "f(x) = cos(x) + x";
 
-    const double res = f(1.0).value();
+    const double res = f({1.0}).value();
     const double expected_res = std::cos(1.0) + 1.0;
 
     expect(res == expected_res);
@@ -74,7 +74,7 @@ int main()
     expect(x_obj && (*x_obj)().value() == 2.0);
 
     auto* f_obj = world.get("f");
-    expect(f_obj && (*f_obj)(1.0).value() == expected_res);
+    expect(f_obj && (*f_obj)({1.0}).value() == expected_res);
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 
@@ -103,7 +103,7 @@ int main()
 
     double x = 6.4;
 
-    const auto expected_res2 = f2(2*x);
+    const auto expected_res2 = f2({2*x});
 
     const bool res2_status = bool(expected_res2);
 
@@ -114,7 +114,7 @@ int main()
     if (res2_status)
       expect(expected_res2.value() - cpp_f2(2*x) == 0.0_d);
 
-    const auto expected_res1 = f1(x);
+    const auto expected_res1 = f1({x});
 
     expect(bool(expected_res1));
 
@@ -140,14 +140,14 @@ int main()
       return x + cpp_cst + std::cos(std::numbers::pi);
     };
 
-    expect(f(1).value() == cpp_f_1(1.0));
-    expect((*f_obj)(1) == cpp_f_1(1.0));
+    expect(f({1}).value() == cpp_f_1(1.0));
+    expect((*f_obj)({1}) == cpp_f_1(1.0));
 
     cst.template value_as<GlobalConstant>().value = 5.0;
     cpp_cst = 5.0;
 
-    expect(f(1).value() == cpp_f_1(1.0));
-    expect((*f_obj)(1).value() == cpp_f_1(1.0));
+    expect(f({1}).value() == cpp_f_1(1.0));
+    expect((*f_obj)({1}).value() == cpp_f_1(1.0));
 
     world.new_object() = "g(z) = 2*z + my_constant";
 
@@ -164,8 +164,8 @@ int main()
       return y + cpp_cst + cpp_g(y);
     };
 
-    expect(f(3).value() == cpp_f_2(3));
-    expect((*f_obj)(3).value() == cpp_f_2(3));
+    expect(f({3}).value() == cpp_f_2(3));
+    expect((*f_obj)({3}).value() == cpp_f_2(3));
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 
@@ -192,10 +192,10 @@ int main()
 
     const double x = 5, y = 3;
 
-    expect(f(x, y).value() == cpp_f(x, y));
+    expect(f({x, y}).value() == cpp_f(x, y));
 
     auto* f_obj = world.get("f");
-    expect(f_obj && (*f_obj)(x, y).value() == cpp_f(x, y));
+    expect(f_obj && (*f_obj)({x, y}).value() == cpp_f(x, y));
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 
@@ -209,7 +209,7 @@ int main()
     auto& fx = world.new_object() = "f.x(x) = 1 + x";
     auto& fy = world.new_object() = "f.y = 2.0 + f.x(1)";
 
-    expect(fx(1).value() == 2.0);
+    expect(fx({1}).value() == 2.0);
     expect(fy().value() == 4.0);
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
@@ -243,7 +243,7 @@ int main()
 
     expect(f.has_value()) << fatal;
 
-    auto res = f(1, 1, 1, 1, 1, 1);
+    auto res = f({1, 1, 1, 1, 1, 1});
     expect(bool(res)) << fatal;
     expect(res.value() == 7_i);
 
@@ -264,7 +264,7 @@ int main()
       double res = 0;
       size_t iterations =
         loop_call_for(duration, [&]{
-          res += f(x).value();
+          res += f({x}).value();
           x++;
           t.value += 1;
       });

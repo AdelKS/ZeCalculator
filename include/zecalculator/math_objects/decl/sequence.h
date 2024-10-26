@@ -53,16 +53,10 @@ public:
   const std::string& get_equation() const { return equation; }
 
   /// @brief evaluates the sequence at the given index
-  /// @note evaluation modifies the state of the sequence, as values get saved within
-  ///       the instance, and a locking mechanism is triggered to detect ill-formed seqs
-  template <class DBL>
-    requires std::is_constructible_v<DBL, double>
-  tl::expected<double, Error> evaluate(DBL index) const;
+  tl::expected<double, Error> evaluate(double index) const;
 
   /// @brief operator version of evaluate
-  template <class DBL>
-    requires std::is_constructible_v<DBL, double>
-  tl::expected<double, Error> operator () (DBL index) const;
+  tl::expected<double, Error> operator () (double index) const;
 
 protected:
 

@@ -79,17 +79,8 @@ public:
 
   const std::string get_equation() const { return equation; }
 
-  tl::expected<double, Error> evaluate(std::span<const double> args) const;
-  tl::expected<double, Error> operator()(std::span<const double> args) const;
-
-  template <class... DBL>
-    requires (std::is_convertible_v<DBL, double> and ...)
-  tl::expected<double, Error> evaluate(DBL... val) const;
-
-  template <class... DBL>
-    requires (std::is_convertible_v<DBL, double> and ...)
-  tl::expected<double, Error> operator()(DBL... val) const;
-
+  tl::expected<double, Error> evaluate(std::initializer_list<double> vals = {}) const;
+  tl::expected<double, Error> operator()(std::initializer_list<double> vals = {}) const;
 
 protected:
 
@@ -100,10 +91,6 @@ protected:
            std::string equation,
            size_t argument_number,
            parsing::Parsing<type> parsing);
-
-  /// @note version that tracks the current recursion depth
-  tl::expected<double, Error> evaluate(std::span<const double> args,
-                                       size_t current_recursion_depth) const;
 
   /// @brief binding of the AST 'left_expr' (parent MathObject class) to 'mathWorld'
   std::optional<parsing::Parsing<type>> bound_rhs = {};

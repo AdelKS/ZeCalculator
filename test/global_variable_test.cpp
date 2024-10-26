@@ -63,7 +63,7 @@ int main()
 
     double x = 7, y = 8;
 
-    auto eval = f(x, y);
+    auto eval = f({x, y});
     expect(bool(eval)) << [&]{ return eval.error(); } << fatal;
 
     auto* dyn_k = world.get("k");
@@ -77,7 +77,7 @@ int main()
     cpp_r = 10;
     r.value = cpp_r;
 
-    auto res = f(x, y);
+    auto res = f({x, y});
 
     expect(bool(res)) << [&]{ return res.error(); } << fatal;
 

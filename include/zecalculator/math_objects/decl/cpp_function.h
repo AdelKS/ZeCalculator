@@ -27,6 +27,7 @@
 
 #include <cstddef>
 #include <string_view>
+#include <span>
 
 namespace zc {
 
@@ -42,9 +43,8 @@ struct CppFunction
 
   std::string_view get_name() const;
 
-  template <class... DBL>
-    requires((std::is_convertible_v<DBL, double> and ...) and sizeof...(DBL) == args_num)
-  double operator()(DBL... val) const;
+  double operator()(std::span<const double, args_num> vals) const;
+  double operator()(std::array<double, args_num> vals) const;
 
   bool operator == (const CppFunction&) const = default;
 };

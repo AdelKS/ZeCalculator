@@ -158,7 +158,7 @@ int main()
 
     Function<type>& fun = (world.new_object() = "f(x) = cos(x) + x").template value_as<Function<type>>();
 
-    const double res = fun(1.0).value();
+    const double res = fun({1.0}).value();
 
     const double expected_res = std::cos(1.0) + 1.0;
 

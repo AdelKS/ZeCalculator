@@ -68,10 +68,10 @@ int main()
   // -> Assigning to objects is NOT thread-safe
   assert(obj1.holds<rpn::Function>());
 
-  // We can evaluate 'obj1'
+  // We can evaluate 'obj1' with an initializer_list<double>
   // note: we could also do it when 'my_constant' was undefined,
   //       in that case the result would be the same error as above
-  expected<double, Error> eval = obj1(1.0);
+  expected<double, Error> eval = obj1({1.0});
 
   // Notes:
   // - We know the expression is correct, otherwise the call `.value()` will throw
@@ -96,7 +96,7 @@ int main()
   assert(obj1.holds<rpn::Sequence>());
 
   // evaluate function again and get the new value
-  assert(obj1(10).value() == 55);
+  assert(obj1({10}).value() == 55);
 
   // C++ double(double...) functions can also be registered in a world
   auto& obj3 = world.new_object();

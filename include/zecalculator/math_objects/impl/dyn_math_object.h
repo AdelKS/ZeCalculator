@@ -35,9 +35,13 @@ DynMathObject<type>::DynMathObject(tl::expected<MathObjectsVariant<type>, Error>
 {}
 
 template <parsing::Type type>
-template <class... DBL>
-  requires (std::is_convertible_v<DBL, double> and ...)
-tl::expected<double, Error> DynMathObject<type>::evaluate(DBL... val) const
+tl::expected<double, Error> DynMathObject<type>::operator () (std::initializer_list<double> vals) const
+{
+  return evaluate(vals);
+}
+
+template <parsing::Type type>
+tl::expected<double, Error> DynMathObject<type>::evaluate(std::initializer_list<double> vals) const
 {
   using Ret = tl::expected<double, Error>;
   if (not bool(*this))
@@ -47,26 +51,27 @@ tl::expected<double, Error> DynMathObject<type>::evaluate(DBL... val) const
     utils::overloaded{
       [&]<size_t args_num>(const CppFunction<args_num>& cpp_f) -> Ret
       {
-        if constexpr (sizeof...(val) != args_num)
+        if (vals.size() != args_num)
           return tl::unexpected(Error::cpp_incorrect_argnum());
-        else return cpp_f(val...);
+
+        return cpp_f(std::span<const double, args_num>(vals.begin(), args_num));
       },
       [&](const Function<type>& f) -> Ret
       {
         // argument size test done within Function's code
-        return f(val...);
+        return f(vals);
       },
       [&](const GlobalConstant& cst) -> Ret
       {
-        if constexpr (sizeof...(val) != 0)
+        if (vals.size() != 0)
           return tl::unexpected(Error::cpp_incorrect_argnum());
         else return cst.value;
       },
       [&](const Sequence<type>& u) -> Ret
       {
-        if constexpr (sizeof...(val) != 1)
+        if (vals.size() != 1)
           return tl::unexpected(Error::cpp_incorrect_argnum());
-        else return u(val...);
+        else return u(*vals.begin());
       }
     },
     **this
@@ -305,14 +310,6 @@ DynMathObject<type>& DynMathObject<type>::assign_object(T&& obj, std::optional<E
                            opt_eq_object ? opt_eq_object->name : std::string(get_name()));
 
   return *this;
-}
-
-template <parsing::Type type>
-template <class... DBL>
-  requires (std::is_convertible_v<DBL, double> and ...)
-tl::expected<double, Error> DynMathObject<type>::operator () (DBL... val) const
-{
-  return evaluate(val...);
 }
 
 template <parsing::Type type>

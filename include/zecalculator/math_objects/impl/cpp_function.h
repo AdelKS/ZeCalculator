@@ -27,11 +27,24 @@ namespace zc {
 
 template <size_t args_num>
   requires(args_num > 0)
-template <class... DBL>
-  requires((std::is_convertible_v<DBL, double> and ...) and sizeof...(DBL) == args_num)
-double CppFunction<args_num>::operator()(DBL... val) const
+double CppFunction<args_num>::operator()(std::array<double, args_num> vals) const
 {
-  return f_ptr(val...);
+  auto unpack_compute = [&]<size_t... i>(std::integer_sequence<size_t, i...>)
+  {
+    return f_ptr(vals[i]...);
+  };
+  return unpack_compute(std::make_index_sequence<args_num>());
+}
+
+template <size_t args_num>
+  requires(args_num > 0)
+double CppFunction<args_num>::operator()(std::span<const double, args_num> vals) const
+{
+  auto unpack_compute = [&]<size_t... i>(std::integer_sequence<size_t, i...>)
+  {
+    return f_ptr(vals[i]...);
+  };
+  return unpack_compute(std::make_index_sequence<args_num>());
 }
 
 template <size_t args_num>
