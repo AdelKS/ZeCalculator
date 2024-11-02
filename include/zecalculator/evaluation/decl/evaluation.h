@@ -21,10 +21,11 @@
 ****************************************************************************/
 
 #include <zecalculator/error.h>
-#include <zecalculator/parsing/data_structures/decl/fast.h>
+#include <zecalculator/evaluation/decl/cache.h>
 #include <zecalculator/math_objects/decl/function.h>
 #include <zecalculator/math_objects/global_constant.h>
 #include <zecalculator/mathworld/decl/mathworld.h>
+#include <zecalculator/parsing/data_structures/decl/fast.h>
 #include <zecalculator/utils/name_map.h>
 
 namespace zc {
@@ -44,6 +45,7 @@ struct Evaluator
   std::span<const double> input_vars;
   ValuesContainer subnodes = {};
   const size_t current_recursion_depth = 0;
+  Cache* cache = nullptr;
 
   /// @brief only used in the RPN case, too lazy to remove it otherwise
   Error error = {};
@@ -90,14 +92,17 @@ struct Evaluator
 /// @param world: math world (contains functions, global constants... etc)
 tl::expected<double, Error> evaluate(const parsing::FAST<parsing::Type::FAST>& tree,
                                      std::span<const double> input_vars,
-                                     size_t current_recursion_depth);
+                                     size_t current_recursion_depth,
+                                     eval::Cache* cache = nullptr);
 
 /// @brief evaluates a syntax tree using a given math world
 tl::expected<double, Error> evaluate(const parsing::FAST<parsing::Type::FAST>& tree,
-                                     std::span<const double> input_vars);
+                                     std::span<const double> input_vars,
+                                     eval::Cache* cache = nullptr);
 
 /// @brief evaluates a syntax tree using a given math world
-tl::expected<double, Error> evaluate(const parsing::FAST<parsing::Type::FAST>& tree);
+tl::expected<double, Error> evaluate(const parsing::FAST<parsing::Type::FAST>& tree,
+                                     eval::Cache* cache = nullptr);
 
 /// ================= RPN
 
@@ -107,13 +112,15 @@ tl::expected<double, Error> evaluate(const parsing::FAST<parsing::Type::FAST>& t
 /// @param world: math world (contains functions, global constants... etc)
 tl::expected<double, Error> evaluate(const parsing::RPN& rpn,
                                      std::span<const double> input_vars,
-                                     size_t current_recursion_depth);
+                                     size_t current_recursion_depth,
+                                     eval::Cache* cache = nullptr);
 
 /// @brief evaluates a syntax tree using a given math world
 tl::expected<double, Error> evaluate(const parsing::RPN& rpn,
-                                     std::span<const double> input_vars);
+                                     std::span<const double> input_vars,
+                                     eval::Cache* cache = nullptr);
 
 /// @brief evaluates a syntax tree using a given math world
-tl::expected<double, Error> evaluate(const parsing::RPN& rpn);
+tl::expected<double, Error> evaluate(const parsing::RPN& rpn, eval::Cache* cache = nullptr);
 
 } // namespace zc

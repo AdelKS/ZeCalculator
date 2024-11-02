@@ -21,6 +21,7 @@
 ****************************************************************************/
 
 #include <zecalculator/error.h>
+#include <zecalculator/evaluation/decl/cache.h>
 #include <zecalculator/external/expected.h>
 #include <zecalculator/math_objects/decl/eq_object.h>
 #include <zecalculator/math_objects/decl/math_object.h>
@@ -65,8 +66,8 @@ public:
   /// @note this method can potentially modify every other DynMathObject in the same MathWorld
   DynMathObject<type>& operator = (GlobalConstant cst);
 
-  tl::expected<double, Error> operator () (std::initializer_list<double> vals = {}) const;
-  tl::expected<double, Error> evaluate(std::initializer_list<double> vals = {}) const;
+  tl::expected<double, Error> operator () (std::initializer_list<double> vals = {}, eval::Cache* cache = nullptr) const;
+  tl::expected<double, Error> evaluate(std::initializer_list<double> vals = {}, eval::Cache* cache = nullptr) const;
 
   /// @brief returns the name of the object
   /// @note returns non-empty string only if this instance contains a syntactically valid equation or object

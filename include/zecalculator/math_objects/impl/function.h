@@ -39,16 +39,16 @@ Function<type>::Function(MathObject base, std::string equation, size_t argument_
 {}
 
 template <parsing::Type type>
-tl::expected<double, Error> Function<type>::evaluate(std::initializer_list<double> args) const
+tl::expected<double, Error> Function<type>::evaluate(std::initializer_list<double> args, eval::Cache* cache) const
 {
   assert(bound_rhs);
-  return zc::evaluate(*bound_rhs, std::span(args.begin(), args.size()));
+  return zc::evaluate(*bound_rhs, std::span(args.begin(), args.size()), cache);
 }
 
 template <parsing::Type type>
-tl::expected<double, Error> Function<type>::operator()(std::initializer_list<double> args) const
+tl::expected<double, Error> Function<type>::operator()(std::initializer_list<double> args, eval::Cache* cache) const
 {
-  return evaluate(args);
+  return evaluate(args, cache);
 }
 
 } // namespace zc

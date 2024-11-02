@@ -35,13 +35,13 @@ DynMathObject<type>::DynMathObject(tl::expected<MathObjectsVariant<type>, Error>
 {}
 
 template <parsing::Type type>
-tl::expected<double, Error> DynMathObject<type>::operator () (std::initializer_list<double> vals) const
+tl::expected<double, Error> DynMathObject<type>::operator () (std::initializer_list<double> vals, eval::Cache* cache) const
 {
-  return evaluate(vals);
+  return evaluate(vals, cache);
 }
 
 template <parsing::Type type>
-tl::expected<double, Error> DynMathObject<type>::evaluate(std::initializer_list<double> vals) const
+tl::expected<double, Error> DynMathObject<type>::evaluate(std::initializer_list<double> vals, eval::Cache* cache) const
 {
   using Ret = tl::expected<double, Error>;
   if (not bool(*this))
@@ -59,7 +59,7 @@ tl::expected<double, Error> DynMathObject<type>::evaluate(std::initializer_list<
       [&](const Function<type>& f) -> Ret
       {
         // argument size test done within Function's code
-        return f(vals);
+        return f(vals, cache);
       },
       [&](const GlobalConstant& cst) -> Ret
       {
@@ -71,7 +71,7 @@ tl::expected<double, Error> DynMathObject<type>::evaluate(std::initializer_list<
       {
         if (vals.size() != 1)
           return tl::unexpected(Error::cpp_incorrect_argnum());
-        else return u(*vals.begin());
+        else return u(*vals.begin(), cache);
       }
     },
     **this

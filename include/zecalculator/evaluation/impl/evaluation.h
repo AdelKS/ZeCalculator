@@ -21,6 +21,7 @@
 ****************************************************************************/
 
 #include <zecalculator/evaluation/decl/evaluation.h>
+#include <zecalculator/evaluation/impl/cache.h>
 #include <zecalculator/parsing/data_structures/impl/fast.h>
 
 namespace zc {
@@ -120,7 +121,8 @@ auto Evaluator<type>::operator()(const zc::Function<type>* f) -> RetType
 
   auto exp_res = zc::evaluate(*(f->bound_rhs),
                               {(subnodes.end() - args_num), args_num},
-                              current_recursion_depth + 1);
+                              current_recursion_depth + 1,
+                              cache);
 
   if constexpr (type == parsing::Type::FAST)
   {
@@ -149,7 +151,7 @@ auto Evaluator<type>::operator()(const zc::Sequence<type>* u) -> RetType
   if constexpr (type == parsing::Type::FAST)
     assert(subnodes.size() == 1);
 
-  auto exp_res = u->evaluate(subnodes.back(), current_recursion_depth + 1);
+  auto exp_res = u->evaluate(subnodes.back(), current_recursion_depth + 1, cache);
 
   if constexpr (type == parsing::Type::FAST)
   {
@@ -241,7 +243,8 @@ auto Evaluator<type>::operator()(const zc::parsing::shared::node::Number& node) 
 /// @param world: math world (contains functions, global constants... etc)
 inline tl::expected<double, Error> evaluate(const parsing::FAST<parsing::Type::FAST>& tree,
                                             std::span<const double> input_vars,
-                                            size_t current_recursion_depth)
+                                            size_t current_recursion_depth,
+                                            eval::Cache* cache)
 {
   if (eval::max_recursion_depth < current_recursion_depth) [[unlikely]]
     return tl::unexpected(Error::recursion_depth_overflow());
@@ -250,7 +253,7 @@ inline tl::expected<double, Error> evaluate(const parsing::FAST<parsing::Type::F
   subnodes.reserve(tree.subnodes.size());
   for (const auto& subnode : tree.subnodes)
   {
-    auto eval = evaluate(subnode, input_vars, current_recursion_depth + 1);
+    auto eval = evaluate(subnode, input_vars, current_recursion_depth + 1, cache);
     if (eval) [[likely]]
       subnodes.push_back(*eval);
     else [[unlikely]]
@@ -260,21 +263,24 @@ inline tl::expected<double, Error> evaluate(const parsing::FAST<parsing::Type::F
   return std::visit(eval::Evaluator<parsing::Type::FAST>{.input_vars = input_vars,
                                                          .subnodes = subnodes,
                                                          .current_recursion_depth
-                                                         = current_recursion_depth},
+                                                         = current_recursion_depth,
+                                                         .cache = cache},
                     tree.node);
 }
 
 /// @brief evaluates a syntax tree using a given math world
 inline tl::expected<double, Error> evaluate(const parsing::FAST<parsing::Type::FAST>& tree,
-                                     std::span<const double> input_vars)
+                                            std::span<const double> input_vars,
+                                            eval::Cache* cache)
 {
-  return evaluate(tree, input_vars, 0);
+  return evaluate(tree, input_vars, 0, cache);
 }
 
 /// @brief evaluates a syntax tree using a given math world
-inline tl::expected<double, Error> evaluate(const parsing::FAST<parsing::Type::FAST>& tree)
+inline tl::expected<double, Error> evaluate(const parsing::FAST<parsing::Type::FAST>& tree,
+                                            eval::Cache* cache)
 {
-  return evaluate(tree, std::span<const double, 0>(), 0);
+  return evaluate(tree, std::span<const double, 0>(), 0, cache);
 }
 
 
@@ -286,14 +292,16 @@ inline tl::expected<double, Error> evaluate(const parsing::FAST<parsing::Type::F
 /// @param world: math world (contains functions, global constants... etc)
 inline tl::expected<double, Error> evaluate(const parsing::RPN& rpn,
                                             std::span<const double> input_vars,
-                                            size_t current_recursion_depth)
+                                            size_t current_recursion_depth,
+                                            eval::Cache* cache)
 {
   if (eval::max_recursion_depth < current_recursion_depth) [[unlikely]]
     return tl::unexpected(Error::recursion_depth_overflow());
 
   eval::Evaluator<parsing::Type::RPN> stateful_evaluator{.input_vars = input_vars,
                                                          .current_recursion_depth
-                                                         = current_recursion_depth};
+                                                         = current_recursion_depth,
+                                                         .cache = cache};
 
   stateful_evaluator.subnodes.reserve(rpn.size());
 
@@ -309,15 +317,16 @@ inline tl::expected<double, Error> evaluate(const parsing::RPN& rpn,
 
 /// @brief evaluates a syntax tree using a given math world
 inline tl::expected<double, Error> evaluate(const parsing::RPN& rpn,
-                                            std::span<const double> input_vars)
+                                            std::span<const double> input_vars,
+                                            eval::Cache* cache)
 {
-  return evaluate(rpn, input_vars, 0);
+  return evaluate(rpn, input_vars, 0, cache);
 }
 
 /// @brief evaluates a syntax tree using a given math world
-inline tl::expected<double, Error> evaluate(const parsing::RPN& rpn)
+inline tl::expected<double, Error> evaluate(const parsing::RPN& rpn, eval::Cache* cache)
 {
-  return evaluate(rpn, std::span<const double, 0>(), 0);
+  return evaluate(rpn, std::span<const double, 0>(), 0, cache);
 }
 
 }

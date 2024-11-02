@@ -17,7 +17,8 @@ Sequence<type>::Sequence(MathObject obj, std::string equation, std::vector<parsi
 
 template <parsing::Type type>
 tl::expected<double, Error> Sequence<type>::evaluate(double index,
-                                                     size_t current_recursion_depth) const
+                                                     size_t current_recursion_depth,
+                                                     eval::Cache* cache) const
 {
   // round double to nearest integer
   long integer_index = std::lround(index);
@@ -29,19 +30,19 @@ tl::expected<double, Error> Sequence<type>::evaluate(double index,
 
   const auto& parsing = size_t(integer_index) < values.size() ? values[integer_index] : values.back();
 
-  return zc::evaluate(parsing, std::array{double(integer_index)}, current_recursion_depth);
+  return zc::evaluate(parsing, std::array{double(integer_index)}, current_recursion_depth, cache);
 }
 
 template <parsing::Type type>
-tl::expected<double, Error> Sequence<type>::evaluate(double index) const
+tl::expected<double, Error> Sequence<type>::evaluate(double index, eval::Cache* cache) const
 {
-  return Sequence<type>::evaluate(index, 0);
+  return Sequence<type>::evaluate(index, 0, cache);
 }
 
 template <parsing::Type type>
-tl::expected<double, Error> Sequence<type>::operator ()(double index) const
+tl::expected<double, Error> Sequence<type>::operator ()(double index, eval::Cache* cache) const
 {
-  return Sequence<type>::evaluate(index, 0);
+  return Sequence<type>::evaluate(index, 0, cache);
 }
 
 }

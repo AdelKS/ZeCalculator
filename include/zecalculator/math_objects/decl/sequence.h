@@ -53,10 +53,10 @@ public:
   const std::string& get_equation() const { return equation; }
 
   /// @brief evaluates the sequence at the given index
-  tl::expected<double, Error> evaluate(double index) const;
+  tl::expected<double, Error> evaluate(double index, eval::Cache* cache = nullptr) const;
 
   /// @brief operator version of evaluate
-  tl::expected<double, Error> operator () (double index) const;
+  tl::expected<double, Error> operator () (double index, eval::Cache* cache = nullptr) const;
 
 protected:
 
@@ -65,7 +65,9 @@ protected:
   Sequence(MathObject obj, std::string equation, std::vector<parsing::Parsing<type>> values);
 
   /// @brief evaluation with recursion depth tracking
-  tl::expected<double, Error> evaluate(double index, size_t current_recursion_depth) const;
+  tl::expected<double, Error> evaluate(double index,
+                                       size_t current_recursion_depth,
+                                       eval::Cache* cache = nullptr) const;
 
   template <parsing::Type>
   friend struct eval::Evaluator;
