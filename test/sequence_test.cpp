@@ -54,6 +54,33 @@ int main()
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 
+  "fibonacci sequence with cache"_test = []<class StructType>()
+  {
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
+
+    eval::Cache cache;
+
+    MathWorld<type> world;
+    auto& fib = world.new_object() = "fib(n) = 0 ; 1 ; fib(n-1) + fib(n-2)";
+
+    expect(bool(fib)) << [&] { return fib.error(); } << fatal;
+
+    expect(bool(fib({0}, &cache))) << [&]{ return fib({0}).error(); } << fatal;
+
+    expect(fib({0}, &cache).value() == 0.0_d);
+    expect(fib({1}, &cache).value() == 1.0_d);
+    expect(fib({2}, &cache).value() == 1.0_d);
+    expect(fib({3}, &cache).value() == 2.0_d);
+    expect(fib({4}, &cache).value() == 3.0_d);
+    expect(fib({10}, &cache).value() == 55.0_d);
+    expect(fib({20}, &cache).value() == 6765.0_d);
+    expect(fib({30}, &cache).value() == 832040.0_d);
+
+    auto* fib_obj = world.get("fib");
+    expect(fib_obj && (*fib_obj)({10}, &cache).value() == 55.0_d);
+
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
+
   "recursion depth overflow"_test = []<class StructType>()
   {
     constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;

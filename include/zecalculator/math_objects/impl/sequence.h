@@ -21,16 +21,30 @@ tl::expected<double, Error> Sequence<type>::evaluate(double index,
                                                      eval::Cache* cache) const
 {
   // round double to nearest integer
-  long integer_index = std::lround(index);
+  double rounded_index = std::round(index);
 
   assert(values.size() != 0);
 
-  if (integer_index < 0) [[unlikely]]
+  if (rounded_index < 0) [[unlikely]]
     return std::nan("");
 
-  const auto& parsing = size_t(integer_index) < values.size() ? values[integer_index] : values.back();
+  if (cache)
+    if (auto obj_cache_it = cache->find(name); obj_cache_it != cache->end())
+    {
+      auto& obj_cache = obj_cache_it->second.get_cache();
+      if (auto value_it = obj_cache.find(rounded_index); value_it != obj_cache.end())
+        return value_it->second;
+    }
 
-  return zc::evaluate(parsing, std::array{double(integer_index)}, current_recursion_depth, cache);
+  size_t unsigned_index = rounded_index;
+  const auto& parsing = unsigned_index < values.size() ? values[unsigned_index] : values.back();
+
+  auto exp_res = zc::evaluate(parsing, std::array{rounded_index}, current_recursion_depth, cache);
+
+  if (exp_res and cache)
+    (*cache)[name].insert(rounded_index, *exp_res);
+
+  return exp_res;
 }
 
 template <parsing::Type type>
