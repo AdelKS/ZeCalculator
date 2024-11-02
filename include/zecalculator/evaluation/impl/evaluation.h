@@ -253,7 +253,7 @@ inline tl::expected<double, Error> evaluate(const parsing::FAST<parsing::Type::F
   subnodes.reserve(tree.subnodes.size());
   for (const auto& subnode : tree.subnodes)
   {
-    auto eval = evaluate(subnode, input_vars, current_recursion_depth + 1, cache);
+    auto eval = evaluate(subnode, input_vars, current_recursion_depth, cache);
     if (eval) [[likely]]
       subnodes.push_back(*eval);
     else [[unlikely]]
