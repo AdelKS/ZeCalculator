@@ -91,4 +91,20 @@ int main()
     expect(bad({0}).error() == Error::recursion_depth_overflow());
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
+
+  "invalid function depending on invalid sequence"_test = []<class StructType>()
+  {
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
+
+    MathWorld<type> world;
+    auto& f = world.new_object() = "f(x) = cos(x) + u(n)";
+    auto& u = world.new_object() = "u(n) = 1 ; 1 ; u";
+
+    expect(f.error().type == Error::UNDEFINED_VARIABLE) << f.error().type;
+    expect(f.error().token == parsing::Token::Variable("n", 18)) << f.error().token;
+
+    expect(u.error().type == Error::WRONG_OBJECT_TYPE) << u.error().type;
+    expect(u.error().token == parsing::Token::Variable("u", 15)) << u.error().token;
+
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
 }

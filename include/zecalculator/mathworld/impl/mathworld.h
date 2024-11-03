@@ -263,24 +263,22 @@ void MathWorld<type>::rebind_dependent_functions(const std::unordered_set<std::s
     auto revdeps = direct_revdeps(invalid_func_name);
     for (auto&& [affected_func_name, info]: revdeps)
     {
-      if(DynMathObject<type>* obj = get(affected_func_name))
-      {
-        if (covered_invalid_functions.contains(affected_func_name))
-          continue;
+      DynMathObject<type>* obj = get(affected_func_name);
+      if (not(obj and *obj) or covered_invalid_functions.contains(affected_func_name))
+        continue;
 
-        // if these are revdeps, they can only be functions
-        // because they have an expression that calls our invalid function
-        assert(obj->template holds<Function<type>>() or obj->template holds<Sequence<type>>());
+      // if these are revdeps, they can only be functions
+      // because they have an expression that calls our invalid function
+      assert(obj->template holds<Function<type>>() or obj->template holds<Sequence<type>>());
 
-        assert(obj->opt_eq_object);
+      assert(obj->opt_eq_object);
 
-        obj->as_expected() = tl::unexpected(
-          Error::object_in_invalid_state(parsing::tokens::Text{.substr = invalid_func_name,
-                                                               .begin = info.indexes.front()},
-                                         obj->opt_eq_object->equation));
+      obj->as_expected() = tl::unexpected(
+        Error::object_in_invalid_state(parsing::tokens::Text{.substr = invalid_func_name,
+                                                              .begin = info.indexes.front()},
+                                        obj->opt_eq_object->equation));
 
-        invalid_functions.insert(affected_func_name);
-      }
+      invalid_functions.insert(affected_func_name);
     }
   }
 }
