@@ -129,7 +129,7 @@ const ObjectType* MathWorld<type>::get(std::string_view name) const
 template <parsing::Type type>
 DynMathObject<type>* MathWorld<type>::get(size_t slot)
 {
-  return const_cast<DynMathObject<type>*>(std::as_const(*this).template get(slot));
+  return const_cast<DynMathObject<type>*>(std::as_const(*this).get(slot));
 }
 
 template <parsing::Type type>
