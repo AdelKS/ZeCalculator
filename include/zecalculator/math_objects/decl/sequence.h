@@ -79,9 +79,6 @@ protected:
   /// @example Fibonacci: values = {parsing_of("1"), parsing_of("1"), parsing_of("u(n-1) + u(n-2)")}
   std::vector<parsing::Parsing<type>> values;
 
-  template <parsing::Type>
-  friend class MathWorld;
-
   friend struct EqObject;
 
 };

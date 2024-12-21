@@ -104,9 +104,6 @@ protected:
 
   friend struct parsing::RpnMaker;
 
-  template <parsing::Type>
-  friend class MathWorld;
-
   friend struct EqObject;
 };
 

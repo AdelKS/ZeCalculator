@@ -47,9 +47,6 @@ protected:
   std::string name;
 
   template <parsing::Type>
-  friend class MathWorld;
-
-  template <parsing::Type>
   friend class DynMathObject;
 
 };
