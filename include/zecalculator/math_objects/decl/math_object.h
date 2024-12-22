@@ -37,6 +37,8 @@ namespace eval {
 class MathObject
 {
 public:
+  MathObject() = default;
+
   MathObject(std::string name) : name(std::move(name))
   {}
 
@@ -44,7 +46,7 @@ public:
 
 protected:
 
-  std::string name;
+  std::string name = {};
 
   template <parsing::Type>
   friend class DynMathObject;

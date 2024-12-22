@@ -108,8 +108,12 @@ int main()
 
     auto& z = world.new_object() = "z(x) = f(x)+1";
 
+    expect(f.has_value()) << [&]{ return f.error(); } << fatal;
+    expect(g.has_value()) << [&]{ return g.error(); } << fatal;
+    expect(z.has_value()) << [&]{ return z.error(); } << fatal;
+
     auto res = z({1});
-    expect(not res and res.error() == Error::recursion_depth_overflow());
+    expect(not res and res.error() == Error::recursion_depth_overflow()) << res;
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 

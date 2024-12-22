@@ -71,9 +71,6 @@ class Function: public MathObject
 {
 public:
 
-  Function(Function&& f) = default;
-  Function& operator = (Function&& f) = default;
-
   /// @brief returns the number of input variables, if they are valid
   size_t args_num() const { return argument_number; };
 
@@ -84,8 +81,9 @@ public:
 
 protected:
 
-  // constructor reserved for MathWorld when using add() function
-  Function(MathObject base, std::string equation, size_t argument_number);
+  /// @details used as an intermediary state when "linking" functions
+  /// @note    this state should never be exposed to downstream users of the library
+  Function(size_t argument_number): argument_number(argument_number) {};
 
   Function(MathObject base,
            std::string equation,
@@ -95,7 +93,7 @@ protected:
   /// @brief binding of the AST 'left_expr' (parent MathObject class) to 'mathWorld'
   std::optional<parsing::Parsing<type>> bound_rhs = {};
 
-  std::string equation;
+  std::string equation = {};
 
   size_t argument_number;
 

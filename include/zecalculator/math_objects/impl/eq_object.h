@@ -11,9 +11,9 @@ tl::expected<MathObjectsVariant<type>, Error> EqObject::to_expected_unbound() co
   switch(cat)
   {
     case EqObject::FUNCTION:
-      return Function<type>(name, equation, lhs.args_num());
+      return Function<type>(lhs.args_num());
     case EqObject::SEQUENCE:
-      return Sequence<type>(name, equation);
+      return Sequence<type>();
     case EqObject::GLOBAL_CONSTANT:
       return GlobalConstant(name, rhs.number_data().value);
     default: [[unlikely]]

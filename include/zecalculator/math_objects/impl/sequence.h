@@ -6,12 +6,9 @@
 namespace zc {
 
 template <parsing::Type type>
-Sequence<type>::Sequence(MathObject obj, std::string equation)
-  : MathObject(std::move(obj)), equation(std::move(equation))
-{}
-
-template <parsing::Type type>
-Sequence<type>::Sequence(MathObject obj, std::string equation, std::vector<parsing::Parsing<type>> values)
+Sequence<type>::Sequence(MathObject obj,
+                         std::string equation,
+                         std::vector<parsing::Parsing<type>> values)
   : MathObject(std::move(obj)), equation(std::move(equation)), values(std::move(values))
 {}
 
@@ -23,9 +20,7 @@ tl::expected<double, Error> Sequence<type>::evaluate(double index,
   // round double to nearest integer
   double rounded_index = std::round(index);
 
-  assert(values.size() != 0);
-
-  if (rounded_index < 0) [[unlikely]]
+  if (rounded_index < 0 or values.empty()) [[unlikely]]
     return std::nan("");
 
   if (cache)

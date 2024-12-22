@@ -60,9 +60,12 @@ public:
 
 protected:
 
-  // constructor reserved for MathWorld when using add() function
-  Sequence(MathObject obj, std::string equation);
-  Sequence(MathObject obj, std::string equation, std::vector<parsing::Parsing<type>> values);
+  /// @brief Makes a valid but "empty" Sequence, will evaluate to NaN for any input
+  Sequence() = default;
+
+  Sequence(MathObject obj,
+           std::string equation,
+           std::vector<parsing::Parsing<type>> values);
 
   /// @brief evaluation with recursion depth tracking
   tl::expected<double, Error> evaluate(double index,
