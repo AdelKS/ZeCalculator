@@ -952,11 +952,7 @@ namespace std {
         }
 
         void swap(flat_map & __fm) noexcept(
-#if defined(__clang__)
-            __is_nothrow_swappable<key_compare>::value
-#else
             is_nothrow_swappable<key_compare>::value
-#endif
         )
         {
             using std::swap;
