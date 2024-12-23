@@ -57,6 +57,11 @@ namespace parsing {
   struct RpnMaker;
 }
 
+namespace internal {
+  struct EqObject;
+}
+
+
 template <class T>
 struct is_function: std::false_type {};
 
@@ -102,7 +107,7 @@ protected:
 
   friend struct parsing::RpnMaker;
 
-  friend struct EqObject;
+  friend struct internal::EqObject;
 };
 
 template <parsing::Type type>

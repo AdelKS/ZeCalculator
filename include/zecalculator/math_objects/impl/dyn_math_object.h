@@ -24,14 +24,19 @@
 #include <zecalculator/math_objects/impl/cpp_function.h>
 #include <zecalculator/math_objects/impl/function.h>
 #include <zecalculator/math_objects/impl/global_constant.h>
+#include <zecalculator/math_objects/impl/internal/eq_object.h>
 #include <zecalculator/math_objects/impl/sequence.h>
 #include <zecalculator/utils/utils.h>
 
 namespace zc {
 
 template <parsing::Type type>
-DynMathObject<type>::DynMathObject(tl::expected<MathObjectsVariant<type>, Error> exp_variant, size_t slot, MathWorld<type>& mathworld)
-  : tl::expected<MathObjectsVariant<type>, Error>(std::move(exp_variant)), slot(slot), mathworld(mathworld)
+DynMathObject<type>::DynMathObject(
+  tl::expected<MathObjectsVariant<type>, Error> exp_variant,
+  size_t slot,
+  MathWorld<type>& mathworld)
+  : tl::expected<MathObjectsVariant<type>, Error>(std::move(exp_variant)), slot(slot),
+    mathworld(mathworld)
 {}
 
 template <parsing::Type type>
@@ -84,18 +89,18 @@ template <class T>
 DynMathObject<type>& DynMathObject<type>::operator = (As<T> eq)
 {
   if constexpr (std::is_same_v<T, Function<type>>)
-    return assign(std::move(eq.str), EqObject::FUNCTION);
+    return assign(std::move(eq.str), internal::EqObject::FUNCTION);
   else if constexpr (std::is_same_v<T, Sequence<type>>)
-    return assign(std::move(eq.str), EqObject::SEQUENCE);
+    return assign(std::move(eq.str), internal::EqObject::SEQUENCE);
   else if constexpr (std::is_same_v<T, GlobalConstant>)
-    return assign(std::move(eq.str), EqObject::GLOBAL_CONSTANT);
+    return assign(std::move(eq.str), internal::EqObject::GLOBAL_CONSTANT);
   else static_assert(utils::dependent_false_v<T>, "case not handled");
 }
 
 template <parsing::Type type>
 DynMathObject<type>& DynMathObject<type>::operator = (std::string eq)
 {
-  return assign(std::move(eq), EqObject::AUTO);
+  return assign(std::move(eq), internal::EqObject::AUTO);
 }
 
 template <parsing::Type type>
@@ -128,13 +133,14 @@ tl::expected<MathObjectsVariant<type>, Error>& DynMathObject<type>::as_expected(
 }
 
 template <parsing::Type type>
-const tl::expected<MathObjectsVariant<type>, Error>& DynMathObject<type>::as_expected() const
+const tl::expected<MathObjectsVariant<type>, Error>&
+  DynMathObject<type>::as_expected() const
 {
   return *this;
 }
 
 template <parsing::Type type>
-DynMathObject<type>& DynMathObject<type>::assign(std::string definition, EqObject::Category cat)
+DynMathObject<type>& DynMathObject<type>::assign(std::string definition, internal::EqObject::Category cat)
 {
 /**
   *  0. Example: def = "f(x) = cos(x)"
@@ -152,7 +158,7 @@ DynMathObject<type>& DynMathObject<type>::assign(std::string definition, EqObjec
   *  4. Any step can fail, in which case the member variable 'm' is an Error instance
   **/
 
-  EqObject eq_obj {.cat = cat, .equation = definition};
+  internal::EqObject eq_obj {.cat = cat, .equation = definition};
 
   auto ast = parsing::tokenize(definition)
                .and_then(parsing::make_ast{definition})
@@ -204,11 +210,11 @@ DynMathObject<type>& DynMathObject<type>::assign(std::string definition, EqObjec
 
 
   // third sanity check: type checks
-  if (cat != EqObject::AUTO)
+  if (cat != internal::EqObject::AUTO)
   {
     eq_obj.cat = cat;
 
-    if (cat == EqObject::FUNCTION)
+    if (cat == internal::EqObject::FUNCTION)
     {
       if (is_sequence_def)
         // user asked for a function, but right hand side looks like a sequence def
@@ -220,7 +226,7 @@ DynMathObject<type>& DynMathObject<type>::assign(std::string definition, EqObjec
       assert((is_function_def or is_global_var_def or is_global_constant_def)
              and not is_sequence_def);
     }
-    else if (cat == EqObject::SEQUENCE)
+    else if (cat == internal::EqObject::SEQUENCE)
     {
       // global vars and constants cannot be considered sequences
       // due to the strict requirement that sequences have are single
@@ -231,7 +237,7 @@ DynMathObject<type>& DynMathObject<type>::assign(std::string definition, EqObjec
       assert(is_function_def and not is_global_var_def
              and not is_global_constant_def);
     }
-    else if (cat == EqObject::GLOBAL_CONSTANT)
+    else if (cat == internal::EqObject::GLOBAL_CONSTANT)
     {
       if (is_function_def)
         return assign_error(Error::wrong_object_type(eq_obj.lhs.name, definition));
@@ -269,18 +275,18 @@ DynMathObject<type>& DynMathObject<type>::assign(std::string definition, EqObjec
   }
 
   // now that we checked that everything is fine, we can assign the object
-  if (cat == EqObject::Category::AUTO)
+  if (cat == internal::EqObject::Category::AUTO)
   {
-    if (is_sequence_def or cat == EqObject::SEQUENCE)
-      eq_obj.cat = EqObject::SEQUENCE;
+    if (is_sequence_def or cat == internal::EqObject::SEQUENCE)
+      eq_obj.cat = internal::EqObject::SEQUENCE;
 
     else if (is_function_def or is_global_var_def)
-      eq_obj.cat = EqObject::FUNCTION;
+      eq_obj.cat = internal::EqObject::FUNCTION;
 
     else
     {
       assert(is_global_constant_def);
-      eq_obj.cat = EqObject::GLOBAL_CONSTANT;
+      eq_obj.cat = internal::EqObject::GLOBAL_CONSTANT;
     }
   }
 
@@ -290,14 +296,16 @@ DynMathObject<type>& DynMathObject<type>::assign(std::string definition, EqObjec
 }
 
 template <parsing::Type type>
-DynMathObject<type>& DynMathObject<type>::assign_error(Error error, std::optional<EqObject> new_opt_eq_obj)
+DynMathObject<type>&
+  DynMathObject<type>::assign_error(Error error, std::optional<internal::EqObject> new_opt_eq_obj)
 {
   return assign_object(tl::unexpected(std::move(error)), std::move(new_opt_eq_obj));
 }
 
 template <parsing::Type type>
 template <class T>
-DynMathObject<type>& DynMathObject<type>::assign_object(T&& obj, std::optional<EqObject> new_opt_eq_obj)
+DynMathObject<type>&
+  DynMathObject<type>::assign_object(T&& obj, std::optional<internal::EqObject> new_opt_eq_obj)
 {
   std::string old_name(get_name());
   auto old_eq_object = opt_eq_object;
@@ -358,7 +366,7 @@ template <parsing::Type type>
 bool DynMathObject<type>::has_function_eq_obj() const
 {
   return opt_eq_object
-         and (opt_eq_object->cat == EqObject::FUNCTION or opt_eq_object->cat == EqObject::SEQUENCE);
+         and (opt_eq_object->cat == internal::EqObject::FUNCTION or opt_eq_object->cat == internal::EqObject::SEQUENCE);
 }
 
 template <parsing::Type type>

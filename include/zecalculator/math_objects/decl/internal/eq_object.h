@@ -1,18 +1,17 @@
 #pragma once
 
-#include <zecalculator/parsing/data_structures/decl/ast.h>
-#include <zecalculator/math_objects/object_list.h>
 #include <zecalculator/error.h>
+#include <zecalculator/math_objects/object_list.h>
+#include <zecalculator/parsing/data_structures/decl/ast.h>
 
 #include <string>
 
 namespace zc {
 
 template <parsing::Type type>
-using MathObjectsVariant = to_variant_t<MathObjects<type>>;
-
-template <parsing::Type type>
 class MathWorld;
+
+namespace internal {
 
 /// @brief internal representation for objects defined through an equation
 struct EqObject
@@ -24,7 +23,7 @@ struct EqObject
   tl::expected<MathObjectsVariant<type>, Error> to_expected_unbound() const;
 
   template <parsing::Type type>
-  tl::expected<MathObjectsVariant<type>, Error> to_expected(const MathWorld<type>& mathworld) const;
+  tl::expected<MathObjectsVariant<type>, Error> to_expected(const zc::MathWorld<type>& mathworld) const;
 
   /// @brief equation
   std::string equation = {};
@@ -38,4 +37,5 @@ struct EqObject
   parsing::AST rhs = {};
 };
 
+} // namespace internal
 } // namespace zc

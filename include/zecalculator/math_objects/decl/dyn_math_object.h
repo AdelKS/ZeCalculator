@@ -23,7 +23,7 @@
 #include <zecalculator/error.h>
 #include <zecalculator/evaluation/decl/cache.h>
 #include <zecalculator/external/expected.h>
-#include <zecalculator/math_objects/decl/eq_object.h>
+#include <zecalculator/math_objects/decl/internal/eq_object.h>
 #include <zecalculator/math_objects/decl/math_object.h>
 #include <zecalculator/math_objects/object_list.h>
 #include <zecalculator/parsing/data_structures/deps.h>
@@ -111,16 +111,16 @@ protected:
   MathWorld<type>& mathworld;
 
   /// @brief non-empty when a syntactically correct equation gets assigned
-  std::optional<EqObject> opt_eq_object;
+  std::optional<internal::EqObject> opt_eq_object;
 
   DynMathObject(tl::expected<MathObjectsVariant<type>, Error> exp_variant, size_t slot, MathWorld<type>& mathworld);
 
-  DynMathObject<type>& assign(std::string definition, EqObject::Category cat);
+  DynMathObject<type>& assign(std::string definition, internal::EqObject::Category cat);
 
-  DynMathObject<type>& assign_error(Error error, std::optional<EqObject> new_opt_eq_obj = {});
+  DynMathObject<type>& assign_error(Error error, std::optional<internal::EqObject> new_opt_eq_obj = {});
 
   template <class T>
-  DynMathObject<type>& assign_object(T&& obj, std::optional<EqObject> new_opt_eq_obj);
+  DynMathObject<type>& assign_object(T&& obj, std::optional<internal::EqObject> new_opt_eq_obj);
 
   /// @brief true if has an assigned 'opt_eq_object' with a function/sequence within
   bool has_function_eq_obj() const;

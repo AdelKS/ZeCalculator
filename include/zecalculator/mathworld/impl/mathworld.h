@@ -21,7 +21,7 @@
 ****************************************************************************/
 
 #include <zecalculator/math_objects/impl/dyn_math_object.h>
-#include <zecalculator/math_objects/impl/eq_object.h>
+#include <zecalculator/math_objects/impl/internal/eq_object.h>
 #include <zecalculator/mathworld/decl/mathworld.h>
 #include <zecalculator/parsing/data_structures/decl/ast.h>
 #include <zecalculator/parsing/data_structures/token.h>
@@ -199,7 +199,7 @@ std::unordered_set<DynMathObject<type>*>
 
     if (DynMathObject<type>* obj = eq_object_get(name))
     {
-      // should have an EqObject assigned of Function/Sequence type
+      // should have an internal::EqObject assigned of Function/Sequence type
       // otherwise it cannot depend on anything
       assert(obj->has_function_eq_obj());
       dep_eq_objs.insert(obj);
@@ -223,9 +223,9 @@ void MathWorld<type>::rebind_dependent_functions(const std::unordered_set<std::s
     assert(dyn_obj);
     assert(dyn_obj->opt_eq_object);
 
-    const EqObject& eq_obj = *dyn_obj->opt_eq_object;
+    const internal::EqObject& eq_obj = *dyn_obj->opt_eq_object;
 
-    /// activate if in error state, because its EqObject is actually valid
+    /// activate if in error state, because its internal::EqObject is actually valid
     /// the function/sequence freshly created does not have a parsing
     if (not dyn_obj->has_value())
     {

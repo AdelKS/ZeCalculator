@@ -1,9 +1,9 @@
 #pragma once
 
-#include <zecalculator/math_objects/decl/eq_object.h>
-#include <zecalculator/mathworld/impl/mathworld.h>
+#include <zecalculator/math_objects/decl/internal/eq_object.h>
 
 namespace zc {
+namespace internal {
 
 template <parsing::Type type>
 tl::expected<MathObjectsVariant<type>, Error> EqObject::to_expected_unbound() const
@@ -22,7 +22,8 @@ tl::expected<MathObjectsVariant<type>, Error> EqObject::to_expected_unbound() co
 }
 
 template <parsing::Type type>
-tl::expected<MathObjectsVariant<type>, Error> EqObject::to_expected(const MathWorld<type>& mathworld) const
+tl::expected<MathObjectsVariant<type>, Error>
+  EqObject::to_expected(const zc::MathWorld<type>& mathworld) const
 {
   auto get_final_representation = [&](const std::string& eq, const parsing::AST& ast)
   {
@@ -74,4 +75,5 @@ tl::expected<MathObjectsVariant<type>, Error> EqObject::to_expected(const MathWo
   }
 }
 
-}
+} // namespace internal
+} // namespace zc

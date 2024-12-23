@@ -37,6 +37,9 @@ using MathEqObjects = std::tuple<GlobalConstant,
 template <parsing::Type type>
 using MathObjects = tuple_type_cat_t<MathEqObjects<type>, std::tuple<CppFunction<1>, CppFunction<2>>>;
 
+template <parsing::Type type>
+using MathObjectsVariant = to_variant_t<MathObjects<type>>;
+
 /// @brief maximum number of arguments functions can take
 /// @todo template the rest of the code to take this as input
 constexpr size_t max_func_args = 2;

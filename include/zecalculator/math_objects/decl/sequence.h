@@ -36,6 +36,10 @@ class MathWorld;
 template <parsing::Type type>
 class DynMathObject;
 
+namespace internal {
+  struct EqObject;
+}
+
 using Vals = std::vector<double>;
 
 template <class T>
@@ -82,7 +86,7 @@ protected:
   /// @example Fibonacci: values = {parsing_of("1"), parsing_of("1"), parsing_of("u(n-1) + u(n-2)")}
   std::vector<parsing::Parsing<type>> values;
 
-  friend struct EqObject;
+  friend struct internal::EqObject;
 
 };
 
