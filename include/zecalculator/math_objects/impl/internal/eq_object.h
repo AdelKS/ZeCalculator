@@ -1,6 +1,7 @@
 #pragma once
 
 #include <zecalculator/math_objects/decl/internal/eq_object.h>
+#include <zecalculator/parsing/impl/parser.h>
 
 namespace zc {
 namespace internal {
@@ -27,10 +28,11 @@ tl::expected<MathObjectsVariant<type>, Error>
 {
   auto get_final_representation = [&](const std::string& eq, const parsing::AST& ast)
   {
+    auto final_ast = parsing::mark_input_vars{this->var_names}(ast);
     if constexpr (type == parsing::Type::FAST)
-      return parsing::make_fast<type>{eq, mathworld}(ast);
+      return parsing::make_fast<type>{eq, mathworld}(final_ast);
     else
-      return parsing::make_fast<type>{eq, mathworld}(ast).transform(parsing::make_RPN);
+      return parsing::make_fast<type>{eq, mathworld}(final_ast).transform(parsing::make_RPN);
   };
 
   switch(cat)
@@ -73,6 +75,11 @@ tl::expected<MathObjectsVariant<type>, Error>
     default: [[unlikely]]
       throw std::runtime_error("Bug in ZeCalculator");
   }
+}
+
+inline deps::Deps EqObject::direct_dependencies() const
+{
+  return zc::parsing::direct_dependencies(zc::parsing::mark_input_vars{var_names}(rhs));
 }
 
 } // namespace internal

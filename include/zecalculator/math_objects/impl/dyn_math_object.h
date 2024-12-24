@@ -257,21 +257,16 @@ DynMathObject<type>& DynMathObject<type>::assign(std::string definition, interna
   if (eq_obj.name != old_name and mathworld.contains(eq_obj.name))
     return assign_error(Error::name_already_taken(eq_obj.lhs.name, definition));
 
-  std::vector<std::string> var_names;
-
   if (is_function_def)
   {
     // fill 'arg_names'
     const std::vector<parsing::AST>& args = eq_obj.lhs.func_data().subnodes;
 
-    var_names.reserve(args.size());
+    eq_obj.var_names.reserve(args.size());
 
     // the arguments of the function call in the left hand-side must all be regular variables
     for (const auto& arg: args)
-      var_names.push_back(arg.name.substr);
-
-    // mark function's input variables in 'rhs'
-    eq_obj.rhs = parsing::mark_input_vars{var_names}(eq_obj.rhs);
+      eq_obj.var_names.push_back(arg.name.substr);
   }
 
   // now that we checked that everything is fine, we can assign the object
@@ -375,7 +370,7 @@ deps::Deps DynMathObject<type>::direct_dependencies() const
   if (not opt_eq_object)
     return deps::Deps();
 
-  return parsing::direct_dependencies(opt_eq_object->rhs);
+  return opt_eq_object->direct_dependencies();
 }
 
 template <parsing::Type type>

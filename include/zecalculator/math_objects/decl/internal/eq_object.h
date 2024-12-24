@@ -3,6 +3,7 @@
 #include <zecalculator/error.h>
 #include <zecalculator/math_objects/object_list.h>
 #include <zecalculator/parsing/data_structures/decl/ast.h>
+#include <zecalculator/parsing/data_structures/deps.h>
 
 #include <string>
 
@@ -25,10 +26,15 @@ struct EqObject
   template <parsing::Type type>
   tl::expected<MathObjectsVariant<type>, Error> to_expected(const zc::MathWorld<type>& mathworld) const;
 
+  deps::Deps direct_dependencies() const;
+
   /// @brief equation
   std::string equation = {};
 
   std::string name = {};
+
+  /// @brief name of the input variables
+  std::vector<std::string> var_names = {};
 
   /// @brief the left side to the equal sign in the equation
   parsing::AST lhs = {};
