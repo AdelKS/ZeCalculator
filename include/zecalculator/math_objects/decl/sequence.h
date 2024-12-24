@@ -56,6 +56,10 @@ public:
 
   const std::string& get_equation() const { return equation; }
 
+  /// @returns the name of the input variable, as defined in the sequence's equation/definition
+  /// @note this name isn't used internally and is replaced an integer index
+  const std::string get_input_var_name() const { return input_var_name; }
+
   /// @brief evaluates the sequence at the given index
   tl::expected<double, Error> evaluate(double index, eval::Cache* cache = nullptr) const;
 
@@ -68,6 +72,7 @@ protected:
   Sequence() = default;
 
   Sequence(MathObject obj,
+           std::string input_var_name,
            std::string equation,
            std::vector<parsing::Parsing<type>> values);
 
@@ -78,6 +83,8 @@ protected:
 
   template <parsing::Type>
   friend struct eval::Evaluator;
+
+  std::string input_var_name;
 
   std::string equation;
 

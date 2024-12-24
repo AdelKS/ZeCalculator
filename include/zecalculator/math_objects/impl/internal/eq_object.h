@@ -12,7 +12,7 @@ tl::expected<MathObjectsVariant<type>, Error> EqObject::to_expected_unbound() co
   switch(cat)
   {
     case EqObject::FUNCTION:
-      return Function<type>(lhs.args_num());
+      return Function<type>(var_names.size());
     case EqObject::SEQUENCE:
       return Sequence<type>();
     case EqObject::GLOBAL_CONSTANT:
@@ -40,7 +40,7 @@ tl::expected<MathObjectsVariant<type>, Error>
     case EqObject::FUNCTION:
 
       if (auto exp_rhs = get_final_representation(equation, rhs))
-        return Function<type>(name, equation, lhs.args_num(), std::move(*exp_rhs));
+        return Function<type>(name, equation, var_names, std::move(*exp_rhs));
       else
         return tl::unexpected(std::move(exp_rhs.error()));
 
@@ -67,7 +67,8 @@ tl::expected<MathObjectsVariant<type>, Error>
         else
           return tl::unexpected(std::move(exp_rhs.error()));
 
-      return Sequence<type>(name, equation, std::move(values));
+      assert(var_names.size() == 1); // sequences only have a single input var: the index of the value
+      return Sequence<type>(name, var_names.front(), equation, std::move(values));
     }
     case EqObject::GLOBAL_CONSTANT:
       return GlobalConstant(name, rhs.number_data().value);

@@ -81,6 +81,10 @@ public:
 
   const std::string get_equation() const { return equation; }
 
+  /// @returns the names of the input variables, as defined in the function's equation/definition
+  /// @note these names aren't used internally and are replaced by an integer index
+  const std::vector<std::string> get_input_var_names() const { return input_var_names; }
+
   tl::expected<double, Error> evaluate(std::initializer_list<double> vals = {}, eval::Cache* cache = nullptr) const;
   tl::expected<double, Error> operator()(std::initializer_list<double> vals = {}, eval::Cache* cache = nullptr) const;
 
@@ -92,11 +96,14 @@ protected:
 
   Function(MathObject base,
            std::string equation,
-           size_t argument_number,
+           std::vector<std::string> input_var_names,
            parsing::Parsing<type> parsing);
 
   /// @brief binding of the AST 'left_expr' (parent MathObject class) to 'mathWorld'
   std::optional<parsing::Parsing<type>> bound_rhs = {};
+
+  /// @brief contains the names of the input variables
+  std::vector<std::string> input_var_names;
 
   std::string equation = {};
 

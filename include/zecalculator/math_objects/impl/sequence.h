@@ -7,9 +7,11 @@ namespace zc {
 
 template <parsing::Type type>
 Sequence<type>::Sequence(MathObject obj,
+                         std::string input_var_name,
                          std::string equation,
                          std::vector<parsing::Parsing<type>> values)
-  : MathObject(std::move(obj)), equation(std::move(equation)), values(std::move(values))
+  : MathObject(std::move(obj)), input_var_name(std::move(input_var_name)),
+    equation(std::move(equation)), values(std::move(values))
 {}
 
 template <parsing::Type type>
