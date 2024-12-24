@@ -21,7 +21,6 @@
 ****************************************************************************/
 
 #include <zecalculator/math_objects/decl/cpp_function.h>
-#include <zecalculator/math_objects/impl/math_object.h>
 
 namespace zc {
 

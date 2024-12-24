@@ -72,9 +72,11 @@ inline constexpr bool is_function_v = is_function<T>::value;
 /// @tparam type: representation type (AST, RPN)
 /// @tparam args_num: number of arguments the function receives
 template <parsing::Type type>
-class Function: public MathObject
+class Function
 {
 public:
+
+  std::string_view get_name() const { return name; };
 
   /// @brief returns the number of input variables, if they are valid
   size_t args_num() const { return argument_number; };
@@ -94,20 +96,22 @@ protected:
   /// @note    this state should never be exposed to downstream users of the library
   Function(size_t argument_number): argument_number(argument_number) {};
 
-  Function(MathObject base,
+  Function(std::string name,
            std::string equation,
            std::vector<std::string> input_var_names,
            parsing::Parsing<type> parsing);
 
-  /// @brief binding of the AST 'left_expr' (parent MathObject class) to 'mathWorld'
-  std::optional<parsing::Parsing<type>> bound_rhs = {};
+  std::string name = {};
 
   /// @brief contains the names of the input variables
-  std::vector<std::string> input_var_names;
+  std::vector<std::string> input_var_names = {};
+
+  size_t argument_number;
 
   std::string equation = {};
 
-  size_t argument_number;
+  /// @brief binding of the AST 'left_expr' (parent MathObject class) to 'mathWorld'
+  std::optional<parsing::Parsing<type>> bound_rhs = {};
 
   template <parsing::Type>
   friend struct eval::Evaluator;

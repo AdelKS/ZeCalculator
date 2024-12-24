@@ -7,7 +7,6 @@ if not meson.is_subproject()
       'dyn_math_object.h',
       'function.h',
       'global_constant.h',
-      'math_object.h',
       'sequence.h',
     ),
     subdir: 'zecalculator',

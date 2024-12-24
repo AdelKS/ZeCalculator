@@ -24,11 +24,11 @@
 #include <zecalculator/error.h>
 
 namespace zc {
-class GlobalConstant: public MathObject
+struct GlobalConstant
 {
-public:
-  GlobalConstant(std::string name, double m_value);
+  std::string_view get_name() const { return name; };
 
+  std::string name;
   double value;
 };
 

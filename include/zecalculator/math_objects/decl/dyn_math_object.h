@@ -24,7 +24,6 @@
 #include <zecalculator/evaluation/decl/cache.h>
 #include <zecalculator/external/expected.h>
 #include <zecalculator/math_objects/decl/internal/eq_object.h>
-#include <zecalculator/math_objects/decl/math_object.h>
 #include <zecalculator/math_objects/object_list.h>
 #include <zecalculator/parsing/data_structures/deps.h>
 #include <zecalculator/parsing/types.h>

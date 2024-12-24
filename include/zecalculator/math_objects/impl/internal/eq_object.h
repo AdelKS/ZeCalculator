@@ -16,7 +16,7 @@ tl::expected<MathObjectsVariant<type>, Error> EqObject::to_expected_unbound() co
     case EqObject::SEQUENCE:
       return Sequence<type>();
     case EqObject::GLOBAL_CONSTANT:
-      return GlobalConstant(name, rhs.number_data().value);
+      return GlobalConstant{name, rhs.number_data().value};
     default: [[unlikely]]
       throw std::runtime_error("Bug in ZeCalculator");
   }
@@ -71,7 +71,7 @@ tl::expected<MathObjectsVariant<type>, Error>
       return Sequence<type>(name, var_names.front(), equation, std::move(values));
     }
     case EqObject::GLOBAL_CONSTANT:
-      return GlobalConstant(name, rhs.number_data().value);
+      return GlobalConstant{name, rhs.number_data().value};
 
     default: [[unlikely]]
       throw std::runtime_error("Bug in ZeCalculator");

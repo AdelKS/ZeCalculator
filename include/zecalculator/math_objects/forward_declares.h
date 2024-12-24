@@ -31,7 +31,7 @@ class Function;
 template <parsing::Type>
 class Sequence;
 
-class GlobalConstant;
+struct GlobalConstant;
 
 template <size_t args_num>
   requires (args_num > 0)

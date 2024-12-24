@@ -24,8 +24,4 @@
 
 namespace zc {
 
-inline GlobalConstant::GlobalConstant(std::string name, double value)
-  : MathObject(std::move(name)), value(value)
-{}
-
 }

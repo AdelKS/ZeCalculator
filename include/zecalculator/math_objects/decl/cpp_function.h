@@ -23,7 +23,6 @@
 
 #include <zecalculator/parsing/types.h>
 #include <zecalculator/utils/utils.h>
-#include <zecalculator/math_objects/decl/math_object.h>
 
 #include <cstddef>
 #include <string_view>

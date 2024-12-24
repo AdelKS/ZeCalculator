@@ -40,8 +40,6 @@ namespace internal {
   struct EqObject;
 }
 
-using Vals = std::vector<double>;
-
 template <class T>
 struct is_sequence: std::false_type {};
 
@@ -50,9 +48,11 @@ inline constexpr bool is_sequence_v = is_sequence<T>::value;
 
 /// @brief a class that represents a Sequence of single argument
 template <parsing::Type type>
-class Sequence: public MathObject
+class Sequence
 {
 public:
+
+  std::string_view get_name() const { return name; };
 
   const std::string& get_equation() const { return equation; }
 
@@ -71,7 +71,7 @@ protected:
   /// @brief Makes a valid but "empty" Sequence, will evaluate to NaN for any input
   Sequence() = default;
 
-  Sequence(MathObject obj,
+  Sequence(std::string name,
            std::string input_var_name,
            std::string equation,
            std::vector<parsing::Parsing<type>> values);
@@ -83,6 +83,8 @@ protected:
 
   template <parsing::Type>
   friend struct eval::Evaluator;
+
+  std::string name;
 
   std::string input_var_name;
 
