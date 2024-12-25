@@ -37,7 +37,7 @@ template <size_t args_num>
   requires (args_num > 0)
 struct CppFunction
 {
-  std::string_view name;
+  std::string name;
   typename utils::math_func_signature_t<args_num> f_ptr;
 
   std::string_view get_name() const;
@@ -50,6 +50,6 @@ struct CppFunction
 
 template <class... DBL>
   requires (std::is_same_v<DBL, double> and ...)
-CppFunction(std::string_view, double(*)(DBL...)) -> CppFunction<sizeof...(DBL)>;
+CppFunction(std::string, double(*)(DBL...)) -> CppFunction<sizeof...(DBL)>;
 
 } // namespace zc

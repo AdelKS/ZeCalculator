@@ -36,7 +36,7 @@ inline const std::array builtin_global_constants = std::to_array<GlobalConstant>
 
 // we save the names along with the function pointers for convenience
 // we could save only the function pointers, and the names only in the inventory
-inline constexpr std::array builtin_unary_functions = std::to_array<CppFunction<1>>({
+inline const std::array builtin_unary_functions = std::to_array<CppFunction<1>>({
   {"cos", std::cos},     {"sin", std::sin},      {"tan", std::tan},
   {"acos", std::acos},   {"asin", std::asin},    {"atan", std::atan},
   {"cosh", std::cosh},   {"sinh", std::sinh},    {"tanh", std::tanh},
