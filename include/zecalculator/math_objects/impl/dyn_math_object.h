@@ -22,6 +22,7 @@
 
 #include <zecalculator/math_objects/decl/dyn_math_object.h>
 #include <zecalculator/math_objects/impl/cpp_function.h>
+#include <zecalculator/math_objects/impl/data.h>
 #include <zecalculator/math_objects/impl/function.h>
 #include <zecalculator/math_objects/impl/global_constant.h>
 #include <zecalculator/math_objects/impl/internal/eq_object.h>
@@ -77,6 +78,12 @@ tl::expected<double, Error> DynMathObject<type>::evaluate(std::initializer_list<
         if (vals.size() != 1)
           return tl::unexpected(Error::cpp_incorrect_argnum());
         else return u(*vals.begin(), cache);
+      },
+      [&](const Data<type>& d) -> Ret
+      {
+        if (vals.size() != 1)
+          return tl::unexpected(Error::cpp_incorrect_argnum());
+        else return d(*vals.begin(), cache);
       }
     },
     **this
@@ -94,6 +101,8 @@ DynMathObject<type>& DynMathObject<type>::operator = (As<T> eq)
     return assign(std::move(eq.str), internal::EqObject::SEQUENCE);
   else if constexpr (std::is_same_v<T, GlobalConstant>)
     return assign(std::move(eq.str), internal::EqObject::GLOBAL_CONSTANT);
+  else if constexpr (std::is_same_v<T, Data<type>>)
+    return assign(std::move(eq));
   else static_assert(utils::dependent_false_v<T>, "case not handled");
 }
 
@@ -288,6 +297,54 @@ DynMathObject<type>& DynMathObject<type>::assign(std::string definition, interna
   assign_object(eq_obj.to_expected(mathworld), eq_obj);
 
   return *this;
+}
+
+template <parsing::Type type>
+DynMathObject<type>& DynMathObject<type>::assign(As<Data<type>> data_def)
+{
+  auto ast = parsing::tokenize(data_def.func_name)
+               .and_then(parsing::make_ast{data_def.func_name})
+               .transform(parsing::flatten_separators);
+
+  if (not ast) [[unlikely]]
+    return assign_error(ast.error());
+
+  // can either be a variable or a function call
+  if (ast->is_var())
+  {
+    if (mathworld.contains(ast->name.substr)) [[unlikely]]
+      return assign_error(Error::name_already_taken(ast->name.substr));
+
+    assign_object(Data<type>(ast->name.substr,
+                             std::move(data_def.default_index_var_name),
+                             std::move(data_def.str_data),
+                             &mathworld));
+    return *this;
+  }
+  else if (ast->is_func())
+  {
+    if(ast->func_data().type != parsing::AST::Func::FUNCTION)
+      return assign_error(Error::unexpected(ast->name, data_def.func_name));
+
+    if (mathworld.contains(ast->name.substr)) [[unlikely]]
+      return assign_error(Error::name_already_taken(ast->name.substr));
+
+    if(ast->func_data().subnodes.size() == 0)
+      return assign_error(Error::unexpected(ast->name, data_def.func_name));
+
+    if(ast->func_data().subnodes.size() >= 2)
+      return assign_error(Error::unexpected(ast->func_data().subnodes[1].name, data_def.func_name));
+
+    if(not ast->func_data().subnodes[0].is_var())
+      return assign_error(Error::unexpected(ast->func_data().subnodes[0].name, data_def.func_name));
+
+    assign_object(Data<type>(ast->name.substr,
+                             ast->func_data().subnodes[0].name.substr,
+                             std::move(data_def.str_data),
+                             &mathworld));
+    return *this;
+  }
+  else return assign_error(Error::unexpected(ast->name, data_def.func_name));
 }
 
 template <parsing::Type type>

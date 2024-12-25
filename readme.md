@@ -4,10 +4,14 @@
 
 #### Features
 
-- Parse and compute math objects defined through a simple equation of the type `<object declaration> = <math expression>`
-  - Multi-variable functions e.g. `f(x, y) = cos(x) * sin(y)`
-  - Global Variables: functions without arguments, e.g. `my_var = f(1, 1)`
-  - Global constants: simple valued e.g. `my_constant = 1.2`
+- Supported math objects
+  - defined through a simple equation of the type `<object declaration> = <math expression>`
+    - Multi-variable functions e.g. `f(x, y) = cos(x) * sin(y)`
+    - Sequences: e.g. `u(n) = 0 ; 1 ; u(n-1) + u(n-2)`
+    - Global Variables: functions without arguments, e.g. `my_var = f(1, 1)`
+    - Global constants: simple valued e.g. `my_constant = 1.2`
+  - (custom) C++ math functions can be added
+  - 1D Data with arbitrary expressions (not only just numbers, see code example bellow)
 - Handle elegantly wrong math expressions
   - No exceptions (only used when the user does something wrong)
   - Give meaningful error messages: what went wrong, on what part of the equation
@@ -102,7 +106,19 @@ int main()
   auto& obj3 = world.new_object();
   obj3 = CppFunction{"square", square};
 
+  // Can evaluate an expression directly using the math world
   assert(world.evaluate("square(2)").value() == 4.);
+
+  // define Data object
+  // can use numbers or complex expressions for each of its values
+  auto& obj4 = world.new_object();
+  obj4 = As<rpn::Data>{"data", {"1.0", "square(2)", "u(10)"}};
+
+  // data objects can be used like regular functions
+  assert(world.evaluate("data(0)").value() == 1.);
+
+  assert(obj4({1}).value() == 4.);
+  assert(obj4({2}).value() == 55.);
 
   // ======================================================================================
 
@@ -114,6 +130,12 @@ int main()
   //   - the alternative asked is not the actual one held by the variant
   [[maybe_unused]] rpn::Sequence& u = obj1.value_as<rpn::Sequence>();
   [[maybe_unused]] GlobalConstant& my_constant = obj2.value_as<GlobalConstant>();
+
+  // can change single values within Data instance
+  rpn::Data& data_ref = obj4.value_as<rpn::Data>();
+  data_ref.set_expression(1, "square(3)+1");
+
+  assert(obj4({1}).value() == 10.);
 
   // each specific math object has extra public methods that may prove useful
 
@@ -169,6 +191,11 @@ Overview:
         obj = As<rpn::Sequence>{"u(n) = n"};
         // or sequence with first values, the last expression is the generic expression
         obj = "fibonacci(n) = 0 ; 1 ; fibonacci(n-1) + fibonacci(n-2)"
+        ```
+      - [Data](./include/zecalculator/math_objects/decl/data.h)
+        ```c++
+        // requires using specialized As<rpn::Data>
+        obj = As<rpn::Data>{"data", {"1.0", "square(2)", "u(10)"}};
         ```
       - [GlobalConstant](./include/zecalculator/math_objects/decl/global_constant.h)
         ```c++

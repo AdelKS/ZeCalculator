@@ -28,6 +28,7 @@ void shared_node_printer(std::ostream& os,
   using zc::Function,
         zc::parsing::tokens::Text,
         zc::Sequence,
+        zc::Data,
         zc::CppFunction,
         zc::parsing::shared::node::Add,
         zc::parsing::shared::node::Subtract,
@@ -51,6 +52,10 @@ void shared_node_printer(std::ostream& os,
       [&](const Sequence<world_type>* u)
       {
         os << "Sequence " << u->get_name();
+      },
+      [&](const Data<world_type>* d)
+      {
+        os << "Data " << d->get_name();
       },
       [&]<size_t args_num>(const CppFunction<args_num>* f)
       {

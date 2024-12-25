@@ -102,7 +102,19 @@ int main()
   auto& obj3 = world.new_object();
   obj3 = CppFunction{"square", square};
 
+  // Can evaluate an expression directly using the math world
   assert(world.evaluate("square(2)").value() == 4.);
+
+  // define Data object
+  // can use numbers or complex expressions for each of its values
+  auto& obj4 = world.new_object();
+  obj4 = As<rpn::Data>{"data", {"1.0", "square(2)", "u(10)"}};
+
+  // data objects can be used like regular functions
+  assert(world.evaluate("data(0)").value() == 1.);
+
+  assert(obj4({1}).value() == 4.);
+  assert(obj4({2}).value() == 55.);
 
   // ======================================================================================
 
@@ -114,6 +126,12 @@ int main()
   //   - the alternative asked is not the actual one held by the variant
   [[maybe_unused]] rpn::Sequence& u = obj1.value_as<rpn::Sequence>();
   [[maybe_unused]] GlobalConstant& my_constant = obj2.value_as<GlobalConstant>();
+
+  // can change single values within Data instance
+  rpn::Data& data_ref = obj4.value_as<rpn::Data>();
+  data_ref.set_expression(1, "square(3)+1");
+
+  assert(obj4({1}).value() == 10.);
 
   // each specific math object has extra public methods that may prove useful
 

@@ -216,6 +216,11 @@ std::unordered_set<DynMathObject<type>*>
 template <parsing::Type type>
 void MathWorld<type>::rebind_dependent_functions(const std::unordered_set<std::string>& names)
 {
+  // Data objects take a different approach, they rebind themselves their expressions
+  for (DynMathObject<type>& dyn_obj: math_objects)
+    if (dyn_obj.template holds<Data<type>>())
+      dyn_obj.template value_as<Data<type>>().rebind_dependent_expressions(names);
+
   std::unordered_set<DynMathObject<type>*> dep_eq_objs = dependent_eq_objects(names);
 
   for (DynMathObject<type>* dyn_obj: dep_eq_objs)

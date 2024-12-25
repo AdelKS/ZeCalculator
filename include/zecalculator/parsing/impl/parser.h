@@ -20,9 +20,9 @@
 **
 ****************************************************************************/
 
-
 #include <zecalculator/error.h>
 #include <zecalculator/math_objects/aliases.h>
+#include <zecalculator/math_objects/impl/data.h>
 #include <zecalculator/math_objects/impl/function.h>
 #include <zecalculator/math_objects/impl/sequence.h>
 #include <zecalculator/mathworld/impl/mathworld.h>
@@ -349,6 +349,13 @@ struct FunctionVisiter
       return tl::unexpected(Error::mismatched_fun_args(func.args_token(), expression));
 
     return T{&u, std::move(subnodes)};
+  }
+  Ret operator()(const zc::Data<world_type>& d)
+  {
+    if (subnodes.size() != 1) [[unlikely]]
+      return tl::unexpected(Error::mismatched_fun_args(func.args_token(), expression));
+
+    return T{&d, std::move(subnodes)};
   }
   Ret operator()(auto&&)
   {

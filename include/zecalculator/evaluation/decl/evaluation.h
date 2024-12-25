@@ -69,7 +69,9 @@ struct Evaluator
 
   auto operator () (const zc::Function<type>*) -> RetType;
 
-  auto operator () (const zc::Sequence<type>*) -> RetType;
+  template <class T>
+    requires utils::is_any_of<T, zc::Sequence<type>, zc::Data<type>>
+  auto operator () (const T*) -> RetType;
 
   auto operator () (const zc::parsing::shared::node::InputVariable&) -> RetType;
 

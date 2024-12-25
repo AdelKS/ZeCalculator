@@ -146,7 +146,9 @@ auto Evaluator<type>::operator()(const zc::Function<type>* f) -> RetType
 }
 
 template <parsing::Type type>
-auto Evaluator<type>::operator()(const zc::Sequence<type>* u) -> RetType
+template <class T>
+  requires utils::is_any_of<T, zc::Sequence<type>, zc::Data<type>>
+auto Evaluator<type>::operator()(const T* u) -> RetType
 {
   if constexpr (type == parsing::Type::FAST)
     assert(subnodes.size() == 1);
@@ -173,6 +175,8 @@ auto Evaluator<type>::operator()(const zc::Sequence<type>* u) -> RetType
     }
   }
 }
+
+
 
 template <parsing::Type type>
 template <size_t args_num>
