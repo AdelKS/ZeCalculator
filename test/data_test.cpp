@@ -108,13 +108,49 @@ int main()
 
     expect(bool(f({2}))) << [&]{ return f({2}).error(); } << fatal;
     expect(bool(val())) << [&]{ return val().error(); } << fatal;
+    expect(bool(data({1}))) << [&]{ return data({1}).error(); } << fatal;
     expect(bool(data({2}))) << [&]{ return data({2}).error(); } << fatal;
     expect(bool(g({2}))) << [&]{ return g({2}).error(); } << fatal;
 
     expect(*f({2}) == 18.0_d);
+    expect(*data({1}) == 4.0_d);
     expect(*val() == 8.0_d);
     expect(*data({2}) == 9.0_d);
     expect(*g({2}) == 4.0_d);
+
+    Data<type>& data_obj = data.template value_as<Data<type>>();
+    data_obj.set_expression(1, "2.0*g(line)+1");
+
+    expect(f({2}).value() == 20.0_d);
+    expect(data({1}).value() == 5.0_d);
+    expect(val().value() == 10.0_d);
+    expect(data({2}).value() == 10.0_d);
+    expect(g({2}).value() == 4.0_d);
+
+    data_obj.set_expression(2, "data(0)+data(1)+g(line)+1");
+
+    expect(f({2}).value() == 22.0_d);
+    expect(data({1}).value() == 5.0_d);
+    expect(val().value() == 10.0_d);
+    expect(data({2}).value() == 11.0_d);
+    expect(g({2}).value() == 4.0_d);
+
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
+
+  "set value in empty data object"_test = []<class StructType>()
+  {
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
+
+    MathWorld<type> world;
+    auto& data = world.new_object() = As<Data<type>>{.func_name = "data"};
+
+    expect(bool(data)) << [&]{ return data.error(); } << fatal;
+
+    Data<type>& data_obj = data.template value_as<Data<type>>();
+    data_obj.set_expression(10, "10");
+
+    expect(data({10}).value() == 10.0_d);
+    expect(data({4}).error() == zc::Error::empty_expression());
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 }

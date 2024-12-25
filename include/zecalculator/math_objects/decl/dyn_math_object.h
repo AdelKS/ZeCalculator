@@ -52,7 +52,7 @@ struct As<Data<type>>
 
   /// @brief the data in string format
   /// @example "[ '1.2', 'cos(i)']"
-  std::vector<std::string> str_data;
+  std::vector<std::string> str_data = {};
 
   /// @brief default name of the index variable
   /// @note only used if 'func_name' is a simple name (not a function call)

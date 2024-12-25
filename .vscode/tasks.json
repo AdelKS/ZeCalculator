@@ -6,12 +6,12 @@
         {
             "label": "setup",
             "type": "shell",
-            "command": "[ -d \"${cwd}/build-zc-debug\" ] || meson setup build-zc-debug -D optimization=0 -D buildtype=debug -D test=true -D b_sanitize=address,undefined",
+            "command": "[ -d \"${cwd}/build-zc-debug\" ] || meson setup build-zc-debug -D optimization=0 -D buildtype=debug -D test=true -D b_sanitize=address,undefined"
         },
         {
             "label": "resetup",
             "type": "shell",
-            "command": "rm -rf ${cwd}/build-zc-debug && meson setup build-zc-debug -D optimization=0 -D buildtype=debug -D test=true -D b_sanitize=address,undefined",
+            "command": "rm -rf ${cwd}/build-zc-debug && meson setup build-zc-debug -D optimization=0 -D buildtype=debug -D test=true -D b_sanitize=address,undefined"
         },
         {
             "label": "build",
@@ -21,7 +21,9 @@
                 "cwd": "${cwd}/build-zc-debug"
             },
             "dependsOn": "setup",
-            "problemMatcher": ["$meson-gcc"],
+            "problemMatcher": [
+                "$meson-gcc"
+            ],
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -35,7 +37,9 @@
                 "cwd": "${cwd}/build-zc-debug"
             },
             "dependsOn": "resetup",
-            "problemMatcher": ["$meson-gcc"],
+            "problemMatcher": [
+                "$meson-gcc"
+            ],
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -54,16 +58,15 @@
                 "isDefault": true
             }
         },
-        // GCC RELEASE
         {
             "label": "setup-release",
             "type": "shell",
-            "command": "[ -d \"${cwd}/build-zc-release\" ] || meson setup build-zc-release -D optimization=3 -D debug=false -D test=true",
+            "command": "[ -d \"${cwd}/build-zc-release\" ] || meson setup build-zc-release -D optimization=3 -D debug=false -D test=true"
         },
         {
             "label": "resetup-release",
             "type": "shell",
-            "command": "rm -rf ${cwd}/build-zc-release && meson setup build-zc-release -D optimization=3 -D debug=false -D test=true",
+            "command": "rm -rf ${cwd}/build-zc-release && meson setup build-zc-release -D optimization=3 -D debug=false -D test=true"
         },
         {
             "label": "build-release",
@@ -73,7 +76,9 @@
                 "cwd": "${cwd}/build-zc-release"
             },
             "dependsOn": "setup-release",
-            "problemMatcher": ["$meson-gcc"],
+            "problemMatcher": [
+                "$meson-gcc"
+            ],
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -87,7 +92,9 @@
                 "cwd": "${cwd}/build-zc-release"
             },
             "dependsOn": "resetup-release",
-            "problemMatcher": ["$meson-gcc"],
+            "problemMatcher": [
+                "$meson-gcc"
+            ],
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -106,28 +113,29 @@
                 "isDefault": true
             }
         },
-        // CLANG
         {
             "label": "setup-clang",
             "type": "shell",
-            "command": "[ -d \"${cwd}/build-zc-debug-clang\" ] || CXX=clang++ CXX_LD=lld meson setup build-zc-debug-clang -D optimization=0 -D debug=true -D test=true -D b_sanitize=address,undefined -D b_lundef=false -D cpp_args='-march=native -pipe -stdlib=libc++' -D cpp_link_args='-stdlib=libc++'",
+            "command": "[ -d \"${cwd}/build-zc-debug-clang\" ] || CXX=clang++ CXX_LD=lld meson setup build-zc-debug-clang -D optimization=0 -D debug=true -D test=true -D b_sanitize=address,undefined -D b_lundef=false -D cpp_args='-march=native -pipe -stdlib=libc++' -D cpp_link_args='-stdlib=libc++'"
         },
         {
             "label": "setup-clangd",
             "type": "shell",
             "dependsOn": "setup-clang",
             "command": "[ -f \"${cwd}/clangd-compile-db/compile_commands.json\" ] || mkdir -p ${cwd}/clangd-compile-db && compdb -p ${cwd}/build-zc-debug-clang/ list > ${cwd}/clangd-compile-db/compile_commands.json",
+            "problemMatcher": []
         },
         {
             "label": "resetup-clang",
             "type": "shell",
-            "command": "rm -rf ${cwd}/build-zc-debug-clang && CXX=clang++ CXX_LD=lld  meson setup build-zc-debug-clang -D optimization=0 -D debug=true -D test=true -D b_sanitize=address,undefined -D b_lundef=false -D cpp_args='-march=native -pipe -stdlib=libc++' -D cpp_link_args='-stdlib=libc++'",
+            "command": "rm -rf ${cwd}/build-zc-debug-clang && CXX=clang++ CXX_LD=lld  meson setup build-zc-debug-clang -D optimization=0 -D debug=true -D test=true -D b_sanitize=address,undefined -D b_lundef=false -D cpp_args='-march=native -pipe -stdlib=libc++' -D cpp_link_args='-stdlib=libc++'"
         },
         {
             "label": "resetup-clangd",
             "type": "shell",
             "dependsOn": "resetup-clang",
             "command": "mkdir -p ${cwd}/clangd-compile-db && compdb -p ${cwd}/build-zc-debug-clang/ list > ${cwd}/clangd-compile-db/compile_commands.json",
+            "problemMatcher": []
         },
         {
             "label": "build-clang",
@@ -137,7 +145,9 @@
                 "cwd": "${cwd}/build-zc-debug-clang"
             },
             "dependsOn": "setup-clangd",
-            "problemMatcher": ["$meson-gcc"],
+            "problemMatcher": [
+                "$meson-gcc"
+            ],
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -151,7 +161,9 @@
                 "cwd": "${cwd}/build-zc-debug-clang"
             },
             "dependsOn": "resetup-clang",
-            "problemMatcher": ["$meson-gcc"],
+            "problemMatcher": [
+                "$meson-gcc"
+            ],
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -170,16 +182,15 @@
                 "isDefault": true
             }
         },
-        // CLANG RELEASE
         {
             "label": "setup-release-clang",
             "type": "shell",
-            "command": "[ -d \"${cwd}/build-zc-release-clang\" ] || CXX=clang++ CXX_LD=lld meson setup build-zc-release-clang -D optimization=3 -D debug=false -D test=true -D cpp_args='-march=native -pipe -stdlib=libc++' -D cpp_link_args='-stdlib=libc++'",
+            "command": "[ -d \"${cwd}/build-zc-release-clang\" ] || CXX=clang++ CXX_LD=lld meson setup build-zc-release-clang -D optimization=3 -D debug=false -D test=true -D cpp_args='-march=native -pipe -stdlib=libc++' -D cpp_link_args='-stdlib=libc++'"
         },
         {
             "label": "resetup-release-clang",
             "type": "shell",
-            "command": "rm -rf ${cwd}/build-zc-release-clang && CXX=clang++ CXX_LD=lld meson setup build-zc-release-clang -D optimization=3 -D debug=false -D test=true -D cpp_args='-march=native -pipe -stdlib=libc++' -D cpp_link_args='-stdlib=libc++'",
+            "command": "rm -rf ${cwd}/build-zc-release-clang && CXX=clang++ CXX_LD=lld meson setup build-zc-release-clang -D optimization=3 -D debug=false -D test=true -D cpp_args='-march=native -pipe -stdlib=libc++' -D cpp_link_args='-stdlib=libc++'"
         },
         {
             "label": "build-release-clang",
@@ -189,7 +200,9 @@
                 "cwd": "${cwd}/build-zc-release-clang"
             },
             "dependsOn": "setup-release-clang",
-            "problemMatcher": ["$meson-gcc"],
+            "problemMatcher": [
+                "$meson-gcc"
+            ],
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -203,7 +216,9 @@
                 "cwd": "${cwd}/build-zc-release-clang"
             },
             "dependsOn": "resetup-release-clang",
-            "problemMatcher": ["$meson-gcc"],
+            "problemMatcher": [
+                "$meson-gcc"
+            ],
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -221,6 +236,6 @@
                 "kind": "test",
                 "isDefault": true
             }
-        },
+        }
     ]
 }
