@@ -206,8 +206,8 @@ Overview:
         ```
     - Can be evaluated
       ```c++
-      tl::expected<double, zc::Error> res1 = obj(1.0);
-      tl::expected<double, zc::Error> res2 = obj.evaluate(12.0);
+      tl::expected<double, zc::Error> res1 = obj({1.0});
+      tl::expected<double, zc::Error> res2 = obj.evaluate({12.0, 3.0});
       ```
 3. Error messages when expressions have faulty syntax or semantics are expressed through the [zc::Error](include/zecalculator/error.h) class:
    - If it is known, gives what part of the equation raised the error with the `token` member, of the type [zc::tokens::Text](./include/zecalculator/parsing/data_structures/token.h)
