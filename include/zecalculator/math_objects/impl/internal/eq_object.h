@@ -16,7 +16,7 @@ tl::expected<MathObjectsVariant<type>, Error> EqObject::to_expected_unbound() co
     case EqObject::SEQUENCE:
       return Sequence<type>();
     case EqObject::GLOBAL_CONSTANT:
-      return GlobalConstant{name, rhs.number_data().value};
+      return GlobalConstant{name.substr, rhs.number_data().value};
     default: [[unlikely]]
       throw std::runtime_error("Bug in ZeCalculator");
   }
@@ -40,7 +40,7 @@ tl::expected<MathObjectsVariant<type>, Error>
     case EqObject::FUNCTION:
 
       if (auto exp_rhs = get_final_representation(equation, rhs))
-        return Function<type>(name, equation, var_names, std::move(*exp_rhs));
+        return Function<type>(name.substr, equation, var_names, std::move(*exp_rhs));
       else
         return tl::unexpected(std::move(exp_rhs.error()));
 
@@ -68,10 +68,10 @@ tl::expected<MathObjectsVariant<type>, Error>
           return tl::unexpected(std::move(exp_rhs.error()));
 
       assert(var_names.size() == 1); // sequences only have a single input var: the index of the value
-      return Sequence<type>(name, var_names.front(), equation, std::move(values));
+      return Sequence<type>(name.substr, var_names.front(), equation, std::move(values));
     }
     case EqObject::GLOBAL_CONSTANT:
-      return GlobalConstant{name, rhs.number_data().value};
+      return GlobalConstant{name.substr, rhs.number_data().value};
 
     default: [[unlikely]]
       throw std::runtime_error("Bug in ZeCalculator");

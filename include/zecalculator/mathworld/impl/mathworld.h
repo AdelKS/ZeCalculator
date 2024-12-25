@@ -234,11 +234,11 @@ void MathWorld<type>::rebind_dependent_functions(const std::unordered_set<std::s
     /// the function/sequence freshly created does not have a parsing
     if (not dyn_obj->has_value())
     {
-      assert(not inventory.contains(eq_obj.name));
+      assert(not inventory.contains(eq_obj.name.substr));
       assert(bool(dyn_obj->opt_eq_object));
 
       dyn_obj->as_expected() = dyn_obj->opt_eq_object->template to_expected_unbound<type>();
-      inventory[eq_obj.name] = dyn_obj->slot;
+      inventory[eq_obj.name.substr] = dyn_obj->slot;
     }
   }
 
@@ -248,7 +248,7 @@ void MathWorld<type>::rebind_dependent_functions(const std::unordered_set<std::s
   {
     dyn_obj->as_expected() = dyn_obj->opt_eq_object->template to_expected<type>(*this);
     if (not dyn_obj->has_value())
-      invalid_functions.insert(dyn_obj->opt_eq_object->name);
+      invalid_functions.insert(dyn_obj->opt_eq_object->name.substr);
   }
 
   std::unordered_set<std::string> covered_invalid_functions;
@@ -330,7 +330,7 @@ deps::Deps MathWorld<type>::direct_revdeps(std::string_view name) const
   for (auto&& [obj_name, slot]: eq_object_inventory)
   {
     assert(math_objects[slot].opt_eq_object);
-    assert(math_objects[slot].opt_eq_object->name == obj_name);
+    assert(math_objects[slot].opt_eq_object->name.substr == obj_name);
 
     auto deps = math_objects[slot].direct_dependencies();
     if (auto it = deps.find(name); it != deps.end())

@@ -28,16 +28,13 @@ struct EqObject
 
   deps::Deps direct_dependencies() const;
 
-  /// @brief equation
-  std::string equation = {};
-
-  std::string name = {};
+  parsing::tokens::Text name = {};
 
   /// @brief name of the input variables
   std::vector<std::string> var_names = {};
 
-  /// @brief the left side to the equal sign in the equation
-  parsing::AST lhs = {};
+  /// @brief equation
+  std::string equation = {};
 
   /// @brief the right side to the equal sign in the equation
   parsing::AST rhs = {};

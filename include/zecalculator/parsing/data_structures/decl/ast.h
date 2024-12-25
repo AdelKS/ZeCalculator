@@ -78,7 +78,7 @@ namespace zc {
           bool operator == (const Variable&) const { return true; }
         };
 
-        /// @brief full expression of the node, including its children
+        /// @brief name of the object, as it appears in the expression
         parsing::tokens::Text name;
 
         /// @brief data that depends on the type of the node
