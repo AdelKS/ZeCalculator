@@ -30,6 +30,10 @@ struct EqObject
 
   parsing::tokens::Text name = {};
 
+  /// @brief full expression of the left hand side (function call or variable name)
+  /// @note  does not include white spaces
+  parsing::tokens::Text lhs = {};
+
   /// @brief name of the input variables
   std::vector<std::string> var_names = {};
 
