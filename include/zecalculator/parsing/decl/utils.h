@@ -32,5 +32,29 @@ inline bool is_valid_name(std::string_view name);
 /// @brief gives the Function and Variable names that intervene in this AST
 inline deps::Deps direct_dependencies(const AST& ast);
 
+/// @brief represents the left hand side of a mathematical definition through an equation
+/// @example "var" in "var = cos(x)" -> {.name = "var", .input_vars = {}}
+/// @example "f(x,y)" in "f(x,y) = 1+ cos(x)*cos(y)" -> {.name = "f", .input_vars = {"x", "y"}}
+struct LHS
+{
+  tokens::Text name;
+  std::vector<tokens::Text> input_vars = {};
+
+  /// @brief the text that defines the LHS, without an leading or trailing whitespaces
+  tokens::Text substr;
+
+  bool operator == (const LHS&) const = default;
+};
+
+/// @brief create LHS instance from a string representing the left hand side
+/// @arg lhs: substring where lhs is defined
+/// @arg full_expr: full expression where 'lhs' appears, only used for errors
+tl::expected<LHS, zc::Error> parse_lhs(std::string_view lhs, std::string_view full_expr);
+
+/// @brief create LHS instance from an already parsed string
+/// @arg lhs: the parsed lhs to use
+/// @arg full_expr: full expression where 'lhs' appears, only used for errors
+tl::expected<LHS, zc::Error> parse_lhs(const AST& lhs, std::string_view full_expr);
+
 } // namespace parsing
 } // namespace zc

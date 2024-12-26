@@ -60,4 +60,19 @@ int main()
     expect(vals == std::vector{10., 11., 12.}) << cache.get_cache().values();
     expect(cache.get_cache().keys() == std::vector{-1., 0., 3.5}) << cache.get_cache().keys();
   };
+
+  "LHS parsing"_test = []()
+  {
+    using parsing::tokens::Text;
+
+    std::string_view expr = "   func(x   , w, y  )  ";
+    auto exp_lhs = parsing::parse_lhs(expr, expr);
+    expect(bool(exp_lhs)) << fatal;
+    expect(*exp_lhs
+           == parsing::LHS{
+             .name = Text{"func", 3},
+             .input_vars = {Text{"x", 8}, Text{"w", 14}, Text{"y", 17}},
+             .substr = Text{"func(x   , w, y  )", 3},
+           });
+  };
 }
