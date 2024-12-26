@@ -195,7 +195,7 @@ DynMathObject<type>& DynMathObject<type>::assign(std::string definition, interna
 
   const LHS& parsed_lhs = *exp_parsed_lhs;
 
-  funcop_data.subnodes.clear();
+  eq_obj.lhs = parsed_lhs.substr;
 
   // "f(x) = ...."
   const bool is_function_def = not parsed_lhs.input_vars.empty();
