@@ -27,6 +27,7 @@
 #include <zecalculator/math_objects/impl/global_constant.h>
 #include <zecalculator/math_objects/impl/internal/eq_object.h>
 #include <zecalculator/math_objects/impl/sequence.h>
+#include <zecalculator/parsing/impl/utils.h>
 #include <zecalculator/utils/utils.h>
 
 namespace zc {
@@ -184,43 +185,36 @@ DynMathObject<type>& DynMathObject<type>::assign(std::string definition, interna
 
   assert(funcop_data.subnodes.size() == 2);
 
-  parsing::AST lhs = std::move(funcop_data.subnodes[0]);
-
   eq_obj.rhs = std::move(funcop_data.subnodes[1]);
+
+  using parsing::LHS, parsing::parse_lhs;
+
+  tl::expected<LHS, zc::Error> exp_parsed_lhs = parse_lhs(funcop_data.subnodes[0], definition);
+  if (not bool(exp_parsed_lhs))
+    return assign_error(exp_parsed_lhs.error());
+
+  const LHS& parsed_lhs = *exp_parsed_lhs;
 
   funcop_data.subnodes.clear();
 
   // "f(x) = ...."
-  const bool is_function_def = (lhs.is_func()
-                                and lhs.func_data().type
-                                      == parsing::AST::Func::FUNCTION);
+  const bool is_function_def = not parsed_lhs.input_vars.empty();
 
   const bool is_sequence_def = is_function_def and eq_obj.rhs.is_func()
                                and eq_obj.rhs.func_data().type == parsing::AST::Func::SEPARATOR;
 
   // "var = complex expression that is not a number"
-  const bool is_global_var_def = (lhs.is_var()
-                                 and not eq_obj.rhs.is_number());
+  const bool is_global_var_def = (parsed_lhs.input_vars.empty() and not eq_obj.rhs.is_number());
 
   // "var = 13.24213 (a number)"
-  const bool is_global_constant_def = (lhs.is_var() and eq_obj.rhs.is_number());
+  const bool is_global_constant_def = (parsed_lhs.input_vars.empty() and eq_obj.rhs.is_number());
 
   // first equation sanity check
   if (not is_function_def
       and not is_global_var_def
       and not is_sequence_def
       and not is_global_constant_def) [[unlikely]]
-    return assign_error(Error::unexpected(lhs.name, definition));
-
-  // second sanity check:
-  // if the left side of the equation is a function call
-  // it should only contain variables in each of its arguments, e.g. "f(x, y)"
-  // and not e.g. "f(x^2 + 1, x + y)"
-  if (is_function_def)
-    for (const auto& arg: lhs.func_data().subnodes)
-      if (not arg.is_var())
-        return assign_error(Error::unexpected(arg.name, definition));
-
+    return assign_error(Error::unexpected(parsed_lhs.name, definition));
 
   // third sanity check: type checks
   if (cat != internal::EqObject::AUTO)
@@ -245,7 +239,7 @@ DynMathObject<type>& DynMathObject<type>::assign(std::string definition, interna
       // due to the strict requirement that sequences have are single
       // argument functions. Whereas vars and constants are zero argument functions
       if (is_global_var_def or is_global_constant_def)
-        return assign_error(Error::wrong_object_type(lhs.name, definition));
+        return assign_error(Error::wrong_object_type(parsed_lhs.name, definition));
 
       assert(is_function_def and not is_global_var_def
              and not is_global_constant_def);
@@ -253,7 +247,7 @@ DynMathObject<type>& DynMathObject<type>::assign(std::string definition, interna
     else if (cat == internal::EqObject::GLOBAL_CONSTANT)
     {
       if (is_function_def)
-        return assign_error(Error::wrong_object_type(lhs.name, definition));
+        return assign_error(Error::wrong_object_type(parsed_lhs.name, definition));
       if (is_global_var_def)
         return assign_error(Error::wrong_object_type(eq_obj.rhs.name, definition));
       assert(is_global_constant_def and not is_global_var_def and not is_function_def
@@ -262,25 +256,18 @@ DynMathObject<type>& DynMathObject<type>::assign(std::string definition, interna
     else [[unlikely]] assert(false);
   }
 
-  eq_obj.name = lhs.name;
+  eq_obj.name = parsed_lhs.name;
 
   std::string old_name(get_name());
 
   // fourth sanity check: name check
   if (eq_obj.name.substr != old_name and mathworld.contains(eq_obj.name.substr))
-    return assign_error(Error::name_already_taken(lhs.name, definition));
+    return assign_error(Error::name_already_taken(parsed_lhs.name, definition));
 
-  if (is_function_def)
-  {
-    // fill 'arg_names'
-    const std::vector<parsing::AST>& args = lhs.func_data().subnodes;
-
-    eq_obj.var_names.reserve(args.size());
-
-    // the arguments of the function call in the left hand-side must all be regular variables
-    for (const auto& arg: args)
-      eq_obj.var_names.push_back(arg.name.substr);
-  }
+  eq_obj.var_names.reserve(parsed_lhs.input_vars.size());
+  std::ranges::transform(parsed_lhs.input_vars,
+                         std::back_inserter(eq_obj.var_names),
+                         &parsing::tokens::Text::substr);
 
   // now that we checked that everything is fine, we can assign the object
   if (cat == internal::EqObject::Category::AUTO)
