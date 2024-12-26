@@ -293,49 +293,26 @@ DynMathObject<type>& DynMathObject<type>::assign(std::string definition, interna
 template <parsing::Type type>
 DynMathObject<type>& DynMathObject<type>::assign(As<Data<type>> data_def)
 {
-  auto ast = parsing::tokenize(data_def.func_name)
-               .and_then(parsing::make_ast{data_def.func_name})
-               .transform(parsing::flatten_separators);
+  using parsing::LHS, parsing::parse_lhs;
 
-  if (not ast) [[unlikely]]
-    return assign_error(ast.error());
+  tl::expected<LHS, zc::Error> exp_parsed_lhs = parse_lhs(data_def.func_name, data_def.func_name);
+  if (not bool(exp_parsed_lhs))
+    return assign_error(exp_parsed_lhs.error());
 
-  // can either be a variable or a function call
-  if (ast->is_var())
-  {
-    if (mathworld.contains(ast->name.substr)) [[unlikely]]
-      return assign_error(Error::name_already_taken(ast->name.substr));
+  const LHS& parsed_lhs = *exp_parsed_lhs;
 
-    assign_object(Data<type>(ast->name.substr,
-                             std::move(data_def.default_index_var_name),
-                             std::move(data_def.str_data),
-                             &mathworld));
-    return *this;
-  }
-  else if (ast->is_func())
-  {
-    if(ast->func_data().type != parsing::AST::Func::FUNCTION)
-      return assign_error(Error::unexpected(ast->name, data_def.func_name));
+  if (mathworld.contains(parsed_lhs.name.substr)) [[unlikely]]
+    return assign_error(Error::name_already_taken(parsed_lhs.name.substr));
 
-    if (mathworld.contains(ast->name.substr)) [[unlikely]]
-      return assign_error(Error::name_already_taken(ast->name.substr));
+  if(parsed_lhs.input_vars.size() > 1)
+    return assign_error(Error::unexpected(parsed_lhs.input_vars[1], data_def.func_name));
 
-    if(ast->func_data().subnodes.size() == 0)
-      return assign_error(Error::unexpected(ast->name, data_def.func_name));
-
-    if(ast->func_data().subnodes.size() >= 2)
-      return assign_error(Error::unexpected(ast->func_data().subnodes[1].name, data_def.func_name));
-
-    if(not ast->func_data().subnodes[0].is_var())
-      return assign_error(Error::unexpected(ast->func_data().subnodes[0].name, data_def.func_name));
-
-    assign_object(Data<type>(ast->name.substr,
-                             ast->func_data().subnodes[0].name.substr,
-                             std::move(data_def.str_data),
-                             &mathworld));
-    return *this;
-  }
-  else return assign_error(Error::unexpected(ast->name, data_def.func_name));
+  return assign_object(Data<type>(std::move(parsed_lhs.name.substr),
+                                  parsed_lhs.input_vars.empty()
+                                    ? std::move(data_def.default_index_var_name)
+                                    : std::move(parsed_lhs.input_vars.front().substr),
+                                  std::move(data_def.str_data),
+                                  &mathworld));
 }
 
 template <parsing::Type type>
