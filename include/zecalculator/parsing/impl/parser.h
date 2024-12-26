@@ -246,13 +246,6 @@ inline tl::expected<std::vector<Token>, Error> tokenize(std::string_view express
   return parsing;
 }
 
-
-inline bool is_valid_name(std::string_view name)
-{
-  auto parsing = tokenize(name);
-  return parsing and parsing->size() == 1 and parsing->front().type == tokens::VARIABLE;
-}
-
 inline tl::expected<std::vector<std::span<const Token>::iterator>, Error>
   get_non_pth_enclosed_tokens(std::span<const Token> tokens, std::string_view expression)
 {
@@ -731,48 +724,6 @@ inline RPN make_RPN(const FAST<Type::RPN>& tree)
   RPN res;
   internal::make_RPN(res, tree);
   return res;
-}
-
-/// @brief appends dependencies of 'ast' in 'deps'
-struct direct_dependency_saver
-{
-  deps::Deps deps;
-
-  direct_dependency_saver& operator () (const AST& ast)
-  {
-    std::visit(
-      utils::overloaded{[&](const AST::Func& func)
-                        {
-                          // we don't register operators
-                          if (func.type == AST::Func::FUNCTION)
-                          {
-                            deps::Dep& dep = deps[ast.name.substr];
-                            dep.type = deps::Dep::FUNCTION;
-                            dep.indexes.push_back(ast.name.begin);
-                          }
-
-                          std::ranges::for_each(func.subnodes, std::ref(*this));
-                        },
-                        [&](const AST::InputVariable&)
-                        {
-                        },
-                        [&](const AST::Number&)
-                        {
-                        },
-                        [&](AST::Variable)
-                        {
-                          deps::Dep& dep = deps[ast.name.substr];
-                          dep.type = deps::Dep::VARIABLE;
-                          dep.indexes.push_back(ast.name.begin);
-                        }},
-      ast.dyn_data);
-    return *this;
-  }
-};
-
-inline deps::Deps direct_dependencies(const AST& ast)
-{
-  return std::move(direct_dependency_saver{}(ast).deps);
 }
 
 } // namespace parsing

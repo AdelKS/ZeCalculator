@@ -54,9 +54,6 @@ std::optional<std::pair<double, size_t>> to_double(std::string_view view);
 ///       as they contain sub-string views of the input view
 tl::expected<std::vector<Token>, Error> tokenize(std::string_view expression);
 
-/// @brief tells if the string_view contains a valid math object name
-bool is_valid_name(std::string_view name);
-
 /// @brief makes a syntax tree from from a sequence of tokens
 /// @param input_vars: variable names that are considered as input (for functions)
 ///                    e.g."x" in the function "f" such as "f(x) = cos(x)"
@@ -107,9 +104,6 @@ struct make_fast
 
 /// @brief transforms a syntax tree to a flat Reverse Polish / postfix notation representation
 RPN make_RPN(const FAST<Type::RPN>& tree);
-
-/// @brief gives the Function and Variable names that intervene in this AST
-deps::Deps direct_dependencies(const AST& ast);
 
 } // namespace parsing
 } // namespace zc

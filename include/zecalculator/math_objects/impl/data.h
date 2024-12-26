@@ -2,6 +2,7 @@
 
 #include <zecalculator/math_objects/decl/data.h>
 #include <zecalculator/evaluation/impl/evaluation.h>
+#include <zecalculator/parsing/impl/utils.h>
 
 namespace zc {
 
