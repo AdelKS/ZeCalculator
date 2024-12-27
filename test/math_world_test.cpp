@@ -26,6 +26,7 @@
 #include <zecalculator/test-utils/structs.h>
 
 using namespace zc;
+using parsing::tokens::Text;
 
 int main()
 {
@@ -59,6 +60,46 @@ int main()
     MathWorld<type> world;
     world.new_object() = "my_constant1 = 2.0";
     expect(not (world.new_object() = "my_constant1 = 3.0"));
+
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
+
+  "Add constant with white spaces 1"_test = []<class StructType>()
+  {
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
+
+    MathWorld<type> world;
+    auto& cst = world.new_object() = "   my_constant1 = 2.0";
+    expect(cst.get_name() == "my_constant1");
+
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
+
+  "Add constant with white spaces 2"_test = []<class StructType>()
+  {
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
+
+    MathWorld<type> world;
+    auto& cst = world.new_object() = GlobalConstant{"  cst   ", 1.0};
+    expect(cst.get_name() == "cst");
+
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
+
+  "Add CppFunction with white spaces"_test = []<class StructType>()
+  {
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
+
+    MathWorld<type> world;
+    auto& f = world.new_object() = CppFunction<1>{" better_cos   ", std::cos};
+    expect(f.get_name() == "better_cos");
+
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
+
+  "Add CppFunction with invalid name"_test = []<class StructType>()
+  {
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
+
+    MathWorld<type> world;
+    auto& f = world.new_object() = CppFunction<1>{" 1+1   ", std::cos};
+    expect(f.error() == zc::Error::unexpected(Text{"+", 2}, " 1+1   ")) << f.error();
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 

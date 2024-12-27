@@ -117,23 +117,35 @@ template <parsing::Type type>
 template <size_t args_num>
 DynMathObject<type>& DynMathObject<type>::operator = (CppFunction<args_num> cpp_f)
 {
-  opt_eq_object.reset();
-
-  if (mathworld.contains(cpp_f.get_name())) [[unlikely]]
-    return assign_error(Error::name_already_taken(std::string(cpp_f.get_name())));
-  else return assign_object(std::move(cpp_f), {});
+  auto exp_lhs = parsing::parse_lhs(cpp_f.get_name(), cpp_f.get_name());
+  if (not exp_lhs) [[unlikely]]
+    return assign_error(exp_lhs.error());
+  else if(not exp_lhs->input_vars.empty()) [[unlikely]]
+    return assign_error(zc::Error::unexpected(exp_lhs->input_vars.front(), cpp_f.name));
+  else if (mathworld.contains(exp_lhs->name.substr)) [[unlikely]]
+    return assign_error(Error::name_already_taken(exp_lhs->name.substr));
+  else
+  {
+    cpp_f.name = exp_lhs->name.substr;
+    return assign_object(std::move(cpp_f), {});
+  }
 }
 
 template <parsing::Type type>
 DynMathObject<type>& DynMathObject<type>::operator = (GlobalConstant cst)
 {
-  opt_eq_object.reset();
-
-  if (mathworld.contains(cst.get_name())) [[unlikely]]
-    return assign_error(Error::name_already_taken(std::string(cst.get_name())));
-  else return assign_object(std::move(cst), {});
-
-  return *this;
+  auto exp_lhs = parsing::parse_lhs(cst.get_name(), cst.get_name());
+  if (not exp_lhs) [[unlikely]]
+    return assign_error(exp_lhs.error());
+  else if(not exp_lhs->input_vars.empty()) [[unlikely]]
+    return assign_error(zc::Error::unexpected(exp_lhs->input_vars.front(), cst.name));
+  else if (mathworld.contains(exp_lhs->name.substr)) [[unlikely]]
+    return assign_error(Error::name_already_taken(exp_lhs->name.substr));
+  else
+  {
+    cst.name = exp_lhs->name.substr;
+    return assign_object(std::move(cst), {});
+  }
 }
 
 template <parsing::Type type>
