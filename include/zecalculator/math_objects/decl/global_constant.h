@@ -26,9 +26,6 @@
 namespace zc {
 struct GlobalConstant
 {
-  std::string_view get_name() const { return name; };
-
-  std::string name;
   double value;
 };
 

@@ -27,6 +27,7 @@
 
 using namespace zc;
 using namespace zc::parsing;
+using zc::parsing::tokens::Text;
 
 int main()
 {
@@ -63,11 +64,11 @@ int main()
 
     data = As<Data<type>>{"cos(x)", {}};
     expect(not bool(data)) << fatal;
-    expect(data.error() == zc::Error::name_already_taken("cos")) << data.error() << fatal;
+    expect(data.error() == zc::Error::name_already_taken(Text{"cos", 0}, "cos(x)")) << data.error() << fatal;
 
     data = As<Data<type>>{"cos", {}};
     expect(not bool(data)) << fatal;
-    expect(data.error() == zc::Error::name_already_taken("cos")) << data.error() << fatal;
+    expect(data.error() == zc::Error::name_already_taken(Text{"cos", 0}, "cos")) << data.error() << fatal;
 
     data = As<Data<type>>{"data(x,y,z)", {}};
     expect(not bool(data)) << fatal;

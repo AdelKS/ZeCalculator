@@ -46,21 +46,19 @@ void shared_node_printer(std::ostream& os,
     zc::utils::overloaded{
       [&](const Function<world_type>* f)
       {
-        os << "Function<" << f->args_num() << "> "
-          << f->get_name();
+        os << "Function<" << f->args_num() << "> ";
       },
-      [&](const Sequence<world_type>* u)
+      [&](const Sequence<world_type>*)
       {
-        os << "Sequence " << u->get_name();
+        os << "Sequence ";
       },
-      [&](const Data<world_type>* d)
+      [&](const Data<world_type>*)
       {
-        os << "Data " << d->get_name();
+        os << "Data ";
       },
-      [&]<size_t args_num>(const CppFunction<args_num>* f)
+      [&]<size_t args_num>(const CppFunction<args_num>*)
       {
-        os << "CppFunction<" << args_num << "> "
-           << f->get_name();
+        os << "CppFunction<" << args_num << "> ";
       },
       [&](Add)        { os << "+ "; },
       [&](Subtract)   { os << "- "; },
@@ -74,7 +72,7 @@ void shared_node_printer(std::ostream& os,
       },
       [&](const GlobalConstant *c)
       {
-        os << "GlobalConstant " << c->get_name()
+        os << "GlobalConstant "
           << " value: " << c->value;
       },
       [&](const Number &n)

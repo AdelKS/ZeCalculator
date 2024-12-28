@@ -100,7 +100,7 @@ int main()
 
   // C++ double(double...) functions can also be registered in a world
   auto& obj3 = world.new_object();
-  obj3 = CppFunction{"square", square};
+  obj3.set("square", CppFunction{square});
 
   // Can evaluate an expression directly using the math world
   assert(world.evaluate("square(2)").value() == 4.);

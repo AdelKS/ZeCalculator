@@ -25,27 +25,27 @@
 
 namespace zc {
 
-inline const std::array builtin_global_constants = std::to_array<GlobalConstant>(
+inline const std::array builtin_global_constants = std::to_array<std::pair<std::string, GlobalConstant>>(
 {
-  {"math::pi",    3.141592653589793},
-  {"math::π",     3.141592653589793},
-  {"physics::kB", 1.380649e-23},   // Blotzmann constant, SI units
-  {"physics::h",  6.62607015e-34}, // Plank constant, SI units
-  {"physics::c",  299792458},      // Speed of light in vacuum, SI units
+  {"math::pi",    {3.141592653589793}},
+  {"math::π",     {3.141592653589793}},
+  {"physics::kB", {1.380649e-23}},   // Blotzmann constant, SI units
+  {"physics::h",  {6.62607015e-34}}, // Plank constant, SI units
+  {"physics::c",  {299792458}},      // Speed of light in vacuum, SI units
 });
 
 // we save the names along with the function pointers for convenience
 // we could save only the function pointers, and the names only in the inventory
-inline const std::array builtin_unary_functions = std::to_array<CppFunction<1>>({
-  {"cos", std::cos},     {"sin", std::sin},      {"tan", std::tan},
-  {"acos", std::acos},   {"asin", std::asin},    {"atan", std::atan},
-  {"cosh", std::cosh},   {"sinh", std::sinh},    {"tanh", std::tanh},
-  {"ch", std::cosh},     {"sh", std::sinh},      {"th", std::tanh},
-  {"acosh", std::acosh}, {"asinh", std::asinh},  {"atanh", std::atanh},
-  {"ach", std::acosh},   {"ash", std::asinh},    {"ath", std::atanh},
-  {"sqrt", std::sqrt},   {"log", std::log10},    {"lg", std::log2},
-  {"ln", std::log},      {"abs", std::abs},      {"exp", std::exp},
-  {"floor", std::floor}, {"ceil", std::ceil},    {"erf", std::erf},
-  {"erfc", std::erfc},   {"gamma", std::tgamma}, {"Γ", std::tgamma},
+inline const std::array builtin_unary_functions = std::to_array<std::pair<std::string, CppFunction<1>>>({
+  {"cos", {std::cos}},     {"sin", {std::sin}},      {"tan", {std::tan}},
+  {"acos", {std::acos}},   {"asin", {std::asin}},    {"atan", {std::atan}},
+  {"cosh", {std::cosh}},   {"sinh", {std::sinh}},    {"tanh", {std::tanh}},
+  {"ch", {std::cosh}},     {"sh", {std::sinh}},      {"th", {std::tanh}},
+  {"acosh", {std::acosh}}, {"asinh", {std::asinh}},  {"atanh", {std::atanh}},
+  {"ach", {std::acosh}},   {"ash", {std::asinh}},    {"ath", {std::atanh}},
+  {"sqrt", {std::sqrt}},   {"log", {std::log10}},    {"lg", {std::log2}},
+  {"ln", {std::log}},      {"abs", {std::abs}},      {"exp", {std::exp}},
+  {"floor", {std::floor}}, {"ceil", {std::ceil}},    {"erf", {std::erf}},
+  {"erfc", {std::erfc}},   {"gamma", {std::tgamma}}, {"Γ", {std::tgamma}},
 });
 }
