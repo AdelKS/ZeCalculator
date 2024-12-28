@@ -24,7 +24,7 @@ tl::expected<MathObjectsVariant<type>, Error> EqObject::to_expected_unbound() co
 
 template <parsing::Type type>
 tl::expected<MathObjectsVariant<type>, Error>
-  EqObject::to_expected(const zc::MathWorld<type>& mathworld) const
+  EqObject::to_expected(size_t slot, const zc::MathWorld<type>& mathworld) const
 {
   auto get_final_representation = [&](const std::string& eq, const parsing::AST& ast)
   {
@@ -68,7 +68,7 @@ tl::expected<MathObjectsVariant<type>, Error>
           return tl::unexpected(std::move(exp_rhs.error()));
 
       assert(var_names.size() == 1); // sequences only have a single input var: the index of the value
-      return Sequence<type>(name.substr, var_names.front(), equation, std::move(values));
+      return Sequence<type>(slot, name.substr, var_names.front(), equation, std::move(values));
     }
     case EqObject::GLOBAL_CONSTANT:
       return GlobalConstant{name.substr, rhs.number_data().value};

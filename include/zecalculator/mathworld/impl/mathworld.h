@@ -246,7 +246,7 @@ void MathWorld<type>::rebind_dependent_functions(const std::unordered_set<std::s
 
   for (DynMathObject<type>* dyn_obj: dep_eq_objs)
   {
-    dyn_obj->as_expected() = dyn_obj->opt_eq_object->template to_expected<type>(*this);
+    dyn_obj->as_expected() = dyn_obj->opt_eq_object->template to_expected<type>(dyn_obj->slot, *this);
     if (not dyn_obj->has_value())
       invalid_functions.insert(dyn_obj->opt_eq_object->name.substr);
   }

@@ -24,7 +24,8 @@ struct EqObject
   tl::expected<MathObjectsVariant<type>, Error> to_expected_unbound() const;
 
   template <parsing::Type type>
-  tl::expected<MathObjectsVariant<type>, Error> to_expected(const zc::MathWorld<type>& mathworld) const;
+  tl::expected<MathObjectsVariant<type>, Error>
+    to_expected(size_t slot, const zc::MathWorld<type>& mathworld) const;
 
   deps::Deps direct_dependencies() const;
 

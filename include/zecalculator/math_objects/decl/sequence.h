@@ -71,7 +71,8 @@ protected:
   /// @brief Makes a valid but "empty" Sequence, will evaluate to NaN for any input
   Sequence() = default;
 
-  Sequence(std::string name,
+  Sequence(size_t slot,
+           std::string name,
            std::string input_var_name,
            std::string equation,
            std::vector<parsing::Parsing<type>> values);
@@ -83,6 +84,8 @@ protected:
 
   template <parsing::Type>
   friend struct eval::Evaluator;
+
+  size_t slot;
 
   std::string name;
 

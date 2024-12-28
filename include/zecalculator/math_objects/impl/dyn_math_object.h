@@ -297,7 +297,7 @@ DynMathObject<type>& DynMathObject<type>::assign(std::string definition, interna
     }
   }
 
-  assign_object(eq_obj.to_expected(mathworld), eq_obj);
+  assign_object(eq_obj.to_expected(slot, mathworld), eq_obj);
 
   return *this;
 }
@@ -319,7 +319,8 @@ DynMathObject<type>& DynMathObject<type>::assign(As<Data<type>> data_def)
   if(parsed_lhs.input_vars.size() > 1)
     return assign_error(Error::unexpected(parsed_lhs.input_vars[1], data_def.func_name));
 
-  return assign_object(Data<type>(std::move(parsed_lhs.name.substr),
+  return assign_object(Data<type>(slot,
+                                  std::move(parsed_lhs.name.substr),
                                   parsed_lhs.input_vars.empty()
                                     ? std::move(data_def.default_index_var_name)
                                     : std::move(parsed_lhs.input_vars.front().substr),
