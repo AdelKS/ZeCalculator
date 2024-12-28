@@ -87,8 +87,8 @@ public:
   tl::expected<double, Error> operator () (std::initializer_list<double> vals = {}, eval::Cache* cache = nullptr) const;
   tl::expected<double, Error> evaluate(std::initializer_list<double> vals = {}, eval::Cache* cache = nullptr) const;
 
-  /// @brief returns the name of the object
-  /// @note returns non-empty string only if this instance contains a syntactically valid equation or object
+  /// @brief returns the currently set name, regardless of the validity of the object
+  /// @note returns non-empty string only if the object has been assigned a valid unique name
   std::string_view get_name() const;
 
   /// @brief gets the value of the expected (the variant) as a specific alternative
@@ -120,15 +120,16 @@ public:
   /// @brief returns object's slot within its owning MathWorld
   size_t get_slot() const { return slot; }
 
-  /// @brief gets the expression assigned to the object, if there is one
-  /// @note  returns an expression even in error state, if due to an erroneous expression
-  std::optional<std::string> get_equation() const;
+  /// @brief gets the equation assigned to the object, if there is one
+  std::optional<std::string> get_equation() const { return opt_equation; };
 
 protected:
   const size_t slot;
   MathWorld<type>& mathworld;
 
   tl::expected<parsing::LHS, zc::Error> exp_lhs;
+
+  std::optional<std::string> opt_equation;
 
   /// @brief non-empty when a syntactically correct equation gets assigned
   std::optional<internal::EqObject> opt_eq_object;
