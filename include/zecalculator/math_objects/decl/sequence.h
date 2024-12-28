@@ -52,14 +52,6 @@ class Sequence
 {
 public:
 
-  std::string_view get_name() const { return name; };
-
-  const std::string& get_equation() const { return equation; }
-
-  /// @returns the name of the input variable, as defined in the sequence's equation/definition
-  /// @note this name isn't used internally and is replaced an integer index
-  const std::string get_input_var_name() const { return input_var_name; }
-
   /// @brief evaluates the sequence at the given index
   tl::expected<double, Error> evaluate(double index, eval::Cache* cache = nullptr) const;
 
@@ -71,11 +63,7 @@ protected:
   /// @brief Makes a valid but "empty" Sequence, will evaluate to NaN for any input
   Sequence() = default;
 
-  Sequence(size_t slot,
-           std::string name,
-           std::string input_var_name,
-           std::string equation,
-           std::vector<parsing::Parsing<type>> values);
+  Sequence(size_t slot, std::vector<parsing::Parsing<type>> values);
 
   /// @brief evaluation with recursion depth tracking
   tl::expected<double, Error> evaluate(double index,
@@ -86,12 +74,6 @@ protected:
   friend struct eval::Evaluator;
 
   size_t slot;
-
-  std::string name;
-
-  std::string input_var_name;
-
-  std::string equation;
 
   /// @brief first values of the sequence
   /// @note the last value is the "default" expression

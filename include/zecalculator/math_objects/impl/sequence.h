@@ -6,13 +6,8 @@
 namespace zc {
 
 template <parsing::Type type>
-Sequence<type>::Sequence(size_t slot,
-                         std::string name,
-                         std::string input_var_name,
-                         std::string equation,
-                         std::vector<parsing::Parsing<type>> values)
-  : slot(slot), name(std::move(name)), input_var_name(std::move(input_var_name)),
-    equation(std::move(equation)), values(std::move(values))
+Sequence<type>::Sequence(size_t slot, std::vector<parsing::Parsing<type>> values)
+  : slot(slot), values(std::move(values))
 {}
 
 template <parsing::Type type>

@@ -46,11 +46,4 @@ double CppFunction<args_num>::operator()(std::span<const double, args_num> vals)
   return unpack_compute(std::make_index_sequence<args_num>());
 }
 
-template <size_t args_num>
-  requires(args_num > 0)
-std::string_view CppFunction<args_num>::get_name() const
-{
-  return name;
-}
-
 } // namespace zc

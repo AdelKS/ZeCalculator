@@ -76,16 +76,8 @@ class Function
 {
 public:
 
-  std::string_view get_name() const { return name; };
-
   /// @brief returns the number of input variables, if they are valid
   size_t args_num() const { return argument_number; };
-
-  const std::string get_equation() const { return equation; }
-
-  /// @returns the names of the input variables, as defined in the function's equation/definition
-  /// @note these names aren't used internally and are replaced by an integer index
-  const std::vector<std::string> get_input_var_names() const { return input_var_names; }
 
   tl::expected<double, Error> evaluate(std::initializer_list<double> vals = {}, eval::Cache* cache = nullptr) const;
   tl::expected<double, Error> operator()(std::initializer_list<double> vals = {}, eval::Cache* cache = nullptr) const;
@@ -96,19 +88,10 @@ protected:
   /// @note    this state should never be exposed to downstream users of the library
   Function(size_t argument_number): argument_number(argument_number) {};
 
-  Function(std::string name,
-           std::string equation,
-           std::vector<std::string> input_var_names,
+  Function(size_t argument_number,
            parsing::Parsing<type> parsing);
 
-  std::string name = {};
-
-  /// @brief contains the names of the input variables
-  std::vector<std::string> input_var_names = {};
-
   size_t argument_number;
-
-  std::string equation = {};
 
   /// @brief binding of the AST 'left_expr' (parent MathObject class) to 'mathWorld'
   std::optional<parsing::Parsing<type>> bound_rhs = {};

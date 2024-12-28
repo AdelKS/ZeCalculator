@@ -25,7 +25,6 @@
 #include <zecalculator/utils/utils.h>
 
 #include <cstddef>
-#include <string_view>
 #include <span>
 
 namespace zc {
@@ -37,10 +36,7 @@ template <size_t args_num>
   requires (args_num > 0)
 struct CppFunction
 {
-  std::string name;
   typename utils::math_func_signature_t<args_num> f_ptr;
-
-  std::string_view get_name() const;
 
   double operator()(std::span<const double, args_num> vals) const;
   double operator()(std::array<double, args_num> vals) const;
@@ -50,6 +46,6 @@ struct CppFunction
 
 template <class... DBL>
   requires (std::is_same_v<DBL, double> and ...)
-CppFunction(std::string, double(*)(DBL...)) -> CppFunction<sizeof...(DBL)>;
+CppFunction(double(*)(DBL...)) -> CppFunction<sizeof...(DBL)>;
 
 } // namespace zc

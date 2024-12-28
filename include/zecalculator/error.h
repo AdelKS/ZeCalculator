@@ -124,11 +124,6 @@ struct Error
     return Error {NAME_ALREADY_TAKEN, tokenTxt, std::move(expression)};
   }
 
-  static Error name_already_taken(std::string name)
-  {
-    return Error {NAME_ALREADY_TAKEN, {}, std::move(name)};
-  }
-
   static Error object_not_in_world(parsing::tokens::Text tokenTxt, std::string expression)
   {
     return Error {OBJECT_NOT_IN_WORLD, tokenTxt, std::move(expression)};

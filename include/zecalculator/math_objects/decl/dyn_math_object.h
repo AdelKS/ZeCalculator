@@ -26,6 +26,7 @@
 #include <zecalculator/math_objects/decl/internal/eq_object.h>
 #include <zecalculator/math_objects/object_list.h>
 #include <zecalculator/parsing/data_structures/deps.h>
+#include <zecalculator/parsing/decl/utils.h>
 #include <zecalculator/parsing/types.h>
 
 namespace zc {
@@ -78,10 +79,10 @@ public:
   /// @brief assign equation and automatically deduce the object type the equation defines
   /// @note this method can potentially modify every other DynMathObject in the same MathWorld
   template <size_t args_num>
-  DynMathObject<type>& operator = (CppFunction<args_num> cpp_f);
+  DynMathObject<type>& set(std::string name, CppFunction<args_num> cpp_f);
 
   /// @note this method can potentially modify every other DynMathObject in the same MathWorld
-  DynMathObject<type>& operator = (GlobalConstant cst);
+  DynMathObject<type>& set(std::string name, GlobalConstant cst);
 
   tl::expected<double, Error> operator () (std::initializer_list<double> vals = {}, eval::Cache* cache = nullptr) const;
   tl::expected<double, Error> evaluate(std::initializer_list<double> vals = {}, eval::Cache* cache = nullptr) const;
@@ -127,6 +128,8 @@ protected:
   const size_t slot;
   MathWorld<type>& mathworld;
 
+  tl::expected<parsing::LHS, zc::Error> exp_lhs;
+
   /// @brief non-empty when a syntactically correct equation gets assigned
   std::optional<internal::EqObject> opt_eq_object;
 
@@ -136,10 +139,14 @@ protected:
 
   DynMathObject<type>& assign(As<Data<type>> data_def);
 
-  DynMathObject<type>& assign_error(Error error, std::optional<internal::EqObject> new_opt_eq_obj = {});
+  DynMathObject<type>& assign_error(tl::expected<parsing::LHS, zc::Error> new_exp_lhs,
+                                    Error error,
+                                    std::optional<internal::EqObject> new_opt_eq_obj = {});
 
   template <class T>
-  DynMathObject<type>& assign_object(T&& obj, std::optional<internal::EqObject> new_opt_eq_obj = {});
+  DynMathObject<type>& assign_object(tl::expected<parsing::LHS, zc::Error> new_exp_lhs,
+                                     T&& obj,
+                                     std::optional<internal::EqObject> new_opt_eq_obj = {});
 
   /// @brief true if has an assigned 'opt_eq_object' with a function/sequence within
   bool has_function_eq_obj() const;
