@@ -117,6 +117,8 @@ template <parsing::Type type>
 template <size_t args_num>
 DynMathObject<type>& DynMathObject<type>::set(std::string name, CppFunction<args_num> cpp_f)
 {
+  opt_equation.reset();
+
   auto new_exp_lhs = parsing::parse_lhs(name, name);
   if (not new_exp_lhs) [[unlikely]]
     return assign_error(new_exp_lhs, new_exp_lhs.error());
@@ -134,6 +136,8 @@ DynMathObject<type>& DynMathObject<type>::set(std::string name, CppFunction<args
 template <parsing::Type type>
 DynMathObject<type>& DynMathObject<type>::set(std::string name, GlobalConstant cst)
 {
+  opt_equation.reset();
+
   auto new_exp_lhs = parsing::parse_lhs(name, name);
   if (not new_exp_lhs) [[unlikely]]
     return assign_error(new_exp_lhs, new_exp_lhs.error());
@@ -179,6 +183,8 @@ DynMathObject<type>& DynMathObject<type>::assign(std::string definition, interna
   *    - Expression
   *  4. Any step can fail, in which case the member variable 'm' is an Error instance
   **/
+
+  opt_equation = definition;
 
   internal::EqObject eq_obj {.cat = cat, .equation = definition};
 
@@ -417,20 +423,6 @@ deps::Deps DynMathObject<type>::direct_dependencies() const
     return deps::Deps();
 
   return opt_eq_object->direct_dependencies();
-}
-
-template <parsing::Type type>
-std::optional<std::string> DynMathObject<type>::get_equation() const
-{
-  if (opt_eq_object)
-    return opt_eq_object->equation;
-  else if (not this->has_value())
-  {
-    const Error& err = this->error();
-    if (not err.expression.empty())
-      return err.expression;
-  }
-  return {};
 }
 
 }
