@@ -27,7 +27,7 @@
 namespace zc {
 namespace eval {
 
-using Cache = std::unordered_map<std::string, ObjectCache>;
+using Cache = std::unordered_map<size_t, ObjectCache>;
 
 }
 }

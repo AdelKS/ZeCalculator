@@ -6,11 +6,12 @@
 namespace zc {
 
 template <parsing::Type type>
-Sequence<type>::Sequence(std::string name,
+Sequence<type>::Sequence(size_t slot,
+                         std::string name,
                          std::string input_var_name,
                          std::string equation,
                          std::vector<parsing::Parsing<type>> values)
-  : name(std::move(name)), input_var_name(std::move(input_var_name)),
+  : slot(slot), name(std::move(name)), input_var_name(std::move(input_var_name)),
     equation(std::move(equation)), values(std::move(values))
 {}
 
@@ -26,7 +27,7 @@ tl::expected<double, Error> Sequence<type>::evaluate(double index,
     return std::nan("");
 
   if (cache)
-    if (auto obj_cache_it = cache->find(name); obj_cache_it != cache->end())
+    if (auto obj_cache_it = cache->find(slot); obj_cache_it != cache->end())
     {
       auto& obj_cache = obj_cache_it->second.get_cache();
       if (auto value_it = obj_cache.find(rounded_index); value_it != obj_cache.end())
@@ -39,7 +40,7 @@ tl::expected<double, Error> Sequence<type>::evaluate(double index,
   auto exp_res = zc::evaluate(parsing, std::array{rounded_index}, current_recursion_depth, cache);
 
   if (exp_res and cache)
-    (*cache)[name].insert(rounded_index, *exp_res);
+    (*cache)[slot].insert(rounded_index, *exp_res);
 
   return exp_res;
 }

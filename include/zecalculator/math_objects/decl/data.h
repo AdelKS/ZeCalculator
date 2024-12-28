@@ -71,7 +71,8 @@ protected:
   /// @brief Makes a valid but "empty" data set, will evaluate to NaN for any input
   Data() = default;
 
-  Data(std::string name,
+  Data(size_t slot,
+       std::string name,
        std::string input_var_name,
        std::vector<std::string> str_data,
        const MathWorld<type>* math_world);
@@ -88,6 +89,8 @@ protected:
 
   template <parsing::Type>
   friend struct eval::Evaluator;
+
+  size_t slot;
 
   std::string name;
 
