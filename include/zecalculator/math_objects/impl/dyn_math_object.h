@@ -410,6 +410,20 @@ std::string_view DynMathObject<type>::get_name() const
 }
 
 template <parsing::Type type>
+std::vector<std::string> DynMathObject<type>::get_input_var_names() const
+{
+  std::vector<std::string> var_names;
+  if (exp_lhs)
+  {
+    var_names.reserve(exp_lhs->input_vars.size());
+    std::ranges::transform(exp_lhs->input_vars,
+                           std::back_inserter(var_names),
+                           &parsing::tokens::Text::substr);
+  }
+  return var_names;
+}
+
+template <parsing::Type type>
 bool DynMathObject<type>::has_function_eq_obj() const
 {
   return opt_eq_object

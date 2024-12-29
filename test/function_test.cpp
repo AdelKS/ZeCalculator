@@ -29,6 +29,7 @@
 #include <numbers>
 
 using namespace zc;
+using namespace std::literals;
 
 int main()
 {
@@ -40,6 +41,8 @@ int main()
 
     MathWorld<type> world;
     auto& f = world.new_object() = "f(omega,t) = cos(omega * t) + omega * t";
+
+    expect(f.get_input_var_names() == std::vector{"omega"s, "t"s});
 
     const double omega = 2;
     const double t = 3;
@@ -63,6 +66,8 @@ int main()
     MathWorld<type> world;
     world.new_object() = "x = 2.0";
     auto& f = world.new_object() = "f(x) = cos(x) + x";
+
+    expect(f.get_input_var_names() == std::vector{"x"s});
 
     const double res = f({1.0}).value();
     const double expected_res = std::cos(1.0) + 1.0;
@@ -88,6 +93,9 @@ int main()
 
     f2 = "f2(x) = cos(x) + 2*x^2";
     f1 = "f1(x) = cos(x) + x + f2(2*x)";
+
+    expect(f1.get_input_var_names() == std::vector{"x"s});
+    expect(f2.get_input_var_names() == std::vector{"x"s});
 
     expect(bool(f1));
     expect(bool(f2));
@@ -179,6 +187,10 @@ int main()
     world.new_object() = "g(a,b) = h(a, a*b) + 3*a - b";
     auto& f = world.new_object() = "f(x, y) = h(x, g(x, y)) + g(y, h(y, x))";
 
+    expect(world.get("h")->get_input_var_names() == std::vector{"c"s, "d"s});
+    expect(world.get("g")->get_input_var_names() == std::vector{"a"s, "b"s});
+    expect(f.get_input_var_names() == std::vector{"x"s, "y"s});
+
     auto cpp_h = [](double c, double d) {
       return c*d + c-d;
     };
@@ -240,6 +252,8 @@ int main()
 
     // add a function named "f", note that the constant "my_constant" is only defined after
     auto& f = world.new_object() = "f(u, v, w, x, y, z) = 1 + u + v + w + x + y + z";
+
+    expect(f.get_input_var_names() == std::vector{"u"s, "v"s, "w"s, "x"s, "y"s, "z"s});
 
     expect(f.has_value()) << fatal;
 
@@ -320,6 +334,8 @@ int main()
     // add a function named "f", note that the constant "my_constant" is only defined after
     world.new_object() = "my_constant = 3.0";
     auto& f = world.new_object() = "f( x)  = x + my_constant + cos(math::pi)";
+
+    expect(world.get("my_constant")->get_input_var_names().empty());
 
     using namespace std::string_literals;
 

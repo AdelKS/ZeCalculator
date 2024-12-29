@@ -91,6 +91,10 @@ public:
   /// @note returns non-empty string only if the object has been assigned a valid unique name
   std::string_view get_name() const;
 
+  /// @brief returns the names of the variables that are used as input to the function
+  /// @note  empty if there are not
+  std::vector<std::string> get_input_var_names() const;
+
   /// @brief gets the value of the expected (the variant) as a specific alternative
   template <class T>
     requires (tuple_contains_v<MathObjects<type>, T>)
