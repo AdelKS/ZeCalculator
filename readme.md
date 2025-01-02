@@ -90,11 +90,9 @@ int main()
 
   // assign a new equation to 'obj1'
   // - Now it's the Fibonacci sequence called 'u'
-  // - we can force the parser to interpret it as a sequence
-  //   - unneeded here, just for demo
-  //   - the object will contain an error if the equation doesn't fit with the type asked for
-  //     - even if the equation is a valid e.g. a GlobalConstant expression
-  obj1 = As<rpn::Sequence>{"u(n) = 0 ; 1 ; u(n-1) + u(n-2)"};
+  //   - Recognized by its "sequence" of expressions
+  //     - The last expressions is the "generic" one that applies for any other index
+  obj1 = "u(n) = 0 ; 1 ; u(n-1) + u(n-2)";
 
   // should hold a Sequence now
   assert(obj1.holds<rpn::Sequence>());
@@ -184,13 +182,9 @@ Overview:
         ```c++
         // automatic type deduction
         obj = "f(x) = cos(x)";
-        // or force type
-        obj = As<rpn::Function>{"f(x) = cos(x)"};
         ```
       - [Sequence](./include/zecalculator/math_objects/decl/sequence.h)
         ```c++
-        // needs forcing the type, automatic type deduction would otherwise deduce a zc::Function
-        obj = As<rpn::Sequence>{"u(n) = n"};
         // or sequence with first values, the last expression is the generic expression
         obj = "fibonacci(n) = 0 ; 1 ; fibonacci(n-1) + fibonacci(n-2)"
         ```

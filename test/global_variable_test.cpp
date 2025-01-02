@@ -90,7 +90,7 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    zc::DynMathObject<type>& r = (world.new_object() = zc::As<zc::Function<type>>{"ymin=-10"});
+    zc::DynMathObject<type>& r = (world.new_object() = "ymin=-10");
 
     expect(r.has_value()) << [&]{ return r.error(); };
 

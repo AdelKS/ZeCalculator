@@ -18,7 +18,7 @@ namespace internal {
 struct EqObject
 {
   enum Category {AUTO, FUNCTION, SEQUENCE, GLOBAL_CONSTANT};
-  Category cat;
+  Category cat = AUTO;
 
   template <parsing::Type type>
   tl::expected<MathObjectsVariant<type>, Error> to_expected_unbound() const;
