@@ -111,10 +111,12 @@ int main()
 
   // define Data object
   // can use numbers or complex expressions for each of its values
+  // can define a name for the line index, e.g. 'index', so it can be used in its expressions
   auto& obj4 = world.new_object();
-  obj4 = As<rpn::Data>{"data", {"1.0", "square(2)", "u(10)"}};
+  obj4.set_data("data(index)", {"1.0", "square(2)*index", "u(10)"});
 
   // data objects can be used like regular functions
+  // to retrieve their values on each index
   assert(world.evaluate("data(0)").value() == 1.);
 
   assert(obj4({1}).value() == 4.);
@@ -194,8 +196,8 @@ Overview:
         ```
       - [Data](./include/zecalculator/math_objects/decl/data.h)
         ```c++
-        // requires using specialized As<rpn::Data>
-        obj = As<rpn::Data>{"data", {"1.0", "square(2)", "u(10)"}};
+        // requires using set_data()
+        obj.set_data("data", {"1.0", "square(2)", "u(10)"});
         ```
       - [GlobalConstant](./include/zecalculator/math_objects/decl/global_constant.h)
         ```c++

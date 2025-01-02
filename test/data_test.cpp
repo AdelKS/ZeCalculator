@@ -38,7 +38,7 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    auto& data = world.new_object() = As<Data<type>>{"data", {"1.0", "2.0*line", "data(0)+data(1)"}};
+    auto& data = world.new_object().set_data("data(line)", {"1.0", "2.0*line", "data(0)+data(1)"});
 
     expect(bool(data)) << [&]{ return data.error(); } << fatal;
     expect(bool(data({0}))) << [&]{ return data({0}).error(); } << fatal;
@@ -58,19 +58,19 @@ int main()
     MathWorld<type> world;
     auto& data = world.new_object();
 
-    data = As<Data<type>>{"cos+1", {}};
+    data.set_data("cos+1", {});
     expect(not bool(data)) << fatal;
     expect(data.error() == zc::Error::unexpected(Token::Add("+", 3), "cos+1")) << data.error() << fatal;
 
-    data = As<Data<type>>{"cos(x)", {}};
+    data.set_data("cos(x)", {});
     expect(not bool(data)) << fatal;
     expect(data.error() == zc::Error::name_already_taken(Text{"cos", 0}, "cos(x)")) << data.error() << fatal;
 
-    data = As<Data<type>>{"cos", {}};
+    data.set_data("cos", {});
     expect(not bool(data)) << fatal;
     expect(data.error() == zc::Error::name_already_taken(Text{"cos", 0}, "cos")) << data.error() << fatal;
 
-    data = As<Data<type>>{"data(x,y,z)", {}};
+    data.set_data("data(x,y,z)", {});
     expect(not bool(data)) << fatal;
     expect(data.error() == zc::Error::unexpected(Token::Variable("y", 7), "data(x,y,z)")) << data.error() << fatal;
 
@@ -84,7 +84,7 @@ int main()
 
     auto& f = world.new_object() = "f(x) = x*data(2)";
     auto& val = world.new_object() = "val = 2*data(1)";
-    auto& data = world.new_object() = As<Data<type>>{"data", {"1.0", "2.0*g(line)", "data(0)+data(1)+g(line)"}};
+    auto& data = world.new_object().set_data("data(line)", {"1.0", "2.0*g(line)", "data(0)+data(1)+g(line)"});
 
     expect(bool(data)) << [&]{ return data.error(); } << fatal;
     expect(bool(data({0}))) << [&]{ return data({0}).error(); } << fatal;
@@ -143,7 +143,7 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    auto& data = world.new_object() = As<Data<type>>{.func_name = "data"};
+    auto& data = world.new_object().set_data("data", {});
 
     expect(bool(data)) << [&]{ return data.error(); } << fatal;
 

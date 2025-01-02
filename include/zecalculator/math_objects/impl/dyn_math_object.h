@@ -313,11 +313,11 @@ DynMathObject<type>& DynMathObject<type>::assign(std::string definition, interna
 }
 
 template <parsing::Type type>
-DynMathObject<type>& DynMathObject<type>::assign(As<Data<type>> data_def)
+DynMathObject<type>& DynMathObject<type>::set_data(std::string name, std::vector<std::string> data)
 {
   using parsing::LHS, parsing::parse_lhs;
 
-  tl::expected<LHS, zc::Error> exp_parsed_lhs = parse_lhs(data_def.func_name, data_def.func_name);
+  tl::expected<LHS, zc::Error> exp_parsed_lhs = parse_lhs(name, name);
   if (not bool(exp_parsed_lhs))
     return assign_error(exp_parsed_lhs, exp_parsed_lhs.error());
 
@@ -325,18 +325,18 @@ DynMathObject<type>& DynMathObject<type>::assign(As<Data<type>> data_def)
 
   if (mathworld.contains(parsed_lhs.name.substr)) [[unlikely]]
     return assign_error(exp_parsed_lhs,
-                        Error::name_already_taken(parsed_lhs.name, data_def.func_name));
+                        Error::name_already_taken(parsed_lhs.name, name));
 
   if(parsed_lhs.input_vars.size() > 1)
-    return assign_error(exp_parsed_lhs, Error::unexpected(parsed_lhs.input_vars[1], data_def.func_name));
+    return assign_error(exp_parsed_lhs, Error::unexpected(parsed_lhs.input_vars[1], name));
 
   return assign_object(exp_parsed_lhs,
                        Data<type>(slot,
                                   parsed_lhs.name.substr,
                                   parsed_lhs.input_vars.empty()
-                                    ? std::move(data_def.default_index_var_name)
+                                    ? std::string()
                                     : parsed_lhs.input_vars.front().substr,
-                                  std::move(data_def.str_data),
+                                  std::move(data),
                                   &mathworld));
 }
 

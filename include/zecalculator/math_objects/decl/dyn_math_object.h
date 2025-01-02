@@ -43,24 +43,6 @@ template <class T>
 struct As { std::string str; };
 
 template <parsing::Type type>
-struct As<Data<type>>
-{
-  /// @brief can either be a simple name e.g. "data" or a function call of a single variable "data(i)"
-  /// @note  if 'name' is a function call of a single variable, e.g. "data(i)", the input variable 'i'
-  ///        will refer to the index of the expression
-  /// @example "foo(i)"
-  std::string func_name;
-
-  /// @brief the data in string format
-  /// @example "[ '1.2', 'cos(i)']"
-  std::vector<std::string> str_data = {};
-
-  /// @brief default name of the index variable
-  /// @note only used if 'func_name' is a simple name (not a function call)
-  std::string default_index_var_name = "line";
-};
-
-template <parsing::Type type>
 class DynMathObject: public tl::expected<MathObjectsVariant<type>, Error>
 {
 public:
@@ -83,6 +65,9 @@ public:
 
   /// @note this method can potentially modify every other DynMathObject in the same MathWorld
   DynMathObject<type>& set(std::string name, GlobalConstant cst);
+
+  /// @note this method can potentially modify every other DynMathObject in the same MathWorld
+  DynMathObject<type>& set_data(std::string name, std::vector<std::string> data);
 
   tl::expected<double, Error> operator () (std::initializer_list<double> vals = {}, eval::Cache* cache = nullptr) const;
   tl::expected<double, Error> evaluate(std::initializer_list<double> vals = {}, eval::Cache* cache = nullptr) const;
@@ -141,8 +126,6 @@ protected:
   DynMathObject(tl::expected<MathObjectsVariant<type>, Error> exp_variant, size_t slot, MathWorld<type>& mathworld);
 
   DynMathObject<type>& assign(std::string definition, internal::EqObject::Category cat);
-
-  DynMathObject<type>& assign(As<Data<type>> data_def);
 
   DynMathObject<type>& assign_error(tl::expected<parsing::LHS, zc::Error> new_exp_lhs,
                                     Error error,
