@@ -166,7 +166,7 @@ int main()
     world1.new_object() = "f(x) = cos(x)";
 
     MathWorld<type> world2;
-    auto& g = world2.new_object() = As<Function<type>>{"g(x) = sin(x)+1"};
+    auto& g = world2.new_object() = "g(x) = sin(x)+1";
 
     // cannot erase 'g' in 'world1'
     expect(not bool(world1.erase(g)));

@@ -39,21 +39,10 @@ namespace parsing {
   struct make_fast;
 }
 
-template <class T>
-struct As { std::string str; };
-
 template <parsing::Type type>
 class DynMathObject: public tl::expected<MathObjectsVariant<type>, Error>
 {
 public:
-  /// @brief assign equation and interpret as defining a object of type 'T'
-  /// @note even if the equation is syntactically correct, if it cannot define an object of type 'T'
-  ///       this instance will hold an error
-  /// @note this method can potentially modify every other DynMathObject in the same MathWorld
-  template <class T>
-    requires tuple_contains_v<MathEqObjects<type>, T>
-  DynMathObject<type>& operator = (As<T> eq);
-
   /// @brief assign equation and automatically deduce the object type the equation defines
   /// @note this method can potentially modify every other DynMathObject in the same MathWorld
   DynMathObject<type>& operator = (std::string eq);
@@ -124,8 +113,6 @@ protected:
   std::optional<internal::EqObject> opt_eq_object;
 
   DynMathObject(tl::expected<MathObjectsVariant<type>, Error> exp_variant, size_t slot, MathWorld<type>& mathworld);
-
-  DynMathObject<type>& assign(std::string definition, internal::EqObject::Category cat);
 
   DynMathObject<type>& assign_error(tl::expected<parsing::LHS, zc::Error> new_exp_lhs,
                                     Error error,

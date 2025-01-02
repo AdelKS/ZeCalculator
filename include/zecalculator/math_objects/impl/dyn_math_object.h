@@ -92,28 +92,6 @@ tl::expected<double, Error> DynMathObject<type>::evaluate(std::initializer_list<
 }
 
 template <parsing::Type type>
-template <class T>
-  requires tuple_contains_v<MathEqObjects<type>, T>
-DynMathObject<type>& DynMathObject<type>::operator = (As<T> eq)
-{
-  if constexpr (std::is_same_v<T, Function<type>>)
-    return assign(std::move(eq.str), internal::EqObject::FUNCTION);
-  else if constexpr (std::is_same_v<T, Sequence<type>>)
-    return assign(std::move(eq.str), internal::EqObject::SEQUENCE);
-  else if constexpr (std::is_same_v<T, GlobalConstant>)
-    return assign(std::move(eq.str), internal::EqObject::GLOBAL_CONSTANT);
-  else if constexpr (std::is_same_v<T, Data<type>>)
-    return assign(std::move(eq));
-  else static_assert(utils::dependent_false_v<T>, "case not handled");
-}
-
-template <parsing::Type type>
-DynMathObject<type>& DynMathObject<type>::operator = (std::string eq)
-{
-  return assign(std::move(eq), internal::EqObject::AUTO);
-}
-
-template <parsing::Type type>
 template <size_t args_num>
 DynMathObject<type>& DynMathObject<type>::set(std::string name, CppFunction<args_num> cpp_f)
 {
@@ -166,7 +144,7 @@ const tl::expected<MathObjectsVariant<type>, Error>&
 }
 
 template <parsing::Type type>
-DynMathObject<type>& DynMathObject<type>::assign(std::string definition, internal::EqObject::Category cat)
+DynMathObject<type>& DynMathObject<type>::operator = (std::string definition)
 {
 /**
   *  0. Example: def = "f(x) = cos(x)"
@@ -186,7 +164,7 @@ DynMathObject<type>& DynMathObject<type>::assign(std::string definition, interna
 
   opt_equation = definition;
 
-  internal::EqObject eq_obj {.cat = cat, .equation = definition};
+  internal::EqObject eq_obj {.equation = definition};
 
   auto ast = parsing::tokenize(definition)
                .and_then(parsing::make_ast{definition})
@@ -234,48 +212,6 @@ DynMathObject<type>& DynMathObject<type>::assign(std::string definition, interna
       and not is_global_constant_def) [[unlikely]]
     return assign_error(new_exp_lhs, Error::unexpected(parsed_lhs.name, definition));
 
-  // third sanity check: type checks
-  if (cat != internal::EqObject::AUTO)
-  {
-    eq_obj.cat = cat;
-
-    if (cat == internal::EqObject::FUNCTION)
-    {
-      if (is_sequence_def)
-        // user asked for a function, but right hand side looks like a sequence def
-        // cannot have Separators on the right hand side for functions
-        return assign_error(std::move(new_exp_lhs), Error::unexpected(eq_obj.rhs.name, definition));
-
-      // a function def, global var def and global constant def can all be considered
-      // functions
-      assert((is_function_def or is_global_var_def or is_global_constant_def)
-             and not is_sequence_def);
-    }
-    else if (cat == internal::EqObject::SEQUENCE)
-    {
-      // global vars and constants cannot be considered sequences
-      // due to the strict requirement that sequences have are single
-      // argument functions. Whereas vars and constants are zero argument functions
-      if (is_global_var_def or is_global_constant_def)
-        return assign_error(std::move(new_exp_lhs), Error::wrong_object_type(parsed_lhs.name, definition));
-
-      assert(is_function_def and not is_global_var_def
-             and not is_global_constant_def);
-    }
-    else if (cat == internal::EqObject::GLOBAL_CONSTANT)
-    {
-      if (is_function_def)
-        return assign_error(new_exp_lhs,
-                            Error::wrong_object_type(parsed_lhs.name, definition));
-      if (is_global_var_def)
-        return assign_error(std::move(new_exp_lhs),
-                            Error::wrong_object_type(eq_obj.rhs.name, definition));
-      assert(is_global_constant_def and not is_global_var_def and not is_function_def
-             and not is_sequence_def);
-    }
-    else [[unlikely]] assert(false);
-  }
-
   eq_obj.name = parsed_lhs.name;
 
   std::string old_name(get_name());
@@ -290,19 +226,17 @@ DynMathObject<type>& DynMathObject<type>::assign(std::string definition, interna
                          &parsing::tokens::Text::substr);
 
   // now that we checked that everything is fine, we can assign the object
-  if (cat == internal::EqObject::Category::AUTO)
+
+  if (is_sequence_def)
+    eq_obj.cat = internal::EqObject::SEQUENCE;
+
+  else if (is_function_def or is_global_var_def)
+    eq_obj.cat = internal::EqObject::FUNCTION;
+
+  else
   {
-    if (is_sequence_def or cat == internal::EqObject::SEQUENCE)
-      eq_obj.cat = internal::EqObject::SEQUENCE;
-
-    else if (is_function_def or is_global_var_def)
-      eq_obj.cat = internal::EqObject::FUNCTION;
-
-    else
-    {
-      assert(is_global_constant_def);
-      eq_obj.cat = internal::EqObject::GLOBAL_CONSTANT;
-    }
+    assert(is_global_constant_def);
+    eq_obj.cat = internal::EqObject::GLOBAL_CONSTANT;
   }
 
   assign_object(std::move(new_exp_lhs),
