@@ -23,7 +23,6 @@
 #include <zecalculator/error.h>
 #include <zecalculator/evaluation/decl/cache.h>
 #include <zecalculator/external/expected.h>
-#include <zecalculator/math_objects/decl/internal/eq_object.h>
 #include <zecalculator/math_objects/object_list.h>
 #include <zecalculator/parsing/data_structures/deps.h>
 #include <zecalculator/parsing/decl/utils.h>
@@ -99,32 +98,38 @@ public:
   size_t get_slot() const { return slot; }
 
   /// @brief gets the equation assigned to the object, if there is one
-  std::optional<std::string> get_equation() const { return opt_equation; };
+  std::optional<std::string> get_equation() const;
 
 protected:
   const size_t slot;
   MathWorld<type>& mathworld;
 
-  tl::expected<parsing::LHS, zc::Error> exp_lhs;
+  enum Type {BAD_EQUATION, CONSTANT, CPP_FUNCTION, FUNCTION, SEQUENCE, DATA};
+  Type obj_type = BAD_EQUATION;
 
   std::optional<std::string> opt_equation;
 
-  /// @brief non-empty when a syntactically correct equation gets assigned
-  std::optional<internal::EqObject> opt_eq_object;
+  struct FuncObj {
+    parsing::AST rhs;
+  };
+
+  struct SeqObj {
+    std::vector<parsing::AST> rhs;
+  };
+
+  struct DataObj {
+    std::vector<std::string> data;
+  };
+
+  std::variant<zc::Error, double, FuncObj, SeqObj, DataObj, CppFunction<1>, CppFunction<2>> parsed_data = zc::Error::empty_expression();
+
+  tl::expected<parsing::LHS, zc::Error> exp_lhs = tl::unexpected(zc::Error::empty_expression());
 
   DynMathObject(tl::expected<MathObjectsVariant<type>, Error> exp_variant, size_t slot, MathWorld<type>& mathworld);
 
-  DynMathObject<type>& assign_error(tl::expected<parsing::LHS, zc::Error> new_exp_lhs,
-                                    Error error,
-                                    std::optional<internal::EqObject> new_opt_eq_obj = {});
-
-  template <class T>
-  DynMathObject<type>& assign_object(tl::expected<parsing::LHS, zc::Error> new_exp_lhs,
-                                     T&& obj,
-                                     std::optional<internal::EqObject> new_opt_eq_obj = {});
-
-  /// @brief true if has an assigned 'opt_eq_object' with a function/sequence within
-  bool has_function_eq_obj() const;
+  /// @tparam linked: link with other math objects, otherwise assigns unlinked alternative
+  template <bool linked = true>
+  DynMathObject<type>& assign_alternative();
 
   friend MathWorld<type>;
 };

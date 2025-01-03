@@ -21,6 +21,7 @@
 #pragma once
 
 #include <zecalculator/parsing/decl/parser.h>
+#include <zecalculator/parsing/data_structures/decl/ast.h>
 
 namespace zc {
 

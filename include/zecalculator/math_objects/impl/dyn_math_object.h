@@ -25,7 +25,6 @@
 #include <zecalculator/math_objects/impl/data.h>
 #include <zecalculator/math_objects/impl/function.h>
 #include <zecalculator/math_objects/impl/global_constant.h>
-#include <zecalculator/math_objects/impl/internal/eq_object.h>
 #include <zecalculator/math_objects/impl/sequence.h>
 #include <zecalculator/parsing/impl/utils.h>
 #include <zecalculator/utils/utils.h>
@@ -95,39 +94,45 @@ template <parsing::Type type>
 template <size_t args_num>
 DynMathObject<type>& DynMathObject<type>::set(std::string name, CppFunction<args_num> cpp_f)
 {
+  std::string old_name(get_name());
   opt_equation.reset();
+  obj_type = CPP_FUNCTION;
 
-  auto new_exp_lhs = parsing::parse_lhs(name, name);
-  if (not new_exp_lhs) [[unlikely]]
-    return assign_error(new_exp_lhs, new_exp_lhs.error());
-  else if(not new_exp_lhs->input_vars.empty()) [[unlikely]]
-    return assign_error(new_exp_lhs,
-                        zc::Error::unexpected(new_exp_lhs->input_vars.front(), name));
-  else if (mathworld.contains(new_exp_lhs->name.substr)) [[unlikely]]
-    return assign_error(new_exp_lhs, Error::name_already_taken(new_exp_lhs->name, name));
-  else
+  parsed_data = cpp_f;
+  exp_lhs = parsing::parse_lhs(name, name);
+
+  if (get_name() != old_name and mathworld.contains(get_name()))
   {
-    return assign_object(std::move(new_exp_lhs), std::move(cpp_f), {});
+    std::string full_expr = opt_equation ? *opt_equation : exp_lhs->substr.substr;
+    exp_lhs = tl::unexpected(Error::name_already_taken(exp_lhs->name, full_expr));
   }
+  assign_alternative();
+
+  mathworld.object_updated(slot, false, old_name, std::string(get_name()));
+
+  return *this;
 }
 
 template <parsing::Type type>
 DynMathObject<type>& DynMathObject<type>::set(std::string name, GlobalConstant cst)
 {
+  std::string old_name(get_name());
   opt_equation.reset();
+  obj_type = CONSTANT;
 
-  auto new_exp_lhs = parsing::parse_lhs(name, name);
-  if (not new_exp_lhs) [[unlikely]]
-    return assign_error(new_exp_lhs, new_exp_lhs.error());
-  else if(not new_exp_lhs->input_vars.empty()) [[unlikely]]
-    return assign_error(new_exp_lhs,
-                        zc::Error::unexpected(new_exp_lhs->input_vars.front(), name));
-  else if (mathworld.contains(new_exp_lhs->name.substr)) [[unlikely]]
-    return assign_error(new_exp_lhs, Error::name_already_taken(new_exp_lhs->name, name));
-  else
+  parsed_data = cst.value;
+  exp_lhs = parsing::parse_lhs(name, name);
+
+  if (get_name() != old_name and mathworld.contains(get_name()))
   {
-    return assign_object(std::move(new_exp_lhs), std::move(cst), {});
+    std::string full_expr = opt_equation ? *opt_equation : exp_lhs->substr.substr;
+    exp_lhs = tl::unexpected(Error::name_already_taken(exp_lhs->name, full_expr));
   }
+  assign_alternative();
+
+  mathworld.object_updated(slot, false, old_name, std::string(get_name()));
+
+  return *this;
 }
 
 template <parsing::Type type>
@@ -162,86 +167,64 @@ DynMathObject<type>& DynMathObject<type>::operator = (std::string definition)
   *  4. Any step can fail, in which case the member variable 'm' is an Error instance
   **/
 
-  opt_equation = definition;
+  std::string old_name(get_name());
 
-  internal::EqObject eq_obj {.equation = definition};
+  obj_type = BAD_EQUATION;
+  exp_lhs = tl::unexpected(zc::Error::unkown());
+  opt_equation = definition;
 
   auto ast = parsing::tokenize(definition)
                .and_then(parsing::make_ast{definition})
                .transform(parsing::flatten_separators);
   if (not ast)
-    return assign_error(tl::unexpected(zc::Error::empty_expression()), ast.error());
-
-  // the root node of the tree must be the equal sign
-  if (not (ast->is_func() and ast->func_data().type == parsing::AST::Func::OP_ASSIGN))
-    return assign_error(tl::unexpected(zc::Error::empty_expression()),
-                        Error::not_math_object_definition());
-
-  auto& funcop_data = ast->func_data();
-
-  assert(funcop_data.subnodes.size() == 2);
-
-  eq_obj.rhs = std::move(funcop_data.subnodes[1]);
-
-  using parsing::LHS, parsing::parse_lhs;
-
-  auto new_exp_lhs = parse_lhs(funcop_data.subnodes[0], definition);
-  if (not bool(new_exp_lhs))
-    return assign_error(new_exp_lhs, new_exp_lhs.error());
-
-  const LHS& parsed_lhs = *new_exp_lhs;
-
-  eq_obj.lhs = parsed_lhs.substr;
-
-  // "f(x) = ...."
-  const bool is_function_def = not parsed_lhs.input_vars.empty();
-
-  const bool is_sequence_def = is_function_def and eq_obj.rhs.is_func()
-                               and eq_obj.rhs.func_data().type == parsing::AST::Func::SEPARATOR;
-
-  // "var = complex expression that is not a number"
-  const bool is_global_var_def = (parsed_lhs.input_vars.empty() and not eq_obj.rhs.is_number());
-
-  // "var = 13.24213 (a number)"
-  const bool is_global_constant_def = (parsed_lhs.input_vars.empty() and eq_obj.rhs.is_number());
-
-  // first equation sanity check
-  if (not is_function_def
-      and not is_global_var_def
-      and not is_sequence_def
-      and not is_global_constant_def) [[unlikely]]
-    return assign_error(new_exp_lhs, Error::unexpected(parsed_lhs.name, definition));
-
-  eq_obj.name = parsed_lhs.name;
-
-  std::string old_name(get_name());
-
-  // fourth sanity check: name check
-  if (eq_obj.name.substr != old_name and mathworld.contains(eq_obj.name.substr))
-    return assign_error(new_exp_lhs, Error::name_already_taken(parsed_lhs.name, definition));
-
-  eq_obj.var_names.reserve(parsed_lhs.input_vars.size());
-  std::ranges::transform(parsed_lhs.input_vars,
-                         std::back_inserter(eq_obj.var_names),
-                         &parsing::tokens::Text::substr);
-
-  // now that we checked that everything is fine, we can assign the object
-
-  if (is_sequence_def)
-    eq_obj.cat = internal::EqObject::SEQUENCE;
-
-  else if (is_function_def or is_global_var_def)
-    eq_obj.cat = internal::EqObject::FUNCTION;
-
-  else
   {
-    assert(is_global_constant_def);
-    eq_obj.cat = internal::EqObject::GLOBAL_CONSTANT;
+    parsed_data = ast.error();
   }
 
-  assign_object(std::move(new_exp_lhs),
-                eq_obj.to_expected(slot, mathworld),
-                eq_obj);
+  // the root node of the tree must be the equal sign
+  else if (not (ast->is_func() and ast->func_data().type == parsing::AST::Func::OP_ASSIGN))
+  {
+    parsed_data = Error::not_math_object_definition();
+  }
+  else
+  {
+    auto& funcop_data = ast->func_data();
+
+    assert(funcop_data.subnodes.size() == 2);
+
+    auto& rhs = funcop_data.subnodes[1];
+
+    if (rhs.is_func() and rhs.func_data().type == parsing::AST::Func::SEPARATOR)
+    {
+      obj_type = SEQUENCE;
+      parsed_data = SeqObj{.rhs = std::move(rhs.func_data().subnodes)};
+    }
+    else if (rhs.is_number())
+    {
+      obj_type = CONSTANT;
+      parsed_data = rhs.number_data().value;
+    }
+    else
+    {
+      obj_type = FUNCTION;
+      parsed_data = FuncObj{.rhs = std::move(rhs)};
+    }
+
+    exp_lhs = parsing::parse_lhs(funcop_data.subnodes[0], definition);
+  }
+
+  if (get_name() != old_name and mathworld.contains(get_name()))
+  {
+    std::string full_expr = opt_equation ? *opt_equation : exp_lhs->substr.substr;
+    exp_lhs = tl::unexpected(Error::name_already_taken(exp_lhs->name, full_expr));
+  }
+  assign_alternative();
+
+  mathworld.object_updated(slot,
+                           std::holds_alternative<SeqObj>(parsed_data)
+                             or std::holds_alternative<FuncObj>(parsed_data),
+                           old_name,
+                           std::string(get_name()));
 
   return *this;
 }
@@ -249,56 +232,114 @@ DynMathObject<type>& DynMathObject<type>::operator = (std::string definition)
 template <parsing::Type type>
 DynMathObject<type>& DynMathObject<type>::set_data(std::string name, std::vector<std::string> data)
 {
-  using parsing::LHS, parsing::parse_lhs;
-
-  tl::expected<LHS, zc::Error> exp_parsed_lhs = parse_lhs(name, name);
-  if (not bool(exp_parsed_lhs))
-    return assign_error(exp_parsed_lhs, exp_parsed_lhs.error());
-
-  const LHS& parsed_lhs = *exp_parsed_lhs;
-
-  if (mathworld.contains(parsed_lhs.name.substr)) [[unlikely]]
-    return assign_error(exp_parsed_lhs,
-                        Error::name_already_taken(parsed_lhs.name, name));
-
-  if(parsed_lhs.input_vars.size() > 1)
-    return assign_error(exp_parsed_lhs, Error::unexpected(parsed_lhs.input_vars[1], name));
-
-  return assign_object(exp_parsed_lhs,
-                       Data<type>(slot,
-                                  parsed_lhs.name.substr,
-                                  parsed_lhs.input_vars.empty()
-                                    ? std::string()
-                                    : parsed_lhs.input_vars.front().substr,
-                                  std::move(data),
-                                  &mathworld));
-}
-
-template <parsing::Type type>
-DynMathObject<type>&
-  DynMathObject<type>::assign_error(tl::expected<parsing::LHS, zc::Error> new_exp_lhs,
-                                    Error error,
-                                    std::optional<internal::EqObject> new_opt_eq_obj)
-{
-  return assign_object(std::move(new_exp_lhs),
-                       tl::unexpected(std::move(error)),
-                       std::move(new_opt_eq_obj));
-}
-
-template <parsing::Type type>
-template <class T>
-DynMathObject<type>&
-  DynMathObject<type>::assign_object(tl::expected<parsing::LHS, zc::Error> new_exp_lhs,
-                                     T&& obj,
-                                     std::optional<internal::EqObject> new_opt_eq_obj)
-{
   std::string old_name(get_name());
-  auto old_eq_object = opt_eq_object;
-  opt_eq_object = std::move(new_opt_eq_obj);
-  exp_lhs = std::move(new_exp_lhs);
-  as_expected() = std::forward<T>(obj);
+  opt_equation.reset();
+  obj_type = DATA;
 
-  mathworld.object_updated(slot, bool(opt_eq_object), old_name, std::string(get_name()));
+  parsed_data = DataObj{.data = std::move(data)};
+  exp_lhs = parsing::parse_lhs(name, name);
+
+  if (get_name() != old_name and mathworld.contains(get_name()))
+  {
+    std::string full_expr = opt_equation ? *opt_equation : exp_lhs->substr.substr;
+    exp_lhs = tl::unexpected(Error::name_already_taken(exp_lhs->name, full_expr));
+  }
+  assign_alternative();
+
+  mathworld.object_updated(slot,
+                           false,
+                           old_name,
+                           std::string(get_name()));
+
+  return *this;
+}
+
+template <parsing::Type type>
+template <bool linked>
+DynMathObject<type>& DynMathObject<type>::assign_alternative()
+{
+  if (not bool(exp_lhs))
+  {
+    as_expected() = tl::unexpected(exp_lhs.error());
+    return *this;
+  }
+
+  if(obj_type == DATA and exp_lhs->input_vars.size() > 1)
+  {
+    as_expected() = tl::unexpected(Error::unexpected(exp_lhs->input_vars[1], exp_lhs->substr.substr));
+    return *this;
+  }
+
+  auto get_final_representation = [&](parsing::AST ast)
+  {
+    std::string equation;
+    if (opt_equation)
+      equation = *opt_equation;
+
+    auto var_names = exp_lhs->input_vars | std::views::transform(&parsing::tokens::Text::substr);
+    auto final_ast = parsing::mark_input_vars{var_names}(ast);
+    if constexpr (type == parsing::Type::FAST)
+      return parsing::make_fast<type>{equation, mathworld}(final_ast);
+    else
+      return parsing::make_fast<type>{equation, mathworld}(final_ast).transform(parsing::make_RPN);
+  };
+
+  std::visit(
+    utils::overloaded{
+      [&](zc::Error err)
+      {
+        as_expected() = tl::unexpected(err);
+      },
+      [&](double val)
+      {
+        as_expected() = GlobalConstant{val};
+      },
+      [&]<size_t args_num>(CppFunction<args_num> f)
+      {
+        as_expected() = f;
+      },
+      [&](const FuncObj& f_obj)
+      {
+        if constexpr (linked)
+        {
+          auto exp_final_repr = get_final_representation(f_obj.rhs);
+          if (exp_final_repr)
+            as_expected() = Function<type>(exp_lhs->input_vars.size(),
+                                          *exp_final_repr);
+          else
+            as_expected() = tl::unexpected(exp_final_repr.error());
+        }
+        else as_expected() = Function<type>(exp_lhs->input_vars.size());
+      },
+      [&](const SeqObj& seq_obj)
+      {
+        if constexpr (linked)
+        {
+          std::vector<parsing::Parsing<type>> values;
+          values.reserve(seq_obj.rhs.size());
+          for (const parsing::AST& ast : seq_obj.rhs)
+            if (auto exp_rhs = get_final_representation(ast))
+              values.push_back(std::move(*exp_rhs));
+            else
+            {
+              as_expected() = tl::unexpected(std::move(exp_rhs.error()));
+              return;
+            }
+          as_expected() = Sequence<type>(slot, std::move(values));
+        }
+        else as_expected() = Sequence<type>();
+      },
+      [&](const DataObj& data_obj)
+      {
+        as_expected() = Data<type>(slot,
+                                  exp_lhs->name.substr,
+                                  not exp_lhs->input_vars.empty()
+                                    ? exp_lhs->input_vars.front().substr
+                                    : "",
+                                  std::move(data_obj.data),
+                                  &mathworld);
+      }
+    }, parsed_data);
 
   return *this;
 }
@@ -358,19 +399,49 @@ std::vector<std::string> DynMathObject<type>::get_input_var_names() const
 }
 
 template <parsing::Type type>
-bool DynMathObject<type>::has_function_eq_obj() const
+std::optional<std::string> DynMathObject<type>::get_equation() const
 {
-  return opt_eq_object
-         and (opt_eq_object->cat == internal::EqObject::FUNCTION or opt_eq_object->cat == internal::EqObject::SEQUENCE);
+  return opt_equation;
 }
 
 template <parsing::Type type>
 deps::Deps DynMathObject<type>::direct_dependencies() const
 {
-  if (not opt_eq_object)
-    return deps::Deps();
-
-  return opt_eq_object->direct_dependencies();
+  return std::visit(
+    utils::overloaded{
+      [&](zc::Error)
+      {
+        return deps::Deps();
+      },
+      [&](double)
+      {
+        return deps::Deps();
+      },
+      [&]<size_t args_num>(CppFunction<args_num>)
+      {
+        return deps::Deps();
+      },
+      [&](const FuncObj& f_obj)
+      {
+        auto var_names = exp_lhs->input_vars | std::views::transform(&parsing::tokens::Text::substr);
+        return parsing::direct_dependencies(parsing::mark_input_vars{var_names}(f_obj.rhs));
+      },
+      [&](const SeqObj& seq_obj)
+      {
+        auto deps = deps::Deps();
+        auto var_names = exp_lhs->input_vars | std::views::transform(&parsing::tokens::Text::substr);
+        for (const parsing::AST& ast: seq_obj.rhs)
+        {
+          auto extra_deps = parsing::direct_dependencies(parsing::mark_input_vars{var_names}(ast));
+          deps.insert(extra_deps.begin(), extra_deps.end());
+        }
+        return deps;
+      },
+      [&](const DataObj&)
+      {
+        return deps::Deps();
+      }
+    }, parsed_data);
 }
 
 }
