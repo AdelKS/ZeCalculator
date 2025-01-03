@@ -98,9 +98,8 @@ protected:
 
   template <parsing::Type>
   friend struct eval::Evaluator;
-
   friend struct parsing::RpnMaker;
-
+  friend class DynMathObject<type>;
   friend struct internal::EqObject;
 };
 

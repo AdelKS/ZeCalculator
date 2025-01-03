@@ -81,7 +81,7 @@ protected:
   std::vector<parsing::Parsing<type>> values;
 
   friend struct internal::EqObject;
-
+  friend class DynMathObject<type>;
 };
 
 template <parsing::Type type>

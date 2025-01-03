@@ -1,5 +1,3 @@
-subdir('internal')
-
 if not meson.is_subproject()
   install_headers(
     files(

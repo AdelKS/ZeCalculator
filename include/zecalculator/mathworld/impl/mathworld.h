@@ -21,7 +21,6 @@
 ****************************************************************************/
 
 #include <zecalculator/math_objects/impl/dyn_math_object.h>
-#include <zecalculator/math_objects/impl/internal/eq_object.h>
 #include <zecalculator/mathworld/decl/mathworld.h>
 #include <zecalculator/parsing/data_structures/decl/ast.h>
 #include <zecalculator/parsing/data_structures/token.h>
@@ -201,7 +200,8 @@ std::unordered_set<DynMathObject<type>*>
     {
       // should have an internal::EqObject assigned of Function/Sequence type
       // otherwise it cannot depend on anything
-      assert(obj->has_function_eq_obj());
+      assert(std::holds_alternative<typename DynMathObject<type>::FuncObj>(obj->parsed_data)
+             or std::holds_alternative<typename DynMathObject<type>::SeqObj>(obj->parsed_data));
       dep_eq_objs.insert(obj);
     }
 
@@ -226,19 +226,16 @@ void MathWorld<type>::rebind_dependent_functions(const std::unordered_set<std::s
   for (DynMathObject<type>* dyn_obj: dep_eq_objs)
   {
     assert(dyn_obj);
-    assert(dyn_obj->opt_eq_object);
-
-    const internal::EqObject& eq_obj = *dyn_obj->opt_eq_object;
 
     /// activate if in error state, because its internal::EqObject is actually valid
     /// the function/sequence freshly created does not have a parsing
     if (not dyn_obj->has_value())
     {
-      assert(not inventory.contains(eq_obj.name.substr));
-      assert(bool(dyn_obj->opt_eq_object));
+      assert(not dyn_obj->get_name().empty());
+      assert(not inventory.contains(dyn_obj->get_name()));
 
-      dyn_obj->as_expected() = dyn_obj->opt_eq_object->template to_expected_unbound<type>();
-      inventory[eq_obj.name.substr] = dyn_obj->slot;
+      dyn_obj->template assign_alternative<false>();
+      inventory[std::string(dyn_obj->get_name())] = dyn_obj->slot;
     }
   }
 
@@ -246,9 +243,9 @@ void MathWorld<type>::rebind_dependent_functions(const std::unordered_set<std::s
 
   for (DynMathObject<type>* dyn_obj: dep_eq_objs)
   {
-    dyn_obj->as_expected() = dyn_obj->opt_eq_object->template to_expected<type>(dyn_obj->slot, *this);
+    dyn_obj->assign_alternative();
     if (not dyn_obj->has_value())
-      invalid_functions.insert(dyn_obj->opt_eq_object->name.substr);
+      invalid_functions.insert(std::string(dyn_obj->get_name()));
   }
 
   std::unordered_set<std::string> covered_invalid_functions;
@@ -275,13 +272,12 @@ void MathWorld<type>::rebind_dependent_functions(const std::unordered_set<std::s
       // if these are revdeps, they can only be functions
       // because they have an expression that calls our invalid function
       assert(obj->template holds<Function<type>>() or obj->template holds<Sequence<type>>());
-
-      assert(obj->opt_eq_object);
+      assert(bool(obj->opt_equation));
 
       obj->as_expected() = tl::unexpected(
         Error::object_in_invalid_state(parsing::tokens::Text{.substr = invalid_func_name,
                                                               .begin = info.indexes.front()},
-                                        obj->opt_eq_object->equation));
+                                        *obj->opt_equation));
 
       invalid_functions.insert(affected_func_name);
     }
@@ -329,8 +325,7 @@ deps::Deps MathWorld<type>::direct_revdeps(std::string_view name) const
   deps::Deps direct_rev_deps;
   for (auto&& [obj_name, slot]: eq_object_inventory)
   {
-    assert(math_objects[slot].opt_eq_object);
-    assert(math_objects[slot].opt_eq_object->name.substr == obj_name);
+    assert(math_objects[slot].get_name() == obj_name);
 
     auto deps = math_objects[slot].direct_dependencies();
     if (auto it = deps.find(name); it != deps.end())

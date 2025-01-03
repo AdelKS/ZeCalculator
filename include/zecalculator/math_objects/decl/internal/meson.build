@@ -1,8 +1,6 @@
 if not meson.is_subproject()
   install_headers(
-    files(
-      'eq_object.h',
-    ),
+    files(),
     subdir: 'zecalculator',
     preserve_path: true
   )
