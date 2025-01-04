@@ -21,17 +21,16 @@
 ****************************************************************************/
 
 #include <zecalculator/math_objects/cpp_function.h>
-#include <zecalculator/math_objects/global_constant.h>
 
 namespace zc {
 
-inline const std::array builtin_global_constants = std::to_array<std::pair<std::string, GlobalConstant>>(
+inline const std::array builtin_global_constants = std::to_array<std::pair<std::string, double>>(
 {
-  {"math::pi",    {3.141592653589793}},
-  {"math::π",     {3.141592653589793}},
-  {"physics::kB", {1.380649e-23}},   // Blotzmann constant, SI units
-  {"physics::h",  {6.62607015e-34}}, // Plank constant, SI units
-  {"physics::c",  {299792458}},      // Speed of light in vacuum, SI units
+  {"math::pi",    3.141592653589793},
+  {"math::π",     3.141592653589793},
+  {"physics::kB", 1.380649e-23},   // Blotzmann constant, SI units
+  {"physics::h",  6.62607015e-34}, // Plank constant, SI units
+  {"physics::c",  299792458},      // Speed of light in vacuum, SI units
 });
 
 // we save the names along with the function pointers for convenience

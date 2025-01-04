@@ -156,7 +156,7 @@ int main()
     MathWorld<type> world;
     world.new_object() = "x  =   2.0";
 
-    Function<type>& fun = (world.new_object() = "f(x) = cos(x) + x").template value_as<Function<type>>();
+    auto& fun = (world.new_object() = "f(x) = cos(x) + x");
 
     const double res = fun({1.0}).value();
 

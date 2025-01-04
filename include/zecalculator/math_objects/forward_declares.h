@@ -25,23 +25,9 @@
 
 namespace zc {
 
-template <parsing::Type>
-class Function;
-
-template <parsing::Type>
-class Sequence;
-
-template <parsing::Type>
-class Data;
-
-struct GlobalConstant;
-
 template <size_t args_num>
   requires (args_num > 0)
 struct CppFunction;
-
-template <parsing::Type type>
-class Unknown;
 
 template <parsing::Type type>
 class DynMathObject;

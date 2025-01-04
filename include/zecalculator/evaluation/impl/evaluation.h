@@ -110,16 +110,14 @@ auto Evaluator<type>::operator () (zc::parsing::shared::node::UnaryMinus) -> Ret
 }
 
 template <parsing::Type type>
-auto Evaluator<type>::operator()(const zc::Function<type>* f) -> RetType
+auto Evaluator<type>::operator()(const zc::parsing::LinkedFunc<type>* f) -> RetType
 {
-  const size_t args_num = f->args_num();
+  const size_t args_num = f->args_num;
 
   if constexpr (type == parsing::Type::FAST)
     assert(subnodes.size() == args_num);
 
-  assert(f->bound_rhs);
-
-  auto exp_res = zc::evaluate(*(f->bound_rhs),
+  auto exp_res = zc::evaluate(f->repr,
                               {(subnodes.end() - args_num), args_num},
                               current_recursion_depth + 1,
                               cache);
@@ -147,13 +145,13 @@ auto Evaluator<type>::operator()(const zc::Function<type>* f) -> RetType
 
 template <parsing::Type type>
 template <class T>
-  requires utils::is_any_of<T, zc::Sequence<type>, zc::Data<type>>
+  requires utils::is_any_of<T, zc::parsing::LinkedSeq<type>, zc::parsing::LinkedData<type>>
 auto Evaluator<type>::operator()(const T* u) -> RetType
 {
   if constexpr (type == parsing::Type::FAST)
     assert(subnodes.size() == 1);
 
-  auto exp_res = u->evaluate(subnodes.back(), current_recursion_depth + 1, cache);
+  auto exp_res = zc::evaluate(*u, subnodes.back(), current_recursion_depth+1, cache);
 
   if constexpr (type == parsing::Type::FAST)
   {
@@ -176,11 +174,9 @@ auto Evaluator<type>::operator()(const T* u) -> RetType
   }
 }
 
-
-
 template <parsing::Type type>
 template <size_t args_num>
-auto Evaluator<type>::operator()(const zc::CppFunction<args_num>* cpp_f) -> RetType
+auto Evaluator<type>::operator()(zc::CppFunction<args_num> cpp_f) -> RetType
 {
   if constexpr (type == parsing::Type::FAST)
     assert(subnodes.size() == args_num);
@@ -189,7 +185,7 @@ auto Evaluator<type>::operator()(const zc::CppFunction<args_num>* cpp_f) -> RetT
   if constexpr (type == parsing::Type::RPN)
     offset = subnodes.size() - args_num;
 
-  double res = (*cpp_f)(std::span<const double, args_num>(subnodes.begin() + offset, args_num));
+  double res = cpp_f(std::span<const double, args_num>(subnodes.begin() + offset, args_num));
 
   update_stack(res, args_num);
 
@@ -199,9 +195,9 @@ auto Evaluator<type>::operator()(const zc::CppFunction<args_num>* cpp_f) -> RetT
 }
 
 template <parsing::Type type>
-auto Evaluator<type>::operator()(const zc::GlobalConstant* node) -> RetType
+auto Evaluator<type>::operator()(const double* node) -> RetType
 {
-  double res = node->value;
+  double res = *node;
 
   if constexpr (type == parsing::Type::FAST)
     return res;
@@ -331,6 +327,79 @@ inline tl::expected<double, Error> evaluate(const parsing::RPN& rpn,
 inline tl::expected<double, Error> evaluate(const parsing::RPN& rpn, eval::Cache* cache)
 {
   return evaluate(rpn, std::span<const double, 0>(), 0, cache);
+}
+
+template <class T>
+  requires utils::is_any_of<T,
+                            zc::parsing::LinkedSeq<parsing::Type::RPN>,
+                            zc::parsing::LinkedData<parsing::Type::RPN>,
+                            zc::parsing::LinkedSeq<parsing::Type::FAST>,
+                            zc::parsing::LinkedData<parsing::Type::FAST>>
+tl::expected<double, Error>
+  evaluate(const T& u, double index, size_t current_recursion_depth, eval::Cache* cache)
+{
+  constexpr bool is_data = utils::is_any_of<T,
+                                            zc::parsing::LinkedData<parsing::Type::RPN>,
+                                            zc::parsing::LinkedData<parsing::Type::FAST>>;
+
+  double rounded_index = std::round(index);
+
+  tl::expected<double, zc::Error> exp_res = tl::unexpected(zc::Error::unkown());
+
+  auto get_cached_value = [&] () -> std::optional<double> {
+    if (cache)
+      if (auto obj_cache_it = cache->find(u.slot); obj_cache_it != cache->end())
+      {
+        auto& obj_cache = obj_cache_it->second.get_cache();
+        if (auto value_it = obj_cache.find(rounded_index); value_it != obj_cache.end())
+          return value_it->second;
+      }
+    return {};
+  };
+
+  if (rounded_index < 0 or u.repr.empty() or (is_data and rounded_index >= u.repr.size())) [[unlikely]]
+    exp_res = std::nan("");
+
+  else if (auto opt_val = get_cached_value(); bool(opt_val))
+    exp_res = *opt_val;
+
+  else
+  {
+    size_t unsigned_index = rounded_index;
+
+    if constexpr (is_data)
+    {
+      assert(unsigned_index < u.repr.size());
+      const auto& exp_parsing = u.repr[unsigned_index];
+
+      if (exp_parsing)
+        exp_res = zc::evaluate(*exp_parsing, std::array{rounded_index}, current_recursion_depth, cache);
+      else exp_res = tl::unexpected(exp_parsing.error());
+    }
+    else
+    {
+      const auto& parsing = unsigned_index < u.repr.size() ? u.repr[unsigned_index] : u.repr.back();
+
+      exp_res = zc::evaluate(parsing, std::array{rounded_index}, current_recursion_depth, cache);
+    }
+
+    if (exp_res and cache)
+      (*cache)[u.slot].insert(rounded_index, *exp_res);
+  }
+
+  return exp_res;
+}
+
+template <class T>
+  requires utils::is_any_of<T,
+                            zc::parsing::LinkedSeq<parsing::Type::RPN>,
+                            zc::parsing::LinkedData<parsing::Type::RPN>,
+                            zc::parsing::LinkedSeq<parsing::Type::FAST>,
+                            zc::parsing::LinkedData<parsing::Type::FAST>>
+tl::expected<double, Error>
+  evaluate(const T& u, double index, eval::Cache* cache)
+{
+  return evaluate(u, index, 0, cache);
 }
 
 }

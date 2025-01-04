@@ -20,11 +20,7 @@
 
 #pragma once
 
-#include <zecalculator/math_objects/aliases.h>
 #include <zecalculator/math_objects/cpp_function.h>
-#include <zecalculator/math_objects/decl/function.h>
-#include <zecalculator/math_objects/decl/sequence.h>
-#include <zecalculator/math_objects/global_constant.h>
 #include <zecalculator/parsing/data_structures/decl/fast.h>
 #include <zecalculator/parsing/data_structures/impl/shared.h>
 #include <zecalculator/parsing/data_structures/token.h>

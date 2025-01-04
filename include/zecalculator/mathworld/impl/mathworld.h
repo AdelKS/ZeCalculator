@@ -103,29 +103,6 @@ DynMathObject<type>* MathWorld<type>::eq_object_get(std::string_view name)
 }
 
 template <parsing::Type type>
-template <class ObjectType>
-  requires tuple_contains_v<MathObjects<type>, ObjectType>
-ObjectType* MathWorld<type>::get(std::string_view name)
-{
-  DynMathObject<type>* dyn_obj = get(name);
-
-  if (dyn_obj and dyn_obj->template holds<ObjectType>())
-    return &dyn_obj->template value_as<ObjectType>();
-  else return nullptr;
-}
-
-template <parsing::Type type>
-template <class ObjectType>
-  requires tuple_contains_v<MathObjects<type>, ObjectType>
-const ObjectType* MathWorld<type>::get(std::string_view name) const
-{
-  const DynMathObject<type>* dyn_obj = get(name);
-  if (dyn_obj and std::holds_alternative<const ObjectType*>(*dyn_obj))
-    return &std::get<ObjectType>(*dyn_obj);
-  else return nullptr;
-}
-
-template <parsing::Type type>
 DynMathObject<type>* MathWorld<type>::get(size_t slot)
 {
   return const_cast<DynMathObject<type>*>(std::as_const(*this).get(slot));
@@ -140,26 +117,6 @@ const DynMathObject<type>* MathWorld<type>::get(size_t slot) const
 }
 
 template <parsing::Type type>
-template <class ObjectType>
-  requires tuple_contains_v<MathObjects<type>, ObjectType>
-ObjectType* MathWorld<type>::get(size_t slot)
-{
-  return const_cast<ObjectType*>(std::as_const(*this).template get<ObjectType>(slot));
-}
-
-
-template <parsing::Type type>
-template <class ObjectType>
-  requires tuple_contains_v<MathObjects<type>, ObjectType>
-const ObjectType* MathWorld<type>::get(size_t slot) const
-{
-  if (not math_objects.is_assigned(slot) or not math_objects[slot].template holds<ObjectType>()) [[unlikely]]
-    return nullptr;
-  else return &math_objects[slot].template value_as<ObjectType>();
-}
-
-
-template <parsing::Type type>
 bool MathWorld<type>::contains(std::string_view name) const
 {
   return inventory.find(name) != inventory.end();
@@ -170,7 +127,7 @@ DynMathObject<type>& MathWorld<type>::new_object()
 {
   size_t slot = math_objects.next_free_slot();
 
-  math_objects.push(DynMathObject<type>(tl::unexpected(Error::empty_expression()), slot, *this), slot);
+  math_objects.push(DynMathObject<type>(slot, *this), slot);
 
   return math_objects[slot];
 }
@@ -200,8 +157,8 @@ std::unordered_set<DynMathObject<type>*>
     {
       // should have an internal::EqObject assigned of Function/Sequence type
       // otherwise it cannot depend on anything
-      assert(std::holds_alternative<typename DynMathObject<type>::FuncObj>(obj->parsed_data)
-             or std::holds_alternative<typename DynMathObject<type>::SeqObj>(obj->parsed_data));
+      assert(obj->object_type() == FUNCTION or obj->object_type() == DATA
+             or obj->object_type() == SEQUENCE);
       dep_eq_objs.insert(obj);
     }
 
@@ -216,11 +173,6 @@ std::unordered_set<DynMathObject<type>*>
 template <parsing::Type type>
 void MathWorld<type>::rebind_dependent_functions(const std::unordered_set<std::string>& names)
 {
-  // Data objects take a different approach, they rebind themselves their expressions
-  for (DynMathObject<type>& dyn_obj: math_objects)
-    if (dyn_obj.template holds<Data<type>>())
-      dyn_obj.template value_as<Data<type>>().rebind_dependent_expressions(names);
-
   std::unordered_set<DynMathObject<type>*> dep_eq_objs = dependent_eq_objects(names);
 
   for (DynMathObject<type>* dyn_obj: dep_eq_objs)
@@ -234,7 +186,7 @@ void MathWorld<type>::rebind_dependent_functions(const std::unordered_set<std::s
       assert(not dyn_obj->get_name().empty());
       assert(not inventory.contains(dyn_obj->get_name()));
 
-      dyn_obj->template assign_alternative<false>();
+      dyn_obj->template finalize_asts<false>();
       inventory[std::string(dyn_obj->get_name())] = dyn_obj->slot;
     }
   }
@@ -243,7 +195,7 @@ void MathWorld<type>::rebind_dependent_functions(const std::unordered_set<std::s
 
   for (DynMathObject<type>* dyn_obj: dep_eq_objs)
   {
-    dyn_obj->assign_alternative();
+    dyn_obj->finalize_asts();
     if (not dyn_obj->has_value())
       invalid_functions.insert(std::string(dyn_obj->get_name()));
   }
@@ -271,13 +223,11 @@ void MathWorld<type>::rebind_dependent_functions(const std::unordered_set<std::s
 
       // if these are revdeps, they can only be functions
       // because they have an expression that calls our invalid function
-      assert(obj->template holds<Function<type>>() or obj->template holds<Sequence<type>>());
-      assert(bool(obj->opt_equation));
+      assert(obj->object_type() == zc::FUNCTION or obj->object_type() == zc::SEQUENCE
+             or obj->object_type() == zc::DATA);
+      assert(not obj->get_name().empty());
 
-      obj->as_expected() = tl::unexpected(
-        Error::object_in_invalid_state(parsing::tokens::Text{.substr = invalid_func_name,
-                                                              .begin = info.indexes.front()},
-                                        *obj->opt_equation));
+      obj->finalize_asts();
 
       invalid_functions.insert(affected_func_name);
     }
@@ -362,20 +312,6 @@ tl::expected<double, Error> MathWorld<type>::evaluate(std::string expr) const
       .and_then(parsing::make_fast<type>{expr, *this})
       .transform(parsing::make_RPN)
       .and_then(evaluate);
-}
-
-template <parsing::Type type>
-template <class ObjectType>
-  requires(tuple_contains_v<MathObjects<type>, ObjectType>)
-tl::expected<Ok, UnregisteredObject> MathWorld<type>::erase(ObjectType& obj)
-{
-  if (obj.slot >= math_objects.size()
-      or not math_objects.is_assigned(obj.slot)
-      or not bool(math_objects[obj.slot])
-      or std::get_if<ObjectType>(&math_objects[obj.slot].value()) != &obj)
-    return tl::unexpected(UnregisteredObject{});
-
-  return erase(obj.slot);
 }
 
 template <parsing::Type type>

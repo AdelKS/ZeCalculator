@@ -25,10 +25,7 @@ void shared_node_printer(std::ostream& os,
 {
   const std::string padding_str(padding, ' ');
 
-  using zc::Function,
-        zc::parsing::tokens::Text,
-        zc::Sequence,
-        zc::Data,
+  using zc::parsing::tokens::Text,
         zc::CppFunction,
         zc::parsing::shared::node::Add,
         zc::parsing::shared::node::Subtract,
@@ -38,25 +35,27 @@ void shared_node_printer(std::ostream& os,
         zc::parsing::shared::node::UnaryMinus,
         zc::parsing::shared::node::InputVariable,
         zc::parsing::shared::node::Number,
-        zc::GlobalConstant;
+        zc::parsing::LinkedFunc,
+        zc::parsing::LinkedData,
+        zc::parsing::LinkedSeq;
 
   os << padding_str;
 
   std::visit(
     zc::utils::overloaded{
-      [&](const Function<world_type>* f)
+      [&](const LinkedFunc<world_type>* f)
       {
-        os << "Function<" << f->args_num() << "> ";
+        os << "Function<" << f->args_num << "> ";
       },
-      [&](const Sequence<world_type>*)
+      [&](const LinkedSeq<world_type>*)
       {
         os << "Sequence ";
       },
-      [&](const Data<world_type>*)
+      [&](const LinkedData<world_type>*)
       {
         os << "Data ";
       },
-      [&]<size_t args_num>(const CppFunction<args_num>*)
+      [&]<size_t args_num>(CppFunction<args_num>)
       {
         os << "CppFunction<" << args_num << "> ";
       },
@@ -70,10 +69,10 @@ void shared_node_printer(std::ostream& os,
       {
         os << "InputVariable: index: " << v.index;
       },
-      [&](const GlobalConstant *c)
+      [&](const double *c)
       {
-        os << "GlobalConstant "
-          << " value: " << c->value;
+        os << "Global Constant "
+          << " value: " << *c;
       },
       [&](const Number &n)
       {

@@ -22,8 +22,6 @@
 
 #include <zecalculator/error.h>
 #include <zecalculator/evaluation/decl/cache.h>
-#include <zecalculator/math_objects/decl/function.h>
-#include <zecalculator/math_objects/global_constant.h>
 #include <zecalculator/mathworld/decl/mathworld.h>
 #include <zecalculator/parsing/data_structures/decl/fast.h>
 #include <zecalculator/utils/name_map.h>
@@ -67,10 +65,10 @@ struct Evaluator
   auto operator () (zc::parsing::shared::node::Power) -> RetType;
   auto operator () (zc::parsing::shared::node::UnaryMinus) -> RetType;
 
-  auto operator () (const zc::Function<type>*) -> RetType;
+  auto operator () (const zc::parsing::LinkedFunc<type>*) -> RetType;
 
   template <class T>
-    requires utils::is_any_of<T, zc::Sequence<type>, zc::Data<type>>
+    requires utils::is_any_of<T, zc::parsing::LinkedSeq<type>, zc::parsing::LinkedData<type>>
   auto operator () (const T*) -> RetType;
 
   auto operator () (const zc::parsing::shared::node::InputVariable&) -> RetType;
@@ -78,9 +76,9 @@ struct Evaluator
   auto operator () (const zc::parsing::shared::node::Number&) -> RetType;
 
   template <size_t args_num>
-  auto operator () (const zc::CppFunction<args_num>*) -> RetType;
+  auto operator () (zc::CppFunction<args_num>) -> RetType;
 
-  auto operator () (const zc::GlobalConstant*) -> RetType;
+  auto operator () (const double*) -> RetType;
 
 };
 
@@ -124,5 +122,25 @@ tl::expected<double, Error> evaluate(const parsing::RPN& rpn,
 
 /// @brief evaluates a syntax tree using a given math world
 tl::expected<double, Error> evaluate(const parsing::RPN& rpn, eval::Cache* cache = nullptr);
+
+// Specific to sequences and data
+
+template <class T>
+  requires utils::is_any_of<T,
+                            zc::parsing::LinkedSeq<parsing::Type::RPN>,
+                            zc::parsing::LinkedData<parsing::Type::RPN>,
+                            zc::parsing::LinkedSeq<parsing::Type::FAST>,
+                            zc::parsing::LinkedData<parsing::Type::FAST>>
+tl::expected<double, Error>
+  evaluate(const T& u, double index, size_t current_recursion_depth, eval::Cache* cache = nullptr);
+
+template <class T>
+  requires utils::is_any_of<T,
+                            zc::parsing::LinkedSeq<parsing::Type::RPN>,
+                            zc::parsing::LinkedData<parsing::Type::RPN>,
+                            zc::parsing::LinkedSeq<parsing::Type::FAST>,
+                            zc::parsing::LinkedData<parsing::Type::FAST>>
+tl::expected<double, Error>
+  evaluate(const T& u, double index, eval::Cache* cache = nullptr);
 
 } // namespace zc

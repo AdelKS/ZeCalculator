@@ -40,7 +40,7 @@ int main()
     MathWorld<type> world;
     auto& data = world.new_object().set_data("data(line)", {"1.0", "2.0*line", "data(0)+data(1)"});
 
-    expect(bool(data)) << [&]{ return data.error(); } << fatal;
+    expect(bool(data)) << [&]{ return *data.error(); } << fatal;
     expect(bool(data({0}))) << [&]{ return data({0}).error(); } << fatal;
     expect(bool(data({1}))) << [&]{ return data({1}).error(); } << fatal;
     expect(bool(data({2}))) << [&]{ return data({2}).error(); } << fatal;
@@ -60,19 +60,23 @@ int main()
 
     data.set_data("cos+1", {});
     expect(not bool(data)) << fatal;
-    expect(data.error() == zc::Error::unexpected(Token::Add("+", 3), "cos+1")) << data.error() << fatal;
+    expect(data.error() == zc::Error::unexpected(Token::Add("+", 3), "cos+1"))
+      << data.error() << fatal;
 
     data.set_data("cos(x)", {});
     expect(not bool(data)) << fatal;
-    expect(data.error() == zc::Error::name_already_taken(Text{"cos", 0}, "cos(x)")) << data.error() << fatal;
+    expect(data.error() == zc::Error::name_already_taken(Text{"cos", 0}, "cos(x)"))
+      << data.error() << fatal;
 
     data.set_data("cos", {});
     expect(not bool(data)) << fatal;
-    expect(data.error() == zc::Error::name_already_taken(Text{"cos", 0}, "cos")) << data.error() << fatal;
+    expect(data.error() == zc::Error::name_already_taken(Text{"cos", 0}, "cos"))
+      << data.error() << fatal;
 
     data.set_data("data(x,y,z)", {});
     expect(not bool(data)) << fatal;
-    expect(data.error() == zc::Error::unexpected(Token::Variable("y", 7), "data(x,y,z)")) << data.error() << fatal;
+    expect(data.error() == zc::Error::unexpected(Token::Variable("y", 7), "data(x,y,z)"))
+      << data.error() << fatal;
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 
@@ -113,14 +117,13 @@ int main()
     expect(bool(data({2}))) << [&]{ return data({2}).error(); } << fatal;
     expect(bool(g({2}))) << [&]{ return g({2}).error(); } << fatal;
 
-    expect(*f({2}) == 18.0_d);
-    expect(*data({1}) == 4.0_d);
-    expect(*val() == 8.0_d);
-    expect(*data({2}) == 9.0_d);
-    expect(*g({2}) == 4.0_d);
+    expect(f({2}).value() == 18.0_d);
+    expect(data({1}).value() == 4.0_d);
+    expect(val().value() == 8.0_d);
+    expect(data({2}).value() == 9.0_d);
+    expect(g({2}).value() == 4.0_d);
 
-    Data<type>& data_obj = data.template value_as<Data<type>>();
-    data_obj.set_expression(1, "2.0*g(line)+1");
+    data.set_data("data(line)", {"1.0", "2.0*g(line)+1", "data(0)+data(1)+g(line)"});
 
     expect(f({2}).value() == 20.0_d);
     expect(data({1}).value() == 5.0_d);
@@ -128,7 +131,7 @@ int main()
     expect(data({2}).value() == 10.0_d);
     expect(g({2}).value() == 4.0_d);
 
-    data_obj.set_expression(2, "data(0)+data(1)+g(line)+1");
+    data.set_data("data(line)", {"1.0", "2.0*g(line)+1", "data(0)+data(1)+g(line)+1"});
 
     expect(f({2}).value() == 22.0_d);
     expect(data({1}).value() == 5.0_d);
@@ -147,8 +150,7 @@ int main()
 
     expect(bool(data)) << [&]{ return data.error(); } << fatal;
 
-    Data<type>& data_obj = data.template value_as<Data<type>>();
-    data_obj.set_expression(10, "10");
+    data.set_data_point(10, "10");
 
     expect(data({10}).value() == 10.0_d);
     expect(data({4}).error() == zc::Error::empty_expression());

@@ -47,6 +47,9 @@ struct LHS
   bool operator == (const LHS&) const = default;
 };
 
+/// @brief changes the begin position of every token within the ast by 'offset'
+void offset_tokens(AST& ast, int offset);
+
 /// @brief create LHS instance from a string representing the left hand side
 /// @arg lhs: substring where lhs is defined
 /// @arg full_expr: full expression where 'lhs' appears, only used for errors

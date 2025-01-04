@@ -22,7 +22,6 @@
 
 #include <utility>
 #include <variant>
-#include <zecalculator/math_objects/aliases.h>
 #include <zecalculator/parsing/data_structures/decl/ast.h>
 #include <zecalculator/parsing/data_structures/impl/shared.h>
 #include <zecalculator/parsing/data_structures/token.h>

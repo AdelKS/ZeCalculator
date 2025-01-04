@@ -151,7 +151,7 @@ int main()
     expect(f({1}).value() == cpp_f_1(1.0));
     expect((*f_obj)({1}) == cpp_f_1(1.0));
 
-    cst.template value_as<GlobalConstant>().value = 5.0;
+    cst = 5.0;
     cpp_cst = 5.0;
 
     expect(f({1}).value() == cpp_f_1(1.0));
@@ -271,8 +271,8 @@ int main()
       constexpr std::string_view data_type_str_v = std::is_same_v<StructType, FAST_TEST> ? "FAST" : "RPN";
 
       MathWorld<type> world;
-      auto& t = (world.new_object() = "t = 1").template value_as<GlobalConstant>();
-      auto& f = (world.new_object() = "f(x) =3*cos(t*x) + 2*sin(x/t) + 4").template value_as<Function<type>>();
+      auto& t = (world.new_object() = "t = 1");
+      auto& f = (world.new_object() = "f(x) =3*cos(t*x) + 2*sin(x/t) + 4");
 
       double x = 0;
       double res = 0;
@@ -280,7 +280,7 @@ int main()
         loop_call_for(duration, [&]{
           res += f({x}).value();
           x++;
-          t.value += 1;
+          t = x;
       });
       std::cout << "Avg zc::Function<" << data_type_str_v << "> eval time: "
                 << duration_cast<nanoseconds>(duration / iterations).count() << "ns"

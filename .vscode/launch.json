@@ -199,5 +199,20 @@
               }
           ],
         },
+        {
+          "name": "dyn_math_object_test",
+          "cwd": "${workspaceRoot}/build-zc-debug/",
+          "type": "cppdbg",
+          "request": "launch",
+          "program": "${workspaceRoot}/build-zc-debug/test/dyn_math_object_test",
+          "preLaunchTask": "build",
+          "setupCommands": [
+              {
+                "description": "Enable pretty-printing for gdb",
+                "text": "-enable-pretty-printing",
+                "ignoreFailures": true
+              }
+          ],
+        },
     ],
 }

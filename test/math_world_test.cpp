@@ -37,7 +37,7 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    CppUnaryFunction* cppFunc = world.template get<CppUnaryFunction>("sqrt");
+    auto* cppFunc = world.get("sqrt");
     expect(cppFunc != nullptr and (*cppFunc)({4}) == 2);
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
@@ -47,9 +47,9 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    auto& c1 = (world.new_object() = "my_constant1 = 42").template value_as<GlobalConstant>();
+    auto& c1 = (world.new_object() = "my_constant1 = 42");
 
-    expect(c1.value == 42.0);
+    expect(c1().value() == 42.0);
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 
@@ -121,8 +121,8 @@ int main()
 
     // after erasing 'f', 'g' must have been re-parsed and get an undefined function error on f
     expect(not g.has_value()) << fatal;
-    expect(g.error().type == Error::UNDEFINED_FUNCTION
-           and g.error().token.substr == "f") << g.error();
+    expect(g.error().value().type == Error::UNDEFINED_FUNCTION
+           and g.error().value().token.substr == "f") << g.error();
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 
@@ -134,18 +134,18 @@ int main()
     auto& f = world.new_object() = "f(x) = g(x)+1";
 
     expect(not f.has_value()) << fatal;
-    expect(f.error().type == Error::UNDEFINED_FUNCTION
-           and f.error().token == parsing::tokens::Text{.substr = "g", .begin = 7});
+    expect(f.error().value().type == Error::UNDEFINED_FUNCTION
+           and f.error().value().token == parsing::tokens::Text{.substr = "g", .begin = 7});
 
     auto& g = world.new_object() = "g(x) = z(x)+1";
 
     expect(not f.has_value()) << fatal;
-    expect(f.error().type == Error::OBJECT_INVALID_STATE
-           and f.error().token == parsing::tokens::Text{.substr = "g", .begin = 7});
+    expect(f.error().value().type == Error::OBJECT_INVALID_STATE
+           and f.error().value().token == parsing::tokens::Text{.substr = "g", .begin = 7});
 
     expect(not g.has_value()) << fatal;
-    expect(g.error().type == Error::UNDEFINED_FUNCTION
-           and g.error().token == parsing::tokens::Text{.substr = "z", .begin = 7});
+    expect(g.error().value().type == Error::UNDEFINED_FUNCTION
+           and g.error().value().token == parsing::tokens::Text{.substr = "z", .begin = 7});
 
     auto& z = world.new_object() = "z(x) = f(x)+1";
 
@@ -192,7 +192,8 @@ int main()
     expect(not bool(world.erase("cos")));
 
     // after erasing 'cos', 'f' must have been re-parsed and get an undefined function error on 'cos
-    expect(not f.has_value() and f.error().type == Error::UNDEFINED_FUNCTION and f.error().token.substr == "cos");
+    expect(not f.has_value() and f.error().value().type == Error::UNDEFINED_FUNCTION
+           and f.error().value().token.substr == "cos");
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 

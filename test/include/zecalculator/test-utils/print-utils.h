@@ -4,9 +4,10 @@
 
 #include <boost/ut.hpp>
 #include <zecalculator/error.h>
-#include <zecalculator/math_objects/function.h>
-#include <zecalculator/parsing/data_structures/rpn.h>
+#include <zecalculator/mathworld/decl/mathworld.h>
+#include <zecalculator/parsing/data_structures/deps.h>
 #include <zecalculator/parsing/data_structures/fast.h>
+#include <zecalculator/parsing/data_structures/rpn.h>
 #include <zecalculator/parsing/data_structures/token.h>
 
 namespace std {

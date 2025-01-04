@@ -24,6 +24,7 @@
 #include <boost/ut.hpp>
 #include <zecalculator/test-utils/print-utils.h>
 #include <zecalculator/test-utils/structs.h>
+#include <zecalculator/utils/variant.h>
 
 using namespace zc::parsing;
 
@@ -71,11 +72,13 @@ int main()
     expect(bool(expect_node)) << expect_node << fatal;
 
     using T = FAST<type>;
+    using Node = shared::Node<type>;
+    using zc::utils::variant_convert;
 
     FAST<type> expected_node = T{shared::node::Add{},
-                                 {T{world.template get<zc::CppFunction<1>>("cos"),
+                                 {T{variant_convert<Node>{}(*world.get("cos")->get_linked_repr()),
                                     {T{shared::node::Add{},
-                                       {T{world.template get<zc::CppFunction<1>>("sin"),
+                                       {T{variant_convert<Node>{}(*world.get("sin")->get_linked_repr()),
                                           {T{shared::node::InputVariable{0}}}},
                                         T{shared::node::Number{1.0}}}}}},
                                   T{shared::node::Number{1.0}}}};
