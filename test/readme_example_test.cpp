@@ -66,7 +66,7 @@ int main()
   // now that 'my_constant' is defined, 'obj1' gets modified to properly hold a function
   // Note that assigning to an object in the MathWorld may affect any other object
   // -> Assigning to objects is NOT thread-safe
-  assert(obj1.holds<rpn::Function>());
+  assert(obj1.object_type() == zc::FUNCTION);
 
   // We can evaluate 'obj1' with an initializer_list<double>
   // note: we could also do it when 'my_constant' was undefined,
@@ -91,7 +91,7 @@ int main()
   obj1 = "u(n) = 0 ; 1 ; u(n-1) + u(n-2)";
 
   // should hold a Sequence now
-  assert(obj1.holds<rpn::Sequence>());
+  assert(obj1.object_type() == zc::SEQUENCE);
 
   // evaluate function again and get the new value
   assert(obj1({10}).value() == 55);
@@ -116,24 +116,9 @@ int main()
   assert(obj4({1}).value() == 4.);
   assert(obj4({2}).value() == 55.);
 
-  // ======================================================================================
-
-  // the underlying objects can be retrieved either by using the fact that
-  // DynMathObject publicly inherits expected<variant, error> or the 'value_as' helper function:
-  // - "value" prefix just like expected::value, i.e. can throw
-  // - "value_as" as a wrapper to std::get<>(expected::value), can throw for two different reasons
-  //   - the expected has an error
-  //   - the alternative asked is not the actual one held by the variant
-  [[maybe_unused]] rpn::Sequence& u = obj1.value_as<rpn::Sequence>();
-  [[maybe_unused]] GlobalConstant& my_constant = obj2.value_as<GlobalConstant>();
-
-  // can change single values within Data instance
-  rpn::Data& data_ref = obj4.value_as<rpn::Data>();
-  data_ref.set_expression(1, "square(3)+1");
+  obj4.set_data_point(1, "square(3)+1");
 
   assert(obj4({1}).value() == 10.);
-
-  // each specific math object has extra public methods that may prove useful
 
   return 0;
 }

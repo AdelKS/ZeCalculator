@@ -70,7 +70,7 @@ int main()
   // now that 'my_constant' is defined, 'obj1' gets modified to properly hold a function
   // Note that assigning to an object in the MathWorld may affect any other object
   // -> Assigning to objects is NOT thread-safe
-  assert(obj1.holds<rpn::Function>());
+  assert(obj1.object_type() == zc::FUNCTION);
 
   // We can evaluate 'obj1' with an initializer_list<double>
   // note: we could also do it when 'my_constant' was undefined,
@@ -95,7 +95,7 @@ int main()
   obj1 = "u(n) = 0 ; 1 ; u(n-1) + u(n-2)";
 
   // should hold a Sequence now
-  assert(obj1.holds<rpn::Sequence>());
+  assert(obj1.object_type() == zc::SEQUENCE);
 
   // evaluate function again and get the new value
   assert(obj1({10}).value() == 55);
@@ -120,24 +120,9 @@ int main()
   assert(obj4({1}).value() == 4.);
   assert(obj4({2}).value() == 55.);
 
-  // ======================================================================================
-
-  // the underlying objects can be retrieved either by using the fact that
-  // DynMathObject publicly inherits expected<variant, error> or the 'value_as' helper function:
-  // - "value" prefix just like expected::value, i.e. can throw
-  // - "value_as" as a wrapper to std::get<>(expected::value), can throw for two different reasons
-  //   - the expected has an error
-  //   - the alternative asked is not the actual one held by the variant
-  [[maybe_unused]] rpn::Sequence& u = obj1.value_as<rpn::Sequence>();
-  [[maybe_unused]] GlobalConstant& my_constant = obj2.value_as<GlobalConstant>();
-
-  // can change single values within Data instance
-  rpn::Data& data_ref = obj4.value_as<rpn::Data>();
-  data_ref.set_expression(1, "square(3)+1");
+  obj4.set_data_point(1, "square(3)+1");
 
   assert(obj4({1}).value() == 10.);
-
-  // each specific math object has extra public methods that may prove useful
 
   return 0;
 }
@@ -162,15 +147,23 @@ Overview:
         ```c++
         rpn::DynMathObject& obj = mathworld.new_object();
         ```
-2. [DynMathObject](./include/zecalculator/math_objects/decl/dyn_math_object.h) is essentially (inherits) an `std::expected<std::variant<alternative...>, zc::Error>`
-    - Has the `std::expected` public methods
-      - `bool has_value()` to know if it's currently holding an `std::variant`
-      - `zc::Error error()` to retrieve the error, when it's in an error state
-      - `std::variant<alternative...>& value()` to retrieve the variant (with check)
-      - `std::variant<alternative...>& operator * ()` to retrieve the variant (without check)
+2. [DynMathObject](./include/zecalculator/math_objects/decl/dyn_math_object.h) acts as a generic math object
+    - Has a "left hand side" (LHS) that defines its name and the name of its input variables, e.g. `  f(x) ` (notice the white spaces)
+      - The status of it can be queried with `tl::expected<Ok, zc::Error> name_status() const`
+    - Has a "right hand side" (RHS) that defines how the object is compute, and differs among the possible math object types
+      - The type can be
+        - Simple double valued constant
+        - C++ function
+        - 1D Data object
+        - Sequence
+        - Global variable
+      - The status of it can be queried with `tl::expected<Ok, zc::Error> object_status() const`
+    - The overall status (i.e. valid LHS and RHS) can be queried with
+      - `tl::expected<Ok, zc::Error> status() const`
+      - `bool has_value()`
+      - `std::optional<zc::Error> error()` to retrieve the error in either the LHS or RHS
     - Some extra helper methods
-      - `bool holds<T>` to know if it's in a good state, and the variant holds the alternative `T`
-      - `T& value_as<T>` to retrieve a specific alternative of the variant
+      - `bool holds(ObjectType)` to know what underlying object type is currently set
     - Can be assigned, using `operator =`, equations or math objects.
       - [CppFunction](./include/zecalculator/math_objects/decl/cpp_function.h)
         ```c++
@@ -198,7 +191,7 @@ Overview:
         // defined through an equation of type "name = number"
         obj = "pi = 3.14";
         // or assigned directly without the need of parsing
-        obj = zc::GlobalConstant{"pi", 3.14};
+        obj = 3.14;
         ```
     - Can be evaluated
       ```c++
@@ -240,16 +233,16 @@ The current results are (AMD Ryzen 5950X, `-march=native -O3` compile flags)
     constexpr std::string_view data_type_str_v = std::is_same_v<StructType, FAST_TEST> ? "FAST" : "RPN";
 
     MathWorld<type> world;
-    auto& t = world.add("t = 1").template value_as<GlobalConstant>();
-    auto& f = world.add("f(x) =3*cos(t*x) + 2*sin(x/t) + 4").template value_as<Function<type>>();
+    auto& t = (world.new_object() = "t = 1");
+    auto& f = (world.new_object() = "f(x) =3*cos(t*x) + 2*sin(x/t) + 4");
 
     double x = 0;
     double res = 0;
     size_t iterations =
       loop_call_for(duration, [&]{
-        res += f(x).value();
+        res += f({x}).value();
         x++;
-        t += 1;
+        t = x;
     });
     std::cout << "Avg zc::Function<" << data_type_str_v << "> eval time: "
               << duration_cast<nanoseconds>(duration / iterations).count() << "ns"

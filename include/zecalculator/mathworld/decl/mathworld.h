@@ -23,7 +23,6 @@
 #include <zecalculator/error.h>
 #include <zecalculator/math_objects/builtin.h>
 #include <zecalculator/math_objects/decl/dyn_math_object.h>
-#include <zecalculator/math_objects/global_constant.h>
 #include <zecalculator/math_objects/object_list.h>
 #include <zecalculator/parsing/data_structures/ast.h>
 #include <zecalculator/parsing/data_structures/deps.h>
@@ -54,9 +53,6 @@ namespace fast {
 namespace rpn {
   using MathWorld = zc::MathWorld<parsing::Type::RPN>;
 }
-
-class Ok {};
-class UnregisteredObject {};
 
 template <parsing::Type type>
 class MathWorld
@@ -90,29 +86,6 @@ public:
   /// @note const version
   const DynMathObject<type>* get(std::string_view name) const;
 
-  /// @brief get object 'ObjectType' from name
-  /// @note  returns 'nullptr' if it does not exist
-  template <class ObjectType>
-    requires tuple_contains_v<MathObjects<type>, ObjectType>
-  ObjectType* get(std::string_view name);
-
-  /// @note const version
-  template <class ObjectType>
-    requires tuple_contains_v<MathObjects<type>, ObjectType>
-  const ObjectType* get(std::string_view name) const;
-
-  /// @brief get object 'ObjectType' from 'slot'
-  /// @note returns nullptr if 'slot' is out-of-bounds or unassigned
-  ///          or the the object at that slot does not have the requested type
-  template <class ObjectType>
-    requires tuple_contains_v<MathObjects<type>, ObjectType>
-  ObjectType* get(size_t slot);
-
-  /// @note const version
-  template <class ObjectType>
-    requires tuple_contains_v<MathObjects<type>, ObjectType>
-  const ObjectType* get(size_t slot) const;
-
   /// @brief returns a handle to a new math object
   /// @note  the expected within is in error state
   DynMathObject<type>& new_object();
@@ -128,13 +101,6 @@ public:
 
   /// @brief evaluates a given expression within this world
   tl::expected<double, Error> evaluate(std::string expr) const;
-
-  /// @brief delete object given by pointer
-  /// @returns Ok if the deletion was successful, UnregisteredObject otherwise
-  ///          when the pointed-to object is not handled by this instance of MathWorld
-  template <class ObjectType>
-    requires(tuple_contains_v<MathObjects<type>, ObjectType>)
-  tl::expected<Ok, UnregisteredObject> erase(ObjectType& obj);
 
   /// @brief return the direct reverse dependencies, aka objects that depend directly on 'name'
   deps::Deps direct_revdeps(std::string_view name) const;

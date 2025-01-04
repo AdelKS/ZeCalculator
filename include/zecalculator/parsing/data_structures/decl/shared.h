@@ -20,14 +20,24 @@
 
 #pragma once
 
+#include <zecalculator/math_objects/forward_declares.h>
 #include <zecalculator/parsing/data_structures/token.h>
 #include <zecalculator/parsing/types.h>
 #include <zecalculator/utils/utils.h>
-#include <zecalculator/math_objects/forward_declares.h>
 
 namespace zc {
 
 namespace parsing {
+
+template <parsing::Type type>
+struct LinkedFunc;
+
+template <parsing::Type type>
+struct LinkedSeq;
+
+template <parsing::Type type>
+struct LinkedData;
+
   namespace shared {
     namespace node {
 
@@ -73,12 +83,12 @@ namespace parsing {
                               node::UnaryMinus,
                               node::Number,
                               node::InputVariable,
-                              const CppFunction<1> *,
-                              const CppFunction<2> *,
-                              const zc::GlobalConstant *,
-                              const Function<world_type> *,
-                              const Sequence<world_type> *,
-                              const Data<world_type> *>;
+                              CppFunction<1>,
+                              CppFunction<2>,
+                              const double *,
+                              const LinkedFunc<world_type> *,
+                              const LinkedSeq<world_type> *,
+                              const LinkedData<world_type> *>;
 
   } // namespace shared
 

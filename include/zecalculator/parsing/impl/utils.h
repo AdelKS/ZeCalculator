@@ -115,5 +115,17 @@ inline tl::expected<LHS, zc::Error> parse_lhs(const AST& lhs, std::string_view f
   else return tl::unexpected(Error::unexpected(lhs.name, std::string(full_expr)));
 }
 
+/// @brief changes the begin position of every token within the ast by 'offset'
+inline void offset_tokens(AST& ast, int offset)
+{
+  ast.name.begin += offset;
+  if (ast.is_func())
+  {
+    ast.func_data().full_expr.begin += offset;
+    for (auto& node : ast.func_data().subnodes)
+      offset_tokens(node, offset);
+  }
+}
+
 } // namespace parsing
 } // namespace zc

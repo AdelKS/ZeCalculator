@@ -26,10 +26,30 @@
 #include <zecalculator/parsing/data_structures/decl/rpn.h>
 
 namespace zc {
-  namespace parsing {
+namespace parsing {
 
-    template <parsing::Type type>
-    using Parsing = std::conditional_t<type == parsing::Type::FAST, FAST<parsing::Type::FAST>, RPN>;
+template <parsing::Type type>
+using Parsing = std::conditional_t<type == parsing::Type::FAST, FAST<parsing::Type::FAST>, RPN>;
 
-  }
+template <parsing::Type type>
+struct LinkedFunc {
+  Parsing<type> repr;
+  size_t args_num;
+};
+
+template <parsing::Type type>
+struct LinkedSeq
+{
+  std::vector<Parsing<type>> repr;
+  size_t slot;
+};
+
+template <parsing::Type type>
+struct LinkedData
+{
+  std::vector<tl::expected<Parsing<type>, zc::Error>> repr;
+  size_t slot;
+};
+
+} // namespace parsing
 } // namespace zc

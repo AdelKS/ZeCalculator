@@ -100,11 +100,11 @@ int main()
     auto& f = world.new_object() = "f(x) = cos(x) + u(n)";
     auto& u = world.new_object() = "u(n) = 1 ; 1 ; u";
 
-    expect(f.error().type == Error::UNDEFINED_VARIABLE) << f.error().type;
-    expect(f.error().token == parsing::Token::Variable("n", 18)) << f.error().token;
+    expect(f.error().value().type == Error::UNDEFINED_VARIABLE) << f.error().value().type;
+    expect(f.error().value().token == parsing::Token::Variable("n", 18)) << f.error().value().token;
 
-    expect(u.error().type == Error::WRONG_OBJECT_TYPE) << u.error().type;
-    expect(u.error().token == parsing::Token::Variable("u", 15)) << u.error().token;
+    expect(u.error().value().type == Error::WRONG_OBJECT_TYPE) << u.error().value().type;
+    expect(u.error().value().token == parsing::Token::Variable("u", 15)) << u.error().value().token;
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 }

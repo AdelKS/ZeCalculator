@@ -3,6 +3,7 @@ subdir('src')
 test_sources = files(
     'ast_test.cpp',
     'data_test.cpp',
+    'dyn_math_object_test.cpp',
     'evaluation_test.cpp',
     'expression_test.cpp',
     'fast_test.cpp',

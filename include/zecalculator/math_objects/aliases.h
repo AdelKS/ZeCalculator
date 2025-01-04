@@ -28,30 +28,11 @@ using CppUnaryFunction = CppFunction<1>;
 using CppBinaryFunction = CppFunction<2>;
 
 namespace fast {
-
-  using Function = zc::Function<parsing::Type::FAST>;
-  using Sequence = zc::Sequence<parsing::Type::FAST>;
-  using Data     = zc::Data<parsing::Type::FAST>;
-
-  using CppUnaryFunction = CppFunction<1>;
-  using CppBinaryFunction = CppFunction<2>;
-
-  using Unkown = zc::Unknown<parsing::Type::FAST>;
-
   using DynMathObject = zc::DynMathObject<parsing::Type::FAST>;
-
 } // namespace fast
 
 namespace rpn {
-
-  using Function = zc::Function<parsing::Type::RPN>;
-  using Sequence = zc::Sequence<parsing::Type::RPN>;
-  using Data     = zc::Data<parsing::Type::RPN>;
-
-  using Unkown = zc::Unknown<parsing::Type::RPN>;
-
   using DynMathObject = zc::DynMathObject<parsing::Type::RPN>;
-
 } // namespace rpn
 
 }

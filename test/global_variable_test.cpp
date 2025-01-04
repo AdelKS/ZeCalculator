@@ -40,14 +40,12 @@ int main()
     double cpp_r = 3;
 
     MathWorld<type> world;
-    GlobalConstant& r = (world.new_object() = ("r = " + std::to_string(cpp_r)))
-                          .template value_as<GlobalConstant>();
+    auto& r = (world.new_object() = ("r = " + std::to_string(cpp_r)));
     world.new_object() = "g(x) = sin(3 * math::pi * x) + r";
     world.new_object() = "k = 3*g(3)";
-    Function<type>& f = (world.new_object() = "f(x, y)=cos(math::pi * x) * y + k*g(x) + r")
-                          .template value_as<Function<type>>();
+    auto& f = (world.new_object() = "f(x, y)=cos(math::pi * x) * y + k*g(x) + r");
 
-    r.value = cpp_r;
+    r = cpp_r;
 
     auto cpp_g = [&](double x){
       return sin(3 * std::numbers::pi * x) + cpp_r;
@@ -75,7 +73,7 @@ int main()
     expect(eval.value() == cpp_f(x, y));
 
     cpp_r = 10;
-    r.value = cpp_r;
+    r = cpp_r;
 
     auto res = f({x, y});
 

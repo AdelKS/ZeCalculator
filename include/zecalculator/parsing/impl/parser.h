@@ -21,10 +21,6 @@
 ****************************************************************************/
 
 #include <zecalculator/error.h>
-#include <zecalculator/math_objects/aliases.h>
-#include <zecalculator/math_objects/impl/data.h>
-#include <zecalculator/math_objects/impl/function.h>
-#include <zecalculator/math_objects/impl/sequence.h>
 #include <zecalculator/mathworld/impl/mathworld.h>
 #include <zecalculator/parsing/data_structures/decl/ast.h>
 #include <zecalculator/parsing/data_structures/impl/ast.h>
@@ -295,15 +291,19 @@ struct VariableVisiter
   std::string expression;
   const tokens::Text& var_txt_token;
 
-  Ret operator()(const GlobalConstant& global_constant)
+  Ret operator()(const zc::DynMathObject<world_type>::ConstObj& cst)
   {
-    return T{&global_constant};
+    return T{&cst.val};
   }
-  Ret operator()(const Function<world_type>& f)
+  Ret operator()(const zc::DynMathObject<world_type>::FuncObj& f)
   {
-    if (f.args_num() != 0) [[unlikely]]
+    if (not bool(f.linked_rhs))
+      return tl::unexpected(zc::Error::object_in_invalid_state(var_txt_token, expression));
+
+    else if (f.linked_rhs->args_num != 0) [[unlikely]]
       return tl::unexpected(Error::wrong_object_type(var_txt_token, expression));
-    else return T{&f};
+
+    return T{&(*f.linked_rhs)};
   }
   Ret operator()(auto&&)
   {
@@ -322,33 +322,39 @@ struct FunctionVisiter
   std::vector<FAST<world_type>> subnodes;
 
   template <size_t args_num>
-  Ret operator()(const CppFunction<args_num>& f)
+  Ret operator()(CppFunction<args_num> f)
   {
     if (subnodes.size() != args_num) [[unlikely]]
       return tl::unexpected(Error::mismatched_fun_args(func.args_token(), expression));
 
-    return T{&f, std::move(subnodes)};
+    return T{f, std::move(subnodes)};
   }
-  Ret operator()(const zc::Function<world_type>& f)
+  Ret operator()(const zc::DynMathObject<world_type>::FuncObj& f)
   {
-    if (subnodes.size() != f.args_num()) [[unlikely]]
+    if (not bool(f.linked_rhs))
+      return tl::unexpected(zc::Error::object_in_invalid_state(func.name, expression));
+
+    else if (subnodes.size() != f.linked_rhs->args_num) [[unlikely]]
       return tl::unexpected(Error::mismatched_fun_args(func.args_token(), expression));
 
-    return T{&f, std::move(subnodes)};
+    return T{&(*f.linked_rhs), std::move(subnodes)};
   }
-  Ret operator()(const zc::Sequence<world_type>& u)
-  {
-    if (subnodes.size() != 1) [[unlikely]]
-      return tl::unexpected(Error::mismatched_fun_args(func.args_token(), expression));
-
-    return T{&u, std::move(subnodes)};
-  }
-  Ret operator()(const zc::Data<world_type>& d)
+  Ret operator()(const zc::DynMathObject<world_type>::SeqObj& u)
   {
     if (subnodes.size() != 1) [[unlikely]]
       return tl::unexpected(Error::mismatched_fun_args(func.args_token(), expression));
 
-    return T{&d, std::move(subnodes)};
+    else if (not bool(u.linked_rhs))
+      return tl::unexpected(zc::Error::object_in_invalid_state(func.name, expression));
+
+    return T{&(*u.linked_rhs), std::move(subnodes)};
+  }
+  Ret operator()(const zc::DynMathObject<world_type>::DataObj& d)
+  {
+    if (subnodes.size() != 1) [[unlikely]]
+      return tl::unexpected(Error::mismatched_fun_args(func.args_token(), expression));
+
+    return T{&d.linked_rhs, std::move(subnodes)};
   }
   Ret operator()(auto&&)
   {
@@ -416,7 +422,7 @@ tl::expected<FAST<type>, Error> make_fast<type>::operator () (const AST& ast)
             }
             if (not dyn_obj->has_value()) [[unlikely]]
               return tl::unexpected(Error::object_in_invalid_state(ast.name, expression));
-            else return std::visit(FunctionVisiter<type>{expression, ast, std::move(operands)}, **dyn_obj);
+            else return std::visit(FunctionVisiter<type>{expression, ast, std::move(operands)}, dyn_obj->parsed_data);
           }
           case AST::Func::SEPARATOR:
             return tl::unexpected(Error::unexpected(ast.name, expression));
@@ -440,7 +446,7 @@ tl::expected<FAST<type>, Error> make_fast<type>::operator () (const AST& ast)
           return tl::unexpected(Error::undefined_variable(ast.name, expression));
         if (not dyn_obj->has_value())
           return tl::unexpected(Error::object_in_invalid_state(ast.name, expression));
-        else return std::visit(VariableVisiter<type>{expression, ast.name}, **dyn_obj);
+        else return std::visit(VariableVisiter<type>{expression, ast.name}, dyn_obj->parsed_data);
       }
     },
     ast.dyn_data);
