@@ -161,55 +161,58 @@ public:
   template <bool is_const>
   struct iter
   {
+    using difference_type = std::ptrdiff_t;
+    using value_type = std::conditional_t<is_const, const T, T>;
+
     /// @brief moves to the next assigned value within the SlottedDeque
-    void operator++()
+    iter& operator++()
     {
       current_slot++;
       while (current_slot != container->size() and not container->is_assigned(current_slot))
         current_slot++;
+      return *this;
     }
 
-    const T& operator*() const
-      requires (is_const)
+    iter operator ++ (int)
+    {
+      iter temp = *this;
+      ++*this;
+      return temp;
+    }
+
+    value_type& operator*() const
     {
       assert(container->is_assigned(current_slot));
       return (*container)[current_slot];
     }
 
-    T& operator*()
-      requires (not is_const)
-    {
-      assert(container->is_assigned(current_slot));
-      return (*container)[current_slot];
-    }
-
-    const T* operator->() const
-      requires (is_const)
+    value_type* operator->() const
     {
       assert(container->is_assigned(current_slot));
       return &((*container)[current_slot]);
     }
 
-    T* operator->()
-      requires (not is_const)
-    {
-      assert(container->is_assigned(current_slot));
-      return &((*container)[current_slot]);
-    }
-
-    bool operator == (const iter<is_const>& other) const
+    bool operator == (const iter& other) const
     {
       assert(container == other.container);
       return current_slot == other.current_slot;
     }
+
+    iter() = default;
+
+    iter(const iter&) = default;
+    iter(iter&&) = default;
+
+    iter& operator = (const iter&) = default;
+    iter& operator = (iter&&) = default;
 
   protected:
     using DequeType = std::conditional_t<is_const, const SlottedDeque<T>*, SlottedDeque<T>*>;
 
     iter(size_t current_slot, DequeType container) : current_slot(current_slot), container(container) {}
 
-    size_t current_slot;
-    DequeType container;
+    size_t current_slot = 0;
+    DequeType container = nullptr;
 
     friend class SlottedDeque<T>;
   };
