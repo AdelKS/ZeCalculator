@@ -296,9 +296,9 @@ tl::expected<Ok, zc::Error> DynMathObject<type>::object_status() const
 template <parsing::Type type>
 tl::expected<Ok, zc::Error> DynMathObject<type>::status() const
 {
-  if (auto state = name_status(); not bool(state))
+  if (auto state = object_status(); not bool(state))
     return tl::unexpected(state.error());
-  else if (auto state = object_status(); not bool(state))
+  else if (auto state = name_status(); not bool(state))
     return tl::unexpected(state.error());
   else return Ok{};
 }
