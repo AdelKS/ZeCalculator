@@ -20,6 +20,8 @@
 **
 ****************************************************************************/
 
+#include <algorithm>
+
 #include <zecalculator/math_objects/cpp_function.h>
 
 namespace zc {
@@ -47,4 +49,19 @@ inline const std::array builtin_unary_functions = std::to_array<std::pair<std::s
   {"floor", {std::floor}}, {"ceil", {std::ceil}},    {"erf", {std::erf}},
   {"erfc", {std::erfc}},   {"gamma", {std::tgamma}}, {"Γ", {std::tgamma}},
 });
+
+inline double max(double a, double b)
+{
+  return std::max(a, b);
+}
+
+inline double min(double a, double b)
+{
+  return std::min(a, b);
+}
+
+inline const std::array builtin_binary_functions = std::to_array<std::pair<std::string, CppFunction<2>>>({
+  {"max", {max}},     {"min", {min}}
+});
+
 }

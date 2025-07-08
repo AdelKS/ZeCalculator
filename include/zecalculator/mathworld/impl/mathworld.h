@@ -33,6 +33,9 @@ namespace zc {
 template <parsing::Type type>
 MathWorld<type>::MathWorld()
 {
+  for (auto&& [name, cpp_f]: builtin_binary_functions)
+    new_object().set(name, cpp_f);
+
   for (auto&& [name, cpp_f]: builtin_unary_functions)
     new_object().set(name, cpp_f);
 

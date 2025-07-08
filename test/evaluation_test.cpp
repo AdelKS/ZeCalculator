@@ -179,6 +179,18 @@ int main()
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 
+  "min/max"_test = []<class StructType>()
+  {
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
+
+    MathWorld<type> world;
+
+    const double res = world.evaluate("min(-5, -2) + max(2, 5)").value();
+
+    expect(res == 0._d);
+
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
+
   "wrong object type: variable as function"_test = []<class StructType>()
   {
     constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
