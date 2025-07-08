@@ -1,4 +1,4 @@
-name: Build-Test ZeCalculator Macos
+name: Build & Test ZeCalculator on MacOS
 on:
   push:
   workflow_dispatch:

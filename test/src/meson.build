@@ -9,12 +9,10 @@ boost_ut_inc = boost_ut_proj.include_directories('ut')
 
 testing_include_dir = include_directories('../include/')
 
-zecalculator_testing_lib = library('zecalculator_testing',
+zecalculator_testing_lib = static_library('zecalculator_testing',
     sources,
     include_directories : [testing_include_dir, boost_ut_inc],
     dependencies: zecalculator_dep,
-    version : meson.project_version(),
-    soversion : meson.project_version(),
     install : not meson.is_subproject()
 )
 

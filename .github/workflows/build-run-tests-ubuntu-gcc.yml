@@ -1,4 +1,4 @@
-name: Build-Test ZeCalculator Ubuntu
+name: Build & Test ZeCalculator on Ubuntu (GCC)
 on:
   push:
   workflow_dispatch:
@@ -10,10 +10,10 @@ jobs:
       - name: Checkout ZeCalculator
         uses: actions/checkout@v3
 
-      - name: Install meson and ninja
-        run: sudo apt install meson ninja-build
+      - name: Install dependencies
+        run: sudo apt install meson cmake
 
-      - name: Setup meson build folder
+      - name: Setup meson build folder (GCC)
         run: meson setup build -D test=true -D b_sanitize=address,undefined
 
       - name: Compile code (GCC)

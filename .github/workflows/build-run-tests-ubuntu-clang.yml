@@ -1,0 +1,23 @@
+name: Build & Test ZeCalculator on Ubuntu (Clang)
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout ZeCalculator
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: sudo apt install meson ninja-build clang-19 lld-19 libc++-19-dev cmake
+
+      - name: Setup meson build folder (Clang)
+        run: CXX=clang++-19 CXX_LD=lld-19 meson setup build-clang -D test=true -D b_sanitize=address,undefined -D cpp_args='-pipe -stdlib=libc++ -static-libasan' -D cpp_link_args='-stdlib=libc++ -static-libasan'
+
+      - name: Compile code (Clang)
+        run: cd build-clang && meson compile
+
+      - name: Test code (Clang)
+        run: cd build-clang && meson test
