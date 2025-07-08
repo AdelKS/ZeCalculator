@@ -210,15 +210,25 @@ Overview:
 #### Benchmarks
 There is for now one benchmark defined in the tests, called "parametric function benchmark" in the file [test/function_test.cpp](test/function_test.cpp), that computes the average evaluation time of the function `f(x) = 3*cos(t*x) + 2*sin(x/t) + 4`, where `t` is a global constant, in `ast` vs `rpn` vs `c++`.
 
-The current results are (AMD Ryzen 5950X, `-march=native -O3` compile flags)
-- `g++ 13.2.1` + `libstdc++` + `ld.bfd 2.41.0`
-  - `ast`: 270ns ± 5ns
-  - `rpn`: 135ns ± 5ns
-  - `c++`: 75ns ± 5ns
-- `clang++ 17.0.6` + `libc++` + `ld.lld 17.0.6`
-  - `ast`: 245ns ± 5ns
-  - `rpn`: 140ns ± 5ns
-  - `c++`: 75ns ± 5ns
+The current results are (`-march=native -O3` compile flags)
+- `AMD Ryzen 5950X`
+  - `g++ 13.2.1` + `libstdc++` + `ld.bfd 2.41.0`
+    - `ast`: 270ns ± 5ns
+    - `rpn`: 135ns ± 5ns
+    - `c++`: 75ns ± 5ns
+  - `clang++ 17.0.6` + `libc++` + `ld.lld 17.0.6`
+    - `ast`: 245ns ± 5ns
+    - `rpn`: 140ns ± 5ns
+    - `c++`: 75ns ± 5ns
+- `AMD Ryzen 9950X3D`
+  - `g++ 15.1.0` + `libstdc++` + `ld.bfd 2.44.0`
+    - `ast`: 185ns ± 5ns
+    - `rpn`: 110ns ± 5ns
+    - `c++`: 60ns ± 5ns
+  - `clang++ 20.1.7` + `libc++` + `ld.lld 20.1.7`
+    - `ast`: 170ns ± 5ns
+    - `rpn`: 115ns ± 5ns
+    - `c++`: 60ns ± 5ns
 
 <details>
 
