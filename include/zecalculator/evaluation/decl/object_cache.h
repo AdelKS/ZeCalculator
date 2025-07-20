@@ -62,6 +62,9 @@ struct ObjectCache {
   /// @note key cannot be "NaN"
   void insert(double key, double value);
 
+  /// @returns the cached value, if it exists
+  std::optional<double> get_value(double key);
+
   const std::flat_map<double, double>& get_cache() const { return cache; }
 
 protected:

@@ -107,6 +107,13 @@ ObjectCache::ObjectCache(std::in_place_t, Keys&& keys, Values&& values, size_t b
   assert(kit == keys.end() and vit == values.end());
 }
 
+inline std::optional<double> ObjectCache::get_value(double key)
+{
+  if (auto value_it = cache.find(key); value_it != cache.end())
+    return value_it->second;
+  else return {};
+}
+
 inline void ObjectCache::insert(double key, double value)
 {
   // we do not expect "NaN" keys
