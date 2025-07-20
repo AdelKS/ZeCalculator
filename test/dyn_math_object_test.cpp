@@ -206,4 +206,43 @@ int main()
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 
+
+  "sequence & data revision updates"_test = []<class StructType>()
+  {
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
+
+    MathWorld<type> world;
+    eval::Cache cache;
+
+    auto& f = world.new_object().set_data("speed", {"c", "5", "7", "3", "2"});
+    auto& g = world.new_object() = "g(n) = speed(0) ; speed(1)";
+    auto& h = world.new_object() = "h(n) = g(0) ; g(1)";
+
+    expect(f.get_revision() == 1_u) << fatal;
+    expect(g.get_revision() == 1_u) << fatal;
+    expect(h.get_revision() == 1_u) << fatal;
+
+    auto& c = world.new_object().set("c", 1.);
+
+    expect(f.get_revision() == 2_u) << fatal;
+    expect(g.get_revision() == 2_u) << fatal;
+    expect(h.get_revision() == 2_u) << fatal;
+
+    expect(f({0.}, &cache).value() == 1._d);
+    expect(h({0.}, &cache).value() == 1._d);
+    expect(cache[f.get_slot()].get_cached_revision() == 2_u);
+    expect(cache[g.get_slot()].get_cached_revision() == 2_u);
+    expect(cache[h.get_slot()].get_cached_revision() == 2_u);
+
+    c = 3.;
+
+    expect(f.get_revision() == 3_u) << fatal;
+    expect(f({0.}, &cache).value() == 3._d);
+    expect(h({0.}, &cache).value() == 3._d);
+    expect(cache[f.get_slot()].get_cached_revision() == 3_u);
+    expect(cache[g.get_slot()].get_cached_revision() == 3_u);
+    expect(cache[h.get_slot()].get_cached_revision() == 3_u);
+
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
+
 }

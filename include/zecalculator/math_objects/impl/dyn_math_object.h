@@ -159,11 +159,14 @@ void DynMathObject<type>::increment_revision()
       [&](FuncObj&)
       {
       },
-      [&](SeqObj&)
+      [&](SeqObj& seq_obj)
       {
+        if (seq_obj.linked_rhs)
+          seq_obj.linked_rhs->object_revision = revision;
       },
-      [&](DataObj&)
+      [&](DataObj& data_obj)
       {
+        data_obj.linked_rhs.object_revision = revision;
       }},
     parsed_data);
 }

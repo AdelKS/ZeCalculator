@@ -40,6 +40,7 @@ struct ObjectCache {
 
   ObjectCache(std::initializer_list<double> keys,
               std::initializer_list<double> vals,
+              size_t object_revision,
               size_t buffer_size = default_buffer_size);
 
   /// @brief Fills the cache with a given range of keys and range of values
@@ -47,23 +48,32 @@ struct ObjectCache {
   template <std::ranges::viewable_range Keys, std::ranges::viewable_range Values>
     requires std::is_same_v<std::ranges::range_value_t<Keys>, double>
              and std::is_same_v<std::ranges::range_value_t<Values>, double>
-  ObjectCache(Keys&& keys, Values&& values, size_t buffer_size = default_buffer_size);
+  ObjectCache(Keys&& keys,
+              Values&& values,
+              size_t object_revision,
+              size_t buffer_size = default_buffer_size);
 
   ObjectCache(ObjectCache&&) = default;
   ObjectCache(const ObjectCache&) = default;
 
   size_t get_buffer_size() const { return buffer_size; }
 
+  size_t get_cached_revision() const { return cached_object_revision; }
+
   /// @brief update the max buffer size to this size
   /// @note if it's smaller than the previously set one, oldest values are popped out of the cache
   void set_buffer_size(size_t new_buffer_size);
 
   /// @brief insert new point to cache
+  /// @param revision: revision of the cached object
   /// @note key cannot be "NaN"
-  void insert(double key, double value);
+  void insert(size_t object_revision, double key, double value);
+
+  /// @brief clears the cache entirely
+  void clear();
 
   /// @returns the cached value, if it exists
-  std::optional<double> get_value(double key);
+  std::optional<double> get_value(size_t object_revision, double key);
 
   const std::flat_map<double, double>& get_cache() const { return cache; }
 
@@ -73,13 +83,15 @@ protected:
   template <std::ranges::viewable_range Keys, std::ranges::viewable_range Values>
     requires std::is_same_v<std::ranges::range_value_t<Keys>, double>
              and std::is_same_v<std::ranges::range_value_t<Values>, double>
-  ObjectCache(std::in_place_t, Keys&& keys, Values&& values, size_t buffer_size);
+  ObjectCache(std::in_place_t, Keys&& keys, Values&& values, size_t object_revision, size_t buffer_size);
 
-  size_t buffer_size = 0;
   std::flat_map<double, double> cache;
 
   /// @brief indices of cache, sorted from oldest to newest
   std::deque<size_t> age_sorted_indices;
+
+  size_t buffer_size = 0;
+  size_t cached_object_revision = 0;
 };
 
 }

@@ -349,7 +349,7 @@ tl::expected<double, Error>
   auto get_cached_value = [&] () -> std::optional<double> {
     if (cache)
       if (auto obj_cache_it = cache->find(u.slot); obj_cache_it != cache->end())
-        return obj_cache_it->second.get_value(rounded_index);
+        return obj_cache_it->second.get_value(u.object_revision, rounded_index);
     return {};
   };
 
@@ -380,7 +380,7 @@ tl::expected<double, Error>
     }
 
     if (exp_res and cache)
-      (*cache)[u.slot].insert(rounded_index, *exp_res);
+      (*cache)[u.slot].insert(u.object_revision, rounded_index, *exp_res);
   }
 
   return exp_res;

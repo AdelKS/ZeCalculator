@@ -61,7 +61,7 @@ inline void ObjectCache::set_buffer_size(size_t new_buffer_size)
     // so we can shrink it without issues: those newly pushed values will be popped
     // and the old values that actually need to be removed will be by the insert() calls
     for (size_t i = 0 ; i != elements_to_pop; i++)
-      insert(std::numeric_limits<double>::max(), 0.);
+      insert(cached_object_revision, std::numeric_limits<double>::max(), 0.);
 
     auto [keys, values] = std::move(cache).extract();
     keys.resize(new_buffer_size);
@@ -76,17 +76,19 @@ inline void ObjectCache::set_buffer_size(size_t new_buffer_size)
 
 inline ObjectCache::ObjectCache(std::initializer_list<double> keys,
                                 std::initializer_list<double> vals,
+                                size_t object_revision,
                                 size_t buffer_size)
-  : ObjectCache(std::in_place_t{}, keys, vals, buffer_size)
+  : ObjectCache(std::in_place_t{}, keys, vals, object_revision, buffer_size)
 {}
 
 template <std::ranges::viewable_range Keys, std::ranges::viewable_range Values>
   requires std::is_same_v<std::ranges::range_value_t<Keys>, double>
            and std::is_same_v<std::ranges::range_value_t<Values>, double>
-ObjectCache::ObjectCache(Keys&& keys, Values&& values, size_t buffer_size)
+ObjectCache::ObjectCache(Keys&& keys, Values&& values, size_t object_revision, size_t buffer_size)
   : ObjectCache(std::in_place_t{},
                 std::forward<Keys>(keys),
                 std::forward<Values>(values),
+                object_revision,
                 buffer_size)
 {
 }
@@ -94,30 +96,48 @@ ObjectCache::ObjectCache(Keys&& keys, Values&& values, size_t buffer_size)
 template <std::ranges::viewable_range Keys, std::ranges::viewable_range Values>
   requires std::is_same_v<std::ranges::range_value_t<Keys>, double>
            and std::is_same_v<std::ranges::range_value_t<Values>, double>
-ObjectCache::ObjectCache(std::in_place_t, Keys&& keys, Values&& values, size_t buffer_size)
+ObjectCache::ObjectCache(
+  std::in_place_t, Keys&& keys, Values&& values, size_t object_revision, size_t buffer_size)
   : ObjectCache(buffer_size)
 {
   auto kit = keys.begin();
   auto vit = values.begin();
   for (; kit != keys.end() and vit != values.end() ; kit++, vit++)
   {
-    insert(*kit, *vit);
+    insert(object_revision, *kit, *vit);
   }
 
   assert(kit == keys.end() and vit == values.end());
 }
 
-inline std::optional<double> ObjectCache::get_value(double key)
+inline std::optional<double> ObjectCache::get_value(size_t object_revision, double key)
 {
+  if (cached_object_revision != object_revision)
+    return {};
+
   if (auto value_it = cache.find(key); value_it != cache.end())
     return value_it->second;
   else return {};
 }
 
-inline void ObjectCache::insert(double key, double value)
+inline void ObjectCache::clear()
+{
+  cache.clear();
+  age_sorted_indices.clear();
+}
+
+inline void ObjectCache::insert(size_t object_revision, double key, double value)
 {
   // we do not expect "NaN" keys
   assert(not std::isnan(key));
+
+  if (cached_object_revision != object_revision)
+  {
+    clear();
+    cached_object_revision = object_revision;
+  }
+
+
   if (cache.size() < buffer_size) [[unlikely]]
   {
     // we haven't filled the buffer yet

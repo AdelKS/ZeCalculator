@@ -27,14 +27,14 @@ int main()
 
   "ObjectCache test"_test = []()
   {
-    eval::ObjectCache cache({1., 2., 3.}, {1., 2., 3.}, 4);
-    cache.insert(4., 4.);
-    cache.insert(4., 5.);
-    cache.insert(2.5, 6.);
-    cache.insert(0.5, 7.);
-    cache.insert(3., 8.);
-    cache.insert(4., 9.);
-    cache.insert(0., 10.);
+    eval::ObjectCache cache({1., 2., 3.}, {1., 2., 3.}, 0, 4);
+    cache.insert(0, 4., 4.);
+    cache.insert(0, 4., 5.);
+    cache.insert(0, 2.5, 6.);
+    cache.insert(0, 0.5, 7.);
+    cache.insert(0, 3., 8.);
+    cache.insert(0, 4., 9.);
+    cache.insert(0, 0., 10.);
 
     std::vector vals = cache.get_cache().values();
     std::ranges::sort(vals);
@@ -43,8 +43,8 @@ int main()
     expect(cache.get_cache().keys() == std::vector{0., 0.5, 3., 4.}) << cache.get_cache().keys();
 
     cache.set_buffer_size(6);
-    cache.insert(-1., 11.);
-    cache.insert(3.5, 12.);
+    cache.insert(0, -1., 11.);
+    cache.insert(0, 3.5, 12.);
 
     vals = cache.get_cache().values();
     std::ranges::sort(vals);
