@@ -144,4 +144,66 @@ int main()
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 
+  "revision updates"_test = []<class StructType>()
+  {
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
+
+    MathWorld<type> world;
+
+    auto& f = world.new_object() = "f(x) = cos(x)+c";
+
+    expect(f.get_revision() == 1_u) << fatal;
+
+    auto& c = world.new_object().set("c", 1.);
+
+    expect(f.get_revision() == 2_u) << fatal;
+
+    c = 3.6;
+
+    expect(f.get_revision() == 3_u) << fatal;
+
+    auto& g = world.new_object() = "g(x) = f(x)+2+d";
+
+    expect(g.get_revision() == 1_u) << fatal;
+
+    auto& d = world.new_object().set("d", 1.);
+
+    expect(g.get_revision() == 2_u) << fatal;
+
+    auto& h = world.new_object() = "h(x) = g(x)+c";
+
+    expect(h.get_revision() == 1_u) << fatal;
+
+    c = 1.5;
+
+    expect(f.get_revision() == 4_u) << fatal;
+    expect(g.get_revision() == 3_u) << fatal;
+    expect(h.get_revision() == 2_u) << fatal;
+
+    d = 2.;
+
+    expect(f.get_revision() == 4_u) << fatal;
+    expect(g.get_revision() == 4_u) << fatal;
+    expect(h.get_revision() == 3_u) << fatal;
+
+    f = "f(x) = sin(x)+d";
+
+    expect(f.get_revision() == 5_u) << fatal;
+    expect(g.get_revision() == 5_u) << fatal;
+    expect(h.get_revision() == 4_u) << fatal;
+
+    d = 3.;
+
+    expect(f.get_revision() == 6_u) << fatal;
+    expect(g.get_revision() == 6_u) << fatal;
+    expect(h.get_revision() == 5_u) << fatal;
+
+    c = 2.;
+
+    expect(f.get_revision() == 6_u) << fatal;
+    expect(g.get_revision() == 6_u) << fatal;
+    expect(h.get_revision() == 6_u) << fatal;
+
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
+
 }

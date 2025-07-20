@@ -141,6 +141,34 @@ DynMathObject<type>& DynMathObject<type>::set(std::string_view name, CppFunction
 }
 
 template <parsing::Type type>
+void DynMathObject<type>::increment_revision()
+{
+  revision++;
+
+  std::visit(
+    utils::overloaded{
+      [&](const zc::Error&)
+      {
+      },
+      [&](const ConstObj&)
+      {
+      },
+      [&]<size_t args_num>(const CppFunction<args_num>&)
+      {
+      },
+      [&](FuncObj&)
+      {
+      },
+      [&](SeqObj&)
+      {
+      },
+      [&](DataObj&)
+      {
+      }},
+    parsed_data);
+}
+
+template <parsing::Type type>
 template <size_t args_num>
 DynMathObject<type>& DynMathObject<type>::operator = (CppFunction<args_num> cpp_f)
 {
@@ -175,15 +203,10 @@ DynMathObject<type>& DynMathObject<type>::set(std::string_view name, double cst)
 template <parsing::Type type>
 DynMathObject<type>& DynMathObject<type>::operator = (double cst)
 {
-  bool type_changed = not holds(CONSTANT);
-
   parsed_data = ConstObj{.val = cst};
 
-  if (type_changed)
-  {
-    set_name(lhs_str); // refresh the name to check for input variables
-    mathworld.object_updated(slot, false, std::string(get_name()), std::string(get_name()));
-  }
+  set_name_internal(lhs_str, lhs_str); // refresh the name to check for input variables (should not have)
+  mathworld.object_updated(slot, false, std::string(get_name()), std::string(get_name()));
 
   return *this;
 }
@@ -328,6 +351,12 @@ ObjectType DynMathObject<type>::object_type() const
 }
 
 template <parsing::Type type>
+size_t DynMathObject<type>::get_revision() const
+{
+  return revision;
+}
+
+template <parsing::Type type>
 tl::expected<typename DynMathObject<type>::LinkedRepr, zc::Error>
   DynMathObject<type>::get_linked_repr() const
 {
@@ -453,9 +482,15 @@ DynMathObject<type>& DynMathObject<type>::finalize_asts()
 {
   std::visit(
     utils::overloaded{
-      [&](const zc::Error&) {},
-      [&](const ConstObj&) {},
-      [&]<size_t args_num>(const CppFunction<args_num>&) {},
+      [&](const zc::Error&)
+      {
+      },
+      [&](const ConstObj&)
+      {
+      },
+      [&]<size_t args_num>(const CppFunction<args_num>&)
+      {
+      },
       [&](FuncObj& f_obj)
       {
         f_obj.linked_rhs =
@@ -476,7 +511,8 @@ DynMathObject<type>& DynMathObject<type>::finalize_asts()
       [&](SeqObj& seq_obj)
       {
         seq_obj.linked_rhs = parsing::LinkedSeq<type>{.repr = {},
-                                                      .slot = slot};
+                                                      .slot = slot,
+                                                      .object_revision = revision};
         if constexpr (linked)
         {
           auto& values = seq_obj.linked_rhs->repr;
@@ -499,6 +535,7 @@ DynMathObject<type>& DynMathObject<type>::finalize_asts()
         data_obj.linked_rhs.repr.clear();
         data_obj.linked_rhs.repr.reserve(data_obj.rhs.size());
         data_obj.linked_rhs.slot = slot;
+        data_obj.linked_rhs.object_revision = revision;
 
         for (size_t i = 0; i != data_obj.rhs.size(); i++)
           data_obj.linked_rhs.repr.push_back(data_obj.rhs[i].and_then(

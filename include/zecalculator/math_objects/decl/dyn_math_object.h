@@ -93,6 +93,11 @@ public:
   /// @returns the type of the object held by this instance
   ObjectType object_type() const;
 
+  /// @returns the number of updates this object has gone through
+  /// @note this function's usefulness is to know if the object is still the "same" or got changed meanwhile
+  /// @example 'f(x)=cos(x)+c' and 'c=3' originally but then 'c=4', which will increment the revision of 'f'
+  size_t get_revision() const;
+
   /// @returns true if the instance is currently of that type, regardless of its validity
   bool holds(ObjectType obj_type) const;
 
@@ -141,6 +146,9 @@ protected:
   const size_t slot;
   MathWorld<type>& mathworld;
 
+  /// @brief How many times this object has been updates, either directly, or one if its dependencies have changed
+  size_t revision = 0;
+
   struct ConstObj {
     double val;
     std::optional<std::string> rhs_str = {};
@@ -186,6 +194,8 @@ protected:
   /// @tparam linked: link with other math objects, otherwise assigns unlinked alternative
   template <bool link = true>
   DynMathObject<type>& finalize_asts();
+
+  void increment_revision();
 
   friend MathWorld<type>;
 

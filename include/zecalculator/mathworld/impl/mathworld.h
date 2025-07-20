@@ -182,6 +182,8 @@ void MathWorld<type>::rebind_dependent_functions(const std::unordered_set<std::s
   {
     assert(dyn_obj);
 
+    dyn_obj->increment_revision();
+
     /// activate if in error state, because its internal::EqObject is actually valid
     /// the function/sequence freshly created does not have a parsing
     if (not dyn_obj->has_value())
@@ -249,6 +251,9 @@ void MathWorld<type>::object_updated(size_t slot,
                                      std::string old_name,
                                      std::string new_name)
 {
+  if (math_objects.is_assigned(slot))
+    math_objects[slot].increment_revision();
+
   if (not old_name.empty())
   {
     inventory.erase(old_name);
