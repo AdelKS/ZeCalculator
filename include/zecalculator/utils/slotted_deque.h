@@ -104,7 +104,7 @@ public:
   }
 
   ///@brief frees the slot 'slot'
-  void free(const size_t slot)
+  void free(size_t slot)
   {
     if (slot < size())
     {
@@ -250,6 +250,11 @@ public:
     return const_iterator(size(), this);
   }
 
+  template <bool c>
+  void free(iter<c> it)
+  {
+    free(it.current_slot);
+  }
 
 protected:
 
