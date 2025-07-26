@@ -469,6 +469,16 @@ std::optional<size_t> DynMathObject<type>::get_data_size() const
 }
 
 template <parsing::Type type>
+std::optional<std::string> DynMathObject<type>::get_data_point(size_t index) const
+{
+  if (const DataObj* data = std::get_if<DataObj>(&parsed_data); data and index < data->data.size())
+  {
+    return data->data[index];
+  }
+  else return {};
+}
+
+template <parsing::Type type>
 tl::expected<parsing::Parsing<type>, zc::Error>
   DynMathObject<type>::get_final_repr(const parsing::AST& ast, std::string_view equation)
 {

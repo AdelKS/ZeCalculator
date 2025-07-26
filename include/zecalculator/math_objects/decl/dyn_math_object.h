@@ -78,6 +78,7 @@ public:
   /// @note this method can potentially modify every other DynMathObject in the same MathWorld
   DynMathObject<type>& set_data(std::string_view name, std::vector<std::string> data);
   DynMathObject<type>& set_data_point(size_t index, std::string expr);
+  std::optional<std::string> get_data_point(size_t index) const;
 
   tl::expected<double, Error> operator () (std::initializer_list<double> vals = {}, eval::Cache* cache = nullptr) const;
   tl::expected<double, Error> evaluate(std::initializer_list<double> vals = {}, eval::Cache* cache = nullptr) const;
