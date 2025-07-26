@@ -125,6 +125,9 @@ public:
   /// @note  return an empty container when not defined through an equation
   deps::Deps direct_dependencies() const;
 
+  /// @brief gets the size of the contained data object, if a data object is contained
+  std::optional<size_t> get_data_size() const;
+
   /// @brief returns object's slot within its owning MathWorld
   size_t get_slot() const { return slot; }
 
