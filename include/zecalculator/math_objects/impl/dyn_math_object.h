@@ -452,8 +452,7 @@ DynMathObject<type>& DynMathObject<type>::set_data_point(size_t index, std::stri
       return get_final_repr(ast, data_obj.data[index]);
     });
 
-  if (changed_type)
-    mathworld.object_updated(slot, true, old_name, std::string(get_name()));
+  mathworld.object_updated(slot, true, old_name, std::string(get_name()));
 
   return *this;
 }
