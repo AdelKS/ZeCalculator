@@ -75,9 +75,35 @@ public:
   DynMathObject<type>& set(std::string_view name, double value);
   DynMathObject<type>& operator = (double value);
 
+  /// @brief overwrite the object's internal data with the given data
+  /// @param name: new name of the object
+  /// @param data: each data point as a string (number or generic expression, that can depend on other objects)
   /// @note this method can potentially modify every other DynMathObject in the same MathWorld
   DynMathObject<type>& set_data(std::string_view name, std::vector<std::string> data);
+
+  /// @brief change one single data point in the object
+  /// @note if the object did not hold any data beforehand,
+  ///       it's transformed into a data object with the same name (if it had a valid one)
   DynMathObject<type>& set_data_point(size_t index, std::string expr);
+
+  /// @brief Overwrites data points
+  /// @param index: index of the first point to overwrite, the rest follows contiguously
+  DynMathObject<type>& set_data_points(size_t index, std::vector<std::string> data);
+
+  /// @brief Inserts data point
+  /// @param index: index of the point after insertion
+  /// @note All points whose index > 'index' before the insertion
+  ///       will have their index incremented after the insertion
+  DynMathObject<type>& insert_data_point(size_t index, std::string expr);
+
+  /// @brief Inserts data point
+  /// @param index: index of the first point after insertion, the rest follows contiguously
+  /// @note All points whose index > 'index' before the insertion
+  ///       will be moved data.size() cells after the insertion
+  DynMathObject<type>& insert_data_points(size_t index, std::vector<std::string> data);
+
+  /// @brief Retrieve the text of a data point, if it exists
+  /// @note To retrieve the actual evaluation, evaluate this object at the same index
   std::optional<std::string> get_data_point(size_t index) const;
 
   tl::expected<double, Error> operator () (std::initializer_list<double> vals = {}, eval::Cache* cache = nullptr) const;
@@ -191,6 +217,9 @@ protected:
   template <class T>
     requires (std::is_same_v<T, parsing::AST> or std::is_convertible_v<T, std::string_view>)
   void set_name_internal(const T& name, std::string_view full_expr);
+
+  template <bool insert>
+  DynMathObject<type>& bulk_data_input(size_t index, std::vector<std::string> data);
 
   tl::expected<zc::parsing::Parsing<type>, zc::Error> get_final_repr(const parsing::AST& ast,
                                                                      std::string_view equation);

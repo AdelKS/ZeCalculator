@@ -156,4 +156,104 @@ int main()
     expect(data({4}).error() == zc::Error::empty_expression());
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
+
+  "set many data points"_test = []<class StructType>()
+  {
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
+
+    MathWorld<type> world;
+    auto& data = world.new_object().set_data("data", std::vector<std::string>(10, "1"));
+
+    expect(bool(data)) << [&]{ return data.error(); } << fatal;
+
+    data.set_data_points(5, std::vector<std::string>(10, "2"));
+
+    std::vector<double> expected_vals(15, 1.);
+    std::fill(expected_vals.begin()+5, expected_vals.end(), 2.);
+
+    expect(data.get_data_size().value() == expected_vals.size()) << fatal;
+
+    for (size_t i = 0 ; i < expected_vals.size() ; i++)
+      expect(expected_vals[i] == data({double(i)}).value());
+
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
+
+  "insert many data points"_test = []<class StructType>()
+  {
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
+
+    MathWorld<type> world;
+    auto& data = world.new_object().set_data("data", std::vector<std::string>(10, "1"));
+
+    expect(bool(data)) << [&]{ return data.error(); } << fatal;
+
+    data.insert_data_points(5, std::vector<std::string>(10, "2"));
+
+    std::vector<double> expected_vals(20, 1.);
+    std::fill(expected_vals.begin()+5, expected_vals.begin()+15, 2.);
+
+    expect(data.get_data_size().value() == expected_vals.size()) << fatal;
+
+    for (size_t i = 0 ; i < expected_vals.size() ; i++)
+      expect(expected_vals[i] == data({double(i)}).value());
+
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
+
+  "append many data points"_test = []<class StructType>()
+  {
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
+
+    MathWorld<type> world;
+    auto& data = world.new_object().set_data("data", std::vector<std::string>(10, "1"));
+
+    expect(bool(data)) << [&]{ return data.error(); } << fatal;
+
+    data.insert_data_points(10, std::vector<std::string>(10, "2"));
+
+    std::vector<double> expected_vals(20, 1.);
+    std::fill(expected_vals.begin()+10, expected_vals.end(), 2.);
+
+    expect(data.get_data_size().value() == expected_vals.size()) << fatal;
+
+    for (size_t i = 0 ; i < expected_vals.size() ; i++)
+      expect(expected_vals[i] == data({double(i)}).value());
+
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
+
+  "insert one data point"_test = []<class StructType>()
+  {
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
+
+    MathWorld<type> world;
+    auto& data = world.new_object().set_data("data", std::vector<std::string>(10, "1"));
+
+    expect(bool(data)) << [&]{ return data.error(); } << fatal;
+
+    data.insert_data_point(5, "2");
+
+    std::vector<double> expected_vals(11, 1.);
+    expected_vals[5] = 2.;
+
+    expect(data.get_data_size().value() == expected_vals.size()) << fatal;
+
+    for (size_t i = 0 ; i < expected_vals.size() ; i++)
+      expect(expected_vals[i] == data({double(i)}).value());
+
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
+
+  "insert one data point above current size"_test = []<class StructType>()
+  {
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
+
+    MathWorld<type> world;
+    auto& data = world.new_object().set_data("data", std::vector<std::string>(10, "1"));
+
+    expect(bool(data)) << [&]{ return data.error(); } << fatal;
+
+    data.insert_data_point(15, "2");
+
+    expect(data.get_data_size().value() == 16) << fatal;
+
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
+
 }

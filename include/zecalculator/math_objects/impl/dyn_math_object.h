@@ -421,6 +421,31 @@ DynMathObject<type>& DynMathObject<type>::set_data(std::string_view name, std::v
 template <parsing::Type type>
 DynMathObject<type>& DynMathObject<type>::set_data_point(size_t index, std::string expr)
 {
+  return set_data_points(index, {expr});
+}
+
+template <parsing::Type type>
+DynMathObject<type>& DynMathObject<type>::set_data_points(size_t index, std::vector<std::string> data)
+{
+  return bulk_data_input<false>(index, std::move(data));
+}
+
+template <parsing::Type type>
+DynMathObject<type>& DynMathObject<type>::insert_data_point(size_t index, std::string expr)
+{
+  return insert_data_points(index, {expr});
+}
+
+template <parsing::Type type>
+DynMathObject<type>& DynMathObject<type>::insert_data_points(size_t index, std::vector<std::string> data)
+{
+  return bulk_data_input<true>(index, std::move(data));
+}
+
+template <parsing::Type type>
+template <bool insert>
+DynMathObject<type>& DynMathObject<type>::bulk_data_input(size_t index, std::vector<std::string> data)
+{
   std::string old_name(get_name());
   bool changed_type = not holds(DATA);
   if (changed_type)
@@ -434,23 +459,48 @@ DynMathObject<type>& DynMathObject<type>::set_data_point(size_t index, std::stri
   assert(data_obj.data.size() == data_obj.rhs.size());
   assert(data_obj.data.size() == data_obj.linked_rhs.repr.size());
 
-  if (data_obj.data.size() <= index)
+  const size_t old_size = data_obj.data.size();
+  const size_t new_size = [&]{
+    if constexpr (insert)
+      return std::max(data_obj.data.size(), index) + data.size();
+    else return std::max(data_obj.data.size(), index + data.size());
+  }();
+
+  data_obj.data.resize(new_size);
+  data_obj.rhs.resize(new_size, tl::unexpected(zc::Error::empty_expression()));
+  data_obj.linked_rhs.repr.resize(new_size, tl::unexpected(zc::Error::empty_expression()));
+
+  if constexpr (insert)
   {
-    data_obj.data.resize(index+1);
-    data_obj.rhs.resize(index+1, tl::unexpected(zc::Error::empty_expression()));
-    data_obj.linked_rhs.repr.resize(index+1, tl::unexpected(zc::Error::empty_expression()));
+    if (index < old_size)
+    {
+      auto move = [&](auto& vec)
+      {
+        std::move_backward(vec.begin() + index,
+                           vec.begin() + old_size,
+                           vec.begin() + old_size + data.size());
+      };
+      move(data_obj.data);
+      move(data_obj.rhs);
+      move(data_obj.linked_rhs.repr);
+    }
   }
 
-  data_obj.data[index] = std::move(expr);
-  data_obj.rhs[index] = parsing::tokenize(data_obj.data[index])
-                        .and_then(parsing::make_ast{data_obj.data[index]})
-                        .transform(parsing::flatten_separators);
+  size_t i = index;
+  for (auto& expr: data)
+  {
+    data_obj.data[i] = std::move(expr);
+    data_obj.rhs[i] = parsing::tokenize(data_obj.data[i])
+                          .and_then(parsing::make_ast{data_obj.data[i]})
+                          .transform(parsing::flatten_separators);
 
-  data_obj.linked_rhs.repr[index] = data_obj.rhs[index].and_then(
-    [&](auto&& ast)
-    {
-      return get_final_repr(ast, data_obj.data[index]);
-    });
+    data_obj.linked_rhs.repr[i] = data_obj.rhs[i].and_then(
+      [&](auto&& ast)
+      {
+        return get_final_repr(ast, data_obj.data[i]);
+      });
+    i++;
+  }
 
   mathworld.object_updated(slot, true, old_name, std::string(get_name()));
 
