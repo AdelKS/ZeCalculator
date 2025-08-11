@@ -102,6 +102,18 @@ public:
   ///       will be moved data.size() cells after the insertion
   DynMathObject<type>& insert_data_points(size_t index, std::vector<std::string> data);
 
+  /// @brief Removes a data point
+  /// @param index: index of the point to remove
+  /// @note All points whose index > 'index' before the removal
+  ///       will be moved back by one spot
+  DynMathObject<type>& remove_data_point(size_t index);
+
+  /// @brief Removes several contiguous data points
+  /// @param index: index of the first point to remove
+  /// @param count: how many points contiguous to remove starting 'index'
+  /// @note if index + count >= size(), all points starting 'index' will be removed regardless
+  DynMathObject<type>& remove_data_points(size_t index, size_t count);
+
   /// @brief Retrieve the text of a data point, if it exists
   /// @note To retrieve the actual evaluation, evaluate this object at the same index
   std::optional<std::string> get_data_point(size_t index) const;

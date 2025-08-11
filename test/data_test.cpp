@@ -256,4 +256,30 @@ int main()
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 
+  "remove many data points"_test = []<class StructType>()
+  {
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
+
+    MathWorld<type> world;
+    auto& data = world.new_object().set_data("data", std::vector<std::string>(10, "1"));
+
+    expect(bool(data)) << [&]{ return data.error(); } << fatal;
+
+    size_t rev = data.get_revision();
+    data.insert_data_points(5, std::vector<std::string>(10, "2"));
+
+    expect(data.get_revision() != rev);
+    rev = data.get_revision();
+
+    data.remove_data_points(5, 10);
+
+    std::vector<double> expected_vals(10, 1.);
+
+    expect(data.get_data_size().value() == expected_vals.size()) << fatal;
+
+    for (size_t i = 0 ; i < expected_vals.size() ; i++)
+      expect(expected_vals[i] == data({double(i)}).value());
+
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
+
 }

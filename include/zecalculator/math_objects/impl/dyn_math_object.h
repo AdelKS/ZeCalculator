@@ -508,6 +508,45 @@ DynMathObject<type>& DynMathObject<type>::bulk_data_input(size_t index, std::vec
 }
 
 template <parsing::Type type>
+DynMathObject<type>& DynMathObject<type>::remove_data_point(size_t index)
+{
+  return remove_data_points(index, 1);
+
+}
+
+template <parsing::Type type>
+DynMathObject<type>& DynMathObject<type>::remove_data_points(size_t index, size_t count)
+{
+  if (count == 0 or not holds(DATA))
+    return *this;
+
+  DataObj& data_obj = std::get<DataObj>(parsed_data);
+
+  const size_t size = data_obj.data.size();
+  assert(size == data_obj.rhs.size());
+  assert(size == data_obj.linked_rhs.repr.size());
+
+  if (index + count < size)
+  {
+    const size_t move_num = data_obj.data.size() - (index + count);
+    auto move = [&](auto& vec){ std::move(vec.end() - move_num, vec.end(), vec.begin() + index); };
+    move(data_obj.data);
+    move(data_obj.rhs);
+    move(data_obj.linked_rhs.repr);
+  }
+  else count = size - index;
+
+  data_obj.data.resize(size - count);
+  data_obj.rhs.resize(size - count);
+  data_obj.linked_rhs.repr.resize(size - count);
+
+  std::string name(get_name());
+  mathworld.object_updated(slot, true, name, name);
+
+  return *this;
+}
+
+template <parsing::Type type>
 std::optional<size_t> DynMathObject<type>::get_data_size() const
 {
   if (const DataObj* data = std::get_if<DataObj>(&parsed_data))
