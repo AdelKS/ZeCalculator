@@ -41,7 +41,8 @@ DynMathObject<type>& DynMathObject<type>::set_name(std::string_view name)
 
   set_name_internal(name, name);
 
-  finalize_asts();
+  if (not holds(DATA))
+    finalize_asts();
 
   mathworld.object_updated(slot, false, old_name, std::string(get_name()));
 
