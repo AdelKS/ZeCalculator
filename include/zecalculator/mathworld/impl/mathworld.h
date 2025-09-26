@@ -87,22 +87,9 @@ const DynMathObject<type>* MathWorld<type>::get(std::string_view name) const
 }
 
 template <parsing::Type type>
-const DynMathObject<type>* MathWorld<type>::eq_object_get(std::string_view name) const
-{
-  auto it = eq_object_inventory.find(name);
-  return it != eq_object_inventory.end() ? &math_objects[it->second] : nullptr;
-}
-
-template <parsing::Type type>
 DynMathObject<type>* MathWorld<type>::get(std::string_view name)
 {
   return const_cast<DynMathObject<type>*>(std::as_const(*this).get(name));
-}
-
-template <parsing::Type type>
-DynMathObject<type>* MathWorld<type>::eq_object_get(std::string_view name)
-{
-  return const_cast<DynMathObject<type>*>(std::as_const(*this).eq_object_get(name));
 }
 
 template <parsing::Type type>
@@ -156,7 +143,7 @@ std::unordered_set<DynMathObject<type>*>
 
     explored_deps.insert(name);
 
-    if (DynMathObject<type>* obj = eq_object_get(name))
+    if (DynMathObject<type>* obj = get(name))
     {
       // should have an internal::EqObject assigned of Function/Sequence type
       // otherwise it cannot depend on anything
@@ -184,12 +171,10 @@ void MathWorld<type>::rebind_dependent_functions(const std::unordered_set<std::s
 
     dyn_obj->increment_revision();
 
-    /// activate if in error state, because its internal::EqObject is actually valid
-    /// the function/sequence freshly created does not have a parsing
+    /// try rebind if in error state
     if (not dyn_obj->has_value())
     {
       assert(not dyn_obj->get_name().empty());
-      assert(not inventory.contains(dyn_obj->get_name()));
 
       dyn_obj->template finalize_asts<false>();
       inventory[std::string(dyn_obj->get_name())] = dyn_obj->slot;
@@ -214,8 +199,6 @@ void MathWorld<type>::rebind_dependent_functions(const std::unordered_set<std::s
 
     if (covered_invalid_functions.contains(invalid_func_name))
       continue;
-
-    inventory.erase(invalid_func_name);
 
     covered_invalid_functions.insert(invalid_func_name);
 
@@ -247,7 +230,6 @@ bool MathWorld<type>::sanity_check(const DynMathObject<type>& obj) const
 
 template <parsing::Type type>
 void MathWorld<type>::object_updated(size_t slot,
-                                     bool is_eq_object_now,
                                      std::string old_name,
                                      std::string new_name)
 {
@@ -255,18 +237,26 @@ void MathWorld<type>::object_updated(size_t slot,
     math_objects[slot].increment_revision();
 
   if (not old_name.empty())
-  {
     inventory.erase(old_name);
-    eq_object_inventory.erase(old_name);
-  }
 
-  if (is_eq_object_now and not new_name.empty())
-    eq_object_inventory[new_name] = slot;
-
-  if (not new_name.empty() and math_objects[slot].has_value())
+  if (not new_name.empty())
     inventory[new_name] = slot;
 
-  rebind_dependent_functions({old_name, new_name});
+  if (not old_name.empty() and old_name != new_name)
+  {
+    // old_name got freed
+    // check if an object is actually waiting to have that name
+    for (DynMathObject<type>& obj: math_objects)
+    if (obj.exp_lhs and obj.exp_lhs->name_already_taken and obj.exp_lhs->name.substr == old_name)
+    {
+      obj.exp_lhs->name_already_taken = false;
+      inventory[old_name] = obj.slot;
+      break;
+    }
+  }
+
+  if (not old_name.empty() or not new_name.empty())
+    rebind_dependent_functions({old_name, new_name});
 }
 
 template <parsing::Type type>
@@ -281,14 +271,15 @@ template <parsing::Type type>
 deps::Deps MathWorld<type>::direct_revdeps(std::string_view name) const
 {
   deps::Deps direct_rev_deps;
-  for (auto&& [obj_name, slot]: eq_object_inventory)
+  for (auto&& math_obj: math_objects)
   {
-    assert(math_objects[slot].get_name() == obj_name);
+    if (math_obj.get_name().empty())
+      continue;
 
-    auto deps = math_objects[slot].direct_dependencies();
+    auto deps = math_obj.direct_dependencies();
     if (auto it = deps.find(name); it != deps.end())
     {
-      deps::Dep& dep = direct_rev_deps[obj_name];
+      deps::Dep& dep = direct_rev_deps[std::string(math_obj.get_name())];
       dep.type = deps::Dep::FUNCTION;
       dep.indexes = it->second.indexes;
     }
@@ -350,10 +341,7 @@ tl::expected<Ok, UnregisteredObject> MathWorld<type>::erase(size_t slot)
 
   math_objects.free(slot);
 
-  if (auto it = eq_object_inventory.find(name); it != eq_object_inventory.end())
-    eq_object_inventory.erase(it);
-
-  object_updated(slot, false, name, "");
+  object_updated(slot, name, "");
 
   return Ok{};
 }

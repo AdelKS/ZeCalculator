@@ -44,6 +44,8 @@ struct LHS
   /// @brief the text that defines the LHS, without an leading or trailing whitespaces
   tokens::Text substr;
 
+  bool name_already_taken = false;
+
   bool operator == (const LHS&) const = default;
 };
 

@@ -44,7 +44,7 @@ DynMathObject<type>& DynMathObject<type>::set_name(std::string_view name)
   if (not holds(DATA))
     finalize_asts();
 
-  mathworld.object_updated(slot, false, old_name, std::string(get_name()));
+  mathworld.object_updated(slot, old_name, std::string(get_name()));
 
   return *this;
 }
@@ -59,11 +59,11 @@ void DynMathObject<type>::set_name_internal(const T& name, std::string_view full
   lhs_str = std::string(full_expr);
   exp_lhs = parsing::parse_lhs(name, full_expr);
 
-  if (get_name() != old_name and mathworld.contains(get_name()))
-    exp_lhs = tl::unexpected(Error::name_already_taken(exp_lhs->name, std::string(full_expr)));
-
   if (bool(exp_lhs))
   {
+    exp_lhs->name_already_taken = (old_name != exp_lhs->name.substr
+                                and mathworld.contains(exp_lhs->name.substr));
+
     if ((holds(SEQUENCE) or holds(DATA)) and exp_lhs->input_vars.size() > 1)
       exp_lhs = tl::unexpected(
         zc::Error::unexpected(exp_lhs->input_vars[1], std::string(full_expr)));
@@ -136,7 +136,7 @@ DynMathObject<type>& DynMathObject<type>::set(std::string_view name, CppFunction
 
   set_name_internal(name, name);
 
-  mathworld.object_updated(slot, false, old_name, std::string(get_name()));
+  mathworld.object_updated(slot, old_name, std::string(get_name()));
 
   return *this;
 }
@@ -185,7 +185,7 @@ DynMathObject<type>& DynMathObject<type>::operator = (CppFunction<args_num> cpp_
   if (type_changed)
     set_name(lhs_str);
 
-  mathworld.object_updated(slot, false, name, std::string(get_name()));
+  mathworld.object_updated(slot, name, std::string(get_name()));
 
   return *this;
 }
@@ -199,7 +199,7 @@ DynMathObject<type>& DynMathObject<type>::set(std::string_view name, double cst)
 
   set_name_internal(name, name);
 
-  mathworld.object_updated(slot, false, old_name, std::string(get_name()));
+  mathworld.object_updated(slot, old_name, std::string(get_name()));
 
   return *this;
 }
@@ -210,7 +210,7 @@ DynMathObject<type>& DynMathObject<type>::operator = (double cst)
   parsed_data = ConstObj{.val = cst};
 
   set_name_internal(lhs_str, lhs_str); // refresh the name to check for input variables (should not have)
-  mathworld.object_updated(slot, false, std::string(get_name()), std::string(get_name()));
+  mathworld.object_updated(slot, std::string(get_name()), std::string(get_name()));
 
   return *this;
 }
@@ -271,11 +271,7 @@ DynMathObject<type>& DynMathObject<type>::operator = (std::string definition)
 
   finalize_asts();
 
-  mathworld.object_updated(slot,
-                           std::holds_alternative<SeqObj>(parsed_data)
-                             or std::holds_alternative<FuncObj>(parsed_data),
-                           old_name,
-                           std::string(get_name()));
+  mathworld.object_updated(slot, old_name, std::string(get_name()));
 
   return *this;
 }
@@ -290,7 +286,11 @@ template <parsing::Type type>
 tl::expected<Ok, zc::Error> DynMathObject<type>::name_status() const
 {
   if (bool(exp_lhs))
-    return Ok{};
+  {
+    if (exp_lhs->name_already_taken)
+      return tl::unexpected(Error::name_already_taken(exp_lhs->name, exp_lhs->substr.substr));
+    else return Ok{};
+  }
   else return tl::unexpected(exp_lhs.error());
 }
 
@@ -411,10 +411,7 @@ DynMathObject<type>& DynMathObject<type>::set_data(std::string_view name, std::v
 
   finalize_asts();
 
-  mathworld.object_updated(slot,
-                           true,
-                           old_name,
-                           std::string(get_name()));
+  mathworld.object_updated(slot, old_name, std::string(get_name()));
 
   return *this;
 }
@@ -503,7 +500,7 @@ DynMathObject<type>& DynMathObject<type>::bulk_data_input(size_t index, std::vec
     i++;
   }
 
-  mathworld.object_updated(slot, true, old_name, std::string(get_name()));
+  mathworld.object_updated(slot, old_name, std::string(get_name()));
 
   return *this;
 }
@@ -542,7 +539,7 @@ DynMathObject<type>& DynMathObject<type>::remove_data_points(size_t index, size_
   data_obj.linked_rhs.repr.resize(size - count);
 
   std::string name(get_name());
-  mathworld.object_updated(slot, true, name, name);
+  mathworld.object_updated(slot, name, name);
 
   return *this;
 }
@@ -664,7 +661,7 @@ DynMathObject<type>& DynMathObject<type>::finalize_asts()
 template <parsing::Type type>
 std::string_view DynMathObject<type>::get_name() const
 {
-  if (exp_lhs)
+  if (exp_lhs and not exp_lhs->name_already_taken)
     return exp_lhs->name.substr;
   else return std::string_view();
 }

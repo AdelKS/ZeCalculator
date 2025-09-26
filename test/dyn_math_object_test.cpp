@@ -144,6 +144,41 @@ int main()
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 
+  "fighting for the same name"_test = []<class StructType>()
+  {
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
+
+    MathWorld<type> world;
+
+    auto& f1 = world.new_object() = "f(x) = 3*g(x)";
+
+    expect(not bool(f1)) << fatal;
+
+    auto& f2 = world.new_object() = "f(x) = 3*x+1";
+
+    expect(not bool(f2) and f2.name_status().error().type == zc::Error::NAME_ALREADY_TAKEN)
+      << fatal;
+
+    auto& f3 = world.new_object() = "f(x) = 3*x+2";
+
+    expect(not bool(f3) and f3.name_status().error().type == zc::Error::NAME_ALREADY_TAKEN)
+      << fatal;
+
+    f1.set_name("h(x)");
+
+    expect(not bool(f1));
+    expect(bool(f2));
+    expect(not bool(f3) and f3.name_status().error().type == zc::Error::NAME_ALREADY_TAKEN);
+
+    f2.set_name("g(x)");
+
+    expect(bool(f1));
+    expect(bool(f2));
+    expect(bool(f3));
+
+
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
+
   "revision updates"_test = []<class StructType>()
   {
     constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;

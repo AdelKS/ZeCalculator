@@ -412,14 +412,8 @@ tl::expected<FAST<type>, Error> make_fast<type>::operator () (const AST& ast)
           {
             auto* dyn_obj = math_world.get(ast.name.substr);
             if (not dyn_obj) [[unlikely]]
-            {
-              if (math_world.eq_object_inventory.contains(ast.name.substr))
-                // if the object is referenced as an eq_object, that means it's simply in an invalid state
-                return tl::unexpected(Error::object_in_invalid_state(ast.name, expression));
+              return tl::unexpected(Error::undefined_function(ast.name, expression));
 
-              // otherwise undefined
-              else return tl::unexpected(Error::undefined_function(ast.name, expression));
-            }
             if (not dyn_obj->has_value()) [[unlikely]]
               return tl::unexpected(Error::object_in_invalid_state(ast.name, expression));
             else return std::visit(FunctionVisiter<type>{expression, ast, std::move(operands)}, dyn_obj->parsed_data);

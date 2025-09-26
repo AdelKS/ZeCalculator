@@ -126,7 +126,6 @@ protected:
   /// @note 'old_name' may be empty, in which case it's a new name
   /// @note 'new_name' may be empty, in which case the object got deleted or is in an invalid state
   void object_updated(size_t slot,
-                      bool is_eq_object_now,
                       std::string old_name,
                       std::string new_name);
 
@@ -140,16 +139,8 @@ protected:
   /// @brief go through all functions that depend on 'old_name' or 'new_name' and rebind them
   void rebind_dependent_functions(const std::unordered_set<std::string>& names);
 
-  /// @brief get DynMathObject that has an assigned eq_object (not necessarily in valid state)
-  const DynMathObject<type>* eq_object_get(std::string_view name) const;
-
-  DynMathObject<type>* eq_object_get(std::string_view name);
-
   /// @brief maps an object name to its slot
   name_map<size_t> inventory;
-
-  /// @brief object names defined through equations
-  name_map<size_t> eq_object_inventory;
 
   SlottedDeque<DynMathObject<type>> math_objects;
 
