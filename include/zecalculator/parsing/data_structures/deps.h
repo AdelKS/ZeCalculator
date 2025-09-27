@@ -32,9 +32,6 @@ namespace deps {
     enum ObjectType {VARIABLE, FUNCTION};
     ObjectType type;
 
-    /// @brief indexes at which the dependency token appear within the full expression
-    std::vector<size_t> indexes;
-
     bool operator == (const Dep&) const = default;
   };
 
