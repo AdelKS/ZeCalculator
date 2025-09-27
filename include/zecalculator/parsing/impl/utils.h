@@ -47,7 +47,6 @@ struct direct_dependency_saver
                           {
                             deps::Dep& dep = deps[ast.name.substr];
                             dep.type = deps::Dep::FUNCTION;
-                            dep.indexes.push_back(ast.name.begin);
                           }
 
                           std::ranges::for_each(func.subnodes, std::ref(*this));
@@ -62,7 +61,6 @@ struct direct_dependency_saver
                         {
                           deps::Dep& dep = deps[ast.name.substr];
                           dep.type = deps::Dep::VARIABLE;
-                          dep.indexes.push_back(ast.name.begin);
                         }},
       ast.dyn_data);
     return *this;

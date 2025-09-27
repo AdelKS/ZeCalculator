@@ -45,12 +45,12 @@ int main()
   // - (re)defining objects within a math world can potentially modify every other objects
   obj1 = "f(x) = x + my_constant + cos(math::pi)";
 
-  // We can query the direct dependencies of any object: name, type, and where in the equation
-  // Note: only Function and Sequence instances with a valid equation return a non-empty set
+  // We can query the direct dependencies of any object: name and type
+  // Note: only objects defined with expression(s) may return a non-empty set
   assert(bool(obj1.direct_dependencies()
-              == deps::Deps{{"my_constant", {deps::Dep::VARIABLE, {11}}},
-                            {"cos", {deps::Dep::FUNCTION, {25}}},
-                            {"math::pi", {deps::Dep::VARIABLE, {29}}}}));
+              == deps::Deps{{"my_constant", {deps::Dep::VARIABLE}},
+                            {"cos", {deps::Dep::FUNCTION}},
+                            {"math::pi", {deps::Dep::VARIABLE}}}));
 
   // the expected should hold an error since 'my_constant' is undefined at this point
   assert(not obj1.has_value()

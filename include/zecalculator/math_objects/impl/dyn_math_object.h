@@ -731,10 +731,6 @@ deps::Deps DynMathObject<type>::direct_dependencies() const
       {
         auto var_names = exp_lhs->input_vars | std::views::transform(&parsing::tokens::Text::substr);
         auto deps = parsing::direct_dependencies(parsing::mark_input_vars{var_names}(f_obj.rhs));
-        // offset the indexes with the current lhs
-        for (auto& [name, dep]: deps)
-          for(size_t& index: dep.indexes)
-            index += lhs_str.size();
         return deps;
       },
       [&](const SeqObj& seq_obj)
@@ -746,10 +742,6 @@ deps::Deps DynMathObject<type>::direct_dependencies() const
           auto extra_deps = parsing::direct_dependencies(parsing::mark_input_vars{var_names}(ast));
           deps.insert(extra_deps.begin(), extra_deps.end());
         }
-        // offset the indexes with the current lhs
-        for (auto& [name, dep]: deps)
-          for(size_t& index: dep.indexes)
-            index += lhs_str.size();
         return deps;
       },
       [&](const DataObj& data_obj)

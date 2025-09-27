@@ -189,7 +189,7 @@ std::ostream& operator << (std::ostream& os, zc::deps::Dep::ObjectType type)
 
 std::ostream& operator << (std::ostream& os, const zc::deps::Dep& dep)
 {
-  os << dep.type << " " << dep.indexes;
+  os << dep.type;
   return os;
 }
 

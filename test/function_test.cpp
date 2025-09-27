@@ -321,7 +321,7 @@ int main()
 
     constexpr auto t = deps::Dep::FUNCTION;
     expect(seq.direct_dependencies()
-           == deps::Deps{{"u", {t, {35, 46}}}, {"f", {t, {15, 25}}}, {"cos", {t, {55}}}});
+           == deps::Deps{{"u", {t}}, {"f", {t}}, {"cos", {t}}});
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 
@@ -340,9 +340,9 @@ int main()
     using namespace std::string_literals;
 
     expect(f.direct_dependencies()
-           == deps::Deps{{"my_constant", {deps::Dep::VARIABLE, {13}}},
-                         {"cos", {deps::Dep::FUNCTION, {27}}},
-                         {"math::pi", {deps::Dep::VARIABLE, {31}}}}); // "u" and "f"
+           == deps::Deps{{"my_constant", {deps::Dep::VARIABLE}},
+                         {"cos", {deps::Dep::FUNCTION}},
+                         {"math::pi", {deps::Dep::VARIABLE}}}); // "u" and "f"
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 

@@ -158,8 +158,8 @@ int main()
     expect(*expect_node == expected_node) << *expect_node;
 
     expect(direct_dependencies(*expect_node)
-           == zc::deps::Deps{{"cos", {zc::deps::Dep::FUNCTION, {1}}},
-                             {"sin", {zc::deps::Dep::FUNCTION, {5}}}});
+           == zc::deps::Deps{{"cos", {zc::deps::Dep::FUNCTION}},
+                             {"sin", {zc::deps::Dep::FUNCTION}}});
 
   };
 
@@ -173,9 +173,9 @@ int main()
 
     // "x" is considered a variable for now
     expect(direct_dependencies(simple_ast.value())
-           == zc::deps::Deps{{"cos", {zc::deps::Dep::FUNCTION, {0}}},
-                             {"sin", {zc::deps::Dep::FUNCTION, {7}}},
-                             {"x", {zc::deps::Dep::VARIABLE, {4, 11}}}});
+           == zc::deps::Deps{{"cos", {zc::deps::Dep::FUNCTION}},
+                             {"sin", {zc::deps::Dep::FUNCTION}},
+                             {"x", {zc::deps::Dep::VARIABLE}}});
 
     auto expect_node = simple_ast.transform(mark_input_vars{std::array{"x"}});
 
@@ -183,8 +183,8 @@ int main()
 
     // "x" became an "input variable" and therefore not an external dependency anymore
     expect(direct_dependencies(expect_node.value())
-           == zc::deps::Deps{{"cos", {zc::deps::Dep::FUNCTION, {0}}},
-                             {"sin", {zc::deps::Dep::FUNCTION, {7}}}});
+           == zc::deps::Deps{{"cos", {zc::deps::Dep::FUNCTION}},
+                             {"sin", {zc::deps::Dep::FUNCTION}}});
 
     AST expected_node = AST::make_func(
       AST::Func::OP_ADD,
@@ -216,12 +216,12 @@ int main()
     expect(bool(expect_node)) << expect_node << fatal;
 
     expect(direct_dependencies(expect_node.value())
-           == zc::deps::Deps{{"cos", {zc::deps::Dep::FUNCTION, {1, 31}}},
-                             {"sin", {zc::deps::Dep::FUNCTION, {5}}},
-                             {"w", {zc::deps::Dep::VARIABLE, {14, 45}}},
-                             {"u", {zc::deps::Dep::FUNCTION, {17, 43}}},
-                             {"f", {zc::deps::Dep::FUNCTION, {19, 38}}},
-                             {"h", {zc::deps::Dep::FUNCTION, {21}}},
-                             {"y", {zc::deps::Dep::VARIABLE, {23, 40}}},});
+           == zc::deps::Deps{{"cos", {zc::deps::Dep::FUNCTION}},
+                             {"sin", {zc::deps::Dep::FUNCTION}},
+                             {"w", {zc::deps::Dep::VARIABLE}},
+                             {"u", {zc::deps::Dep::FUNCTION}},
+                             {"f", {zc::deps::Dep::FUNCTION}},
+                             {"h", {zc::deps::Dep::FUNCTION}},
+                             {"y", {zc::deps::Dep::VARIABLE}},});
   };
 }

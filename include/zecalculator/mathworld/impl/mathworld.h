@@ -145,8 +145,7 @@ std::unordered_set<DynMathObject<type>*>
 
     if (DynMathObject<type>* obj = get(name))
     {
-      // should have an internal::EqObject assigned of Function/Sequence type
-      // otherwise it cannot depend on anything
+      // Only FUNCTION, DATA and SEQUENCE can depend on something
       assert(obj->object_type() == FUNCTION or obj->object_type() == DATA
              or obj->object_type() == SEQUENCE);
       dep_eq_objs.insert(obj);
@@ -281,7 +280,6 @@ deps::Deps MathWorld<type>::direct_revdeps(std::string_view name) const
     {
       deps::Dep& dep = direct_rev_deps[std::string(math_obj.get_name())];
       dep.type = deps::Dep::FUNCTION;
-      dep.indexes = it->second.indexes;
     }
   }
   return direct_rev_deps;
