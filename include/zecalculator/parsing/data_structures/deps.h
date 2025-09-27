@@ -21,7 +21,6 @@
 ****************************************************************************/
 
 #include <zecalculator/utils/name_map.h>
-#include <vector>
 
 namespace zc {
 namespace deps {
