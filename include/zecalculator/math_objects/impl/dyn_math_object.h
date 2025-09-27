@@ -711,9 +711,12 @@ std::optional<std::string> DynMathObject<type>::get_equation() const
 }
 
 template <parsing::Type type>
-deps::Deps DynMathObject<type>::direct_dependencies() const
+const deps::Deps& DynMathObject<type>::direct_dependencies()
 {
-  return std::visit(
+  if (revision == direct_deps_revision)
+    return direct_deps;
+
+  direct_deps = std::visit(
     utils::overloaded{
       [&](const zc::Error&)
       {
@@ -759,6 +762,9 @@ deps::Deps DynMathObject<type>::direct_dependencies() const
         return deps;
       }
     }, parsed_data);
+
+  direct_deps_revision = revision;
+  return direct_deps;
 }
 
 }
