@@ -85,6 +85,8 @@ protected:
              and std::is_same_v<std::ranges::range_value_t<Values>, double>
   ObjectCache(std::in_place_t, Keys&& keys, Values&& values, size_t object_revision, size_t buffer_size);
 
+  void pop_oldest();
+
   std::flat_map<double, double> cache;
 
   /// @brief indices of cache, sorted from oldest to newest

@@ -49,26 +49,17 @@ inline void ObjectCache::set_buffer_size(size_t new_buffer_size)
   if (new_buffer_size > cache.size())
   {
     auto [keys, values] = std::move(cache).extract();
-    keys.reserve(buffer_size);
-    values.reserve(buffer_size);
+    // we allow ourselves to go +1 above buffer size in inserts, for a tad leaner code there
+    keys.reserve(new_buffer_size + 1);
+    values.reserve(new_buffer_size + 1);
     cache.replace(std::move(keys), std::move(values));
   }
   else if (new_buffer_size < cache.size())
   {
     size_t elements_to_pop = age_sorted_indices.size() - new_buffer_size;
 
-    // insert values that will be appended to the end of the flat_map
-    // so we can shrink it without issues: those newly pushed values will be popped
-    // and the old values that actually need to be removed will be by the insert() calls
     for (size_t i = 0 ; i != elements_to_pop; i++)
-      insert(cached_object_revision, std::numeric_limits<double>::max(), 0.);
-
-    auto [keys, values] = std::move(cache).extract();
-    keys.resize(new_buffer_size);
-    values.resize(new_buffer_size);
-    age_sorted_indices.resize(new_buffer_size);
-
-    cache.replace(std::move(keys), std::move(values));
+      pop_oldest();
   }
 
   buffer_size = new_buffer_size;
@@ -137,116 +128,45 @@ inline void ObjectCache::insert(size_t object_revision, double key, double value
     cached_object_revision = object_revision;
   }
 
+  auto [it, is_inserted] = cache.insert_or_assign(key, value);
 
-  if (cache.size() < buffer_size) [[unlikely]]
+  int distance = std::distance(cache.begin(), it);
+  assert(distance >= 0);
+  size_t insertion_index = distance;
+
+  if (is_inserted)
   {
-    // we haven't filled the buffer yet
-    auto [it, is_inserted] = cache.insert_or_assign(key, value);
+    // All indices that comes after the insertion index need to be incremented
+    std::ranges::for_each(age_sorted_indices, [&](size_t& i){ if (i >= insertion_index) i++; });
 
-    int distance = std::distance(cache.begin(), it);
-    assert(distance >= 0);
-    size_t insertion_index = distance;
+    age_sorted_indices.push_back(insertion_index);
 
-    if (is_inserted)
-    {
-      // All indices that comes after the insertion index need to be incremented
-      std::ranges::for_each(age_sorted_indices, [&](size_t& i){ if (i >= insertion_index) i++; });
-
-      // element inserted, since the buffer isn't full yet, we just push back this index
-      age_sorted_indices.push_back(insertion_index);
-    }
-    else
-    {
-      // the index got replaced with a new value
-      assert(std::ranges::count(age_sorted_indices, insertion_index) == 1);
-      std::erase(age_sorted_indices, insertion_index);
-      age_sorted_indices.push_back(insertion_index);
-    }
+    if (cache.size() > buffer_size)
+      pop_oldest();
   }
   else
   {
-    // buffer is full now
-
-    auto [keys, values] = std::move(cache).extract();
-
-    assert(not age_sorted_indices.empty());
-    assert(age_sorted_indices.size() == keys.size());
-
-    auto it = std::ranges::lower_bound(keys, key);
-
-    size_t erase_index = age_sorted_indices.front();
-    age_sorted_indices.pop_front();
-
-    assert(std::ranges::count(age_sorted_indices, erase_index) == 0); // all indices should be unique
-
-    int distance = std::distance(keys.begin(), it);
-    assert(distance >= 0);
-
-    size_t insertion_index = distance;
-
-    if (insertion_index == erase_index) [[unlikely]]
-    {
-      *it = key; //
-      values[insertion_index] = value;
-
-      age_sorted_indices.push_back(insertion_index);
-    }
-    else if (insertion_index < erase_index)
-    {
-      std::ranges::for_each(age_sorted_indices, [&](size_t& i){ if (insertion_index <= i and i < erase_index) i++; });
-
-      double extracted_key = std::nan(""), extracted_value = std::nan("");
-      for (size_t i = 0 ; i != keys.size() ; i++)
-      {
-        if (i == insertion_index)
-        {
-          extracted_key = keys[i];
-          extracted_value = values[i];
-
-          keys[i] = key;
-          values[i] = value;
-        }
-        else if (insertion_index < i and i < erase_index)
-        {
-          std::swap(keys[i], extracted_key);
-          std::swap(values[i], extracted_value);
-        }
-        else if (i == erase_index)
-        {
-          keys[i] = extracted_key;
-          values[i] = extracted_value;
-        }
-      }
-
-      // needs to come at the end because we update values 'age_sorted_indices' to move them to the right or left
-      // depending on how things got inserted/deleted
-      age_sorted_indices.push_back(insertion_index);
-    }
-    else // erase_index < insertion_index
-    {
-      std::ranges::for_each(age_sorted_indices, [&](size_t& i){ if (erase_index < i and i < insertion_index) i--; });
-
-      for (size_t i = 0 ; i != keys.size() ; i++)
-      {
-        if (erase_index <= i and i < insertion_index-1)
-        {
-          keys[i] = keys[i+1];
-          values[i] = values[i+1];
-        }
-        if (i == insertion_index-1)
-        {
-          keys[i] = key;
-          values[i] = value;
-        }
-      }
-
-      // needs to come at the end because we update values 'age_sorted_indices' to move them to the right or left
-      // depending on how things got inserted/deleted
-      age_sorted_indices.push_back(insertion_index-1);
-    }
-
-    cache.replace(std::move(keys), std::move(values));
+    // the index got replaced with a new value
+    assert(std::ranges::count(age_sorted_indices, insertion_index) == 1);
+    std::erase(age_sorted_indices, insertion_index);
+    age_sorted_indices.push_back(insertion_index);
   }
+}
+
+inline void ObjectCache::pop_oldest()
+{
+  if (cache.size() == 0)
+    return;
+
+  size_t pop_index = age_sorted_indices.front();
+  age_sorted_indices.pop_front();
+  std::ranges::for_each(age_sorted_indices, [&](size_t& i){ if (i >= pop_index) i--; });
+
+  auto&& [keys, values] = std::move(cache).extract();
+  keys.erase(keys.begin() + pop_index);
+  values.erase(values.begin() + pop_index);
+
+  cache.replace(std::move(keys), std::move(values));
 }
 
 }
