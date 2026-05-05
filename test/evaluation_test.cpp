@@ -241,14 +241,14 @@ int main()
       if constexpr (std::is_same_v<StructType, AST_TEST>)
       {
         auto exp_ast = parsing::tokenize(expr).and_then(parsing::make_ast{expr});
-        dummy += exp_ast->dyn_data.index();
+        if(exp_ast) dummy += exp_ast->dyn_data.index();
       }
       else if constexpr (std::is_same_v<StructType, FAST_TEST>)
       {
         auto exp_ast = parsing::tokenize(expr)
                          .and_then(parsing::make_ast{expr})
                          .and_then(parsing::make_fast<type>{expr, world});
-        dummy += exp_ast->node.index();
+        if(exp_ast) dummy += exp_ast->node.index();
       }
       else
       {
@@ -257,7 +257,7 @@ int main()
                          .and_then(parsing::make_ast{expr})
                          .and_then(parsing::make_fast<type>{expr, world})
                          .transform(parsing::make_RPN);
-        dummy += exp_ast->size();
+        if(exp_ast) dummy += exp_ast->size();
       }
     });
 
