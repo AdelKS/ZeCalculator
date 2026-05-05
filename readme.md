@@ -208,81 +208,20 @@ Overview:
      - Has faster evaluation
 
 #### Benchmarks
-There is for now one benchmark defined in the tests, called "parametric function benchmark" in the file [test/function_test.cpp](test/function_test.cpp), that computes the average evaluation time of the function `f(x) = 3*cos(t*x) + 2*sin(x/t) + 4`, where `t` is a global constant, in `ast` vs `rpn` vs `c++`.
+
+There is for now one benchmark defined in the tests, called "function benchmark" in the file [test/function_test.cpp](test/function_test.cpp), that computes the average evaluation time of the function `f(x) =3*cos(3*x) + 2*sin(x/2) + 4`, in `ast` vs `rpn` vs `c++`.
 
 The current results are (`-march=native -O3` compile flags)
-- `AMD Ryzen 5950X`
-  - `g++ 13.2.1` + `libstdc++` + `ld.bfd 2.41.0`
-    - `ast`: 270ns ± 5ns
-    - `rpn`: 135ns ± 5ns
-    - `c++`: 75ns ± 5ns
-  - `clang++ 17.0.6` + `libc++` + `ld.lld 17.0.6`
-    - `ast`: 245ns ± 5ns
-    - `rpn`: 140ns ± 5ns
-    - `c++`: 75ns ± 5ns
+
 - `AMD Ryzen 9950X3D`
-  - `g++ 15.1.0` + `libstdc++` + `ld.bfd 2.44.0`
-    - `ast`: 185ns ± 5ns
-    - `rpn`: 110ns ± 5ns
-    - `c++`: 60ns ± 5ns
-  - `clang++ 20.1.7` + `libc++` + `ld.lld 20.1.7`
-    - `ast`: 170ns ± 5ns
-    - `rpn`: 115ns ± 5ns
-    - `c++`: 60ns ± 5ns
-
-<details>
-
-<summary>Benchmark code snippet</summary>
-
-```c++
-"parametric function benchmark"_test = []<class StructType>()
-{
-  constexpr auto duration = nanoseconds(500ms);
-  {
-    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
-    constexpr std::string_view data_type_str_v = std::is_same_v<StructType, FAST_TEST> ? "FAST" : "RPN";
-
-    MathWorld<type> world;
-    auto& t = (world.new_object() = "t = 1");
-    auto& f = (world.new_object() = "f(x) =3*cos(t*x) + 2*sin(x/t) + 4");
-
-    double x = 0;
-    double res = 0;
-    size_t iterations =
-      loop_call_for(duration, [&]{
-        res += f({x}).value();
-        x++;
-        t = x;
-    });
-    std::cout << "Avg zc::Function<" << data_type_str_v << "> eval time: "
-              << duration_cast<nanoseconds>(duration / iterations).count() << "ns"
-              << std::endl;
-    std::cout << "dummy val: " << res << std::endl;
-  }
-  {
-    double cpp_t = 1;
-    auto cpp_f = [&](double x) {
-      return 3*cos(cpp_t*x) + 2*sin(x/cpp_t) + 4;
-    };
-
-    double x = 0;
-    double res = 0;
-    size_t iterations =
-      loop_call_for(duration, [&]{
-        res += cpp_f(x);
-        iterations++;
-        x++;
-        cpp_t++;
-    });
-    std::cout << "Avg C++ function eval time: " << duration_cast<nanoseconds>(duration/iterations).count() << "ns" << std::endl;
-    std::cout << "dummy val: " << res << std::endl;
-
-  }
-
-} | std::tuple<FAST_TEST, RPN_TEST>{};
-```
-
-</details>
+  - `g++ 15.2.1` + `libstdc++` + `ld.bfd 2.46.0`
+    - `ast`: 160ns ± 5ns
+    - `rpn`: 75ns ± 5ns
+    - `c++`: 30ns ± 5ns
+  - `clang++ 22.1.2` + `libc++` + `ld.lld 22.1.2`
+    - `ast`: 150 ± 5ns
+    - `rpn`: 95ns ± 5ns
+    - `c++`: 30ns ± 5ns
 
 #### How to build
 

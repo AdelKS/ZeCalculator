@@ -263,7 +263,7 @@ int main()
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 
-  "parametric function benchmark"_test = []<class StructType>()
+  "function benchmark"_test = []<class StructType>()
   {
     constexpr auto duration = nanoseconds(500ms);
     {
@@ -271,8 +271,7 @@ int main()
       constexpr std::string_view data_type_str_v = std::is_same_v<StructType, FAST_TEST> ? "FAST" : "RPN";
 
       MathWorld<type> world;
-      auto& t = (world.new_object() = "t = 1");
-      auto& f = (world.new_object() = "f(x) =3*cos(t*x) + 2*sin(x/t) + 4");
+      auto& f = (world.new_object() = "f(x) =3*cos(3*x) + 2*sin(x/2) + 4");
 
       double x = 0;
       double res = 0;
@@ -280,7 +279,6 @@ int main()
         loop_call_for(duration, [&]{
           res += f({x}).value();
           x++;
-          t = x;
       });
       std::cout << "Avg zc::Function<" << data_type_str_v << "> eval time: "
                 << duration_cast<nanoseconds>(duration / iterations).count() << "ns"
@@ -288,9 +286,8 @@ int main()
       std::cout << "dummy val: " << res << std::endl;
     }
     {
-      double cpp_t = 1;
-      auto cpp_f = [&](double x) {
-        return 3*cos(cpp_t*x) + 2*sin(x/cpp_t) + 4;
+      auto cpp_f = [](double x) {
+        return 3*cos(3.*x) + 2*sin(x/2.) + 4;
       };
 
       double x = 0;
@@ -300,7 +297,6 @@ int main()
           res += cpp_f(x);
           iterations++;
           x++;
-          cpp_t++;
       });
       std::cout << "Avg C++ function eval time: " << duration_cast<nanoseconds>(duration/iterations).count() << "ns" << std::endl;
       std::cout << "dummy val: " << res << std::endl;
