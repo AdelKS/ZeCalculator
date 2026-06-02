@@ -48,7 +48,7 @@ struct LinkedSeq
 template <parsing::Type type>
 struct LinkedData
 {
-  std::vector<tl::expected<Parsing<type>, zc::Error>> repr;
+  std::vector<std::expected<Parsing<type>, zc::Error>> repr;
   size_t slot;
   size_t object_revision;
 };

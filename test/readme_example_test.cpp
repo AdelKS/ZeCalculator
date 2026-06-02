@@ -22,7 +22,6 @@
 #include <zecalculator/test-utils/print-utils.h>
 
 using namespace zc;
-using namespace tl;
 using namespace std;
 
 double square(double x) { return x * x; }
@@ -33,7 +32,7 @@ int main()
 
   // Notes about adding a math object to a math world:
   // - Each added object exists only within the math world that creates it
-  // - Adding a math object returns a DynMathObject reference that is essentially an expected<variant, error>
+  // - Adding a math object returns a DynMathObject reference that is essentially an std::expected<variant, error>
   //   with some helper functions.
   //   - the variant contains all the possible objects: function, sequence, global constant, cpp function
   //   - the error expresses what went wrong in adding the object / parsing the equation

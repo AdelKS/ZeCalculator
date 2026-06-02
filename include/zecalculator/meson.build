@@ -1,4 +1,3 @@
-subdir('external')
 subdir('utils')
 subdir('parsing')
 subdir('evaluation')

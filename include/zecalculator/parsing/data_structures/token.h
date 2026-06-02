@@ -28,8 +28,8 @@
 #include <string>
 #include <string_view>
 #include <variant>
+#include <expected>
 
-#include <zecalculator/external/expected.h>
 #include <zecalculator/utils/tuple.h>
 #include <zecalculator/utils/utils.h>
 

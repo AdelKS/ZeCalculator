@@ -1,7 +1,7 @@
 project('ZeCalculator', 'cpp',
     version : '0.12.4',
     default_options : [
-        'cpp_std=c++20',
+        'cpp_std=c++23',
         'buildtype=release',
         'optimization=3',
         'default_library=both',
@@ -12,6 +12,22 @@ project('ZeCalculator', 'cpp',
 )
 
 fs = import('fs')
+
+compiler = meson.get_compiler('cpp')
+
+cpp23_code = '''
+#include <flat_map>
+#include <expected>
+
+void func() {
+  [[maybe_unused]] std::expected<bool, int> v = std::unexpected(3);
+  [[maybe_unused]] std::flat_map<int, int> m = {{2, 3}, {4, 5}};
+}
+'''
+
+if not compiler.compiles(cpp23_code, name : 'C++23 STL support check')
+  error('C++ STL doesn\'t implement std::flat_map or std::expected')
+endif
 
 zecalculator_inc = include_directories('include')
 

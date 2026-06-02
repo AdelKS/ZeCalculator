@@ -1,6 +1,6 @@
 ### ZeCalculator
 
-`ZeCalculator` is a `C++20` library for parsing and computing mathematical expressions and objects.
+`ZeCalculator` is a `C++23` library for parsing and computing mathematical expressions and objects.
 
 #### Features
 
@@ -37,7 +37,7 @@ int main()
 
   // Notes about adding a math object to a math world:
   // - Each added object exists only within the math world that creates it
-  // - Adding a math object returns a DynMathObject reference that is essentially an expected<variant, error>
+  // - Adding a math object returns a DynMathObject reference that is essentially an std::expected<variant, error>
   //   with some helper functions.
   //   - the variant contains all the possible objects: function, sequence, global constant, cpp function
   //   - the error expresses what went wrong in adding the object / parsing the equation
@@ -75,7 +75,7 @@ int main()
   // We can evaluate 'obj1' with an initializer_list<double>
   // note: we could also do it when 'my_constant' was undefined,
   //       in that case the result would be the same error as above
-  expected<double, Error> eval = obj1({1.0});
+  std::expected<double, Error> eval = obj1({1.0});
 
   // Notes:
   // - We know the expression is correct, otherwise the call `.value()` will throw
@@ -149,7 +149,7 @@ Overview:
         ```
 2. [DynMathObject](./include/zecalculator/math_objects/decl/dyn_math_object.h) acts as a generic math object
     - Has a "left hand side" (LHS) that defines its name and the name of its input variables, e.g. `  f(x) ` (notice the white spaces)
-      - The status of it can be queried with `tl::expected<Ok, zc::Error> name_status() const`
+      - The status of it can be queried with `std::expected<Ok, zc::Error> name_status() const`
     - Has a "right hand side" (RHS) that defines how the object is compute, and differs among the possible math object types
       - The type can be
         - Simple double valued constant
@@ -157,9 +157,9 @@ Overview:
         - 1D Data object
         - Sequence
         - Global variable
-      - The status of it can be queried with `tl::expected<Ok, zc::Error> object_status() const`
+      - The status of it can be queried with `std::expected<Ok, zc::Error> object_status() const`
     - The overall status (i.e. valid LHS and RHS) can be queried with
-      - `tl::expected<Ok, zc::Error> status() const`
+      - `std::expected<Ok, zc::Error> status() const`
       - `bool has_value()`
       - `std::optional<zc::Error> error()` to retrieve the error in either the LHS or RHS
     - Some extra helper methods
@@ -195,8 +195,8 @@ Overview:
         ```
     - Can be evaluated
       ```c++
-      tl::expected<double, zc::Error> res1 = obj({1.0});
-      tl::expected<double, zc::Error> res2 = obj.evaluate({12.0, 3.0});
+      std::expected<double, zc::Error> res1 = obj({1.0});
+      std::expected<double, zc::Error> res2 = obj.evaluate({12.0, 3.0});
       ```
 3. Error messages when expressions have faulty syntax or semantics are expressed through the [zc::Error](include/zecalculator/error.h) class:
    - If it is known, gives what part of the equation raised the error with the `token` member, of the type [zc::tokens::Text](./include/zecalculator/parsing/data_structures/token.h)

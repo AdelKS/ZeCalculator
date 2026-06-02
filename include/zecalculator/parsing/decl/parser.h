@@ -52,7 +52,7 @@ std::optional<std::pair<double, size_t>> to_double(std::string_view view);
 /// @note the string that is void must remain valid for for the returned instance
 ///       to remain valid (for both a successful or unsuccessful  parsing)
 ///       as they contain sub-string views of the input view
-tl::expected<std::vector<Token>, Error> tokenize(std::string_view expression);
+std::expected<std::vector<Token>, Error> tokenize(std::string_view expression);
 
 /// @brief makes a syntax tree from from a sequence of tokens
 /// @param input_vars: variable names that are considered as input (for functions)
@@ -64,7 +64,7 @@ struct make_ast
   std::string_view expression;
   const Range& input_vars = {};
 
-  tl::expected<AST, Error> operator()(std::span<const parsing::Token> tokens);
+  std::expected<AST, Error> operator()(std::span<const parsing::Token> tokens);
 };
 
 // user deduction guide for clang-16 that is stupid
@@ -99,7 +99,7 @@ struct make_fast
   std::string expression;
   const MathWorld<type>& math_world;
 
-  tl::expected<FAST<type>, Error> operator () (const AST& ast);
+  std::expected<FAST<type>, Error> operator () (const AST& ast);
 };
 
 /// @brief transforms a syntax tree to a flat Reverse Polish / postfix notation representation

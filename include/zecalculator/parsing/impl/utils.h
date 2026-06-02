@@ -73,7 +73,7 @@ inline deps::Deps direct_dependencies(const AST& ast)
 }
 
 /// @brief create LHS instance from a string representing the left hand side
-inline tl::expected<LHS, zc::Error> parse_lhs(std::string_view lhs_expr, std::string_view full_expr)
+inline std::expected<LHS, zc::Error> parse_lhs(std::string_view lhs_expr, std::string_view full_expr)
 {
   return parsing::tokenize(lhs_expr)
   .and_then(parsing::make_ast{full_expr})
@@ -82,7 +82,7 @@ inline tl::expected<LHS, zc::Error> parse_lhs(std::string_view lhs_expr, std::st
 }
 
 /// @brief create LHS instance from an already parsed string
-inline tl::expected<LHS, zc::Error> parse_lhs(const AST& lhs, std::string_view full_expr)
+inline std::expected<LHS, zc::Error> parse_lhs(const AST& lhs, std::string_view full_expr)
 {
   // can either be a variable or a function call
   if (lhs.is_var())
@@ -94,7 +94,7 @@ inline tl::expected<LHS, zc::Error> parse_lhs(const AST& lhs, std::string_view f
     auto res = LHS{.name = lhs.name, .substr = func_data.full_expr};
 
     if(func_data.type != parsing::AST::Func::FUNCTION)
-      return tl::unexpected(Error::unexpected(lhs.name, std::string(full_expr)));
+      return std::unexpected(Error::unexpected(lhs.name, std::string(full_expr)));
 
     // we don't handle functions with no input variables
     // they are used as variables instead
@@ -104,13 +104,13 @@ inline tl::expected<LHS, zc::Error> parse_lhs(const AST& lhs, std::string_view f
     for (const auto& arg: func_data.subnodes)
     {
       if (not arg.is_var()) [[ unlikely ]]
-        return tl::unexpected(Error::unexpected(arg.name, std::string(full_expr)));
+        return std::unexpected(Error::unexpected(arg.name, std::string(full_expr)));
       else res.input_vars.push_back(arg.name);
     }
 
     return res;
   }
-  else return tl::unexpected(Error::unexpected(lhs.name, std::string(full_expr)));
+  else return std::unexpected(Error::unexpected(lhs.name, std::string(full_expr)));
 }
 
 /// @brief changes the begin position of every token within the ast by 'offset'

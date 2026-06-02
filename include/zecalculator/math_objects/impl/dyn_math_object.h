@@ -29,7 +29,7 @@
 namespace zc {
 
 template <parsing::Type type>
-tl::expected<double, Error> DynMathObject<type>::operator () (std::initializer_list<double> vals, eval::Cache* cache) const
+std::expected<double, Error> DynMathObject<type>::operator () (std::initializer_list<double> vals, eval::Cache* cache) const
 {
   return evaluate(vals, cache);
 }
@@ -65,60 +65,60 @@ void DynMathObject<type>::set_name_internal(const T& name, std::string_view full
                                 and mathworld.contains(exp_lhs->name.substr));
 
     if ((holds(SEQUENCE) or holds(DATA)) and exp_lhs->input_vars.size() > 1)
-      exp_lhs = tl::unexpected(
+      exp_lhs = std::unexpected(
         zc::Error::unexpected(exp_lhs->input_vars[1], std::string(full_expr)));
     else if ((holds(CONSTANT) or holds(CPP_FUNCTION)) and not exp_lhs->input_vars.empty())
-      exp_lhs = tl::unexpected(
+      exp_lhs = std::unexpected(
         zc::Error::unexpected(exp_lhs->input_vars[0], std::string(full_expr)));
   }
 }
 
 template <parsing::Type type>
-tl::expected<double, Error> DynMathObject<type>::evaluate(std::initializer_list<double> vals, eval::Cache* cache) const
+std::expected<double, Error> DynMathObject<type>::evaluate(std::initializer_list<double> vals, eval::Cache* cache) const
 {
-  using Ret = tl::expected<double, Error>;
+  using Ret = std::expected<double, Error>;
   if (auto err = error())
-    return tl::unexpected(*err);
+    return std::unexpected(*err);
 
   return std::visit(
     utils::overloaded{
       [&](zc::Error err) -> Ret
       {
-        return tl::unexpected(err);
+        return std::unexpected(err);
       },
       [&]<size_t args_num>(CppFunction<args_num> cpp_f) -> Ret
       {
         if (vals.size() != args_num)
-          return tl::unexpected(Error::cpp_incorrect_argnum());
+          return std::unexpected(Error::cpp_incorrect_argnum());
 
         return cpp_f(std::span<const double, args_num>(vals.begin(), args_num));
       },
       [&](const FuncObj& f_obj) -> Ret
       {
         if (not bool(f_obj.linked_rhs))
-          return tl::unexpected(f_obj.linked_rhs.error());
+          return std::unexpected(f_obj.linked_rhs.error());
         else if (f_obj.linked_rhs->args_num != vals.size())
-          return tl::unexpected(zc::Error::cpp_incorrect_argnum());
+          return std::unexpected(zc::Error::cpp_incorrect_argnum());
         return zc::evaluate(f_obj.linked_rhs->repr, vals, cache);
       },
       [&](const ConstObj& cst) -> Ret
       {
         if (vals.size() != 0)
-          return tl::unexpected(Error::cpp_incorrect_argnum());
+          return std::unexpected(Error::cpp_incorrect_argnum());
         else return cst.val;
       },
       [&](const SeqObj& seq_obj) -> Ret
       {
         if (vals.size() != 1)
-          return tl::unexpected(Error::cpp_incorrect_argnum());
+          return std::unexpected(Error::cpp_incorrect_argnum());
         else if (not bool(seq_obj.linked_rhs))
-          return tl::unexpected(seq_obj.linked_rhs.error());
+          return std::unexpected(seq_obj.linked_rhs.error());
         else return zc::evaluate(*seq_obj.linked_rhs, *vals.begin(), cache);
       },
       [&](const DataObj& data_obj) -> Ret
       {
         if (vals.size() != 1)
-          return tl::unexpected(Error::cpp_incorrect_argnum());
+          return std::unexpected(Error::cpp_incorrect_argnum());
         else return zc::evaluate(data_obj.linked_rhs, *vals.begin(), cache);
       }
     },
@@ -283,29 +283,29 @@ DynMathObject<type>::operator bool () const
 }
 
 template <parsing::Type type>
-tl::expected<Ok, zc::Error> DynMathObject<type>::name_status() const
+std::expected<Ok, zc::Error> DynMathObject<type>::name_status() const
 {
   if (bool(exp_lhs))
   {
     if (exp_lhs->name_already_taken)
-      return tl::unexpected(Error::name_already_taken(exp_lhs->name, exp_lhs->substr.substr));
+      return std::unexpected(Error::name_already_taken(exp_lhs->name, exp_lhs->substr.substr));
     else return Ok{};
   }
-  else return tl::unexpected(exp_lhs.error());
+  else return std::unexpected(exp_lhs.error());
 }
 
 template <parsing::Type type>
-tl::expected<Ok, zc::Error> DynMathObject<type>::object_status() const
+std::expected<Ok, zc::Error> DynMathObject<type>::object_status() const
 {
-  tl::expected<Ok, zc::Error> status = Ok{};
+  std::expected<Ok, zc::Error> status = Ok{};
   std::visit(
     utils::overloaded{
-      [&](const zc::Error& err) { status = tl::unexpected(err); },
+      [&](const zc::Error& err) { status = std::unexpected(err); },
       [&]<class T>(const T& f)
         requires utils::is_any_of<T, FuncObj, SeqObj>
       {
         if (not f.linked_rhs)
-          status = tl::unexpected(f.linked_rhs.error());
+          status = std::unexpected(f.linked_rhs.error());
       },
       [&]<class T>(const T&)
         requires (not utils::is_any_of<T, FuncObj, SeqObj>)
@@ -321,12 +321,12 @@ tl::expected<Ok, zc::Error> DynMathObject<type>::object_status() const
 }
 
 template <parsing::Type type>
-tl::expected<Ok, zc::Error> DynMathObject<type>::status() const
+std::expected<Ok, zc::Error> DynMathObject<type>::status() const
 {
   if (auto state = object_status(); not bool(state))
-    return tl::unexpected(state.error());
+    return std::unexpected(state.error());
   else if (auto state = name_status(); not bool(state))
-    return tl::unexpected(state.error());
+    return std::unexpected(state.error());
   else return Ok{};
 }
 
@@ -361,23 +361,23 @@ size_t DynMathObject<type>::get_revision() const
 }
 
 template <parsing::Type type>
-tl::expected<typename DynMathObject<type>::LinkedRepr, zc::Error>
+std::expected<typename DynMathObject<type>::LinkedRepr, zc::Error>
   DynMathObject<type>::get_linked_repr() const
 {
-  using RetT = tl::expected<typename DynMathObject<type>::LinkedRepr, zc::Error>;
+  using RetT = std::expected<typename DynMathObject<type>::LinkedRepr, zc::Error>;
 
   return std::visit(
     utils::overloaded{
-      [&](const zc::Error& err) -> RetT { return tl::unexpected(err); },
+      [&](const zc::Error& err) -> RetT { return std::unexpected(err); },
       [&](const ConstObj& c) -> RetT { return &c.val; },
       [&]<size_t args_num>(CppFunction<args_num> f) -> RetT { return f; },
       [&](const FuncObj& f) -> RetT {
         if (f.linked_rhs) return &(*f.linked_rhs);
-        else return tl::unexpected(f.linked_rhs.error());
+        else return std::unexpected(f.linked_rhs.error());
       },
       [&](const SeqObj& u) -> RetT {
         if (u.linked_rhs) return &(*u.linked_rhs);
-        else return tl::unexpected(u.linked_rhs.error());
+        else return std::unexpected(u.linked_rhs.error());
       },
       [&](const DataObj& d) -> RetT { return &(d.linked_rhs); }
     },
@@ -465,8 +465,8 @@ DynMathObject<type>& DynMathObject<type>::bulk_data_input(size_t index, std::vec
   }();
 
   data_obj.data.resize(new_size);
-  data_obj.rhs.resize(new_size, tl::unexpected(zc::Error::empty_expression()));
-  data_obj.linked_rhs.repr.resize(new_size, tl::unexpected(zc::Error::empty_expression()));
+  data_obj.rhs.resize(new_size, std::unexpected(zc::Error::empty_expression()));
+  data_obj.linked_rhs.repr.resize(new_size, std::unexpected(zc::Error::empty_expression()));
 
   if constexpr (insert)
   {
@@ -565,7 +565,7 @@ std::optional<std::string> DynMathObject<type>::get_data_point(size_t index) con
 }
 
 template <parsing::Type type>
-tl::expected<parsing::Parsing<type>, zc::Error>
+std::expected<parsing::Parsing<type>, zc::Error>
   DynMathObject<type>::get_final_repr(const parsing::AST& ast, std::string_view equation)
 {
   std::vector<std::string> var_names;
@@ -614,7 +614,7 @@ DynMathObject<type>& DynMathObject<type>::finalize_asts()
           if (bool(exp_repr))
             f_obj.linked_rhs->repr = std::move(*exp_repr);
           else
-            f_obj.linked_rhs = tl::unexpected(exp_repr.error());
+            f_obj.linked_rhs = std::unexpected(exp_repr.error());
         }
       },
       [&](SeqObj& seq_obj)
@@ -633,7 +633,7 @@ DynMathObject<type>& DynMathObject<type>::finalize_asts()
               values.push_back(std::move(*exp_linked));
             else
             {
-              seq_obj.linked_rhs = tl::unexpected(exp_linked.error());
+              seq_obj.linked_rhs = std::unexpected(exp_linked.error());
               return;
             }
           }

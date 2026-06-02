@@ -26,8 +26,7 @@
 #include <ranges>
 #include <type_traits>
 #include <utility>
-
-#include <zecalculator/external/flat_map.h>
+#include <flat_map>
 
 namespace zc {
 namespace eval {

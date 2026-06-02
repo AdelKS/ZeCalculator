@@ -55,12 +55,12 @@ void offset_tokens(AST& ast, int offset);
 /// @brief create LHS instance from a string representing the left hand side
 /// @arg lhs: substring where lhs is defined
 /// @arg full_expr: full expression where 'lhs' appears, only used for errors
-tl::expected<LHS, zc::Error> parse_lhs(std::string_view lhs, std::string_view full_expr);
+std::expected<LHS, zc::Error> parse_lhs(std::string_view lhs, std::string_view full_expr);
 
 /// @brief create LHS instance from an already parsed string
 /// @arg lhs: the parsed lhs to use
 /// @arg full_expr: full expression where 'lhs' appears, only used for errors
-tl::expected<LHS, zc::Error> parse_lhs(const AST& lhs, std::string_view full_expr);
+std::expected<LHS, zc::Error> parse_lhs(const AST& lhs, std::string_view full_expr);
 
 } // namespace parsing
 } // namespace zc

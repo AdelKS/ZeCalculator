@@ -55,7 +55,7 @@ inline std::optional<std::pair<double, size_t>> to_double(std::string_view view)
   return result;
 }
 
-inline tl::expected<std::vector<Token>, Error> tokenize(std::string_view expression)
+inline std::expected<std::vector<Token>, Error> tokenize(std::string_view expression)
 {
   const std::string_view orig_expr = expression;
   std::vector<Token> parsing;
@@ -110,14 +110,14 @@ inline tl::expected<std::vector<Token>, Error> tokenize(std::string_view express
           it += processed_char_num;
         }
         else
-          return tl::unexpected(Error::unexpected(tokens::Text::from_views(val_str_v, orig_expr),
+          return std::unexpected(Error::unexpected(tokens::Text::from_views(val_str_v, orig_expr),
                                                   std::string(expression)));
 
         openingParenthesis = value = unaryPrefixOp = false;
         binaryInfixOp = canEnd = closingParenthesis = true;
       }
       else
-        return tl::unexpected(Error::wrong_format(
+        return std::unexpected(Error::wrong_format(
           Token(std::nan(""), tokens::Text::from_views(char_v, orig_expr)), std::string(expression)));
     }
     else if (auto opt_op = tokens::as_unary_prefix_operator(*it); unaryPrefixOp and opt_op)
@@ -140,7 +140,7 @@ inline tl::expected<std::vector<Token>, Error> tokenize(std::string_view express
         binaryInfixOp = closingParenthesis = canEnd = false;
         it++;
       }
-      else return tl::unexpected(Error::unexpected(char_txt, std::string(expression)));
+      else return std::unexpected(Error::unexpected(char_txt, std::string(expression)));
     }
     else if (*it == '(')
     {
@@ -162,7 +162,7 @@ inline tl::expected<std::vector<Token>, Error> tokenize(std::string_view express
         binaryInfixOp = closingParenthesis = canEnd = false;
         it++;
       }
-      else return tl::unexpected(Error::unexpected(pth_txt, std::string(expression)));
+      else return std::unexpected(Error::unexpected(pth_txt, std::string(expression)));
     }
     else if (*it == ')')
     {
@@ -179,7 +179,7 @@ inline tl::expected<std::vector<Token>, Error> tokenize(std::string_view express
         value = unaryPrefixOp = openingParenthesis = false;
         it++;
       }
-      else return tl::unexpected(Error::unexpected(pth_txt, std::string(expression)));
+      else return std::unexpected(Error::unexpected(pth_txt, std::string(expression)));
     }
     else if (*it == ' ')
       // spaces are skipped
@@ -221,7 +221,7 @@ inline tl::expected<std::vector<Token>, Error> tokenize(std::string_view express
           openingParenthesis = true;
         }
       }
-      else return tl::unexpected(Error::unexpected(tokens::Text::from_views(char_v, orig_expr), std::string(expression)));
+      else return std::unexpected(Error::unexpected(tokens::Text::from_views(char_v, orig_expr), std::string(expression)));
     }
   }
 
@@ -229,20 +229,20 @@ inline tl::expected<std::vector<Token>, Error> tokenize(std::string_view express
   {
     auto&& expr_cend_txt = tokens::Text::from_views(std::string_view(it, 0), orig_expr);
     if (last_opened_pth.top() == FUNCTION_CALL_PTH)
-      return tl::unexpected(Error::missing(expr_cend_txt, std::string(expression)));
-    else return tl::unexpected(Error::missing(expr_cend_txt, std::string(expression)));
+      return std::unexpected(Error::missing(expr_cend_txt, std::string(expression)));
+    else return std::unexpected(Error::missing(expr_cend_txt, std::string(expression)));
   }
 
   if (parsing.empty())
-    return tl::unexpected(Error::empty_expression(std::string(expression)));
+    return std::unexpected(Error::empty_expression(std::string(expression)));
 
   if (not canEnd)
-    return tl::unexpected(Error::unexpected_end_of_expression(std::string(expression)));
+    return std::unexpected(Error::unexpected_end_of_expression(std::string(expression)));
 
   return parsing;
 }
 
-inline tl::expected<std::vector<std::span<const Token>::iterator>, Error>
+inline std::expected<std::vector<std::span<const Token>::iterator>, Error>
   get_non_pth_enclosed_tokens(std::span<const Token> tokens, std::string_view expression)
 {
   std::vector<std::span<const Token>::iterator> non_pth_enclosed_tokens;
@@ -265,13 +265,13 @@ inline tl::expected<std::vector<std::span<const Token>::iterator>, Error>
     {
       if (not last_opened_pth.empty() and last_opened_pth.top() == FUNCTION_CALL_PTH)
         last_opened_pth.pop();
-      else return tl::unexpected(Error::unexpected(*tokenIt, std::string(expression)));
+      else return std::unexpected(Error::unexpected(*tokenIt, std::string(expression)));
     }
     else if (tokenIt->type == tokens::CLOSING_PARENTHESIS)
     {
       if (not last_opened_pth.empty() and last_opened_pth.top() == NORMAL_PTH)
         last_opened_pth.pop();
-      else return tl::unexpected(Error::unexpected(*tokenIt, std::string(expression)));
+      else return std::unexpected(Error::unexpected(*tokenIt, std::string(expression)));
     }
     // if not a parenthesis, and the token is not enclosed within parentheses, push it
     else if (last_opened_pth.empty())
@@ -281,11 +281,11 @@ inline tl::expected<std::vector<std::span<const Token>::iterator>, Error>
   return non_pth_enclosed_tokens;
 }
 
-/// @brief functor that maps a MathWorld::ConstDynMathObject to tl::expected<fast::fast, Error>
+/// @brief functor that maps a MathWorld::ConstDynMathObject to std::expected<fast::fast, Error>
 template <parsing::Type world_type>
 struct VariableVisiter
 {
-  using Ret = tl::expected<parsing::FAST<world_type>, Error>;
+  using Ret = std::expected<parsing::FAST<world_type>, Error>;
   using T = parsing::FAST<world_type>;
 
   std::string expression;
@@ -298,23 +298,23 @@ struct VariableVisiter
   Ret operator()(const zc::DynMathObject<world_type>::FuncObj& f)
   {
     if (not bool(f.linked_rhs))
-      return tl::unexpected(zc::Error::object_in_invalid_state(var_txt_token, expression));
+      return std::unexpected(zc::Error::object_in_invalid_state(var_txt_token, expression));
 
     else if (f.linked_rhs->args_num != 0) [[unlikely]]
-      return tl::unexpected(Error::wrong_object_type(var_txt_token, expression));
+      return std::unexpected(Error::wrong_object_type(var_txt_token, expression));
 
     return T{&(*f.linked_rhs)};
   }
   Ret operator()(auto&&)
   {
-    return tl::unexpected(Error::wrong_object_type(var_txt_token, expression));
+    return std::unexpected(Error::wrong_object_type(var_txt_token, expression));
   }
 };
 
 template <parsing::Type world_type>
 struct FunctionVisiter
 {
-  using Ret = tl::expected<FAST<world_type>, Error>;
+  using Ret = std::expected<FAST<world_type>, Error>;
   using T = FAST<world_type>;
 
   std::string expression;
@@ -325,47 +325,47 @@ struct FunctionVisiter
   Ret operator()(CppFunction<args_num> f)
   {
     if (subnodes.size() != args_num) [[unlikely]]
-      return tl::unexpected(Error::mismatched_fun_args(func.args_token(), expression));
+      return std::unexpected(Error::mismatched_fun_args(func.args_token(), expression));
 
     return T{f, std::move(subnodes)};
   }
   Ret operator()(const zc::DynMathObject<world_type>::FuncObj& f)
   {
     if (not bool(f.linked_rhs))
-      return tl::unexpected(zc::Error::object_in_invalid_state(func.name, expression));
+      return std::unexpected(zc::Error::object_in_invalid_state(func.name, expression));
 
     else if (subnodes.size() != f.linked_rhs->args_num) [[unlikely]]
-      return tl::unexpected(Error::mismatched_fun_args(func.args_token(), expression));
+      return std::unexpected(Error::mismatched_fun_args(func.args_token(), expression));
 
     return T{&(*f.linked_rhs), std::move(subnodes)};
   }
   Ret operator()(const zc::DynMathObject<world_type>::SeqObj& u)
   {
     if (subnodes.size() != 1) [[unlikely]]
-      return tl::unexpected(Error::mismatched_fun_args(func.args_token(), expression));
+      return std::unexpected(Error::mismatched_fun_args(func.args_token(), expression));
 
     else if (not bool(u.linked_rhs))
-      return tl::unexpected(zc::Error::object_in_invalid_state(func.name, expression));
+      return std::unexpected(zc::Error::object_in_invalid_state(func.name, expression));
 
     return T{&(*u.linked_rhs), std::move(subnodes)};
   }
   Ret operator()(const zc::DynMathObject<world_type>::DataObj& d)
   {
     if (subnodes.size() != 1) [[unlikely]]
-      return tl::unexpected(Error::mismatched_fun_args(func.args_token(), expression));
+      return std::unexpected(Error::mismatched_fun_args(func.args_token(), expression));
 
     return T{&d.linked_rhs, std::move(subnodes)};
   }
   Ret operator()(auto&&)
   {
-    return tl::unexpected(Error::wrong_object_type(func.name, expression));
+    return std::unexpected(Error::wrong_object_type(func.name, expression));
   }
 };
 
 template <Type type>
-tl::expected<FAST<type>, Error> make_fast<type>::operator () (const AST& ast)
+std::expected<FAST<type>, Error> make_fast<type>::operator () (const AST& ast)
 {
-  using Ret = tl::expected<FAST<type>, Error>;
+  using Ret = std::expected<FAST<type>, Error>;
   return std::visit(
     utils::overloaded{
       [&](const AST::Func& func) -> Ret
@@ -376,13 +376,13 @@ tl::expected<FAST<type>, Error> make_fast<type>::operator () (const AST& ast)
           auto expected_bound_node = (*this)(operand);
           if (expected_bound_node) [[likely]]
             operands.push_back(std::move(*expected_bound_node));
-          else return tl::unexpected(expected_bound_node.error());
+          else return std::unexpected(expected_bound_node.error());
         }
 
         switch (func.type)
         {
           case AST::Func::OP_ASSIGN:
-            return tl::unexpected(Error::not_implemented(ast.name, expression));
+            return std::unexpected(Error::not_implemented(ast.name, expression));
 
           case AST::Func::OP_ADD:
             assert(func.subnodes.size() == 2);
@@ -412,14 +412,14 @@ tl::expected<FAST<type>, Error> make_fast<type>::operator () (const AST& ast)
           {
             auto* dyn_obj = math_world.get(ast.name.substr);
             if (not dyn_obj) [[unlikely]]
-              return tl::unexpected(Error::undefined_function(ast.name, expression));
+              return std::unexpected(Error::undefined_function(ast.name, expression));
 
             if (not dyn_obj->has_value()) [[unlikely]]
-              return tl::unexpected(Error::object_in_invalid_state(ast.name, expression));
+              return std::unexpected(Error::object_in_invalid_state(ast.name, expression));
             else return std::visit(FunctionVisiter<type>{expression, ast, std::move(operands)}, dyn_obj->parsed_data);
           }
           case AST::Func::SEPARATOR:
-            return tl::unexpected(Error::unexpected(ast.name, expression));
+            return std::unexpected(Error::unexpected(ast.name, expression));
 
           default:
             [[unlikely]] throw std::runtime_error("Problem in ZeCalculator library");
@@ -437,9 +437,9 @@ tl::expected<FAST<type>, Error> make_fast<type>::operator () (const AST& ast)
       {
         auto* dyn_obj = math_world.get(ast.name.substr);
         if (not dyn_obj) [[unlikely]]
-          return tl::unexpected(Error::undefined_variable(ast.name, expression));
+          return std::unexpected(Error::undefined_variable(ast.name, expression));
         if (not dyn_obj->has_value())
-          return tl::unexpected(Error::object_in_invalid_state(ast.name, expression));
+          return std::unexpected(Error::object_in_invalid_state(ast.name, expression));
         else return std::visit(VariableVisiter<type>{expression, ast.name}, dyn_obj->parsed_data);
       }
     },
@@ -448,12 +448,12 @@ tl::expected<FAST<type>, Error> make_fast<type>::operator () (const AST& ast)
 
 template <std::ranges::viewable_range Range>
   requires std::is_convertible_v<std::ranges::range_value_t<Range>, std::string_view>
-tl::expected<AST, Error> make_ast<Range>::operator () (std::span<const parsing::Token> tokens)
+std::expected<AST, Error> make_ast<Range>::operator () (std::span<const parsing::Token> tokens)
 {
-  using Ret = tl::expected<AST, Error>;
+  using Ret = std::expected<AST, Error>;
 
   if (tokens.empty()) [[unlikely]]
-    return tl::unexpected(Error::empty_expression());
+    return std::unexpected(Error::empty_expression());
 
   auto get_current_sub_expr = [&](){
     const auto& end_token = tokens.back();
@@ -487,14 +487,14 @@ tl::expected<AST, Error> make_ast<Range>::operator () (std::span<const parsing::
       }
       default: [[unlikely]]
         // cannot be anything else
-        return tl::unexpected(Error::unexpected(back, std::string(expression)));
+        return std::unexpected(Error::unexpected(back, std::string(expression)));
         break;
     }
   }
 
   auto expected_non_pth_wrapped_tokens = get_non_pth_enclosed_tokens(tokens, expression);
   if (not expected_non_pth_wrapped_tokens.has_value())
-    return tl::unexpected(expected_non_pth_wrapped_tokens.error());
+    return std::unexpected(expected_non_pth_wrapped_tokens.error());
 
   const auto& non_pth_enclosed_tokens = expected_non_pth_wrapped_tokens.value();
 
@@ -519,7 +519,7 @@ tl::expected<AST, Error> make_ast<Range>::operator () (std::span<const parsing::
                             tokens.front(),
                             current_sub_expr,
                             {std::move(*subnode)});
-    else return tl::unexpected(std::move(subnode.error()));
+    else return std::unexpected(std::move(subnode.error()));
   }
 
   // there are tokens that are not within parentheses
@@ -550,7 +550,7 @@ tl::expected<AST, Error> make_ast<Range>::operator () (std::span<const parsing::
           auto right_hand_side = (*this)(std::span(tok + 1, tokens.end()));
           if (not right_hand_side.has_value()) [[unlikely]]
           {
-            res = tl::unexpected(right_hand_side.error());
+            res = std::unexpected(right_hand_side.error());
             return;
           }
 
@@ -560,7 +560,7 @@ tl::expected<AST, Error> make_ast<Range>::operator () (std::span<const parsing::
             // at either the very beginning or the very end of the token list
             if (tok == tokens.begin() or tok + 1 == tokens.end()) [[unlikely]]
             {
-              res = tl::unexpected(Error::unexpected(*tok, std::string(expression)));
+              res = std::unexpected(Error::unexpected(*tok, std::string(expression)));
               return;
             }
 
@@ -570,7 +570,7 @@ tl::expected<AST, Error> make_ast<Range>::operator () (std::span<const parsing::
             auto left_hand_side = (*this)(std::span(tokens.begin(), tok));
             if (not left_hand_side.has_value()) [[unlikely]]
             {
-              res = tl::unexpected(left_hand_side.error());
+              res = std::unexpected(left_hand_side.error());
               return;
             }
             else if (op.type != tokens::Type::SEPARATOR and op.type != tokens::Type::OP_ASSIGN
@@ -578,7 +578,7 @@ tl::expected<AST, Error> make_ast<Range>::operator () (std::span<const parsing::
                      and left_hand_side->func_data().type == AST::Func::SEPARATOR) [[unlikely]]
             {
               // only separators and assignment can have separators as subnodes
-              res = tl::unexpected(Error::unexpected(left_hand_side->name, std::string(expression)));
+              res = std::unexpected(Error::unexpected(left_hand_side->name, std::string(expression)));
               return ;
             }
             else subnodes.push_back(std::move(*left_hand_side));
@@ -588,7 +588,7 @@ tl::expected<AST, Error> make_ast<Range>::operator () (std::span<const parsing::
                      and right_hand_side->func_data().type == AST::Func::SEPARATOR) [[unlikely]]
             {
               // only separators can have separators as subnodes
-              res = tl::unexpected(
+              res = std::unexpected(
                 Error::unexpected(right_hand_side->name, std::string(expression)));
               return ;
             }
@@ -620,7 +620,7 @@ tl::expected<AST, Error> make_ast<Range>::operator () (std::span<const parsing::
       return std::move(*res);
   }
 
-  return tl::unexpected(Error::unexpected(current_sub_expr, std::string(expression)));
+  return std::unexpected(Error::unexpected(current_sub_expr, std::string(expression)));
 }
 
 template <std::ranges::viewable_range Range>

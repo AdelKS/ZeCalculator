@@ -236,7 +236,7 @@ int main()
     world.new_object() = "f(x, y) = 1 + x + y";
 
     std::string var_expr = "1 + f(1, 2, 3)";
-    tl::expected<double, Error> res = world.evaluate(var_expr);
+    std::expected<double, Error> res = world.evaluate(var_expr);
 
     expect(not res.has_value());
     expect(res.error() == Error::mismatched_fun_args(parsing::tokens::Text{"1, 2, 3", 6}, var_expr))

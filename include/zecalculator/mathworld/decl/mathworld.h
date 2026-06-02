@@ -100,7 +100,7 @@ public:
   deps::Deps direct_dependencies(std::string_view name) const;
 
   /// @brief evaluates a given expression within this world
-  tl::expected<double, Error> evaluate(std::string expr) const;
+  std::expected<double, Error> evaluate(std::string expr) const;
 
   /// @brief return the direct reverse dependencies, aka objects that depend directly on 'name'
   /// @note  this function is non-const because dependencies are cached and this function may trigger caching
@@ -109,17 +109,17 @@ public:
   /// @brief delete object given by pointer
   /// @returns Ok if the deletion was successful, UnregisteredObject otherwise
   ///          when the pointed-to object is not handled by this instance of MathWorld
-  tl::expected<Ok, UnregisteredObject> erase(DynMathObject<type>& obj);
+  std::expected<Ok, UnregisteredObject> erase(DynMathObject<type>& obj);
 
   /// @brief delete object given by name
   /// @returns Ok if the deletion was successful, UnregisteredObject otherwise
   ///          when no registered object has that given name
-  tl::expected<Ok, UnregisteredObject> erase(size_t slot);
+  std::expected<Ok, UnregisteredObject> erase(size_t slot);
 
     /// @brief delete object given by name
   /// @returns Ok if the deletion was successful, UnregisteredObject otherwise
   ///          when no registered object has that given name
-  tl::expected<Ok, UnregisteredObject> erase(const std::string& name);
+  std::expected<Ok, UnregisteredObject> erase(const std::string& name);
 
 protected:
 

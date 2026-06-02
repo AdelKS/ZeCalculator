@@ -3,6 +3,7 @@
 #include <tuple>
 #include <variant>
 #include <type_traits>
+#include <functional>
 
 namespace zc {
 

@@ -57,7 +57,7 @@ std::ostream& operator << (std::ostream& os, const std::pair<T, U>& val)
 }
 
 template <class T, class U>
-std::ostream& operator << (std::ostream& os, const tl::expected<T, U>& expected)
+std::ostream& operator << (std::ostream& os, const std::expected<T, U>& expected)
 {
   if (expected)
     os << expected.value();

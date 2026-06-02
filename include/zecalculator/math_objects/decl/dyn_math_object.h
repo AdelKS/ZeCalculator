@@ -19,10 +19,10 @@
 **  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **
 ****************************************************************************/
+#include <expected>
 
 #include <zecalculator/error.h>
 #include <zecalculator/evaluation/decl/cache.h>
-#include <zecalculator/external/expected.h>
 #include <zecalculator/math_objects/object_list.h>
 #include <zecalculator/parsing/data_structures/decl/utils.h>
 #include <zecalculator/parsing/data_structures/deps.h>
@@ -118,8 +118,8 @@ public:
   /// @note To retrieve the actual evaluation, evaluate this object at the same index
   std::optional<std::string> get_data_point(size_t index) const;
 
-  tl::expected<double, Error> operator () (std::initializer_list<double> vals = {}, eval::Cache* cache = nullptr) const;
-  tl::expected<double, Error> evaluate(std::initializer_list<double> vals = {}, eval::Cache* cache = nullptr) const;
+  std::expected<double, Error> operator () (std::initializer_list<double> vals = {}, eval::Cache* cache = nullptr) const;
+  std::expected<double, Error> evaluate(std::initializer_list<double> vals = {}, eval::Cache* cache = nullptr) const;
 
   /// @brief returns the currently set name, regardless of the validity of the object
   /// @note returns non-empty string only if the object has been assigned a valid unique name
@@ -147,13 +147,13 @@ public:
   bool has_value () const { return bool(*this); }
 
   /// @brief returns the status of the name / "Left hand side" of the object
-  tl::expected<Ok, zc::Error> name_status() const;
+  std::expected<Ok, zc::Error> name_status() const;
 
   /// @brief returns the status of the object / "right hand side" of the object
-  tl::expected<Ok, zc::Error> object_status() const;
+  std::expected<Ok, zc::Error> object_status() const;
 
   /// @brief returns the overall status of the object, aka rhs and lhs
-  tl::expected<Ok, zc::Error> status() const;
+  std::expected<Ok, zc::Error> status() const;
 
   /// @brief returns either the error reported by name_status() or object_status(), if there is one
   std::optional<zc::Error> error() const;
@@ -182,7 +182,7 @@ public:
 
   /// @brief returns the internal linked representation, if there's one
   /// @note  this function is offered for debugging purposes / advanced use
-  tl::expected<LinkedRepr, zc::Error> get_linked_repr() const;
+  std::expected<LinkedRepr, zc::Error> get_linked_repr() const;
 
 protected:
   const size_t slot;
@@ -206,20 +206,20 @@ protected:
     /// @brief the string also contains the equal sign that acts as a separator
     std::string rhs_str;
     parsing::AST rhs;
-    tl::expected<parsing::LinkedFunc<type>, zc::Error> linked_rhs = tl::unexpected(
+    std::expected<parsing::LinkedFunc<type>, zc::Error> linked_rhs = std::unexpected(
       zc::Error::empty_expression());
   };
 
   struct SeqObj {
     std::string rhs_str;
     std::vector<parsing::AST> rhs = {};
-    tl::expected<parsing::LinkedSeq<type>, zc::Error> linked_rhs = tl::unexpected(
+    std::expected<parsing::LinkedSeq<type>, zc::Error> linked_rhs = std::unexpected(
       zc::Error::empty_expression());
   };
 
   struct DataObj {
     std::vector<std::string> data = {};
-    std::vector<tl::expected<parsing::AST, zc::Error>> rhs = {};
+    std::vector<std::expected<parsing::AST, zc::Error>> rhs = {};
     parsing::LinkedData<type> linked_rhs = {};
   };
 
@@ -227,7 +227,7 @@ protected:
     parsed_data = zc::Error::empty_expression();
 
   std::string lhs_str;
-  tl::expected<parsing::LHS, zc::Error> exp_lhs = tl::unexpected(zc::Error::empty_expression());
+  std::expected<parsing::LHS, zc::Error> exp_lhs = std::unexpected(zc::Error::empty_expression());
 
   DynMathObject(size_t slot, MathWorld<type>& mathworld): slot(slot), mathworld(mathworld) {};
 
@@ -239,7 +239,7 @@ protected:
   template <bool insert>
   DynMathObject<type>& bulk_data_input(size_t index, std::vector<std::string> data);
 
-  tl::expected<zc::parsing::Parsing<type>, zc::Error> get_final_repr(const parsing::AST& ast,
+  std::expected<zc::parsing::Parsing<type>, zc::Error> get_final_repr(const parsing::AST& ast,
                                                                      std::string_view equation);
 
   /// @tparam linked: link with other math objects, otherwise assigns unlinked alternative

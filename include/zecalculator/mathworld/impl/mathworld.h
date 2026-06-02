@@ -286,10 +286,10 @@ deps::Deps MathWorld<type>::direct_revdeps(std::string_view name)
 }
 
 template <parsing::Type type>
-tl::expected<double, Error> MathWorld<type>::evaluate(std::string expr) const
+std::expected<double, Error> MathWorld<type>::evaluate(std::string expr) const
 {
   if (expr.empty()) [[unlikely]]
-    return tl::unexpected(Error::empty_expression());
+    return std::unexpected(Error::empty_expression());
 
   auto evaluate = [](const parsing::Parsing<type>& repr)
   {
@@ -312,28 +312,28 @@ tl::expected<double, Error> MathWorld<type>::evaluate(std::string expr) const
 }
 
 template <parsing::Type type>
-tl::expected<Ok, UnregisteredObject> MathWorld<type>::erase(DynMathObject<type>& obj)
+std::expected<Ok, UnregisteredObject> MathWorld<type>::erase(DynMathObject<type>& obj)
 {
   if (not sanity_check(obj))
-    return tl::unexpected(UnregisteredObject{});
+    return std::unexpected(UnregisteredObject{});
 
   return erase(obj.slot);
 }
 
 template <parsing::Type type>
-tl::expected<Ok, UnregisteredObject> MathWorld<type>::erase(const std::string& name)
+std::expected<Ok, UnregisteredObject> MathWorld<type>::erase(const std::string& name)
 {
   auto it = inventory.find(name);
   if (it != inventory.end())
     return erase(it->second);
-  else return tl::unexpected(UnregisteredObject{});
+  else return std::unexpected(UnregisteredObject{});
 }
 
 template <parsing::Type type>
-tl::expected<Ok, UnregisteredObject> MathWorld<type>::erase(size_t slot)
+std::expected<Ok, UnregisteredObject> MathWorld<type>::erase(size_t slot)
 {
   if (not math_objects.is_assigned(slot))
-    return tl::unexpected(UnregisteredObject{});
+    return std::unexpected(UnregisteredObject{});
 
   std::string name(math_objects[slot].get_name());
 

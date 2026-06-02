@@ -126,7 +126,7 @@ auto Evaluator<type>::operator()(const zc::parsing::LinkedFunc<type>* f) -> RetT
   {
     if (exp_res)
       return *exp_res;
-    else return tl::unexpected(std::move(exp_res.error()));
+    else return std::unexpected(std::move(exp_res.error()));
   }
   else
   {
@@ -157,7 +157,7 @@ auto Evaluator<type>::operator()(const T* u) -> RetType
   {
     if (exp_res)
       return *exp_res;
-    else return tl::unexpected(std::move(exp_res.error()));
+    else return std::unexpected(std::move(exp_res.error()));
   }
   else
   {
@@ -241,13 +241,13 @@ auto Evaluator<type>::operator()(const zc::parsing::shared::node::Number& node) 
 /// @param tree: tree to evaluate
 /// @param input_vars: variables that are given as input to the tree, will shadow any variable in the math world
 /// @param world: math world (contains functions, global constants... etc)
-inline tl::expected<double, Error> evaluate(const parsing::FAST<parsing::Type::FAST>& tree,
+inline std::expected<double, Error> evaluate(const parsing::FAST<parsing::Type::FAST>& tree,
                                             std::span<const double> input_vars,
                                             size_t current_recursion_depth,
                                             eval::Cache* cache)
 {
   if (eval::max_recursion_depth < current_recursion_depth) [[unlikely]]
-    return tl::unexpected(Error::recursion_depth_overflow());
+    return std::unexpected(Error::recursion_depth_overflow());
 
   std::vector<double> subnodes;
   subnodes.reserve(tree.subnodes.size());
@@ -269,7 +269,7 @@ inline tl::expected<double, Error> evaluate(const parsing::FAST<parsing::Type::F
 }
 
 /// @brief evaluates a syntax tree using a given math world
-inline tl::expected<double, Error> evaluate(const parsing::FAST<parsing::Type::FAST>& tree,
+inline std::expected<double, Error> evaluate(const parsing::FAST<parsing::Type::FAST>& tree,
                                             std::span<const double> input_vars,
                                             eval::Cache* cache)
 {
@@ -277,7 +277,7 @@ inline tl::expected<double, Error> evaluate(const parsing::FAST<parsing::Type::F
 }
 
 /// @brief evaluates a syntax tree using a given math world
-inline tl::expected<double, Error> evaluate(const parsing::FAST<parsing::Type::FAST>& tree,
+inline std::expected<double, Error> evaluate(const parsing::FAST<parsing::Type::FAST>& tree,
                                             eval::Cache* cache)
 {
   return evaluate(tree, std::span<const double, 0>(), 0, cache);
@@ -290,13 +290,13 @@ inline tl::expected<double, Error> evaluate(const parsing::FAST<parsing::Type::F
 /// @param tree: tree to evaluate
 /// @param input_vars: variables that are given as input to the tree, will shadow any variable in the math world
 /// @param world: math world (contains functions, global constants... etc)
-inline tl::expected<double, Error> evaluate(const parsing::RPN& rpn,
+inline std::expected<double, Error> evaluate(const parsing::RPN& rpn,
                                             std::span<const double> input_vars,
                                             size_t current_recursion_depth,
                                             eval::Cache* cache)
 {
   if (eval::max_recursion_depth < current_recursion_depth) [[unlikely]]
-    return tl::unexpected(Error::recursion_depth_overflow());
+    return std::unexpected(Error::recursion_depth_overflow());
 
   eval::Evaluator<parsing::Type::RPN> stateful_evaluator{.input_vars = input_vars,
                                                          .current_recursion_depth
@@ -308,7 +308,7 @@ inline tl::expected<double, Error> evaluate(const parsing::RPN& rpn,
   for (const auto& node: rpn)
   {
     if(not std::visit(stateful_evaluator, node)) [[unlikely]]
-      return tl::unexpected(std::move(stateful_evaluator.error));
+      return std::unexpected(std::move(stateful_evaluator.error));
   }
 
   assert(stateful_evaluator.subnodes.size() == 1);
@@ -316,7 +316,7 @@ inline tl::expected<double, Error> evaluate(const parsing::RPN& rpn,
 }
 
 /// @brief evaluates a syntax tree using a given math world
-inline tl::expected<double, Error> evaluate(const parsing::RPN& rpn,
+inline std::expected<double, Error> evaluate(const parsing::RPN& rpn,
                                             std::span<const double> input_vars,
                                             eval::Cache* cache)
 {
@@ -324,7 +324,7 @@ inline tl::expected<double, Error> evaluate(const parsing::RPN& rpn,
 }
 
 /// @brief evaluates a syntax tree using a given math world
-inline tl::expected<double, Error> evaluate(const parsing::RPN& rpn, eval::Cache* cache)
+inline std::expected<double, Error> evaluate(const parsing::RPN& rpn, eval::Cache* cache)
 {
   return evaluate(rpn, std::span<const double, 0>(), 0, cache);
 }
@@ -335,7 +335,7 @@ template <class T>
                             zc::parsing::LinkedData<parsing::Type::RPN>,
                             zc::parsing::LinkedSeq<parsing::Type::FAST>,
                             zc::parsing::LinkedData<parsing::Type::FAST>>
-tl::expected<double, Error>
+std::expected<double, Error>
   evaluate(const T& u, double index, size_t current_recursion_depth, eval::Cache* cache)
 {
   constexpr bool is_data = utils::is_any_of<T,
@@ -344,7 +344,7 @@ tl::expected<double, Error>
 
   double rounded_index = std::round(index);
 
-  tl::expected<double, zc::Error> exp_res = tl::unexpected(zc::Error::unkown());
+  std::expected<double, zc::Error> exp_res = std::unexpected(zc::Error::unkown());
 
   auto get_cached_value = [&] () -> std::optional<double> {
     if (cache)
@@ -370,7 +370,7 @@ tl::expected<double, Error>
 
       if (exp_parsing)
         exp_res = zc::evaluate(*exp_parsing, std::array{rounded_index}, current_recursion_depth, cache);
-      else exp_res = tl::unexpected(exp_parsing.error());
+      else exp_res = std::unexpected(exp_parsing.error());
     }
     else
     {
@@ -392,7 +392,7 @@ template <class T>
                             zc::parsing::LinkedData<parsing::Type::RPN>,
                             zc::parsing::LinkedSeq<parsing::Type::FAST>,
                             zc::parsing::LinkedData<parsing::Type::FAST>>
-tl::expected<double, Error>
+std::expected<double, Error>
   evaluate(const T& u, double index, eval::Cache* cache)
 {
   return evaluate(u, index, 0, cache);

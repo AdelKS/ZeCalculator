@@ -48,7 +48,7 @@ struct Evaluator
   /// @brief only used in the RPN case, too lazy to remove it otherwise
   Error error = {};
 
-  using RetType = std::conditional_t<type == parsing::Type::FAST, tl::expected<double, Error>, bool>;
+  using RetType = std::conditional_t<type == parsing::Type::FAST, std::expected<double, Error>, bool>;
 
   template <class Op>
   auto handle_binary_operator(Op&&) -> RetType;
@@ -90,18 +90,18 @@ struct Evaluator
 /// @param tree: tree to evaluate
 /// @param input_vars: variables that are given as input to the tree, will shadow any variable in the math world
 /// @param world: math world (contains functions, global constants... etc)
-tl::expected<double, Error> evaluate(const parsing::FAST<parsing::Type::FAST>& tree,
+std::expected<double, Error> evaluate(const parsing::FAST<parsing::Type::FAST>& tree,
                                      std::span<const double> input_vars,
                                      size_t current_recursion_depth,
                                      eval::Cache* cache = nullptr);
 
 /// @brief evaluates a syntax tree using a given math world
-tl::expected<double, Error> evaluate(const parsing::FAST<parsing::Type::FAST>& tree,
+std::expected<double, Error> evaluate(const parsing::FAST<parsing::Type::FAST>& tree,
                                      std::span<const double> input_vars,
                                      eval::Cache* cache = nullptr);
 
 /// @brief evaluates a syntax tree using a given math world
-tl::expected<double, Error> evaluate(const parsing::FAST<parsing::Type::FAST>& tree,
+std::expected<double, Error> evaluate(const parsing::FAST<parsing::Type::FAST>& tree,
                                      eval::Cache* cache = nullptr);
 
 /// ================= RPN
@@ -110,18 +110,18 @@ tl::expected<double, Error> evaluate(const parsing::FAST<parsing::Type::FAST>& t
 /// @param tree: tree to evaluate
 /// @param input_vars: variables that are given as input to the tree, will shadow any variable in the math world
 /// @param world: math world (contains functions, global constants... etc)
-tl::expected<double, Error> evaluate(const parsing::RPN& rpn,
+std::expected<double, Error> evaluate(const parsing::RPN& rpn,
                                      std::span<const double> input_vars,
                                      size_t current_recursion_depth,
                                      eval::Cache* cache = nullptr);
 
 /// @brief evaluates a syntax tree using a given math world
-tl::expected<double, Error> evaluate(const parsing::RPN& rpn,
+std::expected<double, Error> evaluate(const parsing::RPN& rpn,
                                      std::span<const double> input_vars,
                                      eval::Cache* cache = nullptr);
 
 /// @brief evaluates a syntax tree using a given math world
-tl::expected<double, Error> evaluate(const parsing::RPN& rpn, eval::Cache* cache = nullptr);
+std::expected<double, Error> evaluate(const parsing::RPN& rpn, eval::Cache* cache = nullptr);
 
 // Specific to sequences and data
 
@@ -131,7 +131,7 @@ template <class T>
                             zc::parsing::LinkedData<parsing::Type::RPN>,
                             zc::parsing::LinkedSeq<parsing::Type::FAST>,
                             zc::parsing::LinkedData<parsing::Type::FAST>>
-tl::expected<double, Error>
+std::expected<double, Error>
   evaluate(const T& u, double index, size_t current_recursion_depth, eval::Cache* cache = nullptr);
 
 template <class T>
@@ -140,7 +140,7 @@ template <class T>
                             zc::parsing::LinkedData<parsing::Type::RPN>,
                             zc::parsing::LinkedSeq<parsing::Type::FAST>,
                             zc::parsing::LinkedData<parsing::Type::FAST>>
-tl::expected<double, Error>
+std::expected<double, Error>
   evaluate(const T& u, double index, eval::Cache* cache = nullptr);
 
 } // namespace zc
