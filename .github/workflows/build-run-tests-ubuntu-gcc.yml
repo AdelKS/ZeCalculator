@@ -10,11 +10,14 @@ jobs:
       - name: Checkout ZeCalculator
         uses: actions/checkout@v3
 
+      - name: Enable gcc testing repo
+        run: sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+
       - name: Install dependencies
-        run: sudo apt install meson cmake
+        run: sudo apt install meson cmake g++-15
 
       - name: Setup meson build folder (GCC)
-        run: meson setup build -D test=true -D b_sanitize=address,undefined
+        run: CXX=g++-15 meson setup build -D test=true -D b_sanitize=address,undefined
 
       - name: Compile code (GCC)
         run: cd build && meson compile
