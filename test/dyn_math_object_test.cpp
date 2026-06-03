@@ -69,7 +69,7 @@ int main()
 
     auto& f = world.new_object() = "  f(x) = cos(x)";
     auto& g = world.new_object() = "g(x) = f(x)+1";
-    auto& data = world.new_object().set_data("data(line)", {"f(line)", "f(line)+1"});
+    auto& data = world.new_object().set("data(line)", {"f(line)", "f(line)+1"});
 
     expect(bool(f)) << fatal;
     expect(bool(g)) << fatal;
@@ -126,7 +126,7 @@ int main()
 
     expect(not bool(f)) << fatal;
 
-    auto& data = world.new_object().set_data("data", {"0", "1"});
+    auto& data = world.new_object().set("data", {"0", "1"});
 
     expect(bool(f)) << fatal;
 
@@ -249,7 +249,7 @@ int main()
     MathWorld<type> world;
     eval::Cache cache;
 
-    auto& f = world.new_object().set_data("speed", {"c", "5", "7", "3", "2"});
+    auto& f = world.new_object().set("speed", {"c", "5", "7", "3", "2"});
     auto& g = world.new_object() = "g(n) = speed(0) ; speed(1)";
     auto& h = world.new_object() = "h(n) = g(0) ; g(1)";
 

@@ -64,7 +64,13 @@ public:
   /// @note 'name' should not be a function call
   /// @note this method can potentially modify every other DynMathObject in the same MathWorld
   template <size_t args_num>
-  DynMathObject<type>& set(std::string_view name, CppFunction<args_num> cpp_f);
+  DynMathObject& set(std::string_view name, CppFunction<args_num> cpp_f);
+
+  /// @brief overwrite the object's internal data with the given data
+  /// @param name: new name of the object
+  /// @param data: each data point as a string (number or generic expression, that can depend on other objects)
+  /// @note this method can potentially modify every other DynMathObject in the same MathWorld
+  DynMathObject& set(std::string_view name, std::vector<std::string> data);
 
   template <size_t args_num>
   DynMathObject& operator = (CppFunction<args_num> cpp_f);
@@ -117,6 +123,9 @@ public:
   /// @brief Retrieve the text of a data point, if it exists
   /// @note To retrieve the actual evaluation, evaluate this object at the same index
   std::optional<std::string> get_data_point(size_t index) const;
+
+  /// @brief Returns the internal data values (as strings) if the object is a data object, nullptr otherwise
+  const std::vector<std::string>* get_data() const;
 
   std::expected<double, Error> operator () (std::initializer_list<double> vals = {}, eval::Cache* cache = nullptr) const;
   std::expected<double, Error> evaluate(std::initializer_list<double> vals = {}, eval::Cache* cache = nullptr) const;
@@ -235,6 +244,9 @@ protected:
   template <class T>
     requires (std::is_same_v<T, parsing::AST> or std::is_convertible_v<T, std::string_view>)
   void set_name_internal(const T& name, std::string_view full_expr);
+
+  /// @brief sets the data strings without notifying the MathWorld instance about it
+  DynMathObject& set_data_internal(std::vector<std::string> data);
 
   template <bool insert>
   DynMathObject& bulk_data_input(size_t index, std::vector<std::string> data);

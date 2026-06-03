@@ -393,18 +393,11 @@ bool DynMathObject<type>::holds(ObjectType obj_type) const
 }
 
 template <parsing::Type type>
-DynMathObject<type>& DynMathObject<type>::set_data(std::string_view name, std::vector<std::string> data)
+DynMathObject<type>& DynMathObject<type>::set(std::string_view name, std::vector<std::string> data)
 {
   std::string old_name(get_name());
 
-  parsed_data = DataObj{.data = std::move(data)};
-
-  DataObj& data_obj = std::get<DataObj>(parsed_data);
-  data_obj.rhs.reserve(data.size());
-  for (std::string_view expr: data_obj.data)
-    data_obj.rhs.push_back(parsing::tokenize(expr)
-                             .and_then(parsing::make_ast{expr})
-                             .transform(parsing::flatten_separators));
+  set_data_internal(std::move(data));
 
   // should come before finalize_asts so the input variables are parsed
   set_name_internal(name, name);
@@ -414,6 +407,43 @@ DynMathObject<type>& DynMathObject<type>::set_data(std::string_view name, std::v
   mathworld.object_updated(slot, old_name, std::string(get_name()));
 
   return *this;
+}
+
+template <parsing::Type type>
+DynMathObject<type>& DynMathObject<type>::set_data(std::vector<std::string> data)
+{
+  std::string name(get_name());
+
+  set_data_internal(std::move(data));
+
+  finalize_asts();
+
+  mathworld.object_updated(slot, name, name);
+
+  return *this;
+}
+
+template <parsing::Type type>
+DynMathObject<type>& DynMathObject<type>::set_data_internal(std::vector<std::string> data)
+{
+  parsed_data = DataObj{.data = std::move(data)};
+
+  DataObj& data_obj = std::get<DataObj>(parsed_data);
+  data_obj.rhs.reserve(data_obj.data.size());
+  for (std::string_view expr: data_obj.data)
+    data_obj.rhs.push_back(parsing::tokenize(expr)
+                           .and_then(parsing::make_ast{expr})
+                           .transform(parsing::flatten_separators));
+
+  return *this;
+}
+
+template <parsing::Type type>
+const std::vector<std::string>* DynMathObject<type>::get_data() const
+{
+  if (const DataObj* data_obj = std::get_if<DataObj>(&parsed_data))
+    return &data_obj->data;
+  else return nullptr;
 }
 
 template <parsing::Type type>

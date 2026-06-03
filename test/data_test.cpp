@@ -38,7 +38,7 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    auto& data = world.new_object().set_data("data(line)", {"1.0", "2.0*line", "data(0)+data(1)"});
+    auto& data = world.new_object().set("data(line)", {"1.0", "2.0*line", "data(0)+data(1)"});
 
     expect(bool(data)) << [&]{ return *data.error(); } << fatal;
     expect(bool(data({0}))) << [&]{ return data({0}).error(); } << fatal;
@@ -58,24 +58,24 @@ int main()
     MathWorld<type> world;
     auto& data = world.new_object();
 
-    data.set_data("cos+1", {});
+    data.set("cos+1", {});
     expect(not bool(data)) << fatal;
     expect(data.error() == zc::Error::unexpected(Token::Add("+", 3), "cos+1"))
       << data.error() << fatal;
 
-    data.set_data("cos(x)", {});
+    data.set("cos(x)", {});
     expect(not bool(data)) << fatal;
-    expect(data.error() == zc::Error::name_already_taken(Text{"cos", 0}, "cos(x)"))
+    expect(data.error() == zc::Error::unexpected(Token::Variable("x", 4), "cos(x)"))
       << data.error() << fatal;
 
-    data.set_data("cos", {});
+    data.set("cos", {});
     expect(not bool(data)) << fatal;
     expect(data.error() == zc::Error::name_already_taken(Text{"cos", 0}, "cos"))
       << data.error() << fatal;
 
-    data.set_data("data(x,y,z)", {});
+    data.set("data(x,y,z)", {});
     expect(not bool(data)) << fatal;
-    expect(data.error() == zc::Error::unexpected(Token::Variable("y", 7), "data(x,y,z)"))
+    expect(data.error() == zc::Error::unexpected(Token::Variable("x", 5), "data(x,y,z)"))
       << data.error() << fatal;
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
@@ -88,7 +88,7 @@ int main()
 
     auto& f = world.new_object() = "f(x) = x*data(2)";
     auto& val = world.new_object() = "val = 2*data(1)";
-    auto& data = world.new_object().set_data("data(line)", {"1.0", "2.0*g(line)", "data(0)+data(1)+g(line)"});
+    auto& data = world.new_object().set("data(line)", {"1.0", "2.0*g(line)", "data(0)+data(1)+g(line)"});
 
     expect(bool(data)) << [&]{ return data.error(); } << fatal;
     expect(bool(data({0}))) << [&]{ return data({0}).error(); } << fatal;
@@ -123,7 +123,7 @@ int main()
     expect(data({2}).value() == 9.0_d);
     expect(g({2}).value() == 4.0_d);
 
-    data.set_data("data(line)", {"1.0", "2.0*g(line)+1", "data(0)+data(1)+g(line)"});
+    data.set("data(line)", {"1.0", "2.0*g(line)+1", "data(0)+data(1)+g(line)"});
 
     expect(f({2}).value() == 20.0_d);
     expect(data({1}).value() == 5.0_d);
@@ -131,7 +131,7 @@ int main()
     expect(data({2}).value() == 10.0_d);
     expect(g({2}).value() == 4.0_d);
 
-    data.set_data("data(line)", {"1.0", "2.0*g(line)+1", "data(0)+data(1)+g(line)+1"});
+    data.set("data(line)", {"1.0", "2.0*g(line)+1", "data(0)+data(1)+g(line)+1"});
 
     expect(f({2}).value() == 22.0_d);
     expect(data({1}).value() == 5.0_d);
@@ -146,9 +146,9 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    auto& data = world.new_object().set_data("data", {});
+    auto& data = world.new_object().set_name("data");
 
-    expect(bool(data)) << [&]{ return data.error(); } << fatal;
+    expect(not bool(data)) << [&]{ return data.error(); } << fatal;
 
     data.set_data_point(10, "10");
 
@@ -162,7 +162,7 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    auto& data = world.new_object().set_data("data", std::vector<std::string>(10, "1"));
+    auto& data = world.new_object().set("data", std::vector<std::string>(10, "1"));
 
     expect(bool(data)) << [&]{ return data.error(); } << fatal;
 
@@ -183,7 +183,7 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    auto& data = world.new_object().set_data("data", std::vector<std::string>(10, "1"));
+    auto& data = world.new_object().set("data", std::vector<std::string>(10, "1"));
 
     expect(bool(data)) << [&]{ return data.error(); } << fatal;
 
@@ -204,7 +204,7 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    auto& data = world.new_object().set_data("data", std::vector<std::string>(10, "1"));
+    auto& data = world.new_object().set("data", std::vector<std::string>(10, "1"));
 
     expect(bool(data)) << [&]{ return data.error(); } << fatal;
 
@@ -225,7 +225,7 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    auto& data = world.new_object().set_data("data", std::vector<std::string>(10, "1"));
+    auto& data = world.new_object().set("data", std::vector<std::string>(10, "1"));
 
     expect(bool(data)) << [&]{ return data.error(); } << fatal;
 
@@ -246,7 +246,7 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    auto& data = world.new_object().set_data("data", std::vector<std::string>(10, "1"));
+    auto& data = world.new_object().set("data", std::vector<std::string>(10, "1"));
 
     expect(bool(data)) << [&]{ return data.error(); } << fatal;
 
@@ -261,7 +261,7 @@ int main()
     constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
 
     MathWorld<type> world;
-    auto& data = world.new_object().set_data("data", std::vector<std::string>(10, "1"));
+    auto& data = world.new_object().set("data", std::vector<std::string>(10, "1"));
 
     expect(bool(data)) << [&]{ return data.error(); } << fatal;
 
@@ -279,6 +279,36 @@ int main()
 
     for (size_t i = 0 ; i < expected_vals.size() ; i++)
       expect(expected_vals[i] == data({double(i)}).value());
+
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
+
+  "play with dependencies"_test = []<class StructType>()
+  {
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
+
+    MathWorld<type> world;
+
+    auto& f = (world.new_object() = "f(x)=data1(x)+data2(x)+1");
+
+    expect(not bool(f));
+
+    auto& data1 = world.new_object().set_data(std::vector<std::string>(10, "1"));
+
+    expect(data1.get_data());
+
+    expect(not bool(data1));
+
+    data1.set_name("data1");
+
+    auto& data2 = world.new_object().set_name("data2");
+
+    expect(not bool(f));
+
+    data2.set_data({"0"});
+
+    expect(bool(f)) << [&]{ return f.error(); } << fatal;
+    expect(bool(data1)) << [&]{ return data1.error(); } << fatal;
+    expect(bool(data2)) << [&]{ return data2.error(); } << fatal;
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 
