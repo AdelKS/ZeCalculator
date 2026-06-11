@@ -267,7 +267,7 @@ Deps MathWorld<type>::direct_dependencies(std::string_view name) const
 }
 
 template <parsing::Type type>
-Deps MathWorld<type>::direct_revdeps(std::string_view name)
+Deps MathWorld<type>::direct_revdeps(std::string_view name) const
 {
   Deps direct_rev_deps;
   for (auto&& math_obj: math_objects)
