@@ -35,39 +35,30 @@ inline bool is_valid_name(std::string_view name)
 /// @brief appends dependencies of 'ast' in 'deps'
 struct direct_dependency_saver
 {
-  deps::Deps deps;
+  Deps deps;
 
   direct_dependency_saver& operator () (const AST& ast)
   {
     std::visit(
-      utils::overloaded{[&](const AST::Func& func)
-                        {
-                          // we don't register operators
-                          if (func.type == AST::Func::FUNCTION)
-                          {
-                            deps::Dep& dep = deps[ast.name.substr];
-                            dep.type = deps::Dep::FUNCTION;
-                          }
+      utils::overloaded{
+        [&](const AST::Func& func) {
+          // we don't register operators
+          if (func.type == AST::Func::FUNCTION)
+            deps[ast.name.substr].type = Dep::FUNCTION;
 
-                          std::ranges::for_each(func.subnodes, std::ref(*this));
-                        },
-                        [&](const AST::InputVariable&)
-                        {
-                        },
-                        [&](const AST::Number&)
-                        {
-                        },
-                        [&](AST::Variable)
-                        {
-                          deps::Dep& dep = deps[ast.name.substr];
-                          dep.type = deps::Dep::VARIABLE;
-                        }},
+          std::ranges::for_each(func.subnodes, std::ref(*this));
+        },
+        [&](const AST::InputVariable&) {},
+        [&](const AST::Number&) {},
+        [&](AST::Variable) {
+          deps[ast.name.substr].type = Dep::VARIABLE;
+        }},
       ast.dyn_data);
     return *this;
   }
 };
 
-inline deps::Deps direct_dependencies(const AST& ast)
+inline Deps direct_dependencies(const AST& ast)
 {
   return std::move(direct_dependency_saver{}(ast).deps);
 }

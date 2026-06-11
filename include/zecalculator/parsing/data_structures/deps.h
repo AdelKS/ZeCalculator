@@ -23,7 +23,6 @@
 #include <zecalculator/utils/name_map.h>
 
 namespace zc {
-namespace deps {
 
   struct Dep
   {
@@ -35,5 +34,4 @@ namespace deps {
   };
 
   using Deps = name_map<Dep>;
-} // namespace deps
 } // namespace zc

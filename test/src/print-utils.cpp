@@ -181,13 +181,13 @@ std::ostream& operator << (std::ostream& os, zc::Ok)
   return os;
 }
 
-std::ostream& operator << (std::ostream& os, zc::deps::Dep::ObjectType type)
+std::ostream& operator << (std::ostream& os, zc::Dep::ObjectType type)
 {
   os << magic_enum::enum_name(type);
   return os;
 }
 
-std::ostream& operator << (std::ostream& os, const zc::deps::Dep& dep)
+std::ostream& operator << (std::ostream& os, const zc::Dep& dep)
 {
   os << dep.type;
   return os;

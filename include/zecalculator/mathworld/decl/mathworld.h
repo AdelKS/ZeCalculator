@@ -97,14 +97,14 @@ public:
   /// @note  uses only the equation of objects defined through an equation
   ///        -> undefined functions & variables in the math world will still be listed
   /// @note  return an empty container for objects not defined with an equation
-  deps::Deps direct_dependencies(std::string_view name) const;
+  Deps direct_dependencies(std::string_view name) const;
 
   /// @brief evaluates a given expression within this world
   std::expected<double, Error> evaluate(std::string expr) const;
 
   /// @brief return the direct reverse dependencies, aka objects that depend directly on 'name'
   /// @note  this function is non-const because dependencies are cached and this function may trigger caching
-  deps::Deps direct_revdeps(std::string_view name);
+  Deps direct_revdeps(std::string_view name);
 
   /// @brief delete object given by pointer
   /// @returns Ok if the deletion was successful, UnregisteredObject otherwise

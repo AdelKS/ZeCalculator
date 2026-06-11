@@ -315,9 +315,9 @@ int main()
     world.new_object() = "f(x, y) = 1 + x + y";
     auto& seq = world.new_object() = "u(n) = 0 ; 1 + f(1, 1) + f(2, 2) + u(n-1) + 3*u(n-1) + cos(n)";
 
-    constexpr auto t = deps::Dep::FUNCTION;
+    constexpr auto t = Dep::FUNCTION;
     expect(seq.direct_dependencies()
-           == deps::Deps{{"u", {t}}, {"f", {t}}, {"cos", {t}}});
+           == Deps{{"u", {t}}, {"f", {t}}, {"cos", {t}}});
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 
@@ -336,9 +336,9 @@ int main()
     using namespace std::string_literals;
 
     expect(f.direct_dependencies()
-           == deps::Deps{{"my_constant", {deps::Dep::VARIABLE}},
-                         {"cos", {deps::Dep::FUNCTION}},
-                         {"math::pi", {deps::Dep::VARIABLE}}}); // "u" and "f"
+           == Deps{{"my_constant", {Dep::VARIABLE}},
+                         {"cos", {Dep::FUNCTION}},
+                         {"math::pi", {Dep::VARIABLE}}}); // "u" and "f"
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 

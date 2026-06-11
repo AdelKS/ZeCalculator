@@ -741,57 +741,47 @@ std::optional<std::string> DynMathObject<type>::get_equation() const
 }
 
 template <parsing::Type type>
-const deps::Deps& DynMathObject<type>::direct_dependencies()
+const Deps& DynMathObject<type>::direct_dependencies()
 {
   if (revision == direct_deps_revision)
     return direct_deps;
 
-  direct_deps = std::visit(
-    utils::overloaded{
-      [&](const zc::Error&)
+  direct_deps = std::visit(utils::overloaded{
+    [&](const zc::Error&) { return Deps(); },
+    [&](const ConstObj&) { return Deps(); },
+    [&]<size_t args_num>(CppFunction<args_num>) { return Deps(); },
+    [&](const FuncObj& f_obj)
+    {
+      auto var_names = exp_lhs->input_vars | std::views::transform(&parsing::tokens::Text::substr);
+      auto deps = parsing::direct_dependencies(parsing::mark_input_vars{var_names}(f_obj.rhs));
+      return deps;
+    },
+    [&](const SeqObj& seq_obj)
+    {
+      auto deps = Deps();
+      auto var_names = exp_lhs->input_vars | std::views::transform(&parsing::tokens::Text::substr);
+      for (const parsing::AST& ast: seq_obj.rhs)
       {
-        return deps::Deps();
-      },
-      [&](const ConstObj&)
-      {
-        return deps::Deps();
-      },
-      [&]<size_t args_num>(CppFunction<args_num>)
-      {
-        return deps::Deps();
-      },
-      [&](const FuncObj& f_obj)
-      {
-        auto var_names = exp_lhs->input_vars | std::views::transform(&parsing::tokens::Text::substr);
-        auto deps = parsing::direct_dependencies(parsing::mark_input_vars{var_names}(f_obj.rhs));
-        return deps;
-      },
-      [&](const SeqObj& seq_obj)
-      {
-        auto deps = deps::Deps();
-        auto var_names = exp_lhs->input_vars | std::views::transform(&parsing::tokens::Text::substr);
-        for (const parsing::AST& ast: seq_obj.rhs)
-        {
-          auto extra_deps = parsing::direct_dependencies(parsing::mark_input_vars{var_names}(ast));
-          deps.insert(extra_deps.begin(), extra_deps.end());
-        }
-        return deps;
-      },
-      [&](const DataObj& data_obj)
-      {
-        auto deps = deps::Deps();
-        auto var_names = exp_lhs->input_vars | std::views::transform(&parsing::tokens::Text::substr);
-        for (const auto& exp_ast: data_obj.rhs)
-        {
-          if (not bool(exp_ast))
-            continue;
-
-          auto extra_deps = parsing::direct_dependencies(parsing::mark_input_vars{var_names}(*exp_ast));
-          deps.insert(extra_deps.begin(), extra_deps.end());
-        }
-        return deps;
+        auto extra_deps = parsing::direct_dependencies(parsing::mark_input_vars{var_names}(ast));
+        deps.insert(extra_deps.begin(), extra_deps.end());
       }
-    }, parsed_data);
+      return deps;
+    },
+    [&](const DataObj& data_obj)
+    {
+      auto deps = Deps();
+      auto var_names = exp_lhs->input_vars | std::views::transform(&parsing::tokens::Text::substr);
+      for (const auto& exp_ast: data_obj.rhs)
+      {
+        if (not bool(exp_ast))
+          continue;
+
+        auto extra_deps = parsing::direct_dependencies(parsing::mark_input_vars{var_names}(*exp_ast));
+        deps.insert(extra_deps.begin(), extra_deps.end());
+      }
+      return deps;
+    }
+  }, parsed_data);
 
   direct_deps_revision = revision;
   return direct_deps;

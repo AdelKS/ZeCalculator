@@ -259,17 +259,17 @@ void MathWorld<type>::object_updated(size_t slot,
 }
 
 template <parsing::Type type>
-deps::Deps MathWorld<type>::direct_dependencies(std::string_view name) const
+Deps MathWorld<type>::direct_dependencies(std::string_view name) const
 {
   if(auto* obj = get(name))
     return obj->direct_dependencies();
-  else return deps::Deps();
+  else return Deps();
 }
 
 template <parsing::Type type>
-deps::Deps MathWorld<type>::direct_revdeps(std::string_view name)
+Deps MathWorld<type>::direct_revdeps(std::string_view name)
 {
-  deps::Deps direct_rev_deps;
+  Deps direct_rev_deps;
   for (auto&& math_obj: math_objects)
   {
     if (math_obj.get_name().empty())
@@ -277,10 +277,7 @@ deps::Deps MathWorld<type>::direct_revdeps(std::string_view name)
 
     const auto& deps = math_obj.direct_dependencies();
     if (auto it = deps.find(name); it != deps.end())
-    {
-      deps::Dep& dep = direct_rev_deps[std::string(math_obj.get_name())];
-      dep.type = deps::Dep::FUNCTION;
-    }
+      direct_rev_deps[std::string(math_obj.get_name())].type = Dep::FUNCTION;
   }
   return direct_rev_deps;
 }

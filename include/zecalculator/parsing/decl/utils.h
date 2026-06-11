@@ -31,7 +31,7 @@ namespace parsing {
 inline bool is_valid_name(std::string_view name);
 
 /// @brief gives the Function and Variable names that intervene in this AST
-inline deps::Deps direct_dependencies(const AST& ast);
+inline Deps direct_dependencies(const AST& ast);
 
 /// @brief represents the left hand side of a mathematical definition through an equation
 /// @example "var" in "var = cos(x)" -> {.name = "var", .input_vars = {}}

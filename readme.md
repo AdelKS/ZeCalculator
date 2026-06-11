@@ -25,15 +25,13 @@
 #include <zecalculator/zecalculator.h>
 #include <zecalculator/test-utils/print-utils.h>
 
-using namespace zc;
-using namespace tl;
 using namespace std;
 
 double square(double x) { return x * x; }
 
 int main()
 {
-  rpn::MathWorld world;
+  zc::rpn::MathWorld world;
 
   // Notes about adding a math object to a math world:
   // - Each added object exists only within the math world that creates it
@@ -41,7 +39,7 @@ int main()
   //   with some helper functions.
   //   - the variant contains all the possible objects: function, sequence, global constant, cpp function
   //   - the error expresses what went wrong in adding the object / parsing the equation
-  rpn::DynMathObject& obj1 = world.new_object();
+  zc::rpn::DynMathObject& obj1 = world.new_object();
 
   // Assign a one parameter function named "f"
   // Note that 'my_constant' is only defined later
@@ -52,17 +50,17 @@ int main()
   // We can query the direct dependencies of any object: name and type
   // Note: only objects defined with expression(s) may return a non-empty set
   assert(bool(obj1.direct_dependencies()
-              == deps::Deps{{"my_constant", {deps::Dep::VARIABLE}},
-                            {"cos", {deps::Dep::FUNCTION}},
-                            {"math::pi", {deps::Dep::VARIABLE}}}));
+              == zc::Deps{{"my_constant", {Dep::VARIABLE}},
+                          {"cos", {Dep::FUNCTION}},
+                          {"math::pi", {Dep::VARIABLE}}}));
 
   // the expected should hold an error since 'my_constant' is undefined at this point
   assert(not obj1.has_value()
          and obj1.error()
-               == Error::undefined_variable(parsing::tokens::Text{"my_constant", 11},
-                                            "f(x) = x + my_constant + cos(math::pi)"));
+               == zc::Error::undefined_variable(zc::parsing::tokens::Text{"my_constant", 11},
+                                                "f(x) = x + my_constant + cos(math::pi)"));
 
-  rpn::DynMathObject& obj2 = world.new_object();
+  zc::rpn::DynMathObject& obj2 = world.new_object();
 
   // Assign a global constant called "my_constant" with an initial value of 3.0
   obj2 = "my_constant = 3.0";
@@ -102,7 +100,7 @@ int main()
 
   // C++ double(double...) functions can also be registered in a world
   auto& obj3 = world.new_object();
-  obj3.set("square", CppFunction{square});
+  obj3.set("square", zc::CppFunction{square});
 
   // Can evaluate an expression directly using the math world
   assert(world.evaluate("square(2)").value() == 4.);

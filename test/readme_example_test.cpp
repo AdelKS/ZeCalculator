@@ -47,9 +47,9 @@ int main()
   // We can query the direct dependencies of any object: name and type
   // Note: only objects defined with expression(s) may return a non-empty set
   assert(bool(obj1.direct_dependencies()
-              == deps::Deps{{"my_constant", {deps::Dep::VARIABLE}},
-                            {"cos", {deps::Dep::FUNCTION}},
-                            {"math::pi", {deps::Dep::VARIABLE}}}));
+              == Deps{{"my_constant", {Dep::VARIABLE}},
+                      {"cos", {Dep::FUNCTION}},
+                      {"math::pi", {Dep::VARIABLE}}}));
 
   // the expected should hold an error since 'my_constant' is undefined at this point
   assert(not obj1.has_value()

@@ -171,7 +171,7 @@ public:
   /// @note  uses only the expression(s) this object is defined with
   ///        -> undefined functions & variables in the math world will still be listed
   /// @note  this function is non-const because dependencies are cached and this function may trigger caching
-  const deps::Deps& direct_dependencies();
+  const Deps& direct_dependencies();
 
   /// @brief gets the size of the contained data object, if a data object is contained
   std::optional<size_t> get_data_size() const;
@@ -201,7 +201,7 @@ protected:
   size_t revision = 0;
 
   /// @brief direct dependencies of this object
-  deps::Deps direct_deps;
+  Deps direct_deps;
 
   /// @brief at which revision number the saved direct_deps have been computed
   size_t direct_deps_revision = 0;
