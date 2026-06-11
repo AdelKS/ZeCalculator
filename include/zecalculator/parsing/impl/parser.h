@@ -32,27 +32,22 @@
 
 #include <cmath>
 #include <optional>
-#include <stack>
-#include <stdexcept>
+#include <charconv>
 #include <string_view>
 #include <utility>
-#include <variant>
-#include <vector>
+#include <stack>
 
 namespace zc {
 namespace parsing {
 
 inline std::optional<std::pair<double, size_t>> to_double(std::string_view view)
 {
-  std::optional<std::pair<double, size_t>> result = std::make_pair(0.0, 0);
-  char* charAfter = const_cast<char*>(view.data()); // char that comes right after the number
-  result->first = std::strtod(view.data(), &charAfter);
+  double value = std::nan("");
+  std::from_chars_result result = std::from_chars(view.begin(), view.end(), value);
 
-  if (charAfter == view.data() or result->first == HUGE_VAL)
-    result.reset();
-  else result->second = size_t(charAfter - view.data());
-
-  return result;
+  if (result.ec == std::errc()) [[likely]]
+    return std::make_pair(value, size_t(result.ptr - view.begin()));
+  else return {};
 }
 
 inline std::expected<std::vector<Token>, Error> tokenize(std::string_view expression)
