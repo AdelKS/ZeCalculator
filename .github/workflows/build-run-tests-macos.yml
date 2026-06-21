@@ -13,9 +13,6 @@ jobs:
       - name: Install meson
         run: brew install meson
 
-      - name: Select correct Xcode version
-        run: sudo xcode-select -s /Applications/Xcode_15.0.1.app
-
       # Need clang 16 to work with libstdc++ std::ranges
       - name: Setup meson build folder
         run: meson setup build -D test=true -D b_sanitize=address,undefined
