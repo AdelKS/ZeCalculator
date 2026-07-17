@@ -103,7 +103,8 @@ public:
   std::expected<double, Error> evaluate(std::string expr) const;
 
   /// @brief return the direct reverse dependencies, aka objects that depend directly on 'name'
-  Deps direct_revdeps(std::string_view name) const;
+  /// @note  this function is non-const because dependencies are cached and this function may trigger caching
+  Deps direct_revdeps(std::string_view name);
 
   /// @brief delete object given by pointer
   /// @returns Ok if the deletion was successful, UnregisteredObject otherwise
