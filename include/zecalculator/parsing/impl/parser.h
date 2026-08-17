@@ -221,12 +221,7 @@ inline std::expected<std::vector<Token>, Error> tokenize(std::string_view expres
   }
 
   if (not last_opened_pth.empty())
-  {
-    auto&& expr_cend_txt = tokens::Text::from_views(std::string_view(it, 0), orig_expr);
-    if (last_opened_pth.top() == FUNCTION_CALL_PTH)
-      return std::unexpected(Error::missing(expr_cend_txt, std::string(expression)));
-    else return std::unexpected(Error::missing(expr_cend_txt, std::string(expression)));
-  }
+    return std::unexpected(Error::missing_closing_pth());
 
   if (parsing.empty())
     return std::unexpected(Error::empty_expression(std::string(expression)));

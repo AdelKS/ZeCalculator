@@ -236,7 +236,7 @@ int main()
 
     expect(not bool(parsing)) << parsing;
 
-    expect(parsing.error() == Error::missing(Token::FunctionCallEnd("", 7), std::string(str))) << parsing.error();
+    expect(parsing.error() == Error::missing_closing_pth()) << parsing.error();
   };
 
   "missing normal closing pth"_test = []()
@@ -246,7 +246,7 @@ int main()
 
     expect(not bool(parsing)) << parsing;
 
-    expect(parsing.error() == Error::missing(Token::ClosingParenthesis("", 9), std::string(str))) << parsing.error();
+    expect(parsing.error() == Error::missing_closing_pth()) << parsing.error();
   };
 
   "unexpected end of expression"_test = []()

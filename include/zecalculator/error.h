@@ -33,7 +33,7 @@ struct Error
     CALLING_FUN_ARG_COUNT_MISMATCH,
     OBJECT_INVALID_STATE, // expression that contains a function who cannot return values
     EMPTY_EXPRESSION,
-    MISSING,
+    MISSING_CLOSING_PTH,
     NAME_ALREADY_TAKEN,
     NOT_IMPLEMENTED,
     OBJECT_NOT_IN_WORLD,
@@ -64,9 +64,9 @@ struct Error
     return Error {WRONG_FORMAT, token, std::move(expression)};
   }
 
-  static Error missing(parsing::tokens::Text  token, std::string expression)
+  static Error missing_closing_pth()
   {
-    return Error {MISSING, token, std::move(expression)};
+    return Error {MISSING_CLOSING_PTH};
   }
 
   static Error unkown()
