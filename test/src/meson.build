@@ -4,20 +4,19 @@ sources = files(
 
 cmake = import('cmake')
 
-boost_ut_proj = cmake.subproject('boost-ut')
-boost_ut_inc = boost_ut_proj.include_directories('ut')
+ut_dep = dependency('ut', method: 'cmake', modules: 'Boost::ut', fallback: ['boost-ut', 'ut_dep'])
 
 testing_include_dir = include_directories('../include/')
 
 zecalculator_testing_lib = static_library('zecalculator_testing',
     sources,
-    include_directories : [testing_include_dir, boost_ut_inc],
-    dependencies: zecalculator_dep,
+    include_directories : testing_include_dir,
+    dependencies: [zecalculator_dep, ut_dep],
     install : not meson.is_subproject()
 )
 
 zecalculator_testing_dep = declare_dependency(
-    include_directories : [zecalculator_inc, boost_ut_inc, testing_include_dir],
-    dependencies: zecalculator_dep,
+    include_directories : [zecalculator_inc, testing_include_dir],
+    dependencies: [zecalculator_dep, ut_dep],
     link_with : zecalculator_testing_lib
 )
