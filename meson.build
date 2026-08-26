@@ -42,3 +42,11 @@ meson.override_dependency('zecalculator', zecalculator_dep)
 if get_option('test')
     subdir('test')
 endif
+
+pkg = import('pkgconfig')
+pkg.generate(
+    description: 'C++23 library for parsing and computing mathematical expressions and objects.',
+    filebase: 'zecalculator',
+    name: 'ZeCalculator',
+    subdirs: 'zecalculator'
+)
