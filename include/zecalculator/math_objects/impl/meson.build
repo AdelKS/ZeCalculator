@@ -4,7 +4,7 @@ if not meson.is_subproject()
       'cpp_function.h',
       'dyn_math_object.h',
     ),
-    subdir: 'zecalculator',
+    subdir: fs.relative_to(meson.current_source_dir(), meson.project_source_root() / 'include'),
     preserve_path: true
   )
 endif

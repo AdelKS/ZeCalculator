@@ -4,7 +4,7 @@ if not meson.is_subproject()
       'parser.h',
       'utils.h',
     ),
-    subdir: 'zecalculator',
+    subdir: fs.relative_to(meson.current_source_dir(), meson.project_source_root() / 'include'),
     preserve_path: true
   )
 endif

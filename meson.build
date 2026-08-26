@@ -8,7 +8,8 @@ project('ZeCalculator', 'cpp',
         'cpp_args= -march=native -pipe',
         'warning_level=3',
         'werror=true'
-    ]
+    ],
+    meson_version: '>=1.3.0'
 )
 
 fs = import('fs')
