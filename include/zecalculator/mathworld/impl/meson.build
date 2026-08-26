@@ -1,9 +1,7 @@
 if not meson.is_subproject()
   install_headers(
     files(
-      'cache.h',
-      'evaluation.h',
-      'object_cache.h',
+      'mathworld.h',
     ),
     subdir: fs.relative_to(meson.current_source_dir(), meson.project_source_root() / 'include'),
     preserve_path: true

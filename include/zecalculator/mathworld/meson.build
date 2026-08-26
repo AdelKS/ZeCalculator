@@ -7,3 +7,6 @@ if not meson.is_subproject()
     preserve_path: true
   )
 endif
+
+subdir('decl')
+subdir('impl')

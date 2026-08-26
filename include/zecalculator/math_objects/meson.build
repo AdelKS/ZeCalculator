@@ -4,6 +4,7 @@ subdir('impl')
 if not meson.is_subproject()
   install_headers(
     files(
+      'aliases.h',
       'builtin.h',
       'cpp_function.h',
       'dyn_math_object.h',

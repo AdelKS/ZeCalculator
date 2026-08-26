@@ -1,6 +1,7 @@
 if not meson.is_subproject()
   install_headers(
     files(
+      'cache.h',
       'evaluation.h',
       'object_cache.h',
     ),
