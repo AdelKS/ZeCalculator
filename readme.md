@@ -2,6 +2,9 @@
 
 `ZeCalculator` is a `C++23` library for parsing and computing mathematical expressions and objects.
 
+Objects within the same "MathWorld" can reference each other by name:
+when one object changes, every dependent object is automatically updated, like a spreadsheet that recalculates its cells. See code example bellow.
+
 #### Features
 
 - Supported math objects
