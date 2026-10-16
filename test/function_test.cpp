@@ -59,6 +59,19 @@ int main()
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 
+  "function whose expression is a number"_test = []<class StructType>()
+  {
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
+
+    MathWorld<type> world;
+    auto& f = world.new_object() = "f(x) = 0.5";
+
+    expect(bool(f));
+    expect(f.holds(ObjectType::FUNCTION));
+    expect(f({3.0}).value() == 0.5);
+
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
+
   "function evaluation shadowing a global constant"_test = []<class StructType>()
   {
     constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;

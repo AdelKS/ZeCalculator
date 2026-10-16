@@ -259,7 +259,8 @@ DynMathObject<type>& DynMathObject<type>::operator = (std::string definition)
       parsed_data = SeqObj{.rhs_str = definition.substr(ast->name.begin),
                            .rhs = std::move(rhs.func_data().subnodes)};
 
-    else if (rhs.is_number())
+    // 'f(x) = 2' is a function, 'a = 2' a constant
+    else if (rhs.is_number() and funcop_data.subnodes[0].is_var())
       parsed_data = ConstObj{.val = rhs.number_data().value,
                              .rhs_str = definition.substr(ast->name.begin)};
 
