@@ -1,0 +1,35 @@
+name: Build & Test ZeCalculator on Windows
+on:
+  workflow_call:
+    inputs:
+      arch:
+        required: true
+        type: string
+
+jobs:
+  build-test:
+    runs-on: ${{ inputs.arch == 'arm64' && 'windows-11-arm' || 'windows-latest' }}
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - name: Checkout ZeCalculator
+        uses: actions/checkout@v7
+
+      # msys2 has no gcc for arm64, so arm64 builds with the clang of CLANGARM64
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: ${{ inputs.arch == 'arm64' && 'CLANGARM64' || 'UCRT64' }}
+          update: true
+          install: git
+          pacboy: toolchain meson cmake
+
+      # no sanitizers: MinGW gcc has no ASan
+      - name: Setup meson build folder
+        run: meson setup build -D test=true
+
+      - name: Compile code
+        run: cd build && meson compile
+
+      - name: Test code
+        run: cd build && meson test --print-errorlogs

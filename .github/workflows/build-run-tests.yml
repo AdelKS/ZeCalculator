@@ -1,0 +1,16 @@
+name: Build & Test ZeCalculator
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu, macos, windows]
+        arch: [amd64, arm64]
+    uses: ./.github/workflows/tests-dispatcher.yml
+    with:
+      os: ${{ matrix.os }}
+      arch: ${{ matrix.arch }}

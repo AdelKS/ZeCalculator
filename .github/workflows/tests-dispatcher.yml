@@ -1,0 +1,29 @@
+name: tests dispatcher
+on:
+  workflow_call:
+    inputs:
+      os:
+        required: true
+        type: string
+      arch:
+        required: true
+        type: string
+
+jobs:
+  dispatch-to-ubuntu:
+    uses: ./.github/workflows/ubuntu-tests.yml
+    with:
+      arch: ${{ inputs.arch }}
+    if: inputs.os == 'ubuntu'
+
+  dispatch-to-macos:
+    uses: ./.github/workflows/macos-tests.yml
+    with:
+      arch: ${{ inputs.arch }}
+    if: inputs.os == 'macos'
+
+  dispatch-to-windows:
+    uses: ./.github/workflows/windows-tests.yml
+    with:
+      arch: ${{ inputs.arch }}
+    if: inputs.os == 'windows'
