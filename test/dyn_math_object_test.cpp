@@ -61,6 +61,23 @@ int main()
 
   } | std::tuple<FAST_TEST, RPN_TEST>{};
 
+  "pasted line breaks and tabs"_test = []<class StructType>()
+  {
+    constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;
+
+    MathWorld<type> world;
+
+    auto& f = world.new_object() = "f(x) =\tx + 1\r\n";
+    auto& u = world.new_object() = "u(n) = 1 ;\nu(n-1) * 2\n";
+
+    expect(bool(f)) << f.error() << fatal;
+    expect(bool(u)) << u.error() << fatal;
+
+    expect(f({2.}).value() == 3.);
+    expect(u({3.}).value() == 8.);
+
+  } | std::tuple<FAST_TEST, RPN_TEST>{};
+
   "rename Function"_test = []<class StructType>()
   {
     constexpr parsing::Type type = std::is_same_v<StructType, FAST_TEST> ? parsing::Type::FAST : parsing::Type::RPN;

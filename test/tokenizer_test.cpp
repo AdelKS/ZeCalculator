@@ -120,6 +120,39 @@ int main()
     expect(*parsing == expected_parsing);
   };
 
+  "tabs and line breaks"_test = []()
+  {
+    auto parsing = tokenize("\t2 +\r\n2\n");
+
+    expect(bool(parsing)) << parsing;
+
+    auto expected_parsing = std::vector<Token>({
+        Token::Number(2., "2", 1),
+        Token::Add("+", 3),
+        Token::Number(2., "2", 6),
+    });
+
+    expect(*parsing == expected_parsing);
+  };
+
+  "line break after a name"_test = []()
+  {
+    auto parsing = tokenize("x\n+ cos\t(x)");
+
+    expect(bool(parsing)) << parsing;
+
+    auto expected_parsing = std::vector<Token>({
+        Token::Variable("x", 0),
+        Token::Add("+", 2),
+        Token::Function("cos", 4),
+        Token::FunctionCallStart("(", 8),
+        Token::Variable("x", 9),
+        Token::FunctionCallEnd(")", 10),
+    });
+
+    expect(*parsing == expected_parsing);
+  };
+
   "function expression"_test = []()
   {
     auto parsing = tokenize("(cos(sin(x)+1))+1");

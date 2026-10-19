@@ -30,6 +30,8 @@
 #include <zecalculator/parsing/data_structures/token.h>
 #include <zecalculator/parsing/decl/parser.h>
 
+#include <algorithm>
+#include <array>
 #include <cmath>
 #include <optional>
 #include <charconv>
@@ -55,6 +57,13 @@ inline std::expected<std::vector<Token>, Error> tokenize(std::string_view expres
   const std::string_view orig_expr = expression;
   std::vector<Token> parsing;
 
+  // a pasted expression can hold tabs and line breaks
+  static constexpr std::array spaces = {' ', '\t', '\n', '\v', '\f', '\r'};
+
+  auto is_space = [](const char ch) {
+    return std::ranges::contains(spaces, ch);
+  };
+
   auto is_seperator = [](const char ch) {
 
     static constexpr auto sep_table = []{
@@ -63,7 +72,9 @@ inline std::expected<std::vector<Token>, Error> tokenize(std::string_view expres
       truth_table.fill(false);
       for (const auto& op: tokens::operators)
         truth_table[uint8_t(op.token)] = true;
-      for (char sep: std::array{' ', '(', ')'})
+      for (char sep: spaces)
+        truth_table[uint8_t(sep)] = true;
+      for (char sep: std::array{'(', ')'})
         truth_table[uint8_t(sep)] = true;
       return truth_table;
     }();
@@ -176,7 +187,7 @@ inline std::expected<std::vector<Token>, Error> tokenize(std::string_view expres
       }
       else return std::unexpected(Error::unexpected(pth_txt, std::string(expression)));
     }
-    else if (*it == ' ')
+    else if (is_space(*it))
       // spaces are skipped
       it++;
     else
@@ -198,7 +209,7 @@ inline std::expected<std::vector<Token>, Error> tokenize(std::string_view expres
 
         // skip spaces after the function name or variable name
         while (it != expression.cend() and
-               *it == ' ') { it++; }
+               is_space(*it)) { it++; }
 
         if (it == expression.cend() or *it != '(')
         {
