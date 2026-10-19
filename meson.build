@@ -1,5 +1,5 @@
 project('ZeCalculator', 'cpp',
-    version : '0.13.5',
+    version : '0.13.6',
     default_options : [
         'cpp_std=c++23',
         'buildtype=release',
